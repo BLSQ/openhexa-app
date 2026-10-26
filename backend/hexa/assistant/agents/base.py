@@ -3,6 +3,7 @@ import json
 import logging
 from collections.abc import AsyncGenerator
 from dataclasses import replace
+from decimal import Decimal
 
 from pydantic_ai import Agent, AgentRetries, RunUsage, UsageLimits
 from pydantic_ai.capabilities import Caching, ProcessHistory
@@ -32,6 +33,7 @@ from hexa.assistant.ai_models import AiModelBuilder, BuiltModel
 from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.keys import AgentKey
 from hexa.assistant.models import (
+    AiUsage,
     Conversation,
     Message,
     ToolInvocation,
@@ -50,7 +52,7 @@ from hexa.assistant.tool_binding import bind_context
 from hexa.assistant.types import TextSegment, ToolSegment
 from hexa.core.sse import format_sse
 from hexa.mcp.tools.workspaces import get_workspace
-from hexa.workspaces.models import is_default_workspace_description
+from hexa.workspaces.models import Workspace, is_default_workspace_description
 
 logger = logging.getLogger(__name__)
 
@@ -523,6 +525,9 @@ class BaseAgent:
         for tool_invocation in tool_invocations.values():
             tool_invocation.message = assistant_message
             await tool_invocation.asave()
+        await self._record_usage(
+            usage, self._built_model, cost, message=assistant_message
+        )
 
         self.conversation.total_input_tokens += input_tok
         self.conversation.total_output_tokens += output_tok
@@ -543,9 +548,41 @@ class BaseAgent:
             if naming.cost is not None:
                 self.conversation.cost += naming.cost
             update_fields.append("name")
+            await self._record_usage(naming.usage, naming.built_model, naming.cost)
 
         await self.conversation.asave(update_fields=update_fields)
         return assistant_message
+
+    async def _record_usage(
+        self,
+        usage: RunUsage,
+        built_model: BuiltModel,
+        cost: Decimal | None,
+        message: Message | None = None,
+    ) -> None:
+        """Charge one model run to the organization as an `AiUsage` row. The
+        naming agent's row has no message. The token and cost columns of the
+        message and the conversation are still written meanwhile: they go once
+        every reader runs on the table.
+        """
+        organization_id = await Workspace.objects.values_list(
+            "organization_id", flat=True
+        ).aget(pk=self.conversation.workspace_id)
+        await AiUsage.objects.acreate(
+            organization_id=organization_id,
+            workspace_id=self.conversation.workspace_id,
+            user_id=self.conversation.user_id,
+            conversation_id=self.conversation.id,
+            message_id=message.id if message else None,
+            source=AiUsage.Source.CONVERSATION,
+            provider=built_model.provider_id,
+            model_name=built_model.api_name,
+            input_tokens=usage.input_tokens or 0,
+            cache_read_tokens=usage.cache_read_tokens or 0,
+            cache_write_tokens=usage.cache_write_tokens or 0,
+            output_tokens=usage.output_tokens or 0,
+            cost=cost,
+        )
 
     async def _resolve_naming_task(
         self, task: asyncio.Task[NamingResult]

@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.test import override_settings
 from django.utils import timezone
 
-from hexa.assistant.models import Conversation, Message
+from hexa.assistant.models import AiUsage
 from hexa.core.test import TestCase
 from hexa.user_management.models import (
     Feature,
@@ -233,53 +233,41 @@ class OrganizationSubscriptionTest(TestCase):
         )
         self.assertTrue(self.organization.is_workspaces_limit_reached())
 
+    def _ai_usage(self, cost, source=AiUsage.Source.CONVERSATION) -> AiUsage:
+        return AiUsage.objects.create(
+            organization=self.organization,
+            user=self.owner,
+            source=source,
+            provider="anthropic",
+            model_name="claude-opus-4-6",
+            cost=cost,
+        )
+
     def test_get_monthly_ai_cost(self):
         self.assertEqual(self.organization.get_monthly_ai_cost(), 0)
 
-        workspace = Workspace.objects.create(
-            name="AI Workspace",
-            slug="ai-workspace",
-            organization=self.organization,
+        self._ai_usage(Decimal("12.40"))
+        self._ai_usage(Decimal("0.30"), source=AiUsage.Source.NOTEBOOK)
+        # Unpriced calls and last month's are left out.
+        self._ai_usage(None)
+        AiUsage.objects.filter(pk=self._ai_usage(Decimal("99")).pk).update(
+            created_at=timezone.now() - timedelta(days=40)
         )
-        conversation = Conversation.objects.create(user=self.owner, workspace=workspace)
-        Message.objects.create(
-            conversation=conversation,
-            role=Message.Role.ASSISTANT,
-            content=[],
-            cost=Decimal("12.40"),
-        )
-        Message.objects.create(
-            conversation=conversation,
-            role=Message.Role.ASSISTANT,
-            content=[],
-            cost=Decimal("0.30"),
-        )
-        # User messages should be ignored.
-        Message.objects.create(
-            conversation=conversation,
-            role=Message.Role.USER,
-            content=[],
-            cost=Decimal("99"),
+        other = Organization.objects.create(name="Other", short_name="OTH")
+        AiUsage.objects.create(
+            organization=other,
+            source=AiUsage.Source.CONVERSATION,
+            provider="anthropic",
+            model_name="claude-opus-4-6",
+            cost=Decimal("7"),
         )
 
         self.assertEqual(self.organization.get_monthly_ai_cost(), 12.70)
 
     def test_is_ai_budget_limit_reached(self):
         self.assertFalse(self.organization.is_ai_budget_limit_reached())
-
-        workspace = Workspace.objects.create(
-            name="AI Budget Workspace",
-            slug="ai-budget-workspace",
-            organization=self.organization,
-        )
-        conversation = Conversation.objects.create(user=self.owner, workspace=workspace)
         # The subscription's monthly AI budget is 50 (default).
-        Message.objects.create(
-            conversation=conversation,
-            role=Message.Role.ASSISTANT,
-            content=[],
-            cost=Decimal("50"),
-        )
+        self._ai_usage(Decimal("50"))
         self.assertTrue(self.organization.is_ai_budget_limit_reached())
 
     def test_current_subscription_returns_expired(self):
