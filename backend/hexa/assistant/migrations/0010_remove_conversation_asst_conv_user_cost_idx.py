@@ -3,7 +3,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("assistant", "0007_alter_conversation_instruction_set"),
+        ("assistant", "0009_aiusage_backfill"),
     ]
 
     operations = [
