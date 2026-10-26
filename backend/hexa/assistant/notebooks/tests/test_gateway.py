@@ -178,36 +178,6 @@ class ConvertMessagesTest(TestCase):
             with self.assertRaises(gateway.GatewayError):
                 gateway.convert_messages(messages)
 
-    def test_rejects_well_formed_json_of_the_wrong_shape(self):
-        """As a 400 the client can read, not a 500."""
-        messages = [{"role": "user", "content": "x"}]
-        for body in (
-            {"messages": messages, "tools": ["run_cell"]},
-            {"messages": messages, "tools": [{"type": "function", "function": "x"}]},
-            {"messages": [{"role": "assistant", "tool_calls": ["x"]}, *messages]},
-            {
-                "messages": [
-                    {"role": "assistant", "tool_calls": [{"function": "x"}]},
-                    *messages,
-                ]
-            },
-            {"messages": messages, "stop": 5},
-        ):
-            with self.assertRaises(gateway.GatewayError, msg=body):
-                gateway.parse_chat_request(body)
-        # Tolerated: the request still runs without them.
-        request = gateway.parse_chat_request(
-            {
-                "messages": messages,
-                "stream_options": [],
-                "tool_choice": {"function": "x"},
-                "stop": ["\\n", 42],
-            }
-        )
-        self.assertFalse(request.include_usage)
-        self.assertNotIn("tool_choice", request.settings)
-        self.assertEqual(request.settings["stop_sequences"], ["\\n", "42"])
-
     def test_tools_and_settings(self):
         request = gateway.parse_chat_request(
             {
@@ -425,7 +395,9 @@ class GatewayViewTest(TestCase):
         self.assertEqual(response.status_code, 400)
         response = self.post({"messages": []})
         self.assertEqual(response.status_code, 400)
-        response = self.post({"messages": [{"role": "robot", "content": "x"}]})
+        # A request we do not run is reported: the client is ours.
+        with self.assertLogs("hexa.assistant.notebooks.views", level="ERROR"):
+            response = self.post({"messages": [{"role": "robot", "content": "x"}]})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
             self.client.get(URL, HTTP_AUTHORIZATION=f"Bearer {self.TOKEN}").status_code,

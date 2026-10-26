@@ -95,6 +95,9 @@ async def gateway_chat_completions(request: HttpRequest) -> HttpResponse:
     except (json.JSONDecodeError, UnicodeDecodeError):
         return _gateway_error(400, "Invalid JSON body", "invalid_request_error")
     except gateway.GatewayError as e:
+        # Jupyter AI, the only client, sends what we run: this is a change on
+        # its side or ours, for us to see.
+        logger.error("gateway: refused a request of %s: %s", user.email, e)
         return _gateway_error(400, str(e), "invalid_request_error")
 
     try:
