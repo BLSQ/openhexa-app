@@ -16,7 +16,11 @@ import type {
   MapRef,
   ViewStateChangeEvent,
 } from "react-map-gl/maplibre";
-import Map, { NavigationControl, Popup } from "react-map-gl/maplibre";
+import Map, {
+  AttributionControl,
+  NavigationControl,
+  Popup,
+} from "react-map-gl/maplibre";
 import { stringifyCellValue } from "./cellValue";
 import { featuresBounds, MapBounds, MapFeature } from "./map";
 
@@ -314,6 +318,7 @@ const ResultsMap = ({ features }: ResultsMapProps) => {
       cursor={hovering ? "pointer" : "grab"}
     >
       <NavigationControl position="top-left" showCompass={false} />
+      <AttributionControl position="bottom-left" />
       {selection && (
         <Popup
           longitude={selection.longitude}
