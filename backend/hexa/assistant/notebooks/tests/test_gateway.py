@@ -23,7 +23,7 @@ from hexa.workspaces.models import WorkspaceMembership, WorkspaceMembershipRole
 from hexa.workspaces.tests.testutils import create_workspace
 
 URL = "/assistant/gateway/v1/chat/completions"
-BUILD = "hexa.assistant.notebooks.views.AiModelBuilder.build_for_agent"
+BUILD = "hexa.assistant.notebooks.env.AiModelBuilder.build_for_agent"
 PNG = base64.b64encode(b"\x89PNG\r\n\x1a\n").decode()
 
 
