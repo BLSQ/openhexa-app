@@ -2,14 +2,13 @@ from ariadne import QueryType
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
 
+from hexa.core.text_files import MAX_TEXT_FILE_SIZE
 from hexa.files import storage
 from hexa.files.backends.exceptions import NotFound
 from hexa.files.utils import is_safe_path
 from hexa.workspaces.models import Workspace
 
 files_queries = QueryType()
-
-MAX_READ_SIZE = 1024 * 1024
 
 
 @files_queries.field("getFileByPath")
@@ -62,7 +61,7 @@ def resolve_read_file_content(_, info, **kwargs):
     if obj.type != "file":
         return {"success": False, "errors": ["NOT_A_FILE"]}
 
-    if obj.size > MAX_READ_SIZE:
+    if obj.size > MAX_TEXT_FILE_SIZE:
         return {"success": False, "errors": ["FILE_TOO_LARGE"]}
 
     start_line = kwargs.get("start_line")

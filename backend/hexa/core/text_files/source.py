@@ -1,4 +1,3 @@
-# Same ceiling as reading a text file from a workspace bucket.
 MAX_TEXT_FILE_SIZE = 1024 * 1024
 
 

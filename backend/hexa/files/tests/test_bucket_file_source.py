@@ -2,11 +2,12 @@ import shutil
 from io import BytesIO
 from pathlib import Path
 from tempfile import mkdtemp
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from django.test import SimpleTestCase
 
 from hexa.core.text_files import MAX_TEXT_FILE_SIZE, TextFiles
+from hexa.files import bucket_file_source
 from hexa.files.backends.fs import FileSystemStorage
 from hexa.files.bucket_file_source import BucketFileSource
 
@@ -77,6 +78,19 @@ class BucketFileSourceTest(SimpleTestCase):
             files = BucketFileSource(self.storage, "bucket")
             self.assertEqual(len(files), 2)
             self.assertTrue(files.truncated)
+
+    def test_listing_stops_when_next_page_never_ends(self):
+        endless = MagicMock(items=[], has_next_page=True)
+        with patch.object(
+            self.storage, "list_bucket_objects", return_value=endless
+        ) as list_bucket_objects:
+            files = BucketFileSource(self.storage, "bucket")
+            self.assertEqual(len(files), 0)
+        self.assertTrue(files.truncated)
+        self.assertEqual(
+            list_bucket_objects.call_count,
+            bucket_file_source._MAX_LIST_PAGES,
+        )
 
     def test_grep_through_text_files(self):
         result = TextFiles(BucketFileSource(self.storage, "bucket")).grep(

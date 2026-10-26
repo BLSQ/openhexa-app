@@ -348,7 +348,18 @@ class ForgejoClient(GitClient):
         Blobs too large to read carry too_large=True and no content.
         """
         tree = self.get_files_tree(repo_name, ref, org_slug=org_slug)
-        archived = self._archive_contents(repo_name, ref, org_slug, tree)
+        try:
+            archived = self._archive_contents(repo_name, ref, org_slug, tree)
+        except (ForgejoAPIError, zipfile.BadZipFile):
+            # Archives can be disabled on the server; per-file requests still work.
+            logger.warning(
+                "Archive of %s/%s@%s unavailable, fetching files one by one",
+                org_slug or self._username,
+                repo_name,
+                ref,
+                exc_info=True,
+            )
+            archived = {}
         nodes: list[dict] = []
 
         for entry in tree:
@@ -414,7 +425,7 @@ class ForgejoClient(GitClient):
         self, repo_name: str, ref: str, org_slug: str | None, tree: list[dict]
     ) -> dict[str, bytes]:
         """Every blob of `ref` by path, from one archive download instead of one request
-        per file, or nothing when the caller should fetch files one by one.
+        per file, or nothing when the repository is too large to archive.
 
         An archive holds every file, so it is only used when the whole repository fits
         under MAX_INLINE_BLOB_SIZE: a large blob must not be downloaded only to be skipped.
@@ -423,28 +434,17 @@ class ForgejoClient(GitClient):
         if not sizes or sum(sizes) > MAX_INLINE_BLOB_SIZE:
             return {}
         org_slug = org_slug or self._username
-        try:
-            response = self._request(
-                "GET",
-                f"/repos/{org_slug}/{repo_name}/archive/{quote(ref, safe='')}.zip",
-            )
-            with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
-                # Entries sit under a top-level `<repo>/` directory.
-                return {
-                    name.split("/", 1)[1]: archive.read(name)
-                    for name in archive.namelist()
-                    if "/" in name and not name.endswith("/")
-                }
-        except (ForgejoAPIError, zipfile.BadZipFile):
-            # Archives can be disabled on the server; per-file requests still work.
-            logger.warning(
-                "Archive of %s/%s@%s unavailable, fetching files one by one",
-                org_slug,
-                repo_name,
-                ref,
-                exc_info=True,
-            )
-            return {}
+        response = self._request(
+            "GET",
+            f"/repos/{org_slug}/{repo_name}/archive/{quote(ref, safe='')}.zip",
+        )
+        with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+            # Entries sit under a top-level `<repo>/` directory.
+            return {
+                name.split("/", 1)[1]: archive.read(name)
+                for name in archive.namelist()
+                if "/" in name and not name.endswith("/")
+            }
 
     def get_commit(self, org_slug: str, repo_name: str, sha: str) -> dict:
         response = self._request(

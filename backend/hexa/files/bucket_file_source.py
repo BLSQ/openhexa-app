@@ -10,6 +10,8 @@ from .backends.exceptions import NotFound
 MAX_LISTED_FILES = 5000
 # Large pages keep the request count down: backends re-iterate from the start per page.
 _LIST_PAGE_SIZE = 1000
+# Guards against a backend that never stops reporting a next page.
+_MAX_LIST_PAGES = 100
 
 
 class BucketFileSource(Mapping):
@@ -65,15 +67,14 @@ class BucketFileSource(Mapping):
         return sizes
 
     def _list(self, prefix: str) -> Iterator:
-        page = 1
-        while True:
+        for page in range(1, _MAX_LIST_PAGES + 1):
             result = self._storage.list_bucket_objects(
                 self._bucket_name, prefix=prefix, page=page, per_page=_LIST_PAGE_SIZE
             )
             yield from result.items
             if not result.has_next_page:
                 return
-            page += 1
+        self.truncated = True
 
     def _fetch(self, path: str) -> str | None:
         if self._sizes[path] > MAX_TEXT_FILE_SIZE:
