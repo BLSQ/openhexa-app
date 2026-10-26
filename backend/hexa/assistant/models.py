@@ -125,8 +125,12 @@ class Message(Base):
     class Meta:
         ordering = ["-created_at"]
         indexes = [
-            # Covers conversation.messages.filter(role="assistant").last() in mutations.py,
-            # which needs (conversation, role) as the leading columns.
+            # Covers two queries:
+            # 1. Organization.get_monthly_ai_cost(): nested loop over the organization's
+            #    conversations, filtering by role='assistant' and created_at range, reading
+            #    cost from INCLUDE.
+            # 2. conversation.messages.filter(role="assistant").last() in mutations.py,
+            #    which needs (conversation, role) as the leading columns.
             models.Index(
                 fields=["conversation", "role", "-created_at"],
                 include=["cost"],
