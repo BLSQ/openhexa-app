@@ -318,7 +318,7 @@ const ResultsMap = ({ features }: ResultsMapProps) => {
       cursor={hovering ? "pointer" : "grab"}
     >
       <NavigationControl position="top-left" showCompass={false} />
-      <AttributionControl position="bottom-left" />
+      <AttributionControl position="bottom-left" compact />
       {selection && (
         <Popup
           longitude={selection.longitude}
