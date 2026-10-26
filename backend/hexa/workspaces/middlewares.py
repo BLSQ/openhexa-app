@@ -19,8 +19,9 @@ def workspace_token_authentication_middleware(get_response):
         except KeyError:
             return get_response(request)  # No Authorization header
         except ValueError:
-            # Not "<type> <token>": another scheme, such as the bare token the
-            # notebooks telemetry endpoint accepts. Not ours to resolve.
+            # Not "<type> <token>", so not a workspace token; the view decides
+            # whether it needs one.
+            logger.debug("Authorization header is not '<type> <token>'; ignored")
             return get_response(request)
 
         if auth_type.lower() == "bearer":
