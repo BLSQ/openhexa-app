@@ -89,9 +89,7 @@ def _text(content: Any) -> str:
         return content
     if isinstance(content, list):
         return "".join(
-            part.get("text", "")
-            for part in content
-            if isinstance(part, dict) and part.get("type") == "text"
+            part.get("text", "") for part in content if part.get("type") == "text"
         )
     return str(content)
 
@@ -113,11 +111,9 @@ def _image(image_url: Any) -> ai.ImageUrl | ai.BinaryContent:
 def _user_content(content: Any) -> str | list[ai.UserContent]:
     if isinstance(content, str) or content is None:
         return content or ""
-    if not isinstance(content, list):
-        raise GatewayError("A user message content must be a string or a list of parts")
     parts: list[ai.UserContent] = []
     for part in content:
-        kind = part.get("type") if isinstance(part, dict) else None
+        kind = part.get("type")
         if kind == "text":
             parts.append(part.get("text", ""))
         elif kind == "image_url":
@@ -130,8 +126,8 @@ def _user_content(content: Any) -> str | list[ai.UserContent]:
 def _tool_calls(message: dict) -> list[ai.ToolCallPart]:
     parts = []
     for call in message.get("tool_calls") or []:
-        function = call.get("function") if isinstance(call, dict) else None
-        name = function.get("name") if isinstance(function, dict) else None
+        function = call.get("function") or {}
+        name = function.get("name")
         if not name:
             raise GatewayError("A tool call needs a function name")
         parts.append(
@@ -148,7 +144,7 @@ def convert_messages(messages: list[dict]) -> list[ai.ModelMessage]:
     """Chat Completions messages as pydantic-ai's alternating requests and
     responses. Consecutive system/user/tool messages share one request.
     """
-    if not isinstance(messages, list) or not messages:
+    if not messages:
         raise GatewayError("messages must be a non-empty list")
     converted: list[ai.ModelMessage] = []
     request_parts: list[ai.ModelRequestPart] = []
@@ -160,8 +156,6 @@ def convert_messages(messages: list[dict]) -> list[ai.ModelMessage]:
             request_parts.clear()
 
     for message in messages:
-        if not isinstance(message, dict):
-            raise GatewayError("Each message must be an object")
         role = message.get("role")
         content = message.get("content")
         if role in ("system", "developer"):
@@ -196,16 +190,12 @@ def convert_messages(messages: list[dict]) -> list[ai.ModelMessage]:
 
 
 def convert_tools(tools: Any) -> list[ToolDefinition]:
-    if not tools:
-        return []
-    if not isinstance(tools, list):
-        raise GatewayError("tools must be a list")
     definitions = []
-    for tool in tools:
-        if not isinstance(tool, dict) or tool.get("type", "function") != "function":
+    for tool in tools or []:
+        if tool.get("type", "function") != "function":
             raise GatewayError("Only function tools are supported")
-        function = tool.get("function")
-        if not isinstance(function, dict) or not function.get("name"):
+        function = tool["function"]
+        if not function.get("name"):
             raise GatewayError("A tool needs a name")
         definitions.append(
             ToolDefinition(
@@ -227,29 +217,26 @@ def convert_settings(body: dict) -> dict[str, Any]:
     if body.get("max_completion_tokens") is not None:
         settings["max_tokens"] = body["max_completion_tokens"]
     stop = body.get("stop")
-    if isinstance(stop, str):
-        settings["stop_sequences"] = [stop]
-    elif isinstance(stop, list) and stop:
-        settings["stop_sequences"] = [str(sequence) for sequence in stop]
-    elif stop:
-        raise GatewayError("stop must be a string or a list of strings")
+    if stop:
+        settings["stop_sequences"] = [stop] if isinstance(stop, str) else list(stop)
     tool_choice = body.get("tool_choice")
     if isinstance(tool_choice, str) and tool_choice in ("auto", "none", "required"):
         settings["tool_choice"] = tool_choice
     elif isinstance(tool_choice, dict):
-        function = tool_choice.get("function")
-        name = function.get("name") if isinstance(function, dict) else None
+        name = (tool_choice.get("function") or {}).get("name")
         if name:
             settings["tool_choice"] = [name]
     return settings
 
 
-def parse_chat_request(body: Any) -> ChatRequest:
-    if not isinstance(body, dict):
-        raise GatewayError("The request body must be a JSON object")
-    stream_options = body.get("stream_options")
-    if not isinstance(stream_options, dict):
-        stream_options = {}
+def parse_chat_request(body: dict) -> ChatRequest:
+    """The request as pydantic-ai runs it.
+
+    Raises `GatewayError` for a request the gateway does not run; a body of
+    another shape than the Chat Completions API's simply fails, which is a
+    bug on one side to be reported, not a client error to be explained.
+    """
+    stream_options = body.get("stream_options") or {}
     return ChatRequest(
         messages=convert_messages(body.get("messages")),
         tools=convert_tools(body.get("tools")),
