@@ -293,16 +293,18 @@ class GatewayViewTest(TestCase):
                 for c in chunks
             )
         )
-        self.assertEqual(chunks[0]["choices"][0]["delta"]["role"], "assistant")
-        text = "".join(c["choices"][0]["delta"].get("content") or "" for c in chunks)
+        *choices, usage_chunk = chunks
+        self.assertEqual(choices[0]["choices"][0]["delta"]["role"], "assistant")
+        text = "".join(c["choices"][0]["delta"].get("content") or "" for c in choices)
         self.assertEqual(text, "Hello world ")
         finish = [
             c["choices"][0]["finish_reason"]
-            for c in chunks
+            for c in choices
             if c["choices"][0]["finish_reason"]
         ]
         self.assertEqual(finish, ["stop"])
-        usage = chunks[-1]["usage"]
+        self.assertEqual(usage_chunk["choices"], [])
+        usage = usage_chunk["usage"]
         self.assertGreater(usage["prompt_tokens"], 0)
         self.assertGreater(usage["completion_tokens"], 0)
         self.assertEqual(

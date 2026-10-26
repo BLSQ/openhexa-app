@@ -314,13 +314,17 @@ class Completion:
     def usage(self) -> RequestUsage:
         return self.response.usage if self.response else RequestUsage()
 
-    def _chunk(self, delta: dict, finish_reason: str | None = None, **extra) -> str:
+    def _chunk(
+        self, delta: dict | None, finish_reason: str | None = None, **extra
+    ) -> str:
         chunk = {
             "id": self.id,
             "object": "chat.completion.chunk",
             "created": self.created,
             "model": self.model_name,
-            "choices": [{"index": 0, "delta": delta, "finish_reason": finish_reason}],
+            "choices": [{"index": 0, "delta": delta, "finish_reason": finish_reason}]
+            if delta is not None
+            else [],
             **extra,
         }
         return f"data: {json.dumps(chunk)}\n\n"
@@ -392,7 +396,8 @@ class Completion:
             yield self._chunk({"tool_calls": tool_calls})
         yield self._chunk({}, finish_reason=_finish_reason(self.response))
         if self.request.include_usage:
-            yield self._chunk({}, usage=_usage_json(self.usage))
+            # As the API specifies it: a chunk of its own, with no choice.
+            yield self._chunk(None, usage=_usage_json(self.usage))
         yield "data: [DONE]\n\n"
 
 
