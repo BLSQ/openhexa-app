@@ -181,7 +181,7 @@ class ToolInvocation(Base):
 class AiUsage(Base):
     """A model call made on the organization's AI credentials outside the app's
     own agents: what the gateway runs for the AI tooling of its notebook
-    servers, see `hexa.assistant.gateway`.
+    servers, see `hexa.assistant.notebooks.gateway`.
 
     The app's agents keep their usage on the messages of a conversation; the
     organization's monthly AI cost sums both.

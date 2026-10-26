@@ -2,7 +2,7 @@
 
 The notebook images bundle Jupyter AI, whose Jupyternaut assistant talks to
 models through litellm. Rather than credentials, the workspace credentials
-endpoint hands the server the way to our gateway (`hexa.assistant.gateway`),
+endpoint hands the server the way to our gateway (`hexa.assistant.notebooks.gateway`),
 an OpenAI-compatible endpoint that runs the organization's model here, as
 HEXA_AI_* environment variables read by the image:
 

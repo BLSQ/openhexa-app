@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 from django.test import SimpleTestCase, override_settings
 
-from hexa.assistant.notebooks import notebooks_ai_env
+from hexa.assistant.notebooks.env import notebooks_ai_env
 from hexa.user_management.models import AiSettings
 
 

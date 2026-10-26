@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from .notebooks import views as notebooks_views
 
 app_name = "assistant"
 
@@ -14,7 +15,7 @@ urlpatterns = [
     # base URL, without a trailing slash.
     path(
         "gateway/v1/chat/completions",
-        views.gateway_chat_completions,
+        notebooks_views.gateway_chat_completions,
         name="gateway_chat_completions",
     ),
 ]
