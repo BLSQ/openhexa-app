@@ -146,6 +146,13 @@ WEBAPPS_DOMAIN = os.environ.get("WEBAPPS_DOMAIN", None)
 WEBAPPS_DOMAIN_HOST = WEBAPPS_DOMAIN.split(":")[0] if WEBAPPS_DOMAIN else None
 if WEBAPPS_DOMAIN:
     ALLOWED_HOSTS += [f".{WEBAPPS_DOMAIN_HOST}"]
+# Origins allowed to embed web apps besides the backend and the frontend, e.g. a
+# frontend also reached on http://localhost:<port> in a git worktree.
+WEBAPPS_ADDITIONAL_FRAME_ANCESTORS = [
+    origin
+    for origin in os.environ.get("WEBAPPS_ADDITIONAL_FRAME_ANCESTORS", "").split(",")
+    if origin
+]
 
 CORS_ALLOWED_ORIGINS = []
 CSRF_TRUSTED_ORIGINS = []
