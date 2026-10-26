@@ -874,7 +874,7 @@ class GitWebappModelTest(TestCase):
             },
         ]
 
-        files = webapp.get_text_files()
+        files = webapp.get_text_files(search_glob="**")
 
         self.assertEqual(
             files.glob("**")["paths"],

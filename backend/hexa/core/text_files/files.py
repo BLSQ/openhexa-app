@@ -13,7 +13,7 @@ class TextFiles:
 
     `files` maps every path, binary files included, to the file's text, or to None when
     it cannot be read as text (binary, too large); an unknown path raises KeyError.
-    Sources: `GitRepoFileSource` (repositories, loaded at once on the first lookup),
+    Sources: `GitRepoFileSource` (repositories, fetched per file or all at once),
     `BucketFileSource` (workspace buckets, downloaded on lookup) and `Overlay`
     (pending changes on top of either).
 

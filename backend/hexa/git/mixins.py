@@ -49,14 +49,22 @@ class GitRepoMixin(models.Model):
             "page": page,
         }
 
-    def get_text_files(self, ref: str = "main") -> TextFiles:
+    def get_text_files(
+        self, ref: str = "main", *, search_glob: str | None = None
+    ) -> TextFiles:
         """The repository's files for glob, grep and read: the text of each file, or None
         for binary and too large ones. Loaded like the file tree editors see it, so
         whatever a proposal can patch can be read first.
+
+        A grep passes the files it searches as `search_glob`, so they download together.
         """
         return TextFiles(
             GitRepoFileSource(
-                self.client, self.repository, ref, org_slug=self.git_org.slug
+                self.client,
+                self.repository,
+                ref,
+                org_slug=self.git_org.slug,
+                search_glob=search_glob,
             )
         )
 

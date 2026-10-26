@@ -31,9 +31,15 @@ class FilePatch(BaseModel):
     new_string: str
 
 
-def _webapp_files(webapp: GitWebapp, conversation: Conversation | None) -> TextFiles:
+def _webapp_files(
+    webapp: GitWebapp,
+    conversation: Conversation | None,
+    search_glob: str | None = None,
+) -> TextFiles:
     return working_files(
-        webapp.get_text_files(), conversation, "propose_webapp_version"
+        webapp.get_text_files(search_glob=search_glob),
+        conversation,
+        "propose_webapp_version",
     )
 
 
@@ -73,7 +79,7 @@ def grep_webapp_files(
     head_limit and offset page through the entries; `truncated` tells there are more.
     Reflects the pending proposal if there is one.
     """
-    return _webapp_files(webapp, conversation).grep(
+    return _webapp_files(webapp, conversation, search_glob=glob or "**").grep(
         pattern,
         glob=glob,
         output_mode=output_mode,
