@@ -8,15 +8,19 @@ from __future__ import annotations
 
 import json
 import uuid
+from decimal import Decimal
 
 from asgiref.sync import sync_to_async
 from django.db import connections
+from django.db.models import Count, Q, Sum
+from pydantic_evals import increment_eval_metric
 
 from hexa.assistant.agents.create_pipeline_agent import CreatePipelineAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.user_management.models import AiSettings, User
 
+from ...core import CONVERSATION_COST_METRIC
 from ...fixtures import EvalWorld, build_profile
 from .schemas import PipelineCreateInput, ProposedPipeline
 
@@ -112,6 +116,20 @@ def _final_text(conversation: Conversation) -> str | None:
     return "\n".join(parts) or None
 
 
+def _conversation_cost(conversation: Conversation) -> Decimal | None:
+    """What the app billed the run, summed over the agent's replies.
+
+    None when any reply went unpriced. A partial total would read as a cheap
+    run rather than an unknown one.
+    """
+    totals = Message.objects.filter(
+        conversation=conversation, role=Message.Role.ASSISTANT
+    ).aggregate(total=Sum("cost"), unpriced=Count("id", filter=Q(cost__isnull=True)))
+    if totals["unpriced"]:
+        return None
+    return totals["total"]
+
+
 def _harvest(conversation: Conversation) -> ProposedPipeline:
     invocations = list(
         ToolInvocation.objects.filter(message__conversation=conversation).order_by(
@@ -159,6 +177,9 @@ def make_task():
             agent = await sync_to_async(CreatePipelineAgent)(conversation)
             async for _ in agent.run_stream(inputs.prompt):
                 pass
+            cost = await sync_to_async(_conversation_cost)(conversation)
+            if cost is not None:
+                increment_eval_metric(CONVERSATION_COST_METRIC, float(cost))
             return await sync_to_async(_harvest)(conversation)
         finally:
             # Closed on the same worker thread that opened them; a connection
