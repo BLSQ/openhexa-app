@@ -9,7 +9,7 @@ from django.conf import settings
 
 from hexa.core.text_files import decode_text
 from hexa.git.client import GitClient
-from hexa.git.enums import FileEncoding
+from hexa.git.enums import FileEncoding, TreeEntryType
 from hexa.git.exceptions import GitError, GitFileNotFound, GitFileTooLarge
 
 logger = logging.getLogger(__name__)
@@ -378,7 +378,7 @@ class ForgejoClient(GitClient):
             path = entry.get("path", "")
             entry_type = entry.get("type", "")
 
-            if entry_type == "tree":
+            if entry_type == TreeEntryType.TREE:
                 nodes.append(
                     {
                         "path": path,
@@ -390,7 +390,7 @@ class ForgejoClient(GitClient):
                     }
                 )
                 continue
-            if entry_type != "blob":
+            if entry_type != TreeEntryType.BLOB:
                 continue
 
             size = entry.get("size") or 0
@@ -442,7 +442,9 @@ class ForgejoClient(GitClient):
         An archive holds every file, so it is only used when the whole repository fits
         under MAX_INLINE_BLOB_SIZE: a large blob must not be downloaded only to be skipped.
         """
-        sizes = [e.get("size") or 0 for e in tree if e.get("type") == "blob"]
+        sizes = [
+            e.get("size") or 0 for e in tree if e.get("type") == TreeEntryType.BLOB
+        ]
         if not sizes or sum(sizes) > MAX_INLINE_BLOB_SIZE:
             return {}
         org_slug = org_slug or self._username

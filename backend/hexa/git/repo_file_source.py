@@ -4,7 +4,7 @@ from functools import cached_property
 from hexa.core.text_files import FileSource, decode_text
 
 from .client import GitClient
-from .enums import FileEncoding
+from .enums import FileEncoding, TreeEntryType
 from .exceptions import GitFileTooLarge
 from .forgejo import MAX_INLINE_BLOB_SIZE
 
@@ -32,20 +32,20 @@ class GitRepoFileSource(FileSource):
         self._contents: dict[str, str | None] = {}
 
     def __getitem__(self, path: str) -> str | None:
-        if path not in self._sizes:
+        if path not in self._file_sizes:
             raise KeyError(path)
         if path not in self._contents:
             self._contents[path] = self._fetch(path)
         return self._contents[path]
 
     def __contains__(self, path: object) -> bool:
-        return path in self._sizes
+        return path in self._file_sizes
 
     def __iter__(self) -> Iterator[str]:
-        return iter(self._sizes)
+        return iter(self._file_sizes)
 
     def __len__(self) -> int:
-        return len(self._sizes)
+        return len(self._file_sizes)
 
     def prefetch(self, paths: list[str]) -> None:
         if sum(1 for p in paths if p not in self._contents) > 1:
@@ -58,14 +58,16 @@ class GitRepoFileSource(FileSource):
         )
 
     @cached_property
-    def _sizes(self) -> dict[str, int]:
+    def _file_sizes(self) -> dict[str, int]:
         return {
-            e["path"]: e.get("size") or 0 for e in self._tree if e.get("type") == "blob"
+            e["path"]: e.get("size") or 0
+            for e in self._tree
+            if e.get("type") == TreeEntryType.BLOB
         }
 
     def _fetch(self, path: str) -> str | None:
         # Same ceiling as get_repository_files_from_tree, so both ways of loading agree.
-        if self._sizes[path] >= MAX_INLINE_BLOB_SIZE:
+        if self._file_sizes[path] >= MAX_INLINE_BLOB_SIZE:
             return None
         try:
             raw = self._client.get_file(

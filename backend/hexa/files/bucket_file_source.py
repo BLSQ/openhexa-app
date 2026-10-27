@@ -33,21 +33,21 @@ class BucketFileSource(FileSource):
         self.bytes_read = 0
 
     def __getitem__(self, path: str) -> str | None:
-        if path not in self._sizes:
+        if path not in self._file_sizes:
             raise KeyError(path)
         return self._fetch(path)
 
     def __contains__(self, path: object) -> bool:
-        return path in self._sizes
+        return path in self._file_sizes
 
     def __iter__(self) -> Iterator[str]:
-        return iter(self._sizes)
+        return iter(self._file_sizes)
 
     def __len__(self) -> int:
-        return len(self._sizes)
+        return len(self._file_sizes)
 
     @cached_property
-    def _sizes(self) -> dict[str, int]:
+    def _file_sizes(self) -> dict[str, int]:
         sizes: dict[str, int] = {}
         directories = [self._prefix]
         while directories:
@@ -77,7 +77,7 @@ class BucketFileSource(FileSource):
         self.truncated = True
 
     def _fetch(self, path: str) -> str | None:
-        if self._sizes[path] > MAX_TEXT_FILE_SIZE:
+        if self._file_sizes[path] > MAX_TEXT_FILE_SIZE:
             return None
         try:
             raw = self._storage.read_object(self._bucket_name, path)
