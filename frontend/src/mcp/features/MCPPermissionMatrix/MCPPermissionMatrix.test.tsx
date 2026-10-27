@@ -176,11 +176,7 @@ describe("MCPPermissionMatrix", () => {
     );
 
     expect(screen.getByLabelText(/Newcomer/)).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "No workspace yet: new ones will be included if this organization is selected.",
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByText("No workspace yet")).toBeInTheDocument();
   });
 
   it("select all grants every organization", () => {
