@@ -48,7 +48,10 @@ class GitRepoFileSource(FileSource):
         return len(self._file_sizes)
 
     def prefetch(self, paths: list[str]) -> None:
-        if sum(1 for p in paths if p not in self._contents) > 1:
+        missing = (p not in self._contents for p in paths)
+        # The second any() resumes where the first stopped, so both hold only if two paths are missing.
+        several_missing = any(missing) and any(missing)
+        if several_missing:
             self._contents = self._load_all()
 
     @cached_property
