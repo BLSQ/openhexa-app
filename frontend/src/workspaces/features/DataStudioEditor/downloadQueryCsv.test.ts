@@ -1,7 +1,11 @@
 import { getCookie } from "cookies-next";
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import { downloadQueryCsv, SUCCESS_COOKIE_PREFIX } from "./downloadQueryCsv";
+import {
+  downloadQueryCsv,
+  downloadSavedQueryCsv,
+  SUCCESS_COOKIE_PREFIX,
+} from "./downloadQueryCsv";
 
 jest.mock("cookies-next", () => ({
   getCookie: jest.fn(),
@@ -62,6 +66,21 @@ describe("downloadQueryCsv", () => {
     expect(fieldValue(form, "query")).toBe("SELECT 1");
     expect(fieldValue(form, "download_token")).toBeTruthy();
     expect(fieldValue(form, "csrfmiddlewaretoken")).toBe("csrf-token-123");
+  });
+
+  // The permalink export: the slug names the SQL, so none is posted.
+  it("posts a saved query export to its own endpoint, without a query field", () => {
+    void downloadSavedQueryCsv("my query/slug");
+
+    expect(submittedForms).toHaveLength(1);
+    const form = submittedForms[0];
+    expect(form.method).toBe("post");
+    expect(form.getAttribute("action")).toContain(
+      "/data-studio/queries/my%20query%2Fslug/download/",
+    );
+    expect(form.target).toBe("data-studio-csv-download-frame");
+    expect(fieldValue(form, CONTRACT.fields.query)).toBeUndefined();
+    expect(fieldValue(form, CONTRACT.fields.token)).toBeTruthy();
   });
 
   it("encodes the workspace slug into the URL", () => {
