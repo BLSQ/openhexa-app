@@ -3078,11 +3078,6 @@ type MCPConnection {
   id: UUID!
   lastUsedAt: DateTime
   name: String!
-
-  """
-  Organizations granted as a whole: every workspace of theirs the user can
-  reach is in scope, including the ones created or joined later.
-  """
   organizations: [Organization!]!
   tools: [String!]!
   workspaces: [Workspace!]!

@@ -24,6 +24,7 @@ type MCPConnection {
   createdAt: DateTime!
   lastUsedAt: DateTime
   workspaces: [Workspace!]!
+  organizations: [Organization!]!
   tools: [String!]!
 }
 
@@ -50,12 +51,14 @@ type MCPTool {
 input UpdateMCPConnectionInput {
   id: UUID!
   workspaceSlugs: [String!]
+  organizationIds: [UUID!]
   tools: [String!]
 }
 
 enum UpdateMCPConnectionError {
   NOT_FOUND
   WORKSPACE_NOT_FOUND
+  ORGANIZATION_NOT_FOUND
   TOOL_NOT_FOUND
 }
 
@@ -72,12 +75,14 @@ Creates the connection if this is the client's first authorization.
 input AuthorizeMCPConnectionInput {
   clientId: String!
   workspaceSlugs: [String!]
+  organizationIds: [UUID!]
   tools: [String!]
 }
 
 enum AuthorizeMCPConnectionError {
   CLIENT_NOT_FOUND
   WORKSPACE_NOT_FOUND
+  ORGANIZATION_NOT_FOUND
   TOOL_NOT_FOUND
 }
 
