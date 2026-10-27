@@ -1,78 +1,94 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { TestApp } from "core/helpers/testutils";
-import { WebappOperationScope } from "graphql/types";
+import { WebappType } from "graphql/types";
 import MakeWebappPublicDialog from "./MakeWebappPublicDialog";
 
 jest.mock("next-i18next", () => ({
   useTranslation: jest.fn().mockReturnValue({ t: (key: string) => key }),
-  Trans: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
+const SERVE_URL = "http://my-app.webapps.localhost:8000/";
+
 const renderDialog = (
-  allowedOperations: WebappOperationScope[],
-  props: Partial<{ onConfirm: () => void; onClose: () => void }> = {},
+  props: Partial<{
+    onConfirm: () => Promise<void>;
+    onClose: () => void;
+    type: WebappType;
+  }> = {},
 ) =>
   render(
     <TestApp mocks={[]}>
       <MakeWebappPublicDialog
         open
         onClose={props.onClose ?? jest.fn()}
-        onConfirm={props.onConfirm ?? jest.fn()}
-        webapp={{ name: "My app", allowedOperations }}
+        onConfirm={props.onConfirm ?? jest.fn().mockResolvedValue(undefined)}
+        webapp={{ serveUrl: SERVE_URL, type: props.type ?? WebappType.Static }}
       />
     </TestApp>,
   );
 
 describe("MakeWebappPublicDialog", () => {
-  it("warns that the web app becomes reachable without signing in", () => {
-    renderDialog([]);
+  it("warns that anyone with the link can open the web app", () => {
+    renderDialog();
 
     expect(
-      screen.getByText(/Anyone on the internet will be able to open/),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Visitors will not need an OpenHEXA account/),
-    ).toBeInTheDocument();
-  });
-
-  it("lists only the operations that are switched on", () => {
-    renderDialog([
-      WebappOperationScope.DatasetsRead,
-      WebappOperationScope.PipelinesRun,
-    ]);
-
-    expect(screen.getByText("Read datasets")).toBeInTheDocument();
-    expect(screen.getByText("Run pipelines")).toBeInTheDocument();
-    expect(screen.queryByText("Write datasets")).not.toBeInTheDocument();
-    expect(screen.queryByText("Read files")).not.toBeInTheDocument();
-  });
-
-  it("says so when the web app has no workspace permissions", () => {
-    renderDialog([]);
-
-    expect(
-      screen.getByText("This web app has no permissions in your workspace."),
+      screen.getByText(
+        /Anyone with the link will be able to open this web app/,
+      ),
     ).toBeInTheDocument();
   });
 
-  it("announces the AI security review", () => {
-    renderDialog([]);
+  it("shows the public link", () => {
+    renderDialog();
+
+    expect(screen.getByText("Public link")).toBeInTheDocument();
+    expect(screen.getByText(SERVE_URL)).toBeInTheDocument();
+  });
+
+  it("explains what a static web app can reach once public", () => {
+    renderDialog({ type: WebappType.Static });
 
     expect(
-      screen.getByText(/an AI security review will check this web app/),
+      screen.getByText(/reach every public dataset, pipeline, file/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Make a resource public from its own page/),
     ).toBeInTheDocument();
   });
 
-  it("confirms only when the review is started", () => {
-    const onConfirm = jest.fn();
+  it("skips the API explanation for non-static web apps", () => {
+    renderDialog({ type: WebappType.Iframe });
+
+    expect(
+      screen.queryByText(/reach every public dataset, pipeline, file/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("confirms only when the user clicks make public", () => {
+    const onConfirm = jest.fn().mockResolvedValue(undefined);
     const onClose = jest.fn();
-    renderDialog([], { onConfirm, onClose });
+    renderDialog({ onConfirm, onClose });
 
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(onClose).toHaveBeenCalled();
     expect(onConfirm).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Start review" }));
+    fireEvent.click(screen.getByRole("button", { name: "Make public" }));
     expect(onConfirm).toHaveBeenCalled();
+  });
+
+  it("disables the buttons while the confirmation is in progress", async () => {
+    let resolve: () => void = () => {};
+    const onConfirm = jest.fn(() => new Promise<void>((r) => (resolve = r)));
+    renderDialog({ onConfirm });
+
+    const confirmButton = screen.getByRole("button", { name: "Make public" });
+    fireEvent.click(confirmButton);
+
+    expect(confirmButton).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
+
+    resolve();
+    await waitFor(() => expect(confirmButton).not.toBeDisabled());
   });
 });

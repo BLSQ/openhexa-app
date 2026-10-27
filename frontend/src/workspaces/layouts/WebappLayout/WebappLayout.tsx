@@ -5,6 +5,7 @@ import Button from "core/components/Button";
 import Link from "next/link";
 import { useState } from "react";
 import { useTranslation } from "next-i18next";
+import WebappVisibilityButton from "webapps/features/WebappVisibilityButton";
 import DeleteWebappDialog from "workspaces/features/DeleteWebappDialog/DeleteWebappDialog";
 import TabLayout from "../TabLayout";
 import { GetServerSidePropsContext } from "next";
@@ -92,6 +93,7 @@ const WebappLayout = (props: WebappLayoutProps) => {
       headerActions={
         <div className="flex items-center gap-2">
           {extraActions}
+          <WebappVisibilityButton webapp={webapp} />
           <Link href={webapp.serveUrl ?? webapp.url ?? "#"} target="_blank">
             <Button
               variant="primary"
@@ -151,7 +153,9 @@ WebappLayout.fragments = {
         update
         delete
       }
+      ...WebappVisibilityButton_webapp
     }
+    ${WebappVisibilityButton.fragments.webapp}
   `,
 };
 

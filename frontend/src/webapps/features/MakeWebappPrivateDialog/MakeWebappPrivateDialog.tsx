@@ -1,8 +1,8 @@
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Spinner from "core/components/Spinner";
-import { Trans, useTranslation } from "next-i18next";
+import { WebappType } from "graphql/types";
+import { useTranslation } from "next-i18next";
 import { useState } from "react";
 
 type MakeWebappPrivateDialogProps = {
@@ -10,7 +10,7 @@ type MakeWebappPrivateDialogProps = {
   onClose: () => void;
   onConfirm: () => Promise<void>;
   webapp: {
-    name: string;
+    type: WebappType;
   };
 };
 
@@ -33,25 +33,23 @@ const MakeWebappPrivateDialog = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <Dialog.Title>{t("Make this web app private")}</Dialog.Title>
-      <Dialog.Content>
-        <div className="flex gap-3 rounded-md border border-amber-200 bg-amber-50 p-3">
-          <ExclamationTriangleIcon className="h-5 w-5 flex-none text-amber-600" />
-          <div className="space-y-1 text-sm text-amber-900">
-            <p className="font-medium">
-              <Trans>
-                <b>{webapp.name}</b> will no longer be accessible to users
-                without an OpenHEXA account.
-              </Trans>
-            </p>
-            <p>
-              {t(
-                "Visitors will have to sign in to open it. Anyone you shared the public link with will lose access.",
-              )}
-            </p>
-          </div>
-        </div>
+    <Dialog open={open} onClose={onClose} maxWidth="max-w-xl">
+      <Dialog.Title onClose={onClose}>
+        {t("Make this web app private?")}
+      </Dialog.Title>
+      <Dialog.Content className="space-y-3 text-sm text-gray-700">
+        <p>
+          {t(
+            "The public link will stop working: visitors without an OpenHEXA account will be asked to sign in. Workspace members keep access.",
+          )}
+        </p>
+        {webapp.type === WebappType.Static && (
+          <p>
+            {t(
+              "API requests will again run on behalf of the signed-in member, limited to the operations enabled under Workspace permissions.",
+            )}
+          </p>
+        )}
       </Dialog.Content>
       <Dialog.Actions>
         <Button variant="white" onClick={onClose} disabled={isSubmitting}>

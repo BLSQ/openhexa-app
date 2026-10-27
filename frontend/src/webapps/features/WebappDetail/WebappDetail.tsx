@@ -63,7 +63,6 @@ type WebappDetailProps = {
   webappSlug: string;
   webapp: any;
   showAssistant: boolean;
-  isReviewing?: boolean;
   onRefetch: () => void;
   onDelete?: () => void;
 };
@@ -86,7 +85,6 @@ const WebappDetail = ({
   webappSlug,
   webapp,
   showAssistant,
-  isReviewing = false,
   onRefetch,
   onDelete,
 }: WebappDetailProps) => {
@@ -360,11 +358,6 @@ const WebappDetail = ({
                 {t("Public")}
               </DetailBadge>
             )}
-            {isReviewing && (
-              <DetailBadge color="amber" icon={<Spinner size="xs" />}>
-                {t("Security review in progress")}
-              </DetailBadge>
-            )}
           </>
         }
         meta={[
@@ -628,7 +621,9 @@ const WebappDetail = ({
                   </div>
                 </SettingsCard>
 
-                {isStatic && <WebappApiAccess webapp={webapp} />}
+                {isStatic && !webapp.isPublic && (
+                  <WebappApiAccess webapp={webapp} />
+                )}
 
                 {onDelete && (
                   <SettingsCard

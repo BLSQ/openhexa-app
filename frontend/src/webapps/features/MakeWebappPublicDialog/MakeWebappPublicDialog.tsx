@@ -1,20 +1,19 @@
-import {
-  ExclamationTriangleIcon,
-  ShieldCheckIcon,
-} from "@heroicons/react/24/outline";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
+import Clipboard from "core/components/Clipboard";
 import Dialog from "core/components/Dialog";
-import { WebappOperationScope } from "graphql/types";
-import { Trans, useTranslation } from "next-i18next";
-import { getScopeDescriptions } from "webapps/helpers";
+import Spinner from "core/components/Spinner";
+import { WebappType } from "graphql/types";
+import { useTranslation } from "next-i18next";
+import { useState } from "react";
 
 type MakeWebappPublicDialogProps = {
   open: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void>;
   webapp: {
-    name: string;
-    allowedOperations: WebappOperationScope[];
+    serveUrl: string;
+    type: WebappType;
   };
 };
 
@@ -25,68 +24,64 @@ const MakeWebappPublicDialog = ({
   webapp,
 }: MakeWebappPublicDialogProps) => {
   const { t } = useTranslation();
-  const scopeDescriptions = getScopeDescriptions(t);
-  const operations = webapp.allowedOperations ?? [];
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleConfirm = async () => {
+    setIsSubmitting(true);
+    try {
+      await onConfirm();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="max-w-2xl">
-      <Dialog.Title>{t("Make this web app public")}</Dialog.Title>
+    <Dialog open={open} onClose={onClose} maxWidth="max-w-xl">
+      <Dialog.Title onClose={onClose}>
+        {t("Make this web app public?")}
+      </Dialog.Title>
       <Dialog.Content className="space-y-4">
         <div className="flex gap-3 rounded-md border border-amber-200 bg-amber-50 p-3">
           <ExclamationTriangleIcon className="h-5 w-5 flex-none text-amber-600" />
-          <div className="space-y-1 text-sm text-amber-900">
-            <p className="font-medium">
-              <Trans>
-                Anyone on the internet will be able to open <b>{webapp.name}</b>
-                .
-              </Trans>
-            </p>
-            <p>
-              {t(
-                "Visitors will not need an OpenHEXA account and will not be asked to sign in. Do not make a web app public if it displays data that should stay within your workspace.",
-              )}
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-md border border-gray-200 p-3">
-          <p className="mb-2 text-sm font-medium text-gray-900">
-            {t("What this web app can do in your workspace")}
-          </p>
-          {operations.length > 0 ? (
-            <>
-              <ul className="list-inside list-disc space-y-1 text-sm text-gray-700">
-                {operations.map((scope) => (
-                  <li key={scope}>{scopeDescriptions[scope].label}</li>
-                ))}
-              </ul>
-              <p className="mt-2 text-xs text-gray-500">
-                {t(
-                  "Review these under Settings → Workspace permissions before continuing.",
-                )}
-              </p>
-            </>
-          ) : (
-            <p className="text-sm text-gray-500">
-              {t("This web app has no permissions in your workspace.")}
-            </p>
-          )}
-        </div>
-
-        <div className="flex gap-3 rounded-md border border-blue-200 bg-blue-50 p-3">
-          <ShieldCheckIcon className="h-5 w-5 flex-none text-blue-600" />
-          <p className="text-sm text-blue-900">
+          <p className="text-sm text-amber-900">
             {t(
-              "Before it goes live, an AI security review will check this web app for issues that could expose your workspace. It becomes public once the review passes.",
+              "Anyone with the link will be able to open this web app without an OpenHEXA account. You can make it private again at any time.",
             )}
           </p>
         </div>
+
+        <div className="rounded-md bg-gray-50 p-3">
+          <p className="mb-1 text-xs font-medium text-gray-500">
+            {t("Public link")}
+          </p>
+          <Clipboard value={webapp.serveUrl}>
+            <code className="text-sm text-gray-800">{webapp.serveUrl}</code>
+          </Clipboard>
+        </div>
+
+        {webapp.type === WebappType.Static && (
+          <div>
+            <p className="text-sm text-gray-700">
+              {t(
+                "Visitors are not signed in. The web app's API calls reach every public dataset, pipeline, file and saved query of this workspace, and nothing else.",
+              )}
+            </p>
+            <p className="mt-1 text-xs text-gray-500">
+              {t(
+                "Make a resource public from its own page for the app to reach it.",
+              )}
+            </p>
+          </div>
+        )}
       </Dialog.Content>
       <Dialog.Actions>
-        <Button variant="white" onClick={onClose}>
+        <Button variant="white" onClick={onClose} disabled={isSubmitting}>
           {t("Cancel")}
         </Button>
-        <Button onClick={onConfirm}>{t("Start review")}</Button>
+        <Button onClick={handleConfirm} disabled={isSubmitting}>
+          {isSubmitting && <Spinner size="xs" className="mr-1" />}
+          {t("Make public")}
+        </Button>
       </Dialog.Actions>
     </Dialog>
   );

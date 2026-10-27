@@ -1,14 +1,18 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { TestApp } from "core/helpers/testutils";
+import { WebappType } from "graphql/types";
 import MakeWebappPrivateDialog from "./MakeWebappPrivateDialog";
 
 jest.mock("next-i18next", () => ({
   useTranslation: jest.fn().mockReturnValue({ t: (key: string) => key }),
-  Trans: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 const renderDialog = (
-  props: Partial<{ onConfirm: () => Promise<void>; onClose: () => void }> = {},
+  props: Partial<{
+    onConfirm: () => Promise<void>;
+    onClose: () => void;
+    type: WebappType;
+  }> = {},
 ) =>
   render(
     <TestApp mocks={[]}>
@@ -16,20 +20,34 @@ const renderDialog = (
         open
         onClose={props.onClose ?? jest.fn()}
         onConfirm={props.onConfirm ?? jest.fn().mockResolvedValue(undefined)}
-        webapp={{ name: "My app" }}
+        webapp={{ type: props.type ?? WebappType.Static }}
       />
     </TestApp>,
   );
 
 describe("MakeWebappPrivateDialog", () => {
-  it("warns that users without an account lose access", () => {
+  it("warns that the public link stops working", () => {
     renderDialog();
 
     expect(
-      screen.getByText(
-        /will no longer be accessible to users without an OpenHEXA account/,
-      ),
+      screen.getByText(/The public link will stop working/),
     ).toBeInTheDocument();
+  });
+
+  it("explains how API requests run for a static web app", () => {
+    renderDialog({ type: WebappType.Static });
+
+    expect(
+      screen.getByText(/run on behalf of the signed-in member/),
+    ).toBeInTheDocument();
+  });
+
+  it("skips the API explanation for non-static web apps", () => {
+    renderDialog({ type: WebappType.Iframe });
+
+    expect(
+      screen.queryByText(/run on behalf of the signed-in member/),
+    ).not.toBeInTheDocument();
   });
 
   it("confirms only when the user clicks make private", () => {
