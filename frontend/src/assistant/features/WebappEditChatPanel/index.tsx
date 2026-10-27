@@ -10,7 +10,6 @@ export type WebappProposedFile = { path: string; content: string };
 type Props = {
   webappId: string;
   workspaceSlug: string;
-  monthlyLimitExceeded: boolean;
   onProposedFiles: (
     files: WebappProposedFile[] | null,
     toolInvocationId?: string,

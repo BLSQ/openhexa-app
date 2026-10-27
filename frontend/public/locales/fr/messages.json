@@ -1302,7 +1302,6 @@
   "You don't have permission to run queries on this database.": "Vous n'avez pas la permission d'exécuter des requêtes sur cette base de données.",
   "You don't have permission to update this organization": "Vous n'avez pas l'autorisation de mettre à jour cette organisation",
   "You have reached the maximum number of workspaces for your plan.": "Vous avez atteint le nombre maximum d'espaces de travail pour votre forfait.",
-  "You have reached your monthly usage limit for the assistant. Please contact your administrator.": "Vous avez atteint votre limite d'utilisation mensuelle pour l'assistant. Veuillez contacter votre administrateur.",
   "You have to select a notebook": "Vous devez sélectionner un cahier",
   "You have to select a workspace": "Vous devez sélectionner un workspace",
   "You have unsaved changes to \"{{name}}\". If you leave this page, they will be lost.": "Vous avez des modifications non enregistrées sur \"{{name}}\". Si vous quittez cette page, elles seront perdues.",

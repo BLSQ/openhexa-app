@@ -1,5 +1,4 @@
 from ariadne import ObjectType, QueryType
-from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
 from hexa.assistant.models import Conversation
@@ -11,7 +10,6 @@ from hexa.workspaces.models import Workspace
 
 assistant_queries = QueryType()
 workspace_object = ObjectType("Workspace")
-me_object = ObjectType("Me")
 
 
 @assistant_queries.field("assistantConversation")
@@ -49,41 +47,4 @@ def resolve_webapp_assistant_conversations(webapp: GitWebapp, info, **kwargs):
     )
 
 
-@me_object.field("assistantMonthlyLimitExceeded")
-def resolve_assistant_monthly_limit_exceeded(me, info, **kwargs):
-    request = info.context["request"]
-    return (
-        Conversation.get_monthly_cost_for_user(request.user)
-        >= settings.ASSISTANT_MONTHLY_LIMIT
-        if request.user.is_authenticated
-        else False
-    )
-
-
-@me_object.field("assistantMonthlyCost")
-def resolve_assistant_monthly_cost(me, info, **kwargs):
-    """
-    Cost in microdollars (millionths of a dollar) to avoid floating-point precision loss
-    """
-    request = info.context["request"]
-    return (
-        int(Conversation.get_monthly_cost_for_user(request.user) * 1_000_000)
-        if request.user.is_authenticated
-        else 0
-    )
-
-
-@me_object.field("assistantTotalCost")
-def resolve_assistant_total_cost(me, info, **kwargs):
-    """
-    Cost in microdollars (millionths of a dollar) to avoid floating-point precision loss
-    """
-    request = info.context["request"]
-    return (
-        int(Conversation.get_total_cost_for_user(request.user) * 1_000_000)
-        if request.user.is_authenticated
-        else 0
-    )
-
-
-bindables = [assistant_queries, workspace_object, me_object]
+bindables = [assistant_queries, workspace_object]

@@ -10,7 +10,6 @@ export type PipelineConversation = AssistantConversation;
 type Props = {
   pipelineId: string;
   workspaceSlug: string;
-  monthlyLimitExceeded: boolean;
   onProposedFiles: (
     files: ProposedFile[] | null,
     toolInvocationId?: string,

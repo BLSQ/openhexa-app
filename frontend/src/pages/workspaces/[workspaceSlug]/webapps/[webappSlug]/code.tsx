@@ -10,6 +10,7 @@ import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
 import Page from "core/components/Page";
 import Spinner from "core/components/Spinner";
+import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { WebappType } from "graphql/types";
@@ -122,6 +123,8 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
 
   const showAssistant =
     data?.workspace?.organization?.aiSettings?.enabled ?? false;
+  const aiBudgetLimitReached =
+    data?.workspace?.organization?.aiBudgetLimitReached ?? false;
 
   const [chatOpen, setChatOpen] = useState(false);
   const [conversations, setConversations] = useState<WebappConversation[]>([]);
@@ -136,7 +139,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
     const convs = data.webapp.assistantConversations ?? [];
     setConversations(convs);
     setActiveConversationId(convs[0]?.id ?? null);
-    setChatOpen(convs.length > 0);
+    setChatOpen(convs.length > 0 && !aiBudgetLimitReached);
   }, [data?.webapp?.id]);
 
   const handleNewConversation = useCallback(() => {
@@ -178,7 +181,6 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
     source?.__typename === "GitSource" ? source.repositoryUrl : null;
   const isViewingPublished =
     !selectedVersion || selectedVersion.id === publishedVersionId;
-  const monthlyLimitExceeded = data?.me?.assistantMonthlyLimitExceeded ?? false;
 
   const handlePublish = async () => {
     if (!selectedVersion || isPublishing) return;
@@ -237,14 +239,19 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
                 <GitClonePopover repositoryUrl={repositoryUrl} />
               )}
               {showAssistant && (
-                <Button
-                  onClick={() => setChatOpen((o) => !o)}
-                  variant="secondary"
-                  size="md"
-                  leadingIcon={<SparklesIcon className="h-4 w-4" />}
+                <SubscriptionLimitTooltip
+                  isLimitReached={aiBudgetLimitReached}
+                  title={t("Monthly AI budget reached")}
                 >
-                  {t("AI Assistant")}
-                </Button>
+                  <Button
+                    onClick={() => setChatOpen((o) => !o)}
+                    variant="secondary"
+                    size="md"
+                    leadingIcon={<SparklesIcon className="h-4 w-4" />}
+                  >
+                    {t("AI Assistant")}
+                  </Button>
+                </SubscriptionLimitTooltip>
               )}
             </div>
           </div>
@@ -280,7 +287,6 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
                 <WebappEditChatPanel
                   webappId={webapp.id}
                   workspaceSlug={workspaceSlug}
-                  monthlyLimitExceeded={monthlyLimitExceeded}
                   onProposedFiles={handleProposedFiles}
                   conversations={conversations}
                   activeConversationId={activeConversationId}

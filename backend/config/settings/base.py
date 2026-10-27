@@ -615,7 +615,6 @@ PIPELINE_RUN_DEFAULT_TIMEOUT = os.environ.get("PIPELINE_RUN_DEFAULT_TIMEOUT", 14
 PIPELINE_RUN_MAX_TIMEOUT = os.environ.get("PIPELINE_RUN_MAX_TIMEOUT", 43200)
 
 # AI Assistant config
-ASSISTANT_MONTHLY_LIMIT = int(os.environ.get("ASSISTANT_MONTHLY_LIMIT", 200))
 # Whether this OpenHEXA instance's AI is managed/hosted by us.
 # True on our SaaS instance, False on local hostings.
 ASSISTANT_MANAGED = os.environ.get("ASSISTANT_MANAGED", "false") == "true"

@@ -159,7 +159,6 @@ const codePageMock = (createVersion: boolean): MockedResponse => ({
         ],
         workspace: { slug: WORKSPACE_SLUG },
       },
-      me: { assistantMonthlyLimitExceeded: false },
     },
   },
 });
