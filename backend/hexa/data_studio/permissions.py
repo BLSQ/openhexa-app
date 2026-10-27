@@ -50,5 +50,25 @@ def update_saved_query_visibility(principal: User, saved_query: SavedQuery):
     return _is_author(principal, saved_query)
 
 
+def publish_saved_query(principal: User, saved_query: SavedQuery):
+    """The author, a workspace admin or an organization admin/owner can make a query
+    public, and take a public one back to the workspace.
+
+    A private query stays the author's alone: nobody else may expose what only its
+    author can see. Taking a public query back to private is not covered here either
+    (`update_saved_query_visibility`): a non-author doing it would hand the query to
+    the author and lock themselves out of it.
+    """
+    if _is_author(principal, saved_query):
+        return True
+    if saved_query.visibility == SavedQueryVisibility.PRIVATE:
+        return False
+    return saved_query.workspace.workspacemembership_set.filter(
+        user=principal, role=WorkspaceMembershipRole.ADMIN
+    ).exists() or principal.is_organization_admin_or_owner(
+        saved_query.workspace.organization
+    )
+
+
 def delete_saved_query(principal: User, saved_query: SavedQuery):
     return update_saved_query(principal, saved_query)

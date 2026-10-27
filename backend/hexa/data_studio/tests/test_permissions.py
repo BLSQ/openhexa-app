@@ -3,6 +3,7 @@ from hexa.data_studio.models import SavedQuery, SavedQueryVisibility
 from hexa.data_studio.permissions import (
     create_saved_query,
     delete_saved_query,
+    publish_saved_query,
     update_saved_query,
     update_saved_query_visibility,
 )
@@ -74,6 +75,27 @@ class SavedQueryPermissionsTest(SavedQueryTestMixin, TestCase):
         self.assertTrue(update_saved_query(self.USER_EDITOR, query))
         self.assertTrue(delete_saved_query(self.USER_ADMIN, query))
         self.assertFalse(update_saved_query(self.USER_OUTSIDER, query))
+
+    def test_publish_saved_query(self):
+        query = self._create(self.USER_VIEWER)
+        self.assertTrue(publish_saved_query(self.USER_VIEWER, query))
+        self.assertTrue(publish_saved_query(self.USER_ADMIN, query))
+        # Editing rights are not publishing rights
+        self.assertFalse(publish_saved_query(self.USER_EDITOR, query))
+        self.assertFalse(publish_saved_query(self.USER_OUTSIDER, query))
+
+    def test_publish_private_saved_query(self):
+        # Nobody but its author may expose what only its author can see.
+        query = self._create(self.USER_VIEWER, visibility=SavedQueryVisibility.PRIVATE)
+        self.assertTrue(publish_saved_query(self.USER_VIEWER, query))
+        self.assertFalse(publish_saved_query(self.USER_ADMIN, query))
+
+    def test_publish_saved_query_without_author(self):
+        query = self._create(self.USER_VIEWER)
+        query.created_by = None
+        query.save()
+        self.assertTrue(publish_saved_query(self.USER_ADMIN, query))
+        self.assertFalse(publish_saved_query(self.USER_VIEWER, query))
 
     def test_delete_saved_query(self):
         query = self._create(self.USER_EDITOR)
@@ -196,3 +218,12 @@ class SavedQueryOrganizationPermissionsTest(TestCase):
         visible = set(SavedQuery.objects.filter_for_user(self.USER_ORG_ADMIN))
         self.assertIn(self.SAVED_QUERY, visible)
         self.assertNotIn(self.PRIVATE_SAVED_QUERY, visible)
+
+    def test_publish_via_organization_role(self):
+        self.assertTrue(publish_saved_query(self.USER_ORG_OWNER, self.SAVED_QUERY))
+        self.assertTrue(publish_saved_query(self.USER_ORG_ADMIN, self.SAVED_QUERY))
+        self.assertFalse(publish_saved_query(self.USER_ORG_MEMBER, self.SAVED_QUERY))
+        self.assertFalse(publish_saved_query(self.USER_NON_MEMBER, self.SAVED_QUERY))
+        self.assertFalse(
+            publish_saved_query(self.USER_ORG_ADMIN, self.PRIVATE_SAVED_QUERY)
+        )

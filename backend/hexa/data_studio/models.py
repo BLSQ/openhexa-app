@@ -56,11 +56,39 @@ def generate_saved_query_slug(name: str) -> str:
 class SavedQueryVisibility(models.TextChoices):
     PRIVATE = "PRIVATE", _("Private")
     WORKSPACE = "WORKSPACE", _("Workspace")
+    PUBLIC = "PUBLIC", _("Public")
+
+
+# A public query is still a shared query to the members of its workspace, so any
+# workspace-level check must accept both values.
+WORKSPACE_WIDE_VISIBILITIES = [
+    SavedQueryVisibility.WORKSPACE,
+    SavedQueryVisibility.PUBLIC,
+]
 
 
 class SavedQueryQuerySet(BaseQuerySet, SoftDeleteQuerySet):
-    def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
-        accessible = models.Q(visibility=SavedQueryVisibility.WORKSPACE)
+    def filter_for_user(
+        self, user: AnonymousUser | UserInterface, *, include_public: bool = False
+    ) -> models.QuerySet:
+        """Every saved query the user may open.
+
+        ``include_public`` adds the public queries of every workspace, which anyone
+        with their permalink may open, logged in or not. Opt-in so that only the
+        permalink entry points reach beyond what the user's memberships grant.
+
+        Service principals (web apps, pipeline runs, MCP connections) never get it:
+        they stay confined to the workspaces they were issued for. Opening other
+        workspaces' public queries to them is a decision of its own (HEXA-1847).
+        """
+        public = models.Q(visibility=SavedQueryVisibility.PUBLIC)
+
+        # Not routed through _filter_for_user_and_query_object when anonymous: that
+        # helper turns anonymous users away, while public queries must stay reachable.
+        if not user.is_authenticated:
+            return self.filter(public) if include_public else self.none()
+
+        accessible = models.Q(visibility__in=WORKSPACE_WIDE_VISIBILITIES)
         # Service principals (pipeline runs, webapps) impersonate a workspace rather
         # than a person, so they never own a private query - a deliberate call for
         # WebappUser, whose real User row `created_by` would match and which
@@ -72,10 +100,14 @@ class SavedQueryQuerySet(BaseQuerySet, SoftDeleteQuerySet):
         ):
             accessible |= models.Q(created_by=user)
 
+        query = (
+            models.Q(workspace__in=Workspace.objects.filter_for_user(user)) & accessible
+        )
+        if include_public and not isinstance(user, ServicePrincipal):
+            query |= public
         return self._filter_for_user_and_query_object(
             user,
-            models.Q(workspace__in=Workspace.objects.filter_for_user(user))
-            & accessible,
+            query,
             return_all_if_superuser=not isinstance(user, ServicePrincipal),
         )
 
@@ -93,6 +125,8 @@ class SavedQueryManager(DefaultSoftDeletedManager.from_queryset(SavedQueryQueryS
         # private until its author decides to share it.
         visibility: str | None = None,
     ):
+        # No publish check for PUBLIC: the principal is about to become the author,
+        # and authors may publish their own queries (see permissions.publish_saved_query).
         if not principal.has_perm("data_studio.create_saved_query", workspace):
             raise PermissionDenied
 
@@ -137,7 +171,9 @@ class SavedQuery(Base, SoftDeletedModel, GitRepoMixin):
     """A SQL query saved by a user in the Data Studio.
 
     A saved query belongs to a workspace, but its `visibility` decides who can reach it:
-    WORKSPACE queries are shared with every member, PRIVATE ones are the author's alone.
+    WORKSPACE queries are shared with every member, PRIVATE ones are the author's alone,
+    and PUBLIC ones are also reachable, and runnable, by anyone who has their permalink,
+    with or without an account (see the app README).
 
     A member removed from the workspace stops seeing their private queries, but gets
     them back if they are added again. Deleting the account soft-deletes it (see
@@ -197,8 +233,8 @@ class SavedQuery(Base, SoftDeletedModel, GitRepoMixin):
                 fields=["workspace", "name", "id"],
                 name="data_studio_ws_name_idx",
             ),
-            # Listings match `workspace = X AND (visibility = 'WORKSPACE' OR
-            # created_by = me)`. Postgres serves that OR as a BitmapOr, so the two
+            # Listings match `workspace = X AND (visibility IN ('WORKSPACE', 'PUBLIC')
+            # OR created_by = me)`. Postgres serves that OR as a BitmapOr, so the two
             # indexes above cover the shared branch and this one covers the author branch.
             models.Index(
                 fields=["workspace", "created_by", "-updated_at", "id"],
@@ -208,6 +244,10 @@ class SavedQuery(Base, SoftDeletedModel, GitRepoMixin):
 
     def __str__(self) -> str:
         return self.name
+
+    @property
+    def is_public(self) -> bool:
+        return self.visibility == SavedQueryVisibility.PUBLIC
 
     @property
     def git_org(self) -> GitOrg:
@@ -262,6 +302,17 @@ class SavedQuery(Base, SoftDeletedModel, GitRepoMixin):
         )
         return raw.decode("utf-8")
 
+    def _visibility_change_permission(self, visibility: str) -> str:
+        """Publishing and taking back to the workspace are a wider circle's call than
+        sharing is (see `permissions.publish_saved_query`); going private stays the
+        author's alone, whatever the query's current visibility.
+        """
+        if visibility == SavedQueryVisibility.PUBLIC or (
+            self.is_public and visibility == SavedQueryVisibility.WORKSPACE
+        ):
+            return "data_studio.publish_saved_query"
+        return "data_studio.update_saved_query_visibility"
+
     def update_if_has_perm(self, principal: User, **kwargs):
         """Apply an edit, recording a version when the SQL changed."""
         if not principal.has_perm("data_studio.update_saved_query", self):
@@ -279,17 +330,27 @@ class SavedQuery(Base, SoftDeletedModel, GitRepoMixin):
                 )
             )
 
+            content_changed = new_content is not None and new_content != self.content
+
+            # Visitors run whatever SQL a public query holds, so changing it is a
+            # publisher's call: otherwise any editor could swap what is served
+            # behind a link that is already out there.
+            if (
+                content_changed
+                and self.is_public
+                and not principal.has_perm("data_studio.publish_saved_query", self)
+            ):
+                raise PermissionDenied
+
             # Gating visibility only when it changes: a client echoing
             # back the current visibility does not need strict permission.
             visibility = kwargs.get("visibility")
             if visibility is not None and visibility != self.visibility:
                 if not principal.has_perm(
-                    "data_studio.update_saved_query_visibility", self
+                    self._visibility_change_permission(visibility), self
                 ):
                     raise PermissionDenied
                 self.visibility = visibility
-
-            content_changed = new_content is not None and new_content != self.content
 
             # Initializing the repo before the new content is applied, so an old query
             # starts its history with the SQL it already had rather than at this edit.
@@ -374,6 +435,10 @@ class QueryLog(Base):
         # the only origin that carries a security meaning (a web app can run
         # stored queries and nothing else).
         WEBAPP = "WEBAPP"
+        # Set server-side as well: a stored query run through its public permalink
+        # by someone the workspace database would not let query it directly (a
+        # visitor without an account, a member of another organization).
+        PUBLIC = "PUBLIC"
 
     workspace = models.ForeignKey(
         Workspace, on_delete=models.CASCADE, related_name="query_logs"
