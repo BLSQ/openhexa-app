@@ -58,7 +58,7 @@ const WebappLayout = (props: WebappLayoutProps) => {
     ...(webapp.type === WebappType.Static && !webapp.isPublic
       ? [
           {
-            label: t("API access"),
+            label: t("Workspace permissions"),
             href: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${encodeURIComponent(webapp.slug)}/api-access`,
             id: "api-access",
           },

@@ -47,11 +47,11 @@ describe("MakeWebappPublicDialog", () => {
     expect(screen.queryByText("Read files")).not.toBeInTheDocument();
   });
 
-  it("says so when the web app has no API access", () => {
+  it("says so when the web app has no workspace permissions", () => {
     renderDialog([]);
 
     expect(
-      screen.getByText("This web app has no API access to your workspace."),
+      screen.getByText("This web app has no permissions in your workspace."),
     ).toBeInTheDocument();
   });
 

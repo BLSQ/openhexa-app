@@ -83,7 +83,7 @@ describe("WebappApiAccess", () => {
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith(
-        "API access updated successfully",
+        "Workspace permissions updated successfully",
       );
     });
   });
@@ -121,7 +121,7 @@ describe("WebappApiAccess", () => {
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith(
-        "API access updated successfully",
+        "Workspace permissions updated successfully",
       );
     });
   });
@@ -199,7 +199,7 @@ describe("WebappApiAccess", () => {
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith(
-        "API access updated successfully",
+        "Workspace permissions updated successfully",
       );
     });
   });

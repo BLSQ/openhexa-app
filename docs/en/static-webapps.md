@@ -58,7 +58,7 @@ Private static webapps can call the platform's GraphQL API from their JavaScript
 
 ## Enabling the API on a webapp
 
-By default a static webapp has an empty `allowed_operations` list, which means it cannot call the API. Enable scopes from the workspace UI ("Webapp settings → API access") or via the GraphQL `updateWebapp` mutation.
+By default a static webapp has an empty `allowed_operations` list, which means it cannot call the API. Enable scopes from the workspace UI ("Webapp settings → Workspace permissions") or via the GraphQL `updateWebapp` mutation.
 
 ## Scope reference
 

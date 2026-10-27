@@ -184,7 +184,7 @@ const WebappApiAccess = ({ webapp }: WebappApiAccessProps) => {
         }
         return;
       }
-      toast.success(t("API access updated successfully"));
+      toast.success(t("Workspace permissions updated successfully"));
       clearCache();
     } catch {
       toast.error(t("An error occurred while updating the web app"));
@@ -194,7 +194,7 @@ const WebappApiAccess = ({ webapp }: WebappApiAccessProps) => {
   return (
     <DataCard item={webapp}>
       <DataCard.FormSection
-        title={t("API access")}
+        title={t("Workspace permissions")}
         onSave={webapp.permissions.update ? onSave : undefined}
         confirmButtonLabel={t("Save")}
         collapsible={false}

@@ -62,13 +62,13 @@ const MakeWebappPublicDialog = ({
               </ul>
               <p className="mt-2 text-xs text-gray-500">
                 {t(
-                  "Review these under Settings → API access before continuing.",
+                  "Review these under Settings → Workspace permissions before continuing.",
                 )}
               </p>
             </>
           ) : (
             <p className="text-sm text-gray-500">
-              {t("This web app has no API access to your workspace.")}
+              {t("This web app has no permissions in your workspace.")}
             </p>
           )}
         </div>

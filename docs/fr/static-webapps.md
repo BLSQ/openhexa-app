@@ -58,7 +58,7 @@ Les webapps statiques privées peuvent appeler l'API GraphQL de la plateforme de
 
 ## Activer l'API sur une webapp
 
-Par défaut, une webapp statique a une liste `allowed_operations` vide, ce qui signifie qu'elle ne peut pas appeler l'API. Activez les scopes depuis l'interface du workspace ("Paramètres de la webapp → Accès API") ou via la mutation GraphQL `updateWebapp`.
+Par défaut, une webapp statique a une liste `allowed_operations` vide, ce qui signifie qu'elle ne peut pas appeler l'API. Activez les scopes depuis l'interface du workspace ("Paramètres de la webapp → Permissions du workspace") ou via la mutation GraphQL `updateWebapp`.
 
 ## Référence des scopes
 
