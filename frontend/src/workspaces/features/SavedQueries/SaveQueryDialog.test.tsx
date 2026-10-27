@@ -28,7 +28,12 @@ const savedQuery = {
   name: "Old name",
   description: "desc",
   visibility: SavedQueryVisibility.Workspace,
-  permissions: { update: true, delete: true, updateVisibility: true },
+  permissions: {
+    update: true,
+    delete: true,
+    updateVisibility: true,
+    publish: false,
+  },
 };
 
 describe("SaveQueryDialog", () => {
@@ -236,7 +241,12 @@ describe("SaveQueryDialog", () => {
         content="SELECT 1"
         savedQuery={{
           ...savedQuery,
-          permissions: { update: true, delete: true, updateVisibility: false },
+          permissions: {
+            update: true,
+            delete: true,
+            updateVisibility: false,
+            publish: false,
+          },
         }}
         onClose={jest.fn()}
         onSaved={jest.fn()}
@@ -245,6 +255,75 @@ describe("SaveQueryDialog", () => {
 
     expect(screen.getByRole("radio", { name: /Private/ })).toBeDisabled();
     expect(screen.getByRole("radio", { name: /Workspace/ })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: /Public/ })).toBeDisabled();
+  });
+
+  // Whoever creates a query is its author, and authors may publish.
+  it("lets the author create a public query", async () => {
+    createMock.mockResolvedValue({
+      data: {
+        createSavedQuery: {
+          success: true,
+          errors: [],
+          savedQuery: { id: "new-3", name: "Open data" },
+        },
+      },
+    });
+
+    render(
+      <SaveQueryDialog
+        open
+        mode="create"
+        workspaceSlug="ws-1"
+        content="SELECT 1"
+        savedQuery={null}
+        onClose={jest.fn()}
+        onSaved={jest.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: { value: "Open data" },
+    });
+    fireEvent.click(screen.getByRole("radio", { name: /Public/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Save query" }));
+
+    await waitFor(() =>
+      expect(createMock).toHaveBeenCalledWith({
+        variables: {
+          input: expect.objectContaining({
+            visibility: SavedQueryVisibility.Public,
+          }),
+        },
+      }),
+    );
+  });
+
+  // A workspace or organization admin who is not the author may publish but
+  // not unshare.
+  it("opens only the public option to someone who may publish but not share", () => {
+    render(
+      <SaveQueryDialog
+        open
+        mode="edit-details"
+        workspaceSlug="ws-1"
+        content="SELECT 1"
+        savedQuery={{
+          ...savedQuery,
+          permissions: {
+            update: true,
+            delete: true,
+            updateVisibility: false,
+            publish: true,
+          },
+        }}
+        onClose={jest.fn()}
+        onSaved={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("radio", { name: /Private/ })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: /Public/ })).toBeEnabled();
   });
 
   // A fork is a new query, so it must not inherit the source's sharing.
