@@ -1,4 +1,5 @@
 import {
+  BuildingOfficeIcon,
   CheckIcon,
   ChevronDownIcon,
   GlobeAltIcon,
@@ -19,7 +20,13 @@ export type MCPTool = {
 
 export type MCPGrant = {
   workspaceSlugs: string[];
+  organizationIds: string[];
   tools: string[];
+};
+
+export type MCPOrganization = {
+  id: string;
+  name: string;
 };
 
 export type MCPWorkspace = {
@@ -27,10 +34,17 @@ export type MCPWorkspace = {
   name: string;
   countries: { code: string }[];
   currentMembership?: { role: WorkspaceMembershipRole } | null;
+  organization: { id: string };
+};
+
+type OrganizationGroup = {
+  organization: MCPOrganization;
+  workspaces: MCPWorkspace[];
 };
 
 type Props = {
   grant: MCPGrant;
+  organizations: MCPOrganization[];
   workspaces: MCPWorkspace[];
   tools: MCPTool[];
   onChange: (grant: MCPGrant) => void;
@@ -125,6 +139,7 @@ const LevelSelector = ({
 
 const MCPPermissionMatrix = ({
   grant,
+  organizations,
   workspaces,
   tools,
   onChange,
@@ -143,14 +158,49 @@ const MCPPermissionMatrix = ({
     setExpanded(next);
   };
 
-  const matchingWorkspaces = useMemo(() => {
+  const [openOrganizations, setOpenOrganizations] = useState<Set<string>>(
+    () => new Set(organizations.length === 1 ? [organizations[0].id] : []),
+  );
+
+  const toggleOrganizationOpen = (organizationId: string) => {
+    const next = new Set(openOrganizations);
+    if (!next.delete(organizationId)) {
+      next.add(organizationId);
+    }
+    setOpenOrganizations(next);
+  };
+
+  const matchingGroups = useMemo(() => {
     const query = workspaceQuery.trim().toLowerCase();
-    return query
-      ? workspaces.filter((workspace) =>
-          workspace.name.toLowerCase().includes(query),
-        )
-      : workspaces;
-  }, [workspaces, workspaceQuery]);
+    const groups: OrganizationGroup[] = [];
+    for (const organization of organizations) {
+      const members = workspaces.filter(
+        (workspace) => workspace.organization.id === organization.id,
+      );
+      if (!query || organization.name.toLowerCase().includes(query)) {
+        groups.push({ organization, workspaces: members });
+        continue;
+      }
+      const matching = members.filter((workspace) =>
+        workspace.name.toLowerCase().includes(query),
+      );
+      if (matching.length > 0) {
+        groups.push({ organization, workspaces: matching });
+      }
+    }
+    return groups.sort((a, b) =>
+      a.organization.name.localeCompare(b.organization.name),
+    );
+  }, [organizations, workspaces, workspaceQuery]);
+
+  const grantedOrganizations = useMemo(
+    () => new Set(grant.organizationIds),
+    [grant.organizationIds],
+  );
+  const isWorkspaceSelected = (workspace: MCPWorkspace) =>
+    grantedOrganizations.has(workspace.organization.id) ||
+    grant.workspaceSlugs.includes(workspace.slug);
+  const selectedWorkspaces = workspaces.filter(isWorkspaceSelected);
 
   const groupLabels: Record<McpResource, string> = {
     [McpResource.Workspaces]: t("Workspaces"),
@@ -206,9 +256,8 @@ const MCPPermissionMatrix = ({
   }, [tools]);
 
   const granted = useMemo(() => new Set(grant.tools), [grant.tools]);
-  const viewerWorkspaceCount = workspaces.filter(
+  const viewerWorkspaceCount = selectedWorkspaces.filter(
     (workspace) =>
-      grant.workspaceSlugs.includes(workspace.slug) &&
       workspace.currentMembership?.role === WorkspaceMembershipRole.Viewer,
   ).length;
   const grantsWrite = tools.some(
@@ -289,8 +338,12 @@ const MCPPermissionMatrix = ({
     { level: "NONE" as const, label: t("No access") },
   ];
 
-  const setWorkspaces = (slugs: Set<string>) =>
-    onChange({ ...grant, workspaceSlugs: Array.from(slugs).sort() });
+  const setWorkspaces = (slugs: Set<string>, organizationIds: Set<string>) =>
+    onChange({
+      ...grant,
+      workspaceSlugs: Array.from(slugs).sort(),
+      organizationIds: Array.from(organizationIds).sort(),
+    });
 
   const toggleWorkspace = (slug: string, checked: boolean) => {
     const next = new Set(grant.workspaceSlugs);
@@ -299,7 +352,25 @@ const MCPPermissionMatrix = ({
     } else {
       next.delete(slug);
     }
-    setWorkspaces(next);
+    setWorkspaces(next, grantedOrganizations);
+  };
+
+  // Granting an organization supersedes picking its workspaces one by one, so
+  // their slugs are dropped rather than kept as a hidden fallback.
+  const toggleOrganization = (organizationId: string, checked: boolean) => {
+    const organizations = new Set(grantedOrganizations);
+    const slugs = new Set(grant.workspaceSlugs);
+    if (checked) {
+      organizations.add(organizationId);
+      for (const workspace of workspaces) {
+        if (workspace.organization.id === organizationId) {
+          slugs.delete(workspace.slug);
+        }
+      }
+    } else {
+      organizations.delete(organizationId);
+    }
+    setWorkspaces(slugs, organizations);
   };
 
   return (
@@ -312,21 +383,24 @@ const MCPPermissionMatrix = ({
           <div className="flex items-baseline gap-4">
             <span className="text-sm text-gray-500">
               {t("{{count}} of {{total}} workspaces selected", {
-                count: grant.workspaceSlugs.length,
+                count: selectedWorkspaces.length,
                 total: workspaces.length,
               })}
             </span>
             <SelectAllLink
               allSelected={
-                workspaces.length > 0 &&
-                grant.workspaceSlugs.length === workspaces.length
+                organizations.length > 0 &&
+                organizations.every((organization) =>
+                  grantedOrganizations.has(organization.id),
+                )
               }
-              disabled={disabled || workspaces.length === 0}
+              disabled={disabled || organizations.length === 0}
               onChange={(checked) =>
                 setWorkspaces(
+                  new Set(),
                   new Set(
                     checked
-                      ? workspaces.map((workspace) => workspace.slug)
+                      ? organizations.map((organization) => organization.id)
                       : [],
                   ),
                 )
@@ -345,64 +419,150 @@ const MCPPermissionMatrix = ({
               className="mb-3 w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm placeholder-gray-400 focus:border-gray-400 focus:ring-0 focus:outline-hidden"
             />
           )}
-          <div className="grid max-h-72 grid-cols-1 overflow-y-auto sm:grid-cols-2">
-            {matchingWorkspaces.map((workspace) => (
-              <label
-                key={workspace.slug}
-                htmlFor={`${idPrefix}-workspace-${workspace.slug}`}
-                className={clsx(
-                  "flex items-center gap-2.5 rounded-md px-2 py-1.5",
-                  disabled
-                    ? "cursor-not-allowed"
-                    : "cursor-pointer hover:bg-gray-50",
-                )}
-              >
-                <input
-                  type="checkbox"
-                  id={`${idPrefix}-workspace-${workspace.slug}`}
-                  disabled={disabled}
-                  checked={grant.workspaceSlugs.includes(workspace.slug)}
-                  onChange={(event) =>
-                    toggleWorkspace(workspace.slug, event.target.checked)
-                  }
-                  className="form-checkbox h-4 w-4 shrink-0 cursor-pointer rounded-sm border-gray-300 text-blue-500 focus:ring-0 focus:ring-offset-0"
-                />
-                <span className="flex h-full w-5 shrink-0 items-center">
-                  {workspace.countries.length === 1 ? (
-                    <Flag
-                      code={workspace.countries[0].code}
-                      className="w-5 shrink rounded-xs"
-                    />
-                  ) : (
-                    <GlobeAltIcon className="w-5 shrink rounded-xs text-gray-400" />
+          <div className="max-h-96 space-y-4 overflow-y-auto">
+            {matchingGroups.map(({ organization, workspaces: members }) => {
+              const organizationGranted = grantedOrganizations.has(
+                organization.id,
+              );
+              const organizationInputId = `${idPrefix}-organization-${organization.id}`;
+              // A filter has to show its matches, whatever was collapsed.
+              const isOpen =
+                workspaceQuery.trim() !== "" ||
+                openOrganizations.has(organization.id);
+              return (
+                <div key={organization.id}>
+                  <div className="flex items-center gap-1 rounded-md bg-gray-50 pr-2">
+                    <label
+                      htmlFor={organizationInputId}
+                      className={clsx(
+                        "flex min-w-0 flex-1 items-center gap-2.5 rounded-md px-2 py-1.5",
+                        disabled
+                          ? "cursor-not-allowed"
+                          : "cursor-pointer hover:bg-gray-100",
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        id={organizationInputId}
+                        disabled={disabled}
+                        checked={organizationGranted}
+                        onChange={(event) =>
+                          toggleOrganization(
+                            organization.id,
+                            event.target.checked,
+                          )
+                        }
+                        className="form-checkbox h-4 w-4 shrink-0 cursor-pointer rounded-sm border-gray-300 text-blue-500 focus:ring-0 focus:ring-offset-0"
+                      />
+                      <BuildingOfficeIcon className="h-5 w-5 shrink-0 text-gray-400" />
+                      <span className="min-w-0 flex-1">
+                        <span
+                          className="block truncate text-sm font-medium text-gray-900"
+                          title={organization.name}
+                        >
+                          {organization.name}
+                        </span>
+                        <span className="block truncate text-xs text-gray-500">
+                          {t("All workspaces, including future ones")}
+                        </span>
+                      </span>
+                    </label>
+                    <button
+                      type="button"
+                      aria-expanded={isOpen}
+                      aria-controls={`${organizationInputId}-workspaces`}
+                      onClick={() => toggleOrganizationOpen(organization.id)}
+                      className="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                    >
+                      {t("{{count}} of {{total}} workspaces selected", {
+                        count: members.filter(isWorkspaceSelected).length,
+                        total: members.length,
+                      })}
+                      <ChevronDownIcon
+                        className={clsx(
+                          "h-4 w-4 transition-transform",
+                          !isOpen && "-rotate-90",
+                        )}
+                      />
+                    </button>
+                  </div>
+                  {isOpen && (
+                    <div
+                      id={`${organizationInputId}-workspaces`}
+                      className="mt-1 grid grid-cols-1 pl-6 sm:grid-cols-2"
+                    >
+                      {members.length === 0 && (
+                        <p className="px-2 py-1.5 text-sm text-gray-500">
+                          {t(
+                            "No workspace yet: new ones will be included if this organization is selected.",
+                          )}
+                        </p>
+                      )}
+                      {members.map((workspace) => (
+                        <label
+                          key={workspace.slug}
+                          htmlFor={`${idPrefix}-workspace-${workspace.slug}`}
+                          className={clsx(
+                            "flex items-center gap-2.5 rounded-md px-2 py-1.5",
+                            disabled || organizationGranted
+                              ? "cursor-not-allowed"
+                              : "cursor-pointer hover:bg-gray-50",
+                          )}
+                        >
+                          <input
+                            type="checkbox"
+                            id={`${idPrefix}-workspace-${workspace.slug}`}
+                            disabled={disabled || organizationGranted}
+                            checked={isWorkspaceSelected(workspace)}
+                            onChange={(event) =>
+                              toggleWorkspace(
+                                workspace.slug,
+                                event.target.checked,
+                              )
+                            }
+                            className="form-checkbox h-4 w-4 shrink-0 cursor-pointer rounded-sm border-gray-300 text-blue-500 focus:ring-0 focus:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-60"
+                          />
+                          <span className="flex h-full w-5 shrink-0 items-center">
+                            {workspace.countries.length === 1 ? (
+                              <Flag
+                                code={workspace.countries[0].code}
+                                className="w-5 shrink rounded-xs"
+                              />
+                            ) : (
+                              <GlobeAltIcon className="w-5 shrink rounded-xs text-gray-400" />
+                            )}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span
+                              className="block truncate text-sm text-gray-900"
+                              title={workspace.name}
+                            >
+                              {workspace.name}
+                            </span>
+                            <span className="block truncate font-mono text-xs text-gray-400">
+                              {workspace.slug}
+                            </span>
+                          </span>
+                          {workspace.currentMembership?.role ===
+                            WorkspaceMembershipRole.Viewer && (
+                            <span className="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-700">
+                              {t("Viewer")}
+                            </span>
+                          )}
+                        </label>
+                      ))}
+                    </div>
                   )}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span
-                    className="block truncate text-sm text-gray-900"
-                    title={workspace.name}
-                  >
-                    {workspace.name}
-                  </span>
-                  <span className="block truncate font-mono text-xs text-gray-400">
-                    {workspace.slug}
-                  </span>
-                </span>
-                {workspace.currentMembership?.role ===
-                  WorkspaceMembershipRole.Viewer && (
-                  <span className="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-700">
-                    {t("Viewer")}
-                  </span>
-                )}
-              </label>
-            ))}
+                </div>
+              );
+            })}
           </div>
-          {workspaces.length === 0 && (
+          {organizations.length === 0 && (
             <p className="text-sm text-gray-500">
               {t("You are not a member of any workspace yet.")}
             </p>
           )}
-          {workspaces.length > 0 && matchingWorkspaces.length === 0 && (
+          {organizations.length > 0 && matchingGroups.length === 0 && (
             <p className="text-sm text-gray-500">
               {t("No workspace matches that filter.")}
             </p>
