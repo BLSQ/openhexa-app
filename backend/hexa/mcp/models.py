@@ -9,6 +9,7 @@ from oauth2_provider.models import AccessToken, Grant, RefreshToken
 
 from hexa.core.models.base import Base
 from hexa.user_management.models import ServicePrincipal, User
+from hexa.workspaces.models import Workspace
 
 
 class MCPResource(models.TextChoices):
@@ -49,6 +50,9 @@ class MCPConnection(Base):
     )
     workspaces = models.ManyToManyField(
         "workspaces.Workspace", blank=True, related_name="mcp_connections"
+    )
+    organizations = models.ManyToManyField(
+        "user_management.Organization", blank=True, related_name="mcp_connections"
     )
     tools = models.JSONField(default=list)
     last_used_at = models.DateTimeField(null=True, blank=True)
@@ -104,7 +108,14 @@ class MCPUser(User, ServicePrincipal):
 
     @cached_property
     def workspace_ids(self):
-        return list(self.connection.workspaces.values_list("id", flat=True))
+        return list(
+            Workspace.objects.filter(
+                Q(mcp_connections=self.connection)
+                | Q(organization__mcp_connections=self.connection)
+            )
+            .distinct()
+            .values_list("id", flat=True)
+        )
 
     def get_username(self):
         return f"mcp_{self.connection.application_id}_as_{self.email}"
