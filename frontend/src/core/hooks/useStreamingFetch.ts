@@ -11,10 +11,7 @@ type UseStreamingFetchReturn = {
   streamError: string | null;
 };
 
-function parseSSEBlocks(
-  buffer: string,
-  handlers: StreamHandlers,
-): string {
+function parseSSEBlocks(buffer: string, handlers: StreamHandlers): string {
   const blocks = buffer.split("\n\n");
   const remaining = blocks.pop() ?? "";
 
@@ -69,10 +66,20 @@ function useStreamingFetch(handlers: StreamHandlers): UseStreamingFetchReturn {
         });
 
         if (!response.ok) {
+          // Server-side refusals (e.g. AI budget exceeded) carry an error_code
+          // in the JSON body; surface them like a stream error event instead of
+          // reporting a connection failure.
+          const body = await response.json().catch(() => null);
+          if (body?.error_code) {
+            handlersRef.current.error?.({ error_code: body.error_code });
+            return;
+          }
           throw new Error(`HTTP ${response.status}`);
         }
 
-        if (!response.headers.get("content-type")?.includes("text/event-stream")) {
+        if (
+          !response.headers.get("content-type")?.includes("text/event-stream")
+        ) {
           throw new Error("Expected text/event-stream response");
         }
 

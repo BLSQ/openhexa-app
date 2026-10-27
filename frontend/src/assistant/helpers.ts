@@ -8,8 +8,11 @@ export function getErrorCodeMessage(t: TFunction, errorCode?: string): string {
     MAX_TOKENS_REACHED: t(
       "I hit the maximum token limit — try breaking your request into smaller steps.",
     ),
-    UNEXPECTED_MODEL_BEHAVIOR: t("An unexpected error occurred. Please try again."),
+    UNEXPECTED_MODEL_BEHAVIOR: t(
+      "An unexpected error occurred. Please try again.",
+    ),
     UNKNOWN_ERROR: t("An error occurred. Please try again."),
+    AI_BUDGET_EXCEEDED: t("Monthly AI budget reached"),
   };
   return (
     (errorCode && messages[errorCode]) ??

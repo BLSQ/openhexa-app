@@ -95,6 +95,7 @@ class StreamAssistantMessageViewTest(TestCase):
         ):
             response = _post(self.client, self.conversation.id)
         self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["error_code"], "AI_BUDGET_EXCEEDED")
 
     # --- Happy path ---
 

@@ -38,7 +38,13 @@ async def stream_assistant_message(
         organization.is_ai_budget_limit_reached
     )()
     if ai_budget_limit_reached:
-        return JsonResponse({"error": "Organization AI budget exceeded"}, status=403)
+        return JsonResponse(
+            {
+                "error": "Organization AI budget exceeded",
+                "error_code": "AI_BUDGET_EXCEEDED",
+            },
+            status=403,
+        )
 
     agent = await sync_to_async(lambda: conversation.agent)()
     return sse_response(with_keepalive(agent.run_stream(message)))
