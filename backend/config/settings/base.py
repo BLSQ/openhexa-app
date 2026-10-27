@@ -671,6 +671,11 @@ WORKSPACE_DATABASE_QUERY_MAX_ROWS = int(
 DATA_STUDIO_EXPORT_MAX_CONCURRENCY = int(
     os.environ.get("DATA_STUDIO_EXPORT_MAX_CONCURRENCY", "2")
 )
+# Same, for exports of public saved queries through their permalink. A separate pool,
+# so visitors can only ever crowd out each other, never the workspace members.
+DATA_STUDIO_PUBLIC_EXPORT_MAX_CONCURRENCY = int(
+    os.environ.get("DATA_STUDIO_PUBLIC_EXPORT_MAX_CONCURRENCY", "1")
+)
 
 # Datasets config
 WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET", "hexa-datasets")
