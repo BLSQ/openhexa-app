@@ -26,6 +26,48 @@ calls it separately so it can refuse a request before reserving a concurrency sl
 The rest of this file is the design-decision home for the CSV export; the code carries
 short "why" comments that point here.
 
+## Public saved queries
+
+A saved query's `visibility` has three values. `PRIVATE` and `WORKSPACE` decide which
+members of the workspace see it; `PUBLIC` keeps everything `WORKSPACE` grants and adds a
+permalink (`/queries/<slug>` on the frontend) that anyone can open, logged in or not, to see
+the query's name and description, run it and export its result. The SQL, the author and the
+workspace are not shown there: like a web app, the visitor gets the result, not the query.
+
+- **Being public is the whole authorization.** `ensure_can_run_query` waives
+  `databases.run_query` for a public query (and only for one): the SQL was vetted by whoever
+  published it, and the visitor supplies none of their own. The permission still applies to
+  everything else, including a member running raw SQL.
+- **Who publishes** (`permissions.publish_saved_query`): the author, a workspace admin or an
+  organization admin/owner — the rule shared by every public resource (HEXA-1848). The same
+  people can take a public query back to `WORKSPACE`; making it `PRIVATE` stays the author's
+  call alone, as for any other query.
+- **Who changes the SQL of a public query**: only those who may publish it. Visitors run
+  whatever SQL the query holds, so a workspace editor who could rewrite it would decide what
+  a link already handed out serves. Editors keep renaming and describing it.
+- **What a visitor reads.** `filter_for_user(include_public=True)` adds public queries, for
+  anonymous users too; only the permalink lookups (`savedQueryBySlug`, `executeSavedQuery`)
+  ask for it, so listings and every other lookup stay within what membership grants.
+  Service principals (web apps, pipeline runs, MCP) never get it: they stay confined to their
+  workspaces until HEXA-1847 decides otherwise. A caller who reaches a query only because it
+  is public gets `null` for `content`, `createdBy` and `workspace`, and no `errorMessage`
+  when the run fails, since PostgreSQL quotes the failing SQL in it.
+- **The audit log tells a permalink run apart.** An interactive run is recorded with origin
+  `PUBLIC` when the caller could not have queried the database on their own (a visitor, a
+  member of another organization); a member opening the permalink keeps their usual origin. A
+  permalink export keeps the `DATA_STUDIO_EXPORT` origin — it is still an uncapped run — and
+  is told apart from an editor export by naming the query (`saved_query`), which the editor
+  path never does. In both cases a visitor leaves `user` null.
+
+The permalink export (`views.download_saved_query_csv`) is reachable without a session and
+therefore CSRF-exempt: it changes nothing and serves only public queries, so a forged
+cross-site POST could at most make a browser download public data.
+
+Permalink exports draw from their own slot pool (`DATA_STUDIO_PUBLIC_EXPORT_MAX_CONCURRENCY`,
+1 per worker by default), so visitors can crowd out each other but never the members'
+exports. There is no other throttling of public runs beyond the bounds every query has
+(statement timeout, row cap); abuse protection is tracked separately (HEXA-1849).
+
 ## Saved query history
 
 A saved query's SQL is versioned in a git repository of its own holding a single
@@ -155,7 +197,8 @@ the third by `views`:
   can't pin the transaction (and block VACUUM) forever.
 - **`_EXPORT_SLOTS`** (a `BoundedSemaphore`, size `DATA_STUDIO_EXPORT_MAX_CONCURRENCY`) bounds
   concurrent exports per worker; excess callers get an immediate **429** rather than queueing.
-  It is per process, not a global cap (that is the per-role Postgres `CONNECTION LIMIT`).
+  Permalink exports use `_PUBLIC_EXPORT_SLOTS` (`DATA_STUDIO_PUBLIC_EXPORT_MAX_CONCURRENCY`)
+  instead, see "Public saved queries". It is per process, not a global cap (that is the per-role Postgres `CONNECTION LIMIT`).
 
 ## Resource lifecycle
 
