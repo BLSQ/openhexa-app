@@ -33,6 +33,9 @@ type Connection = AccountMcpConnectionsQuery["mcpConnections"][number];
 function grantOf(connection: Connection): MCPGrant {
   return {
     workspaceSlugs: connection.workspaces.map((workspace) => workspace.slug),
+    organizationIds: connection.organizations.map(
+      (organization) => organization.id,
+    ),
     tools: [...connection.tools],
   };
 }
@@ -40,6 +43,7 @@ function grantOf(connection: Connection): MCPGrant {
 function canonicalGrant(grant: MCPGrant) {
   return JSON.stringify({
     workspaceSlugs: [...grant.workspaceSlugs].sort(),
+    organizationIds: [...grant.organizationIds].sort(),
     tools: [...grant.tools].sort(),
   });
 }
@@ -79,6 +83,13 @@ const ConnectionCard = ({
           count: draft.tools.length,
           total: grantable,
         }),
+    ...(draft.organizationIds.length > 0
+      ? [
+          t("{{count}} organizations", {
+            count: draft.organizationIds.length,
+          }),
+        ]
+      : []),
     t("{{count}} workspaces", { count: draft.workspaceSlugs.length }),
   ].join(" · ");
 
@@ -89,6 +100,7 @@ const ConnectionCard = ({
         input: {
           id: connection.id,
           workspaceSlugs: draft.workspaceSlugs,
+          organizationIds: draft.organizationIds,
           tools: draft.tools,
         },
       },
