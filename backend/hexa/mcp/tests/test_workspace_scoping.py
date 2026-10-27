@@ -589,7 +589,7 @@ class GrantIsACeilingTest(MCPTestCase):
         self.assertEqual("Mine", result["name"])
 
 
-class OrganizationGrantAfterRemovalTest(TestCase):
+class OrganizationGrantOverMCPTest(TestCase):
     """Goes through the MCP endpoint with a bearer token, as a client would."""
 
     @classmethod
@@ -652,6 +652,16 @@ class OrganizationGrantAfterRemovalTest(TestCase):
         self.assertEqual([self.WORKSPACE.slug], self.listed_slugs())
         self.assertIsNotNone(
             self.call_tool("get_workspace", slug=self.WORKSPACE.slug)["workspace"]
+        )
+
+    def test_a_workspace_created_after_the_grant_is_reachable(self):
+        later = create_workspace(
+            self.CREATOR, name="Tuberculosis", organization=self.ORGANIZATION
+        )
+
+        self.assertCountEqual([self.WORKSPACE.slug, later.slug], self.listed_slugs())
+        self.assertIsNotNone(
+            self.call_tool("get_workspace", slug=later.slug)["workspace"]
         )
 
     def test_removing_the_membership_cuts_the_organization_off(self):
