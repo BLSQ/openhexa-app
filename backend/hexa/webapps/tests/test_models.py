@@ -874,7 +874,7 @@ class GitWebappModelTest(TestCase):
             },
         ]
 
-        files = webapp.get_text_files(search_glob="**")
+        files = webapp.get_text_files()
 
         self.assertEqual(
             files.glob("**")["paths"],
@@ -885,10 +885,11 @@ class GitWebappModelTest(TestCase):
         )
         self.mock_git_client.get_repository_files.assert_not_called()
 
-        self.assertEqual(files.read("index.html")["content"], "<h1>Hi</h1>")
+        self.assertEqual(files.grep("Hi")["files"], ["index.html"])
         self.mock_git_client.get_repository_files.assert_called_once_with(
             webapp.repository, "main", org_slug=webapp.git_org.slug, tree=tree
         )
+        self.assertEqual(files.read("index.html")["content"], "<h1>Hi</h1>")
         self.assertEqual(files.grep("x", glob="js/*")["files"], ["js/bundle.js"])
         self.assertEqual(
             files.read("logo.png"), {"error": "Not a readable text file: logo.png"}

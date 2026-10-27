@@ -1,7 +1,7 @@
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterator
 from functools import cached_property
 
-from hexa.core.text_files import MAX_TEXT_FILE_SIZE, decode_text
+from hexa.core.text_files import MAX_TEXT_FILE_SIZE, FileSource, decode_text
 
 from .backends.base import Storage
 from .backends.exceptions import NotFound
@@ -14,7 +14,7 @@ _LIST_PAGE_SIZE = 1000
 _MAX_LIST_PAGES = 100
 
 
-class BucketFileSource(Mapping):
+class BucketFileSource(FileSource):
     """The files of a workspace bucket under `prefix`, downloaded on first access.
 
     Listing walks the directories, one request per directory and page, up to

@@ -12,7 +12,7 @@ from hexa.assistant.tools.webapps import (
     read_webapp_file,
 )
 from hexa.core.test import TestCase
-from hexa.core.text_files import TextFiles
+from hexa.core.text_files import MemoryFileSource, TextFiles
 from hexa.git.enums import FileEncoding
 from hexa.user_management.models import User
 from hexa.webapps.models import GitWebapp
@@ -401,7 +401,9 @@ class ProposeWebappChangesWithPendingProposalTest(_PendingProposalTestCase):
 
 class WorkingFilesTest(_PendingProposalTestCase):
     saved = TextFiles(
-        {"index.html": "<h1>Saved</h1>", "old.js": "old()", "logo.png": None}
+        MemoryFileSource(
+            {"index.html": "<h1>Saved</h1>", "old.js": "old()", "logo.png": None}
+        )
     )
 
     def _working_files(self, conversation):
@@ -427,11 +429,13 @@ class WebappFileToolsTest(_PendingProposalTestCase):
     def setUp(self):
         self.webapp = MagicMock(spec=GitWebapp)
         self.webapp.get_text_files.return_value = TextFiles(
-            {
-                "index.html": "<h1>Saved</h1>",
-                "app.js": "function saved() {}",
-                "old.js": "old()",
-            }
+            MemoryFileSource(
+                {
+                    "index.html": "<h1>Saved</h1>",
+                    "app.js": "function saved() {}",
+                    "old.js": "old()",
+                }
+            )
         )
         self.conversation = self._make_conversation()
         self._make_pending_invocation(

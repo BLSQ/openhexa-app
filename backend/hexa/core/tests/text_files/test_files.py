@@ -1,9 +1,14 @@
 from django.test import SimpleTestCase
 
-from hexa.core.text_files import GrepOutputMode, ReadOptions, TextFiles
+from hexa.core.text_files import (
+    GrepOutputMode,
+    MemoryFileSource,
+    ReadOptions,
+    TextFiles,
+)
 
 
-class _ReadLog(dict):
+class _ReadLog(MemoryFileSource):
     """A file mapping that records which contents were read, like a lazy source would."""
 
     def __init__(self, *args):
@@ -14,10 +19,13 @@ class _ReadLog(dict):
         self.reads.append(path)
         return super().__getitem__(path)
 
+    def prefetch(self, paths):
+        self.prefetched = paths
+
 
 class TextFilesGlobTest(SimpleTestCase):
     files = TextFiles(
-        dict.fromkeys(
+        MemoryFileSource.fromkeys(
             ["index.html", "app.js", "css/style.css", "src/lib/util.ts", "src/main.ts"],
             "",
         )
@@ -38,7 +46,7 @@ class TextFilesGlobTest(SimpleTestCase):
 
 class TextFilesGrepTest(SimpleTestCase):
     def test_glob_scopes_files(self):
-        files = TextFiles({"app.js": "a", "style.css": "a"})
+        files = TextFiles(MemoryFileSource({"app.js": "a", "style.css": "a"}))
         self.assertEqual(files.grep("a", glob="*.js")["files"], ["app.js"])
 
     def test_glob_filter_skips_reading_other_files(self):
@@ -47,7 +55,7 @@ class TextFilesGrepTest(SimpleTestCase):
         self.assertEqual(files.reads, ["app.js"])
 
     def test_skips_unreadable_files(self):
-        files = TextFiles({"app.js": "png", "logo.png": None})
+        files = TextFiles(MemoryFileSource({"app.js": "png", "logo.png": None}))
         self.assertEqual(files.grep("png")["files"], ["app.js"])
 
     def test_stops_reading_once_page_is_filled(self):
@@ -90,7 +98,7 @@ class TextFilesGrepTest(SimpleTestCase):
 
 
 class TextFilesReadTest(SimpleTestCase):
-    files = TextFiles({"f.txt": "one\ntwo\nthree\n"})
+    files = TextFiles(MemoryFileSource({"f.txt": "one\ntwo\nthree\n"}))
 
     def test_reads_window(self):
         result = self.files.read("f.txt", 2, 2, ReadOptions(line_numbers=True))
@@ -98,7 +106,7 @@ class TextFilesReadTest(SimpleTestCase):
         self.assertEqual(result["total_lines"], 3)
 
     def test_unreadable_file(self):
-        files = TextFiles({"logo.png": None})
+        files = TextFiles(MemoryFileSource({"logo.png": None}))
         self.assertEqual(
             files.read("logo.png"), {"error": "Not a readable text file: logo.png"}
         )
@@ -111,8 +119,13 @@ class TextFilesReadTest(SimpleTestCase):
 
 class TextFilesWithChangesTest(SimpleTestCase):
     def test_reads_through_changes_and_deletions(self):
-        files = TextFiles({"a.js": "old", "b.js": "b"}).with_changes(
+        files = TextFiles(MemoryFileSource({"a.js": "old", "b.js": "b"})).with_changes(
             {"a.js": "new"}, deleted=["b.js"]
         )
         self.assertEqual(files.read("a.js")["content"], "new")
         self.assertEqual(files.glob("**")["paths"], ["a.js"])
+
+    def test_grep_prefetches_only_unchanged_files(self):
+        base = _ReadLog({"a.js": "old", "b.js": "b", "c.css": "c"})
+        TextFiles(base).with_changes({"a.js": "new"}).grep("b", glob="*.js")
+        self.assertEqual(base.prefetched, ["b.js"])

@@ -3,6 +3,7 @@ from collections.abc import Callable, Iterable, Mapping
 from .grep import GREP_HEAD_LIMIT, GrepOutputMode, grep
 from .overlay import Overlay
 from .path_pattern import PathPattern
+from .source import FileSource
 from .window import ReadOptions, read_window
 
 GLOB_LIMIT = 100
@@ -23,7 +24,7 @@ class TextFiles:
     and refused by `read`.
     """
 
-    def __init__(self, files: Mapping[str, str | None]):
+    def __init__(self, files: FileSource):
         self._files = files
 
     def with_changes(
@@ -55,6 +56,7 @@ class TextFiles:
         what one search downloads; the result is then marked partial.
         """
         paths = self._paths(glob)
+        self._files.prefetch(paths)
         searched = 0
         stopped = False
 

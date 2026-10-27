@@ -39,12 +39,8 @@ class GitRepoFileSourceTest(SimpleTestCase):
             "logo.png": b"\x89PNG\x00",
         }[path]
 
-    def _files(self, search_glob=None):
-        return TextFiles(
-            GitRepoFileSource(
-                self.client, "repo", "main", org_slug="org", search_glob=search_glob
-            )
-        )
+    def _files(self):
+        return TextFiles(GitRepoFileSource(self.client, "repo", "main", org_slug="org"))
 
     def test_glob_only_lists_the_tree(self):
         self.assertEqual(
@@ -66,13 +62,13 @@ class GitRepoFileSourceTest(SimpleTestCase):
         self.client.get_repository_files.assert_not_called()
 
     def test_narrow_search_fetches_its_one_file(self):
-        result = self._files(search_glob="js/app.*").grep("run", glob="js/app.*")
+        result = self._files().grep("run", glob="js/app.*")
         self.assertEqual(result["files"], ["js/app.js"])
         self.client.get_file.assert_called_once()
         self.client.get_repository_files.assert_not_called()
 
     def test_broad_search_loads_every_file_at_once(self):
-        result = self._files(search_glob="js/*").grep("run", glob="js/*")
+        result = self._files().grep("run", glob="js/*")
         self.assertEqual(result["files"], ["js/app.js", "js/util.js"])
         self.client.get_file.assert_not_called()
         self.client.get_repository_files.assert_called_once_with(

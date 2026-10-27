@@ -1,12 +1,14 @@
 from collections.abc import Iterable, Iterator, Mapping
 
+from .source import FileSource
 
-class Overlay(Mapping):
+
+class Overlay(FileSource):
     """A base mapping seen through changes and deletions, without copying or loading it."""
 
     def __init__(
         self,
-        base: Mapping[str, str | None],
+        base: FileSource,
         changes: Mapping[str, str],
         deleted: Iterable[str] = (),
     ):
@@ -34,3 +36,6 @@ class Overlay(Mapping):
 
     def __len__(self) -> int:
         return sum(1 for _ in self)
+
+    def prefetch(self, paths: list[str]) -> None:
+        self._base.prefetch([p for p in paths if p not in self._changes])
