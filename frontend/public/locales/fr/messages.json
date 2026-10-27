@@ -666,6 +666,7 @@
   "No workspace found": "Pas d'espace de travail trouvé",
   "No workspace invitations": "Pas d'invitations à l'espace de travail",
   "No workspace matches that filter.": "Aucun espace de travail ne correspond à ce filtre.",
+  "No workspace yet: new ones will be included if this organization is selected.": "Aucun espace de travail pour l'instant : les nouveaux seront inclus si cette organisation est sélectionnée.",
   "No workspaces found": "Pas d'espace de travail trouvé",
   "None": "Aucun",
   "Not set": "N'est pas défini",
