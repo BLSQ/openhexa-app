@@ -90,13 +90,13 @@ A query saved in the Data Studio has one of three visibilities:
 A public link (`/queries/<slug>`) shows the query's name, description and result. Visitors can change how many rows are shown and download the full result as CSV. They never see the SQL, its author or the workspace it belongs to. Public links are hidden from search engines.
 
 !!! info "Who can make a query public"
-    - The author of the query
+    - The author of the query, if they are an editor or admin of the workspace (viewers cannot make queries public)
     - Workspace admins
     - Organization admins and owners
 
     The same people can take a public query back to **Workspace**. Making a query **Private** remains the author's decision only. A private query can only be made public by its author.
 
-    Only these people can change the SQL of a public query, because visitors run whatever it contains. Workspace editors can still rename it, change its description or save a copy.
+    Only these people can change the SQL of a public query, because visitors run whatever it contains. Workspace editors can still rename it, change its description or save a copy. Deleting a public query breaks its link, so only its author and the people above can delete it.
 
 To make a query public, open it in the Data Studio, click its visibility in the toolbar and choose **Public**. Copy the link from the **Public link** button in the toolbar or from the saved queries list.
 
