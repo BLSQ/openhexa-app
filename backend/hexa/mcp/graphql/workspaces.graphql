@@ -8,10 +8,6 @@ query ListWorkspaces($query: String, $page: Int, $perPage: Int) {
       name
       createdAt
       updatedAt
-      permissions {
-        createObject
-        update
-      }
     }
   }
 }
@@ -28,11 +24,6 @@ query GetWorkspace($slug: String!) {
     }
     createdAt
     updatedAt
-    permissions {
-      createObject
-      update
-      manageMembers
-    }
   }
 }
 

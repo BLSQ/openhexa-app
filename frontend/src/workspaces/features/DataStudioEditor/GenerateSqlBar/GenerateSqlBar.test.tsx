@@ -22,14 +22,7 @@ const makeForm = (
 describe("GenerateSqlBar", () => {
   it("renders nothing when closed", () => {
     const form = makeForm();
-    render(
-      <GenerateSqlBar
-        open={false}
-        onClose={jest.fn()}
-        form={form}
-        monthlyLimitExceeded={false}
-      />,
-    );
+    render(<GenerateSqlBar open={false} onClose={jest.fn()} form={form} />);
     expect(
       screen.queryByPlaceholderText(/describe what you'd like to query/i),
     ).not.toBeInTheDocument();
@@ -37,40 +30,19 @@ describe("GenerateSqlBar", () => {
 
   it("resets the form when it opens", () => {
     const form = makeForm();
-    render(
-      <GenerateSqlBar
-        open
-        onClose={jest.fn()}
-        form={form}
-        monthlyLimitExceeded={false}
-      />,
-    );
+    render(<GenerateSqlBar open onClose={jest.fn()} form={form} />);
     expect(form.reset).toHaveBeenCalled();
   });
 
   it("disables Generate until a prompt is entered", () => {
     const form = makeForm();
-    render(
-      <GenerateSqlBar
-        open
-        onClose={jest.fn()}
-        form={form}
-        monthlyLimitExceeded={false}
-      />,
-    );
+    render(<GenerateSqlBar open onClose={jest.fn()} form={form} />);
     expect(screen.getByRole("button", { name: "Generate" })).toBeDisabled();
   });
 
   it("submits the prompt when Generate is clicked", async () => {
     const form = makeForm({ prompt: "top 10 patients" });
-    render(
-      <GenerateSqlBar
-        open
-        onClose={jest.fn()}
-        form={form}
-        monthlyLimitExceeded={false}
-      />,
-    );
+    render(<GenerateSqlBar open onClose={jest.fn()} form={form} />);
     await userEvent.click(screen.getByRole("button", { name: "Generate" }));
     expect(form.handleSubmit).toHaveBeenCalled();
   });
@@ -80,14 +52,7 @@ describe("GenerateSqlBar", () => {
       prompt: "top 10 patients",
       phase: GenerateSqlPhase.Generating,
     });
-    render(
-      <GenerateSqlBar
-        open
-        onClose={jest.fn()}
-        form={form}
-        monthlyLimitExceeded={false}
-      />,
-    );
+    render(<GenerateSqlBar open onClose={jest.fn()} form={form} />);
     expect(
       screen.getByPlaceholderText(/describe what you'd like to query/i),
     ).toBeDisabled();
@@ -100,14 +65,7 @@ describe("GenerateSqlBar", () => {
       phase: GenerateSqlPhase.Error,
       error: "Something went wrong.",
     });
-    render(
-      <GenerateSqlBar
-        open
-        onClose={jest.fn()}
-        form={form}
-        monthlyLimitExceeded={false}
-      />,
-    );
+    render(<GenerateSqlBar open onClose={jest.fn()} form={form} />);
     expect(screen.getByText("Something went wrong.")).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Try again" }));
@@ -117,14 +75,7 @@ describe("GenerateSqlBar", () => {
   it("cancels an in-flight generation and closes when Cancel is clicked", async () => {
     const form = makeForm({ phase: GenerateSqlPhase.Generating });
     const onClose = jest.fn();
-    render(
-      <GenerateSqlBar
-        open
-        onClose={onClose}
-        form={form}
-        monthlyLimitExceeded={false}
-      />,
-    );
+    render(<GenerateSqlBar open onClose={onClose} form={form} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
@@ -135,14 +86,7 @@ describe("GenerateSqlBar", () => {
   it("closes without cancelling when idle", async () => {
     const form = makeForm();
     const onClose = jest.fn();
-    render(
-      <GenerateSqlBar
-        open
-        onClose={onClose}
-        form={form}
-        monthlyLimitExceeded={false}
-      />,
-    );
+    render(<GenerateSqlBar open onClose={onClose} form={form} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
@@ -153,14 +97,7 @@ describe("GenerateSqlBar", () => {
   it("closes on Escape", async () => {
     const form = makeForm();
     const onClose = jest.fn();
-    render(
-      <GenerateSqlBar
-        open
-        onClose={onClose}
-        form={form}
-        monthlyLimitExceeded={false}
-      />,
-    );
+    render(<GenerateSqlBar open onClose={onClose} form={form} />);
 
     await userEvent.type(
       screen.getByPlaceholderText(/describe what you'd like to query/i),
@@ -168,23 +105,5 @@ describe("GenerateSqlBar", () => {
     );
 
     expect(onClose).toHaveBeenCalled();
-  });
-
-  it("replaces the bar with a limit-reached banner and hides Generate", () => {
-    const form = makeForm();
-    render(
-      <GenerateSqlBar
-        open
-        onClose={jest.fn()}
-        form={form}
-        monthlyLimitExceeded
-      />,
-    );
-    expect(
-      screen.getByText(/reached your monthly usage limit/i),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Generate" }),
-    ).not.toBeInTheDocument();
   });
 });

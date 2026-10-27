@@ -20,6 +20,7 @@ import { useTranslation } from "next-i18next";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import RunLogs from "pipelines/features/RunLogs";
 import RunMessages from "pipelines/features/RunMessages";
+import { formatParamValue } from "pipelines/helpers/format";
 import { ReactNode, useMemo, useState } from "react";
 import RunOutputsTable from "workspaces/features/RunOutputsTable";
 import StopPipelineDialog from "workspaces/features/StopPipelineDialog";
@@ -80,10 +81,9 @@ const PipelineRunDetail = ({
 
   const renderParameterValue = (entry: PipelineParameter & { value: any }) => {
     if (entry.type === "str" && entry.value) {
-      const text = entry.multiple ? entry.value.join(", ") : entry.value;
       return (
         <TruncatedText lines={6} expandable>
-          {text}
+          {formatParamValue(entry)}
         </TruncatedText>
       );
     }
@@ -94,19 +94,16 @@ const PipelineRunDetail = ({
       (entry.type === "int" || entry.type === "float") &&
       !isNil(entry.value)
     ) {
-      const text = entry.multiple
-        ? entry.value.join(", ")
-        : String(entry.value);
       return (
         <TruncatedText lines={6} expandable>
-          {text}
+          {formatParamValue(entry)}
         </TruncatedText>
       );
     }
     if (isConnectionParameter(entry.type) && entry.value) {
       return (
         <TruncatedText lines={6} expandable>
-          {entry.value}
+          {formatParamValue(entry)}
         </TruncatedText>
       );
     }
@@ -124,7 +121,7 @@ const PipelineRunDetail = ({
     if (entry.type === "file" && entry.value) {
       return (
         <TruncatedText lines={6} expandable>
-          {entry.value}
+          {formatParamValue(entry)}
         </TruncatedText>
       );
     }

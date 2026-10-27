@@ -1,13 +1,9 @@
-from datetime import timedelta
-from decimal import Decimal
 from functools import cached_property
 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.db import models
-from django.db.models import Sum
-from django.utils import timezone
 
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.types import MessageSegment, MessageSegmentAdapter
@@ -94,12 +90,6 @@ class Conversation(SoftDeletedModel, Base):
                 fields=["workspace", "user", "-updated_at"],
                 name="asst_conv_list_idx",
             ),
-            # Covers get_total_cost_for_user(): all_objects.filter(user=user).aggregate(Sum("cost"))
-            # asst_conv_list_idx starts with workspace so it can't efficiently serve a user-only filter.
-            models.Index(
-                fields=["user"],
-                name="asst_conv_user_cost_idx",
-            ),
             # Covers "find all conversations for a given linked object" queries.
             # Django does not auto-index GenericForeignKey fields.
             models.Index(
@@ -116,32 +106,6 @@ class Conversation(SoftDeletedModel, Base):
 
     def __str__(self):
         return f"Conversation({self.id}, user={self.user_id}, workspace={self.workspace_id})"
-
-    @classmethod
-    def get_monthly_cost_for_user(cls, user: User) -> Decimal:
-        """
-        Cost in dollars
-        """
-        now = timezone.now()
-        start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        start_of_next_month = (start_of_month + timedelta(days=32)).replace(day=1)
-        result = Message.objects.filter(
-            conversation__user=user,
-            role=Message.Role.ASSISTANT,
-            created_at__gte=start_of_month,
-            created_at__lt=start_of_next_month,
-        ).aggregate(total=Sum("cost"))["total"]
-        return result or 0
-
-    @classmethod
-    def get_total_cost_for_user(cls, user: User) -> Decimal:
-        """
-        Cost in dollars
-        """
-        result = Conversation.all_objects.filter(
-            user=user,
-        ).aggregate(total=Sum("cost"))["total"]
-        return result or 0
 
 
 class Message(Base):
@@ -162,8 +126,9 @@ class Message(Base):
         ordering = ["-created_at"]
         indexes = [
             # Covers two queries:
-            # 1. get_monthly_cost_for_user(): nested loop over user's conversations,
-            #    filtering by role='assistant' and created_at range, reading cost from INCLUDE.
+            # 1. Organization.get_monthly_ai_cost(): nested loop over the organization's
+            #    conversations, filtering by role='assistant' and created_at range, reading
+            #    cost from INCLUDE.
             # 2. conversation.messages.filter(role="assistant").last() in mutations.py,
             #    which needs (conversation, role) as the leading columns.
             models.Index(

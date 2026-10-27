@@ -147,10 +147,12 @@ const FileEditorPane = ({
       <div className="p-3 border-b border-gray-200 bg-white flex items-center justify-between gap-2">
         <div className="min-w-0">
           <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
-            {selectedFile.name}
+            <span className="truncate" title={selectedFile.name}>
+              {selectedFile.name}
+            </span>
             {currentFileIsModified && (
               <span
-                className="inline-block w-2 h-2 bg-blue-500 rounded-full"
+                className="inline-block w-2 h-2 shrink-0 bg-blue-500 rounded-full"
                 title={t("Modified")}
               />
             )}

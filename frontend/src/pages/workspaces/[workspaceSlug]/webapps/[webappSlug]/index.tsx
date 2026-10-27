@@ -183,9 +183,6 @@ const WorkspaceWebappPage: NextPageWithLayout = (props: Props) => {
             webappSlug={webappSlug}
             webapp={webapp}
             showAssistant={showAssistant}
-            monthlyLimitExceeded={
-              data?.me?.assistantMonthlyLimitExceeded ?? false
-            }
             isReviewing={isReviewing}
             onRefetch={() => {
               refetch().then();

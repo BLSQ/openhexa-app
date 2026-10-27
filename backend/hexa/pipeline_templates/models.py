@@ -13,7 +13,7 @@ from hexa.core.models.soft_delete import (
     SoftDeleteQuerySet,
 )
 from hexa.pipelines.models import Pipeline, PipelineFunctionalType, PipelineVersion
-from hexa.user_management.models import ServicePrincipal, User, UserInterface
+from hexa.user_management.models import User, UserInterface, is_non_personal_principal
 from hexa.workspaces.models import Workspace
 
 
@@ -21,7 +21,7 @@ class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
         if not user.is_authenticated:
             return self.none()
-        if isinstance(user, ServicePrincipal):
+        if is_non_personal_principal(user):
             return self.all()
         return self.filter(workspace__in=Workspace.objects.filter_for_user(user))
 

@@ -566,6 +566,29 @@ export type AssistantToolSegment = {
   toolOutput?: Maybe<Scalars['JSON']['output']>;
 };
 
+export enum AuthorizeMcpConnectionError {
+  ClientNotFound = 'CLIENT_NOT_FOUND',
+  ToolNotFound = 'TOOL_NOT_FOUND',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+/**
+ * The grant a user picks on the consent screen, before the client holds a token.
+ * Creates the connection if this is the client's first authorization.
+ */
+export type AuthorizeMcpConnectionInput = {
+  clientId: Scalars['String']['input'];
+  tools?: InputMaybe<Array<Scalars['String']['input']>>;
+  workspaceSlugs?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type AuthorizeMcpConnectionResult = {
+  __typename?: 'AuthorizeMCPConnectionResult';
+  errors: Array<AuthorizeMcpConnectionError>;
+  mcpConnection?: Maybe<McpConnection>;
+  success: Scalars['Boolean']['output'];
+};
+
 /** The Avatar type represents the avatar of a user. */
 export type Avatar = {
   __typename?: 'Avatar';
@@ -2416,6 +2439,18 @@ export type EnableTwoFactorResult = {
 
 /** Possible errors when executing a SQL query against the workspace database. */
 export enum ExecuteSqlError {
+  /** The `after` cursor is forged, or was built for another query or ordering. */
+  InvalidCursor = 'INVALID_CURSOR',
+  /**
+   * An `orderBy` entry names a column the result does not have, or one that is ambiguous,
+   * or a cursor was sent without the `orderBy` it was built for.
+   */
+  InvalidOrderBy = 'INVALID_ORDER_BY',
+  /**
+   * The pagination arguments contradict each other, are out of range, or were sent for a
+   * statement that cannot be paginated (e.g. an EXPLAIN).
+   */
+  InvalidPagination = 'INVALID_PAGINATION',
   /** More than one SQL statement was submitted; only a single statement is allowed. */
   MultipleStatements = 'MULTIPLE_STATEMENTS',
   /** The user is not allowed to run queries against this workspace database. */
@@ -2447,20 +2482,49 @@ export type ExecuteSqlResult = {
   errorMessage?: Maybe<Scalars['String']['output']>;
   /** The errors that occurred while executing the query. */
   errors: Array<ExecuteSqlError>;
+  /** Where this result sits in the full result set. Null only when the query failed. */
+  pageInfo?: Maybe<QueryResultPageInfo>;
   /** The number of rows returned by the query (after any truncation). */
   rowCount?: Maybe<Scalars['Int']['output']>;
   /** The rows returned by the query, each one a JSON object keyed by column name. */
   rows?: Maybe<Array<Scalars['JSON']['output']>>;
   /** Indicates whether the query executed successfully. */
   success: Scalars['Boolean']['output'];
-  /** Whether the result was truncated because it exceeded the maximum number of rows. */
+  /**
+   * Whether more rows exist than were returned. Same value as `pageInfo.hasNextPage`.
+   * @deprecated Use pageInfo.hasNextPage.
+   */
   truncated?: Maybe<Scalars['Boolean']['output']>;
 };
 
-/** Input for executing a saved query. */
+/**
+ * Input for executing a saved query.
+ *
+ * Three options:
+ * 1. Pagination with offset/limit by sending `page`
+ * 2. Pagination with cursor by sending `after` (forward) or `before` (backward)
+ * 3. No pagination: runs the query as saved, capped to `perPage` rows
+ *
+ * Note: `orderBy` alone returns the first page of both pagination methods.
+ */
 export type ExecuteSavedQueryInput = {
-  /** Caps the number of returned rows; defaults to 50 and is itself capped to a server-side hard limit. */
+  /** The `endCursor` of the previous page. Requires the `orderBy` it was built for. */
+  after?: InputMaybe<Scalars['String']['input']>;
+  /** The `startCursor` of the next page: returns the `perPage` rows before it. Requires the `orderBy` it was built for and cannot be combined with `after`. */
+  before?: InputMaybe<Scalars['String']['input']>;
+  /** Also count the total number of rows, not available with a cursor. Note that this adds the cost of a second scan of the query. */
+  includeTotalItems?: InputMaybe<Scalars['Boolean']['input']>;
+  /** @deprecated Use perPage. */
   maxRows?: InputMaybe<Scalars['Int']['input']>;
+  /**
+   * Sorts the result, overriding any ORDER BY of the query itself. For cursor pagination,
+   * sort on non-nullable columns and end with a unique one.
+   */
+  orderBy?: InputMaybe<Array<QueryResultOrderBy>>;
+  /** The 1-based page to return. Cannot be combined with a cursor. */
+  page?: InputMaybe<Scalars['Int']['input']>;
+  /** The number of rows per page; defaults to 50 and is capped to a server-side hard limit. Ignored for an EXPLAIN. */
+  perPage?: InputMaybe<Scalars['Int']['input']>;
   slug: Scalars['String']['input'];
 };
 
@@ -2963,12 +3027,57 @@ export type LogoutResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/**
+ * An authorization request awaiting the user's consent, used to render the same
+ * permission editor on the consent screen as in the account settings.
+ */
+export type McpAuthorizationRequest = {
+  __typename?: 'MCPAuthorizationRequest';
+  clientName: Scalars['String']['output'];
+  connection?: Maybe<McpConnection>;
+  tools: Array<McpTool>;
+};
+
+/**
+ * What a given MCP client may do on behalf of the current user. Editable at any
+ * time: narrowing a connection takes effect on its next call, without the client
+ * having to authorize again.
+ */
+export type McpConnection = {
+  __typename?: 'MCPConnection';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['UUID']['output'];
+  lastUsedAt?: Maybe<Scalars['DateTime']['output']>;
+  name: Scalars['String']['output'];
+  tools: Array<Scalars['String']['output']>;
+  workspaces: Array<Workspace>;
+};
+
+/** A family of OpenHEXA resources an MCP connection can be granted access to. */
+export enum McpResource {
+  Connections = 'CONNECTIONS',
+  Databases = 'DATABASES',
+  Datasets = 'DATASETS',
+  Files = 'FILES',
+  Pipelines = 'PIPELINES',
+  SavedQueries = 'SAVED_QUERIES',
+  Templates = 'TEMPLATES',
+  Webapps = 'WEBAPPS',
+  Workspaces = 'WORKSPACES'
+}
+
+export type McpTool = {
+  __typename?: 'MCPTool';
+  description: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  resource?: Maybe<McpResource>;
+  /** True when calling it changes something. Display only — grants name tools. */
+  write: Scalars['Boolean']['output'];
+};
+
 /** The Me type represents the currently authenticated user. */
 export type Me = {
   __typename?: 'Me';
-  assistantMonthlyCost: Scalars['Int']['output'];
-  assistantMonthlyLimitExceeded: Scalars['Boolean']['output'];
-  assistantTotalCost: Scalars['Int']['output'];
   /** The feature flags assigned to the currently authenticated user. */
   features: Array<FeatureFlag>;
   hasTwoFactorEnabled: Scalars['Boolean']['output'];
@@ -3079,6 +3188,7 @@ export type Mutation = {
   addWebappToShortcuts: AddWebappToShortcutsResult;
   approveAccessmodAccessRequest: ApproveAccessmodAccessRequestResult;
   archiveWorkspace: ArchiveWorkspaceResult;
+  authorizeMCPConnection: AuthorizeMcpConnectionResult;
   convertExternalCollaboratorToMember: ConvertExternalCollaboratorToMemberResult;
   createAccessmodAccessibilityAnalysis: CreateAccessmodAccessibilityAnalysisResult;
   createAccessmodFile: CreateAccessmodFileResult;
@@ -3203,6 +3313,7 @@ export type Mutation = {
   /** Sends a password reset email to the user. */
   resetPassword: ResetPasswordResult;
   resolveAssistantProposal: ResolveAssistantProposalResult;
+  revokeMCPConnection: RevokeMcpConnectionResult;
   runDAG: RunDagResult;
   /** Runs a pipeline. */
   runPipeline: RunPipelineResult;
@@ -3227,6 +3338,7 @@ export type Mutation = {
   /** Update a dataset version. */
   updateDatasetVersion: UpdateDatasetVersionResult;
   updateExternalCollaborator: UpdateExternalCollaboratorResult;
+  updateMCPConnection: UpdateMcpConnectionResult;
   updateMembership: UpdateMembershipResult;
   updateOrganization: UpdateOrganizationResult;
   /** Updates the AI settings of the currently authenticated user. */
@@ -3296,6 +3408,11 @@ export type MutationApproveAccessmodAccessRequestArgs = {
 
 export type MutationArchiveWorkspaceArgs = {
   input: ArchiveWorkspaceInput;
+};
+
+
+export type MutationAuthorizeMcpConnectionArgs = {
+  input: AuthorizeMcpConnectionInput;
 };
 
 
@@ -3729,6 +3846,11 @@ export type MutationResolveAssistantProposalArgs = {
 };
 
 
+export type MutationRevokeMcpConnectionArgs = {
+  input: RevokeMcpConnectionInput;
+};
+
+
 export type MutationRunDagArgs = {
   input: RunDagInput;
 };
@@ -3816,6 +3938,11 @@ export type MutationUpdateDatasetVersionArgs = {
 
 export type MutationUpdateExternalCollaboratorArgs = {
   input: UpdateExternalCollaboratorInput;
+};
+
+
+export type MutationUpdateMcpConnectionArgs = {
+  input: UpdateMcpConnectionInput;
 };
 
 
@@ -4862,6 +4989,15 @@ export type Query = {
   executeSavedQuery: ExecuteSqlResult;
   /** Get a file by its path within a workspace. */
   getFileByPath?: Maybe<BucketObject>;
+  /** The consent context for a pending authorization, by OAuth client id. */
+  mcpAuthorizationRequest?: Maybe<McpAuthorizationRequest>;
+  /** The MCP clients the current user has connected. */
+  mcpConnections: Array<McpConnection>;
+  /**
+   * Every tool the MCP server exposes, with the access each one needs. Lets the
+   * permission editor show which tools a resource family actually covers.
+   */
+  mcpTools: Array<McpTool>;
   /** Retrieves the currently authenticated user. */
   me: Me;
   metadataAttributes: Array<Maybe<MetadataAttribute>>;
@@ -5061,6 +5197,11 @@ export type QueryExecuteSavedQueryArgs = {
 export type QueryGetFileByPathArgs = {
   path: Scalars['String']['input'];
   workspaceSlug: Scalars['String']['input'];
+};
+
+
+export type QueryMcpAuthorizationRequestArgs = {
+  clientId: Scalars['String']['input'];
 };
 
 
@@ -5271,6 +5412,27 @@ export type QueryWorkspacesArgs = {
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+/** One sort key of a query result. */
+export type QueryResultOrderBy = {
+  /** A column of the result, by name. */
+  column: Scalars['String']['input'];
+  direction?: InputMaybe<OrderByDirection>;
+};
+
+/** Describes the page a query result holds. */
+export type QueryResultPageInfo = {
+  __typename?: 'QueryResultPageInfo';
+  /** Pass as `after`, with the same `orderBy`, to get the next page. Null on the last page. */
+  endCursor?: Maybe<Scalars['String']['output']>;
+  hasNextPage: Scalars['Boolean']['output'];
+  hasPreviousPage: Scalars['Boolean']['output'];
+  pageNumber?: Maybe<Scalars['Int']['output']>;
+  /** Pass as `before`, with the same `orderBy`, to get the previous page. Null on the first page. */
+  startCursor?: Maybe<Scalars['String']['output']>;
+  totalItems?: Maybe<Scalars['Int']['output']>;
+  totalPages?: Maybe<Scalars['Int']['output']>;
 };
 
 export enum ReadFileContentError {
@@ -5498,6 +5660,20 @@ export type ResourceCountsInput = {
   users: Scalars['Int']['input'];
   /** Number of workspaces. */
   workspaces: Scalars['Int']['input'];
+};
+
+export enum RevokeMcpConnectionError {
+  NotFound = 'NOT_FOUND'
+}
+
+export type RevokeMcpConnectionInput = {
+  id: Scalars['UUID']['input'];
+};
+
+export type RevokeMcpConnectionResult = {
+  __typename?: 'RevokeMCPConnectionResult';
+  errors: Array<RevokeMcpConnectionError>;
+  success: Scalars['Boolean']['output'];
 };
 
 export enum RunDagError {
@@ -6123,6 +6299,25 @@ export type UpdateExternalCollaboratorResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export enum UpdateMcpConnectionError {
+  NotFound = 'NOT_FOUND',
+  ToolNotFound = 'TOOL_NOT_FOUND',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+export type UpdateMcpConnectionInput = {
+  id: Scalars['UUID']['input'];
+  tools?: InputMaybe<Array<Scalars['String']['input']>>;
+  workspaceSlugs?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type UpdateMcpConnectionResult = {
+  __typename?: 'UpdateMCPConnectionResult';
+  errors: Array<UpdateMcpConnectionError>;
+  mcpConnection?: Maybe<McpConnection>;
+  success: Scalars['Boolean']['output'];
+};
+
 /** The UpdateMembershipError enum represents the possible errors that can occur during the updateMembership mutation. */
 export enum UpdateMembershipError {
   /** Indicates that the provided role is invalid. */
@@ -6742,6 +6937,7 @@ export type Webapp = {
   isShortcut: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   permissions: WebappPermissions;
+  pointsToOpenhexaWebapp: Scalars['Boolean']['output'];
   previewUrl: Scalars['String']['output'];
   serveUrl: Scalars['String']['output'];
   showPoweredBy: Scalars['Boolean']['output'];

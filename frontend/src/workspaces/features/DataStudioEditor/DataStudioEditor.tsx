@@ -38,7 +38,6 @@ type DataStudioEditorProps = {
   canCreate: boolean;
   aiEnabled?: boolean;
   aiBudgetLimitReached?: boolean;
-  monthlyLimitExceeded?: boolean;
 };
 
 const MAX_ROWS_OPTIONS = [50, 100, 500, 1000, 10_000];
@@ -65,7 +64,6 @@ const DataStudioEditor = ({
   canCreate,
   aiEnabled = false,
   aiBudgetLimitReached = false,
-  monthlyLimitExceeded = false,
 }: DataStudioEditorProps) => {
   const { t } = useTranslation();
   const isMac = useIsMac();
@@ -318,7 +316,6 @@ const DataStudioEditor = ({
               open={generateBarOpen}
               onClose={() => setGenerateBarOpen(false)}
               form={generateForm}
-              monthlyLimitExceeded={monthlyLimitExceeded}
             />
           )}
 
@@ -393,7 +390,9 @@ DataStudioEditor.queries = {
             columns
             rows
             rowCount
-            truncated
+            pageInfo {
+              hasNextPage
+            }
             durationMs
           }
         }

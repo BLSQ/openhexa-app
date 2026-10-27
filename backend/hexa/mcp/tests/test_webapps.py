@@ -2,6 +2,8 @@ import json
 import uuid
 from unittest.mock import MagicMock, patch
 
+from django.conf import settings
+
 from hexa.mcp.tools.webapps import (
     create_static_webapp,
     edit_static_webapp_file,
@@ -96,6 +98,22 @@ class GetStaticWebappTest(MCPTestCase):
         self.assertEqual(result["files"][0]["path"], "index.html")
         self.assertEqual(result["files"][0]["content"], "<html>hi</html>")
         self.assertEqual(result["files"][0]["encoding"], "TEXT")
+
+        # The repo name and clone URL are reported, not left for a tool to
+        # rebuild from the workspace and webapp slugs.
+        repository = f"{self.WORKSPACE.slug}-webapp-{webapp_slug}"
+        organization = self.WORKSPACE.organization.slug
+        self.assertEqual(
+            {
+                "repository": repository,
+                "repositoryUrl": (
+                    f"{settings.GIT_PUBLIC_URL.rstrip('/')}"
+                    f"/{organization}/{repository}.git"
+                ),
+                "publishedVersion": INITIAL_SHA,
+            },
+            result["source"],
+        )
 
     @_mock_forgejo()
     def test_get_static_webapp_defaults_ref_to_main(self, mock_forgejo):

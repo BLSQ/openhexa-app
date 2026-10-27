@@ -165,9 +165,6 @@ const PipelineDetailPage = ({
             aiBudgetLimitReached={
               workspace.organization?.aiBudgetLimitReached ?? false
             }
-            monthlyLimitExceeded={
-              data.me?.assistantMonthlyLimitExceeded ?? false
-            }
             onRefetch={() => {
               refetch().then();
             }}

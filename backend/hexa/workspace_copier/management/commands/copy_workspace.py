@@ -83,6 +83,12 @@ class Command(BaseCommand):
             action="store_true",
             help="Copy every version of each dataset instead of only the latest one.",
         )
+        parser.add_argument(
+            "--no-connection-secrets",
+            action="store_false",
+            dest="include_connection_secrets",
+            help="Create connections with their secret fields empty.",
+        )
 
     def _resolve_resources(self, resources: str | None):
         known = _known_resource_names()
@@ -129,7 +135,8 @@ class Command(BaseCommand):
                 target_workspace_slug=target_workspace_slug,
                 resources=resources,
                 options=CopyOptions(
-                    all_dataset_versions=options["all_dataset_versions"]
+                    all_dataset_versions=options["all_dataset_versions"],
+                    include_connection_secrets=options["include_connection_secrets"],
                 ),
                 reporter=reporter,
             )

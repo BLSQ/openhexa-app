@@ -1,6 +1,7 @@
 """Forms backing the workspace-copier admin views."""
 
 from django import forms
+from django.conf import settings
 
 from hexa.workspace_copier.orchestrator import WORKSPACE_COPIERS
 from hexa.workspace_copier.templates import DEFAULT_SOURCE_URL
@@ -26,6 +27,12 @@ def _help_texts() -> dict[str, str]:
     return {c.name: c.help_text for c in WORKSPACE_COPIERS if c.help_text}
 
 
+def _this_server_graphql_url() -> str:
+    # The worker runs the copy, and INTERNAL_BASE_URL is how workers reach the
+    # backend (pipelines and the dataset worker use it too).
+    return f"{settings.INTERNAL_BASE_URL.rstrip('/')}/graphql/"
+
+
 class ResourceSelect(forms.CheckboxSelectMultiple):
     """Checkbox list where a mandatory copier is checked and locked.
 
@@ -44,18 +51,19 @@ class ResourceSelect(forms.CheckboxSelectMultiple):
 class CopyWorkspaceForm(forms.Form):
     """Pick a source endpoint, a target endpoint, and the resources to copy.
 
-    A blank server URL means the local server; a token is required only for a
-    remote (URL-bearing) side. The mandatory workspace-metadata copier is always
-    run regardless of what the operator selects.
+    A blank server URL defaults to this server's GraphQL endpoint: the local
+    (ORM) copy isn't implemented, so this server is reached over GraphQL like
+    any other, and a token is required on both sides. The mandatory
+    workspace-metadata copier is always run regardless of what the operator
+    selects.
     """
 
     source_url = forms.URLField(
         required=False,
         label="Source server URL",
-        help_text="GraphQL endpoint of the source server. Leave blank for the local server.",
+        help_text="GraphQL endpoint of the source server. Leave blank for this server.",
     )
     source_token = forms.CharField(
-        required=False,
         label="Source ServiceAccount token",
         widget=forms.PasswordInput(render_value=True),
     )
@@ -64,10 +72,9 @@ class CopyWorkspaceForm(forms.Form):
     target_url = forms.URLField(
         required=False,
         label="Target server URL",
-        help_text="GraphQL endpoint of the target server. Leave blank for the local server.",
+        help_text="GraphQL endpoint of the target server. Leave blank for this server.",
     )
     target_token = forms.CharField(
-        required=False,
         label="Target ServiceAccount token",
         widget=forms.PasswordInput(render_value=True),
     )
@@ -111,6 +118,14 @@ class CopyWorkspaceForm(forms.Form):
         label_suffix="",
         help_text="Off by default: only each dataset's latest version is copied.",
     )
+    include_connection_secrets = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Include connection secrets",
+        label_suffix="",
+        help_text="Copy stored credentials and API keys. If unchecked, "
+        "connections are copied without their secret values.",
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -135,20 +150,11 @@ class CopyWorkspaceForm(forms.Form):
                 "options": [self[field] for field in option_fields.get(name, ())],
             }
 
-    def _clean_endpoint_credentials(self, side: str) -> None:
-        url = self.cleaned_data.get(f"{side}_url")
-        if not url:
-            return
-        if not self.cleaned_data.get(f"{side}_token"):
-            self.add_error(
-                f"{side}_token",
-                f"Required when a {side} server URL is set (remote endpoint).",
-            )
-
     def clean(self):
         cleaned = super().clean()
-        self._clean_endpoint_credentials("source")
-        self._clean_endpoint_credentials("target")
+        for side in ("source", "target"):
+            if not cleaned.get(f"{side}_url"):
+                cleaned[f"{side}_url"] = _this_server_graphql_url()
 
         if cleaned.get("target_mode") == "existing":
             # Hidden fields may still carry values typed before switching mode.

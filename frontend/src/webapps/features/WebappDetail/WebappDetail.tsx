@@ -63,7 +63,6 @@ type WebappDetailProps = {
   webappSlug: string;
   webapp: any;
   showAssistant: boolean;
-  monthlyLimitExceeded: boolean;
   isReviewing?: boolean;
   onRefetch: () => void;
   onDelete?: () => void;
@@ -87,7 +86,6 @@ const WebappDetail = ({
   webappSlug,
   webapp,
   showAssistant,
-  monthlyLimitExceeded,
   isReviewing = false,
   onRefetch,
   onDelete,
@@ -667,7 +665,6 @@ const WebappDetail = ({
             <WebappEditChatPanel
               webappId={webapp.id}
               workspaceSlug={workspaceSlug}
-              monthlyLimitExceeded={monthlyLimitExceeded}
               onProposedFiles={handleProposedFiles}
               conversations={conversations}
               activeConversationId={activeConversationId}

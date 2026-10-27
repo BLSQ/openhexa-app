@@ -118,7 +118,6 @@ const renderCodeTab = (createVersion: boolean) => {
         pipeline={buildPipeline(createVersion)}
         showAssistant
         aiBudgetLimitReached={false}
-        monthlyLimitExceeded={false}
         onRefetch={jest.fn()}
       />
     </TestApp>,

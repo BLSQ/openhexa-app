@@ -19,6 +19,7 @@ The LOCAL (ORM) branch is implemented in a later phase.
 from typing import Any
 
 from openhexa.graphql.graphql_client.client import Client
+from openhexa.graphql.graphql_client.exceptions import GraphQLClientError
 from openhexa.graphql.graphql_client.input_types import (
     ConnectionFieldInput,
     ConnectionType,
@@ -49,6 +50,7 @@ query ListConnections($slug: String!) {
 class ConnectionsCopier(ResourceCopier):
     name = "connections"
     label = "Connections"
+    option_fields = ("include_connection_secrets",)
 
     def copy(
         self,
@@ -60,7 +62,7 @@ class ConnectionsCopier(ResourceCopier):
         options: CopyOptions = CopyOptions(),
     ) -> None:
         if source.is_remote and target.is_remote:
-            self._copy_remote(source, target, result, reporter)
+            self._copy_remote(source, target, result, reporter, options)
         else:
             raise NotImplementedError(
                 "LOCAL connections copy (native ORM clone) is implemented in a "
@@ -73,9 +75,16 @@ class ConnectionsCopier(ResourceCopier):
         target: Endpoint,
         result: CopyResult,
         reporter: ProgressReporter,
+        options: CopyOptions,
     ) -> None:
         conns_result = ConnectionsResult()
         result.connections = conns_result
+        include_secrets = options.include_connection_secrets
+        if not include_secrets:
+            conns_result.warnings.append(
+                "secrets were not copied — secret fields were created empty; "
+                "set them manually on the target."
+            )
 
         conns = _list_connections(source.client, source.slug)
         if conns is None:
@@ -94,7 +103,7 @@ class ConnectionsCopier(ResourceCopier):
                 reporter.info(f"   skipped connection '{slug}' (already exists)")
                 continue
             try:
-                fields_in = _build_fields(conn, conns_result)
+                fields_in = _build_fields(conn, conns_result, include_secrets)
                 res = target.client.create_connection(
                     input=CreateConnectionInput(
                         workspace_slug=target.slug,
@@ -112,7 +121,7 @@ class ConnectionsCopier(ResourceCopier):
                     )
                 conns_result.created.append((slug, len(fields_in)))
                 reporter.info(f"   created connection '{slug}'")
-            except GraphQLError:
+            except (GraphQLError, GraphQLClientError):
                 # Collect and continue (like files) so one bad connection
                 # doesn't abort the rest of the copy.
                 conns_result.failed.append(slug)
@@ -129,21 +138,25 @@ def _list_connections(client: Client, slug: str) -> list[dict[str, Any]] | None:
 
 
 def _build_fields(
-    conn: dict[str, Any], result: ConnectionsResult
+    conn: dict[str, Any], result: ConnectionsResult, include_secrets: bool
 ) -> list[ConnectionFieldInput]:
-    """Map source fields to ConnectionFieldInput, warning on empty secrets."""
+    """Map source fields to ConnectionFieldInput, blanking secrets unless included."""
     fields_in: list[ConnectionFieldInput] = []
     for f in conn.get("fields") or []:
-        value = f.get("value")
-        if f.get("secret") and not value:
-            result.warnings.append(
-                f"connection '{conn['slug']}' field '{f['code']}' is a secret "
-                "with no readable value on source — created empty; set it "
-                "manually on the target."
-            )
+        secret = bool(f.get("secret"))
+        if secret and not include_secrets:
+            value = ""
+        else:
+            # The target column is NOT NULL: a null value (e.g. a secret the
+            # source redacted) would fail the insert, so fall back to "".
+            value = f.get("value") or ""
+            if secret and not value:
+                result.warnings.append(
+                    f"connection '{conn['slug']}' field '{f['code']}' is a secret "
+                    "with no readable value on source — created empty; set it "
+                    "manually on the target."
+                )
         fields_in.append(
-            ConnectionFieldInput(
-                code=f["code"], secret=bool(f.get("secret")), value=value
-            )
+            ConnectionFieldInput(code=f["code"], secret=secret, value=value)
         )
     return fields_in

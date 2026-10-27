@@ -147,6 +147,15 @@ class BaseAgentRunStreamTest(AgentTestCase):
         tool_result = next(e for e in events if e["event"] == "tool_result")
         self.assertTrue(tool_result["data"]["success"])
 
+    def test_tool_result_event_carries_the_tool_output(self):
+        model = _make_tool_call_model("_fake_tool", {"arg": "hello"})
+        agent = _AgentWithFakeTool(self.conversation, FakeModelBuilder(model))
+        events = _collect_stream(agent, "Use the tool")
+        tool_result = next(e for e in events if e["event"] == "tool_result")
+        self.assertEqual(tool_result["data"]["tool_call_id"], "call-test-001")
+        self.assertEqual(tool_result["data"]["tool_name"], "_fake_tool")
+        self.assertEqual(tool_result["data"]["tool_output"], {"result": "hello"})
+
     def test_incomplete_tool_call_yields_user_friendly_error(self):
         @asynccontextmanager
         async def _incomplete_iter(*args, **kwargs):

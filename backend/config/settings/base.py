@@ -146,6 +146,8 @@ WEBAPPS_DOMAIN = os.environ.get("WEBAPPS_DOMAIN", None)
 WEBAPPS_DOMAIN_HOST = WEBAPPS_DOMAIN.split(":")[0] if WEBAPPS_DOMAIN else None
 if WEBAPPS_DOMAIN:
     ALLOWED_HOSTS += [f".{WEBAPPS_DOMAIN_HOST}"]
+# Origins allowed to embed web apps besides the backend and the frontend
+WEBAPPS_ADDITIONAL_FRAME_ANCESTORS = []
 
 CORS_ALLOWED_ORIGINS = []
 CSRF_TRUSTED_ORIGINS = []
@@ -182,17 +184,21 @@ else:
     CORS_ALLOWED_ORIGINS = [NEW_FRONTEND_DOMAIN]
     CSRF_TRUSTED_ORIGINS = [NEW_FRONTEND_DOMAIN]
     ALLOWED_HOSTS += [BASE_HOSTNAME]
+    # Git worktrees (scripts/worktree.sh) run on openhexa-app-<N>.localhost, but
+    # their frontend is also reached on plain localhost.
+    if BASE_HOSTNAME.endswith(".localhost"):
+        WEBAPPS_ADDITIONAL_FRAME_ANCESTORS = [
+            f"{SCHEME}://localhost:{os.environ.get('FRONTEND_PORT', 3000)}"
+        ]
 
 # CORS (For GraphQL)
 # https://github.com/adamchainz/django-cors-headers
 if "CORS_ALLOWED_ORIGINS" in os.environ:
     CORS_ALLOWED_ORIGINS += os.environ.get("CORS_ALLOWED_ORIGINS").split(",")
 
+# Web app origins are not included: a web app page talks to OpenHEXA
+# through its GraphQL proxy, enforcing web app's scopes
 CORS_ALLOWED_ORIGIN_REGEXES = []
-if WEBAPPS_DOMAIN:
-    CORS_ALLOWED_ORIGIN_REGEXES.append(
-        rf"^https?://[\w-]+\.{re.escape(WEBAPPS_DOMAIN_HOST)}(:\d+)?$"
-    )
 if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
     CORS_ALLOWED_ORIGIN_REGEXES += os.environ.get("CORS_ALLOWED_ORIGIN_REGEXES").split(
         ","
@@ -357,6 +363,8 @@ MIDDLEWARE = [
     # Note: SSE issues appears resolved in Django 6.0, to check when we upgrade:
     # https://github.com/django/django/commit/bb4fcf5f67e6a39440bb1271450319604a755f2e
     "hexa.core.middlewares.SSEAwareGZipMiddleware",
+    # Before CorsMiddleware, so that preflights from web app pages are refused too.
+    "hexa.webapps.middlewares.webapp_origin_middleware",
     "corsheaders.middleware.CorsMiddleware",
     "hexa.core.middlewares.RequestTooBigMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -615,7 +623,6 @@ PIPELINE_RUN_DEFAULT_TIMEOUT = os.environ.get("PIPELINE_RUN_DEFAULT_TIMEOUT", 14
 PIPELINE_RUN_MAX_TIMEOUT = os.environ.get("PIPELINE_RUN_MAX_TIMEOUT", 43200)
 
 # AI Assistant config
-ASSISTANT_MONTHLY_LIMIT = int(os.environ.get("ASSISTANT_MONTHLY_LIMIT", 200))
 # Whether this OpenHEXA instance's AI is managed/hosted by us.
 # True on our SaaS instance, False on local hostings.
 ASSISTANT_MANAGED = os.environ.get("ASSISTANT_MANAGED", "false") == "true"
@@ -799,6 +806,7 @@ if GIT_PUBLIC_URL and GIT_PUBLIC_URL not in CSRF_TRUSTED_ORIGINS:
     CSRF_TRUSTED_ORIGINS.append(GIT_PUBLIC_URL)
 
 # OAuth2 Provider (django-oauth-toolkit)
+OAUTH2_PROVIDER_APPLICATION_MODEL = "oauth2_provider.Application"
 OAUTH2_PROVIDER = {
     "PKCE_REQUIRED": True,
     "SCOPES": {

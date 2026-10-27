@@ -39,19 +39,21 @@ Each webapp gets a subdomain under the workspace's webapps domain — e.g. `my-w
 
 ## Public vs private
 
-- **Private** (default): viewers must be authenticated workspace members. The browser session cookie is what authorises requests, so private static webapps can also call OpenHEXA's GraphQL API directly (see below).
+- **Private** (default): viewers must be authenticated workspace members. Private static webapps can also call OpenHEXA's GraphQL API through an endpoint on their own URL (see below).
 - **Public**: anyone with the URL can view the webapp. Public webapps **cannot** call the GraphQL proxy — if you need to expose workspace data publicly, generate a static export from a pipeline and serve it as a file inside the webapp.
 
 ## Calling the OpenHEXA GraphQL API
 
-Private static webapps can call the platform's GraphQL API directly from their JavaScript code to read workspace data and run pipelines. The rest of this page covers that API in detail — public webapps and iframe webapps cannot use this endpoint.
+Private static webapps can call the platform's GraphQL API from their JavaScript code, through an endpoint on their own URL, to read workspace data and run pipelines. The rest of this page covers that API in detail — public webapps and iframe webapps cannot use this endpoint.
 
 ### How it works
 
 - **Endpoint**: `POST /graphql/` on the webapp's own URL (same-origin). For example, a webapp served at `https://my-webapp.webapps.example.com/` calls `https://my-webapp.webapps.example.com/graphql/`.
 - **Authentication**: handled by the webapp session — the user's browser session cookie is attached automatically. Do not send `Authorization` headers; do not embed tokens in your code.
 - **Origin check**: only requests whose `Origin` matches the webapp's own origin are allowed. Cross-site calls are rejected.
-- **Scope-gated**: each webapp declares an `allowed_operations` list. Only GraphQL top-level fields covered by those scopes are allowed; everything else returns a `403`.
+- **Scope-gated**: each webapp declares an `allowed_operations` list. Every field a query selects is checked against those scopes, including nested fields and fields inside fragments. If any field is not covered, the whole request returns a `403` naming the refused fields and, when a scope would grant them, the scopes to enable, for example `Fields not allowed: Workspace.datasets. Enable scope(s): DATASETS_READ`. Fields no scope covers, such as `Workspace.connections`, are listed without a hint.
+- **Viewer's role, narrowed by scopes**: the webapp acts as the viewing user, but can only use what both the user's workspace role and the webapp's scopes allow. Credentials (database passwords, connection secrets, tokens) are never available to a webapp.
+- **Own endpoint only**: the main OpenHEXA API refuses requests coming from webapp pages. Always call `/graphql/` on the webapp's own URL.
 - **JSON body**: same as any GraphQL POST — `{"query": "...", "variables": {...}}`.
 
 ## Enabling the API on a webapp
@@ -60,14 +62,22 @@ By default a static webapp has an empty `allowed_operations` list, which means i
 
 ## Scope reference
 
-| Scope | What it grants |
+| Scope | Entry points |
 |---|---|
-| `USER_READ` | `me`, `workspace` |
-| `PIPELINES_READ` | `pipeline`, `pipelines`, `pipelineByCode`, `pipelineRun`, `pipelineVersion` |
+| `USER_READ` | `me`, `workspace`, `countries`, `country`, `boundaries` |
+| `PIPELINES_READ` | `pipeline`, `pipelines`, `pipelineByCode`, `pipelineRun`, `pipelineVersion`, `pipelineParameterChoices` |
 | `PIPELINES_RUN` | `runPipeline`, `stopPipeline` |
 | `FILES_READ` | `getFileByPath`, `readFileContent`, `prepareObjectDownload` |
-| `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink` |
+| `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink`, `datasetLinkBySlug`, `datasetVersionFile` |
 | `DATABASE_READ` | `executeSavedQuery` |
+
+Each scope also covers the fields of the objects these entry points return, as shown in the schema of the [examples](#example-webapps) below. Links back up to a workspace, such as `Pipeline.workspace`, `Dataset.workspace` or `DatasetLink.workspace`, are not covered by any scope.
+
+Some fields need a second scope:
+
+- Listing files through `workspace { bucket { objects } }` needs `USER_READ` and `FILES_READ`.
+- Listing datasets through `workspace { datasets }` needs `USER_READ` and `DATASETS_READ`.
+- Reading the dataset versions a run produced through `pipelineRun { datasetVersions }` needs `PIPELINES_READ` and `DATASETS_READ`.
 
 Introspection fields `__typename`, `__schema`, `__type` are always allowed.
 
@@ -79,11 +89,28 @@ Introspection fields `__typename`, `__schema`, `__type` are always allowed.
     SQL itself is never returned, so the app can run the query but not read or
     change it. Queries execute with the read-only database role.
 
+!!! note "Bucket files and dataset files are read differently"
+
+    Files in the **workspace bucket** and files in a **dataset version** live in
+    separate storage, and neither API can read the other:
+
+    - **Bucket files** (scope `FILES_READ`): read the content with
+      `readFileContent`, or get a download link with `prepareObjectDownload`.
+      Both take a path inside the workspace bucket.
+    - **Dataset files** (scope `DATASETS_READ`): find the file from its version
+      (`datasetVersion.files` or `datasetVersion.fileByName`), then either
+      `fetch()` its `downloadUrl` for the full content, or read `fileSample` for
+      a short preview of the rows. Passing a dataset file to `readFileContent` or
+      `prepareObjectDownload` fails.
+
+    See [Read a dataset file](#user_read-datasets_read-read-a-dataset-file) for
+    a complete example.
+
 ## Exploring the schema
 
 The fastest way to design queries for a webapp is the interactive GraphQL playground at <https://app.openhexa.org/graphql/> (or `/graphql/` on your own install).
 
-Note that the playground shows the **full** schema, not just what the webapp proxy allows. A query that works there can still return `403` from a webapp at runtime if its top-level field isn't covered by the webapp's [scopes](#scope-reference) — cross-check before pasting into webapp code.
+Note that the playground shows the **full** schema, not just what the webapp proxy allows. A query that works there can still return `403` from a webapp at runtime if any field it selects, at the top level or nested, isn't covered by the webapp's [scopes](#scope-reference). The `403` names the refused fields, so check it before pasting into webapp code.
 
 ## The `window.OPENHEXA` global
 
@@ -94,6 +121,7 @@ window.OPENHEXA = Object.freeze({
   workspaceSlug: "my-workspace",   // slug of the workspace owning this webapp
   webappSlug: "my-webapp",         // this webapp's own slug
   isPublic: false,                 // true for public webapps
+  url: "https://app.openhexa.org/workspaces/my-workspace/webapps/my-webapp", // page of this webapp in OpenHEXA
 });
 ```
 
@@ -188,6 +216,11 @@ type Workspace {
   createdAt: DateTime!
   updatedAt: DateTime
   createdBy: User!
+  currentMembership: WorkspaceMembership  # null when the viewer has access without being a member (e.g. organization admin)
+}
+
+type WorkspaceMembership {
+  role: WorkspaceMembershipRole!  # ADMIN, EDITOR or VIEWER
 }
 ```
 
@@ -660,19 +693,39 @@ type PrepareObjectDownloadResult {
 </html>
 ```
 
-### DATASETS_READ — List datasets
+### USER_READ + DATASETS_READ — List datasets
 
-Lists datasets visible to the workspace and their latest version.
+Lists datasets visible to the workspace and their latest version. Requires both `USER_READ` (the list comes from `workspace.datasets`) and `DATASETS_READ` (to read the datasets themselves).
 
 <details markdown="1">
 <summary>Schema</summary>
 
 ```graphql
 type Query {
+  # `query` is a case-insensitive match on the dataset name, not on its slug.
   datasets(query: String, page: Int = 1, perPage: Int = 15): DatasetPage!
   dataset(id: ID!): Dataset
   datasetVersion(id: ID!): DatasetVersion
   datasetLink(id: ID!): DatasetLink
+}
+
+type Workspace {
+  # Datasets of the workspace, including the ones shared with it.
+  datasets(pinned: Boolean, query: String, page: Int = 1, perPage: Int = 15): DatasetLinkPage!
+}
+
+type DatasetLinkPage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [DatasetLink!]!
+}
+
+type DatasetLink {
+  id: ID!
+  isPinned: Boolean!
+  dataset: Dataset!
+  workspace: Workspace!
 }
 
 type DatasetPage {
@@ -690,10 +743,56 @@ type Dataset {
   createdAt: DateTime!
   updatedAt: DateTime!
   createdBy: User
-  workspace: Workspace
   versions(page: Int = 1, perPage: Int = 15): DatasetVersionPage!
   latestVersion: DatasetVersion
   links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
+}
+
+type DatasetVersionPage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [DatasetVersion!]!
+}
+
+type DatasetVersion {
+  id: ID!
+  name: String!
+  changelog: String
+  createdAt: DateTime!
+  createdBy: User
+  dataset: Dataset!
+  files(page: Int = 1, perPage: Int = 15): DatasetVersionFilePage!
+  fileByName(name: String!): DatasetVersionFile
+}
+
+type DatasetVersionFilePage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [DatasetVersionFile!]!
+}
+
+type DatasetVersionFile {
+  id: ID!
+  filename: String!
+  contentType: String!
+  size: BigInt!
+  createdAt: DateTime!
+  # Filled in once the file has been profiled (CSV, Parquet, Excel); null otherwise.
+  rows: Int
+  columns: [String!]
+  fileSample: DatasetFileSample
+  # Short-lived signed URL to the file content. Null if the user cannot download
+  # this version. `attachment: false` serves it inline instead of as a download.
+  downloadUrl(attachment: Boolean = true): String
+}
+
+type DatasetFileSample {
+  # First rows of the file, as a list of { column: value } objects.
+  sample: JSON
+  status: FileSampleStatus!  # PROCESSING, FINISHED or FAILED
+  statusReason: String
 }
 ```
 
@@ -763,6 +862,190 @@ type Dataset {
 </html>
 ```
 
+### USER_READ + DATASETS_READ — Read a dataset file
+
+Lets you pick a dataset, then one of the CSV files of its latest version, and renders the first 100 rows as a table. Requires `USER_READ` (to list datasets via `workspace.datasets`) and `DATASETS_READ` (to list the version's files and get their download URL). Uses the [schema above](#user_read-datasets_read-list-datasets).
+
+Dataset files are **not** in the workspace bucket, so `readFileContent` and `prepareObjectDownload` cannot read them. Instead, ask GraphQL for the file's `downloadUrl` and `fetch()` it:
+
+- The URL is signed and expires after about ten minutes. Request it right before downloading rather than when the page loads.
+- It points to the storage service, not to the webapp's `/graphql/` endpoint: fetch it as is, without extra headers.
+- It is `null` when the user is not allowed to download the dataset version.
+
+To show a preview only, skip the download and read `fileSample { status sample }`. `sample` is already parsed into a list of `{ column: value }` rows, and is available once `status` is `FINISHED`.
+
+**When the web app always shows the same dataset**, hardcode the dataset's `id` and read it with `dataset(id:)`, which only needs `DATASETS_READ`. A dataset cannot be looked up by its slug from a web app, and `datasets(query:)` matches names, so passing a slug to it returns nothing. Reading `latestVersion` keeps the app up to date when a new version is published:
+
+```js
+const DATASET_ID = "<dataset id>";
+const FILE_NAME = "my_file.csv";
+
+const { dataset } = await gql(`
+  query($id: ID!, $name: String!) {
+    dataset(id: $id) {
+      latestVersion {
+        fileByName(name: $name) { downloadUrl(attachment: false) }
+      }
+    }
+  }
+`, { id: DATASET_ID, name: FILE_NAME });
+
+const url = dataset?.latestVersion?.fileByName?.downloadUrl;
+if (!url) throw new Error("File not found, or you are not allowed to download it.");
+const csv = await (await fetch(url)).text();
+```
+
+The full example below lets the user pick the dataset instead:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Dataset file preview</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
+    select { width: 100%; padding: 0.4rem; box-sizing: border-box; font-family: inherit; }
+    button { margin-top: 0.75rem; padding: 0.5rem 1rem; }
+    button[disabled] { opacity: 0.5; cursor: not-allowed; }
+    table { border-collapse: collapse; margin-top: 1rem; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 0.3rem 0.5rem; font-size: 0.9rem; }
+    th { background: #f5f5f5; }
+    #status { margin-top: 1rem; color: #b91c1c; }
+  </style>
+</head>
+<body>
+  <h1>Dataset file preview</h1>
+
+  <label>Dataset
+    <select id="dataset" disabled onchange="loadFiles()"><option>Loading…</option></select>
+  </label>
+  <label>File
+    <select id="file" disabled></select>
+  </label>
+  <button id="loadBtn" disabled onclick="load()">Load</button>
+
+  <p id="status"></p>
+  <div id="table"></div>
+
+  <script>
+    const { workspaceSlug } = window.OPENHEXA;
+    let versionId = null;
+
+    async function gql(query, variables = {}) {
+      const res = await fetch("/graphql/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, variables }),
+      });
+      const json = await res.json();
+      if (json.errors) throw new Error(json.errors.map(e => e.message).join("; "));
+      return json.data;
+    }
+
+    // 1. List the workspace's datasets.
+    (async () => {
+      const { workspace } = await gql(`
+        query($slug: String!) {
+          workspace(slug: $slug) {
+            datasets(page: 1, perPage: 50) {
+              items { dataset { id name } }
+            }
+          }
+        }
+      `, { slug: workspaceSlug });
+
+      const select = document.getElementById("dataset");
+      select.innerHTML = '<option value="">Pick a dataset…</option>' + workspace.datasets.items
+        .map(({ dataset }) => `<option value="${dataset.id}">${dataset.name}</option>`)
+        .join("");
+      select.disabled = false;
+    })();
+
+    // 2. List the CSV files of the dataset's latest version.
+    async function loadFiles() {
+      const datasetId = document.getElementById("dataset").value;
+      const fileSelect = document.getElementById("file");
+      const loadBtn = document.getElementById("loadBtn");
+      const status = document.getElementById("status");
+      fileSelect.innerHTML = "";
+      fileSelect.disabled = loadBtn.disabled = true;
+      status.textContent = "";
+      document.getElementById("table").innerHTML = "";
+      if (!datasetId) return;
+
+      const { dataset } = await gql(`
+        query($id: ID!) {
+          dataset(id: $id) {
+            latestVersion {
+              id name
+              files(page: 1, perPage: 50) { items { filename size } }
+            }
+          }
+        }
+      `, { id: datasetId });
+
+      const version = dataset.latestVersion;
+      if (!version) {
+        status.textContent = "This dataset has no version yet.";
+        return;
+      }
+      versionId = version.id;
+      const csvFiles = version.files.items.filter(f => f.filename.toLowerCase().endsWith(".csv"));
+      if (!csvFiles.length) {
+        status.textContent = `Version ${version.name} has no CSV file.`;
+        return;
+      }
+      fileSelect.innerHTML = csvFiles
+        .map(f => `<option value="${f.filename}">${f.filename}</option>`)
+        .join("");
+      fileSelect.disabled = loadBtn.disabled = false;
+    }
+
+    // 3. Get a fresh download URL for the selected file, download it and render it.
+    async function load() {
+      const filename = document.getElementById("file").value;
+      const status = document.getElementById("status");
+      const out = document.getElementById("table");
+      status.textContent = "";
+      out.innerHTML = "";
+
+      const { datasetVersion } = await gql(`
+        query($id: ID!, $name: String!) {
+          datasetVersion(id: $id) {
+            fileByName(name: $name) { downloadUrl(attachment: false) }
+          }
+        }
+      `, { id: versionId, name: filename });
+
+      const url = datasetVersion.fileByName?.downloadUrl;
+      if (!url) {
+        status.textContent = "You are not allowed to download this file.";
+        return;
+      }
+      const res = await fetch(url);
+      if (!res.ok) {
+        status.textContent = `Download failed (${res.status}).`;
+        return;
+      }
+
+      const rows = (await res.text()).trim().split("\n").slice(0, 101).map(l => l.split(","));
+      const [header, ...body] = rows;
+      out.innerHTML = [
+        "<table><thead><tr>",
+        header.map(h => `<th>${h}</th>`).join(""),
+        "</tr></thead><tbody>",
+        body.map(r => "<tr>" + r.map(c => `<td>${c}</td>`).join("") + "</tr>").join(""),
+        "</tbody></table>",
+      ].join("");
+    }
+  </script>
+</body>
+</html>
+```
+
 ### DATABASE_READ — Run a saved query
 
 Runs a query saved in the Data Studio and renders the rows as a table. The web
@@ -778,7 +1061,17 @@ type Query {
 
 input ExecuteSavedQueryInput {
   slug: String!
-  maxRows: Int
+  orderBy: [QueryResultOrderBy!]
+  perPage: Int                 # defaults to 50
+  page: Int                    # 1-based
+  after: String                # the previous page's endCursor
+  before: String               # the next page's startCursor
+  includeTotalItems: Boolean
+}
+
+input QueryResultOrderBy {
+  column: String!
+  direction: OrderByDirection = ASC   # ASC | DESC
 }
 
 # Same payload as executeSQL.
@@ -789,8 +1082,18 @@ type ExecuteSQLResult {
   columns: [String!]
   rows: [JSON!]
   rowCount: Int
-  truncated: Boolean
+  pageInfo: QueryResultPageInfo
   durationMs: Int
+}
+
+type QueryResultPageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  pageNumber: Int      # null with a cursor
+  startCursor: String  # null on the first page
+  endCursor: String    # null on the last page
+  totalItems: Int      # only with includeTotalItems
+  totalPages: Int      # only with includeTotalItems
 }
 
 enum ExecuteSQLError {
@@ -799,6 +1102,9 @@ enum ExecuteSQLError {
   QUERY_TIMEOUT
   QUERY_ERROR
   MULTIPLE_STATEMENTS
+  INVALID_ORDER_BY
+  INVALID_CURSOR
+  INVALID_PAGINATION
 }
 ```
 
@@ -809,6 +1115,33 @@ enum ExecuteSQLError {
 Find the slug in the Data Studio: it is the last segment of the saved query's
 URL. Note that the query must be shared with the workspace, a private one fails
 with `SAVED_QUERY_NOT_FOUND`.
+
+#### Sorting and pagination
+
+A call with only a `slug` runs the query as saved and returns its first `perPage`
+rows; `pageInfo.hasNextPage` tells you whether the cap cut the result. To sort or
+page through the result, add `orderBy`, `page`, `after` or `before`: the query
+is then wrapped in a subquery, so its own `ORDER BY` is overridden and any
+`LIMIT` it carries still applies inside. Two modes are available, and `orderBy`
+alone returns the first page of both:
+
+- **By page number** (`page`): simple, and the only mode that can report a
+  total. Ask for one with `includeTotalItems: true`, at the cost of a second
+  scan of the query. Without an `orderBy` the order of rows is not guaranteed
+  from one page to the next.
+- **By cursor** (`after` or `before`): pass the previous page's `endCursor` as
+  `after` to move forward, or the next page's `startCursor` as `before` to move
+  back, always with the same `orderBy`. Stable when rows are inserted or deleted
+  between calls, and cheap on deep pages. Sort on non-nullable columns and end
+  `orderBy` with a unique one; a cursor of `null` alongside `hasNextPage` (or
+  `hasPreviousPage`) `true` means the row's sort key holds a `NULL` and that
+  ordering cannot be paged by cursor from there.
+
+`INVALID_ORDER_BY` is returned for a column the result does not have (or has
+twice: alias the columns in the saved query), `INVALID_CURSOR` for a cursor built
+for another query or ordering, and `INVALID_PAGINATION` for arguments that
+contradict each other, such as `page` together with a cursor, or `after` with
+`before`.
 
 ```html
 <!DOCTYPE html>
@@ -848,10 +1181,11 @@ with `SAVED_QUERY_NOT_FOUND`.
       const { executeSavedQuery: result } = await gql(`
         query($input: ExecuteSavedQueryInput!) {
           executeSavedQuery(input: $input) {
-            success errors columns rows rowCount truncated
+            success errors columns rows rowCount
+            pageInfo { hasNextPage }
           }
         }
-      `, { input: { slug: SAVED_QUERY_SLUG, maxRows: 100 } });
+      `, { input: { slug: SAVED_QUERY_SLUG, perPage: 100 } });
 
       if (!result.success) {
         out.textContent = "Error: " + result.errors.join(", ");
@@ -863,9 +1197,40 @@ with `SAVED_QUERY_NOT_FOUND`.
         `<tr>${result.columns.map(c => `<td>${row[c] ?? ""}</td>`).join("")}</tr>`
       ).join("");
       out.innerHTML = `<table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>` +
-        (result.truncated ? `<p>Showing the first ${result.rowCount} rows.</p>` : "");
+        (result.pageInfo.hasNextPage ? `<p>Showing the first ${result.rowCount} rows.</p>` : "");
     })();
   </script>
 </body>
 </html>
 ```
+
+To page through a large result, keep the `orderBy` fixed and pass each page's
+`endCursor` back as `after`:
+
+```js
+async function* pages(slug, orderBy, perPage = 100) {
+  let after = null;
+  while (true) {
+    const { executeSavedQuery: result } = await gql(`
+      query($input: ExecuteSavedQueryInput!) {
+        executeSavedQuery(input: $input) {
+          success errors rows pageInfo { hasNextPage endCursor }
+        }
+      }
+    `, { input: { slug, orderBy, perPage, after } });
+    if (!result.success) throw new Error(result.errors.join(", "));
+    yield result.rows;
+    if (!result.pageInfo.hasNextPage) return;
+    after = result.pageInfo.endCursor;
+  }
+}
+
+for await (const rows of pages(SAVED_QUERY_SLUG, [{ column: "id" }])) {
+  console.log(rows.length, "rows");
+}
+```
+
+A table with Previous and Next buttons keeps the current page's `startCursor`
+and `endCursor` and sends one of them back: `{ before: startCursor }` for the
+previous page, `{ after: endCursor }` for the next. Both are `null` when there
+is no page in that direction.

@@ -98,7 +98,6 @@ type PipelineDetailProps = {
   runId?: string;
   showAssistant: boolean;
   aiBudgetLimitReached: boolean;
-  monthlyLimitExceeded: boolean;
   onRefetch: () => void;
   onDelete?: () => void;
 };
@@ -110,7 +109,6 @@ const PipelineDetail = ({
   runId,
   showAssistant,
   aiBudgetLimitReached,
-  monthlyLimitExceeded,
   onRefetch,
   onDelete,
 }: PipelineDetailProps) => {
@@ -1029,7 +1027,6 @@ const PipelineDetail = ({
             <PipelineEditChatPanel
               pipelineId={pipeline.id}
               workspaceSlug={workspaceSlug}
-              monthlyLimitExceeded={monthlyLimitExceeded}
               onProposedFiles={handleProposedFiles}
               conversations={conversations}
               activeConversationId={activeConversationId}

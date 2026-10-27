@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
-import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { gql } from "@apollo/client";
+import { useTranslation } from "next-i18next";
+import ResizablePanel from "core/components/ResizablePanel";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
 import { ProposedFile, SaveResult } from "./types";
 import { useFilesEditorState } from "./useFilesEditorState";
@@ -8,6 +9,11 @@ import FileTree from "./FileTree";
 import FileEditorPane from "./FileEditorPane";
 
 export type { ProposedFile, SaveResult, FileNode } from "./types";
+
+const SIDEBAR_DEFAULT_WIDTH = 240;
+const SIDEBAR_MIN_WIDTH = 160;
+const SIDEBAR_MAX_WIDTH = 640;
+const EDITOR_MIN_WIDTH = 320;
 
 interface FilesEditorProps {
   name: string;
@@ -38,9 +44,8 @@ export const FilesEditor = ({
   onSave,
   saveDisabledReason,
 }: FilesEditorProps) => {
+  const { t } = useTranslation();
   const {
-    isPanelOpen,
-    setIsPanelOpen,
     selectedFile,
     setSelectedFile,
     modifiedFiles,
@@ -74,7 +79,14 @@ export const FilesEditor = ({
           : "relative flex border border-gray-200 rounded-lg overflow-hidden min-h-[60vh] h-full max-w-full"
       }
     >
-      {isPanelOpen && (
+      <ResizablePanel
+        side="left"
+        label={t("File list")}
+        defaultSize={SIDEBAR_DEFAULT_WIDTH}
+        minSize={SIDEBAR_MIN_WIDTH}
+        maxSize={SIDEBAR_MAX_WIDTH}
+        reserve={EDITOR_MIN_WIDTH}
+      >
         <FileTree
           name={name}
           numberOfFiles={numberOfFiles}
@@ -88,24 +100,10 @@ export const FilesEditor = ({
           canDelete={isEditable && allowDelete}
           onDelete={markDeleted}
           onRestore={restoreDeleted}
-          onClose={() => setIsPanelOpen(false)}
         />
-      )}
+      </ResizablePanel>
 
-      {!isPanelOpen && (
-        <div
-          className="group absolute left-0 top-0 z-30 h-full w-3 cursor-pointer"
-          onClick={() => setIsPanelOpen(true)}
-        >
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center">
-            <div className="pointer-events-auto invisible rounded-r-md bg-gray-400 p-0.5 pl-0.5 align-middle text-white group-hover:visible">
-              <ChevronRightIcon className="h-5 w-5" />
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="flex-1 flex flex-col transition-all duration-300 ease-in-out">
+      <div className="flex-1 min-w-0 flex flex-col transition-all duration-300 ease-in-out">
         <FileEditorPane
           selectedFile={selectedFile}
           currentFileContent={currentFileContent}

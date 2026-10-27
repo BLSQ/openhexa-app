@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FileEncoding, FileType } from "graphql/types";
 import useNavigationWarning from "core/hooks/useNavigationWarning";
-import useFilesEditorPanelOpen from "workspaces/hooks/useFilesEditorPanelOpen";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
 import { AugmentedFile, FileNode, ProposedFile, SaveResult } from "./types";
 import { buildFileTree } from "./buildFileTree";
@@ -25,7 +24,6 @@ export const useFilesEditorState = ({
   proposedDeletedPaths,
   onSave,
 }: UseFilesEditorStateParams) => {
-  const [isPanelOpen, setIsPanelOpen] = useFilesEditorPanelOpen();
   const [selectedFile, setSelectedFile] = useState<FileNode | null>(null);
   const [modifiedFiles, setModifiedFiles] = useState<Map<string, string>>(
     new Map(),
@@ -401,8 +399,6 @@ export const useFilesEditorState = ({
   };
 
   return {
-    isPanelOpen,
-    setIsPanelOpen,
     selectedFile,
     setSelectedFile,
     modifiedFiles,

@@ -87,4 +87,14 @@ describe("formatParamValue", () => {
       }),
     ).toBe("my-conn-slug");
   });
+
+  it("serializes object values as JSON", () => {
+    expect(
+      formatParamValue({
+        ...base,
+        type: ParameterType.Str,
+        value: { qc11: true, version_regles: "v2" },
+      }),
+    ).toBe('{"qc11":true,"version_regles":"v2"}');
+  });
 });

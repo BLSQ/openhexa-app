@@ -42,12 +42,12 @@ describe("PipelineDagView", () => {
     expect(screen.getByText("City")).toBeInTheDocument();
   });
 
-  it("renders nothing when the version has no tasks", () => {
-    const { container } = render(
-      <PipelineDagView version={version({ tasks: [], edges: [] })} />,
-    );
+  it("explains the missing graph when the version has no tasks", () => {
+    render(<PipelineDagView version={version({ tasks: [], edges: [] })} />);
 
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "No task graph to display: this pipeline version has no functions decorated with @task.",
+    );
     expect(screen.queryByTestId("pipeline-dag-view")).not.toBeInTheDocument();
   });
 

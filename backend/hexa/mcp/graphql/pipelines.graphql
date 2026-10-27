@@ -69,13 +69,6 @@ query GetPipeline($workspaceSlug: String!, $code: String!, $runsPage: Int, $runs
         duration
       }
     }
-    permissions {
-      run
-      update
-      delete
-      schedule
-      stopPipeline
-    }
   }
 }
 

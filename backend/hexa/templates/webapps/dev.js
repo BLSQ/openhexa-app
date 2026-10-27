@@ -111,6 +111,7 @@
       workspaceSlug: data.workspaceSlug,
       webappSlug: data.webappSlug,
       isPublic: false,
+      url: data.url,
     });
   }
 

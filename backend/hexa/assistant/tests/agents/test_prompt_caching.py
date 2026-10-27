@@ -108,6 +108,10 @@ class PromptCachingRequestTest(AgentTestCase):
         self._assert_prefix_is_cached(request)
         self.assertEqual(request["cache_control"], _EPHEMERAL)
 
+    def test_max_tokens_is_sent(self):
+        request, _ = self._run(AsyncAnthropic(api_key="test-key"))
+        self.assertEqual(request["max_tokens"], BaseAgent.max_tokens)
+
     def test_input_tokens_include_cached_tokens(self):
         """Message.input_tokens and Conversation.total_input_tokens store this
         number, so it must keep counting every prompt token, cached or not.

@@ -79,6 +79,7 @@ type Webapp {
   url: String!
   serveUrl: String!
   previewUrl: String!
+  pointsToOpenhexaWebapp: Boolean!
   subdomain: String!
   type: WebappType!
   icon: String

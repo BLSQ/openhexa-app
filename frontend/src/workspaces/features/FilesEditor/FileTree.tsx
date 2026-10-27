@@ -1,7 +1,6 @@
 import {
   ArrowUturnLeftIcon,
   ChevronDownIcon,
-  ChevronLeftIcon,
   ChevronRightIcon,
   DocumentIcon,
   FolderIcon,
@@ -98,17 +97,23 @@ const FileTreeNode = ({
       >
         <DocumentIcon
           className={clsx(
-            "w-4 h-4 mr-2",
+            "w-4 h-4 mr-2 shrink-0",
             isDeleted ? "text-red-400" : "text-gray-400",
           )}
         />
-        <span className="flex items-center gap-2">
-          <span className={clsx(isDeleted && "line-through text-red-500")}>
+        <span className="flex min-w-0 items-center gap-2">
+          <span
+            className={clsx(
+              "truncate",
+              isDeleted && "line-through text-red-500",
+            )}
+            title={node.name}
+          >
             {node.name}
           </span>
           <span
             className={clsx(
-              "inline-block w-1.5 h-1.5 rounded-full",
+              "inline-block w-1.5 h-1.5 shrink-0 rounded-full",
               isDeleted
                 ? "visible bg-red-500"
                 : isProposed
@@ -134,25 +139,31 @@ const FileTreeNode = ({
         {isExpanded ? (
           <ChevronDownIcon
             className={clsx(
-              "w-4 h-4 mr-2",
+              "w-4 h-4 mr-2 shrink-0",
               isFolderDeleted ? "text-red-400" : "text-gray-400",
             )}
           />
         ) : (
           <ChevronRightIcon
             className={clsx(
-              "w-4 h-4 mr-2",
+              "w-4 h-4 mr-2 shrink-0",
               isFolderDeleted ? "text-red-400" : "text-gray-400",
             )}
           />
         )}
         <FolderIcon
           className={clsx(
-            "w-4 h-4 mr-2",
+            "w-4 h-4 mr-2 shrink-0",
             isFolderDeleted ? "text-red-400" : "text-gray-400",
           )}
         />
-        <span className={clsx(isFolderDeleted && "line-through text-red-500")}>
+        <span
+          className={clsx(
+            "truncate",
+            isFolderDeleted && "line-through text-red-500",
+          )}
+          title={node.name}
+        >
           {node.name}
         </span>
         {deleteAction}
@@ -194,7 +205,6 @@ type FileTreeProps = {
   canDelete: boolean;
   onDelete: (node: FileNode) => void;
   onRestore: (node: FileNode) => void;
-  onClose: () => void;
 };
 
 const FileTree = ({
@@ -210,17 +220,16 @@ const FileTree = ({
   canDelete,
   onDelete,
   onRestore,
-  onClose,
 }: FileTreeProps) => {
   const { t } = useTranslation();
 
   return (
     <div
       data-testid="files-panel"
-      className="relative bg-gray-50 border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out"
+      className="h-full w-full bg-gray-50 flex flex-col"
     >
       <div className="p-3 border-b border-gray-200 bg-white">
-        <h3 className="text-sm font-medium text-gray-900">
+        <h3 className="truncate text-sm font-medium text-gray-900" title={name}>
           {t("Files")} - {name}
         </h3>
         <div className="text-xs text-gray-500 mt-1">
@@ -244,19 +253,6 @@ const FileTree = ({
           />
         ))}
       </div>
-      <button
-        onClick={onClose}
-        className="group absolute inset-y-0 right-0 border-r-2 border-transparent after:absolute after:inset-y-0 after:-left-1.5 after:block after:w-3 after:content-[''] hover:border-r-gray-300"
-        aria-label="Toggle file panel"
-      >
-        <div className="relative h-full">
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center">
-            <div className="pointer-events-auto invisible rounded-l-md bg-gray-400 p-0.5 pr-0.5 align-middle text-white group-hover:visible">
-              <ChevronLeftIcon className="h-5 w-5" />
-            </div>
-          </div>
-        </div>
-      </button>
     </div>
   );
 };

@@ -3,6 +3,7 @@ from django.test import SimpleTestCase
 from hexa.workspace_copier.results import (
     CopyResult,
     FilesResult,
+    PipelinesResult,
     format_bytes,
     format_summary,
 )
@@ -32,3 +33,13 @@ class FormatSummaryTest(SimpleTestCase):
         result.files.copied = [("a.json", 1437567641), ("b.json", 1024)]
 
         self.assertIn("Files copied: 2 (1.3 GiB)", format_summary(result))
+
+
+class HasFailuresTest(SimpleTestCase):
+    def test_false_when_nothing_failed(self):
+        result = CopyResult(files=FilesResult(skipped=3), pipelines=PipelinesResult())
+        self.assertFalse(result.has_failures)
+
+    def test_true_when_any_resource_failed(self):
+        result = CopyResult(pipelines=PipelinesResult(failed=["etl"]))
+        self.assertTrue(result.has_failures)
