@@ -1304,6 +1304,20 @@ class CustomDomainMiddlewareTest(TestCase):
         response = self.client.get("/", HTTP_HOST="mycustomdomain.com")
         self.assertIn("frame-ancestors", response.get("Content-Security-Policy", ""))
 
+    @override_settings(
+        WEBAPPS_ADDITIONAL_FRAME_ANCESTORS=["http://localhost:3020"],
+    )
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_csp_header_includes_additional_frame_ancestors(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"<html>custom</html>"
+        mock_get_client.return_value = mock_client
+
+        response = self.client.get("/", HTTP_HOST="mycustomdomain.com")
+        self.assertIn(
+            "http://localhost:3020", response.get("Content-Security-Policy", "")
+        )
+
     @patch("hexa.webapps.views.get_forgejo_client")
     def test_main_hostname_not_intercepted(self, mock_get_client):
         self.client.get("/", HTTP_HOST="localhost")

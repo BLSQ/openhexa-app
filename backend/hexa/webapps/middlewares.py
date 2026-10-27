@@ -50,9 +50,14 @@ def _webapp_not_found() -> HttpResponse:
 
 
 def _set_csp_frame_ancestors(response: HttpResponseBase) -> None:
-    frame_ancestors = f"'self' {settings.BASE_URL}"
-    if hasattr(settings, "NEW_FRONTEND_DOMAIN"):
-        frame_ancestors += f" {settings.NEW_FRONTEND_DOMAIN}"
+    frame_ancestors = " ".join(
+        [
+            "'self'",
+            settings.BASE_URL,
+            settings.NEW_FRONTEND_DOMAIN,
+            *settings.WEBAPPS_ADDITIONAL_FRAME_ANCESTORS,
+        ]
+    )
     del response["X-Frame-Options"]
     response["Content-Security-Policy"] = f"frame-ancestors {frame_ancestors}"
     response["Referrer-Policy"] = "no-referrer"
