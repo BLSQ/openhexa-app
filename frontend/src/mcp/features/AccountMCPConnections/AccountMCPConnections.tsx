@@ -11,6 +11,7 @@ import { getMCPErrorMessage } from "mcp/helpers";
 import MCPPermissionMatrix, {
   MCPGrant,
   MCPTool,
+  MCPOrganization,
   MCPWorkspace,
 } from "mcp/features/MCPPermissionMatrix";
 import {
@@ -58,10 +59,12 @@ function grantsNothing(grant: MCPGrant) {
 
 const ConnectionCard = ({
   connection,
+  organizations,
   workspaces,
   tools,
 }: {
   connection: Connection;
+  organizations: MCPOrganization[];
   workspaces: MCPWorkspace[];
   tools: MCPTool[];
 }) => {
@@ -174,6 +177,7 @@ const ConnectionCard = ({
           <MCPPermissionMatrix
             idPrefix={`mcp-${connection.id}`}
             grant={draft}
+            organizations={organizations}
             workspaces={workspaces}
             tools={tools}
             onChange={setDraft}
@@ -248,6 +252,7 @@ const AccountMCPConnections = () => {
               <ConnectionCard
                 key={connection.id}
                 connection={connection}
+                organizations={data?.organizations ?? []}
                 workspaces={data?.workspaces.items ?? []}
                 tools={data?.mcpTools ?? []}
               />
