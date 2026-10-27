@@ -3051,10 +3051,6 @@ export type McpConnection = {
   id: Scalars['UUID']['output'];
   lastUsedAt?: Maybe<Scalars['DateTime']['output']>;
   name: Scalars['String']['output'];
-  /**
-   * Organizations granted as a whole: every workspace of theirs the user can
-   * reach is in scope, including the ones created or joined later.
-   */
   organizations: Array<Organization>;
   tools: Array<Scalars['String']['output']>;
   workspaces: Array<Workspace>;
