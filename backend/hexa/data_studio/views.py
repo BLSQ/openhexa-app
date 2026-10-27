@@ -13,6 +13,7 @@ from django.http import (
     HttpResponseBadRequest,
     HttpResponseForbidden,
 )
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from psycopg2 import Error as Psycopg2Error
 
@@ -20,7 +21,7 @@ from hexa.core.csv import async_streaming_csv_response
 from hexa.databases.query_text import MultipleStatementsError
 from hexa.workspaces.models import Workspace
 
-from .models import QueryLog
+from .models import QueryLog, SavedQuery, SavedQueryVisibility
 from .query_runner import (
     QueryExportAudit,
     ensure_can_run_query,
@@ -45,6 +46,18 @@ _DOWNLOAD_TOKEN_RE = re.compile(r"[A-Za-z0-9-]{1,64}")
 # number would pile up connections and threads in one worker. Excess callers get a 429
 # immediately rather than queueing behind a backlog. See the app README.
 _EXPORT_SLOTS = threading.BoundedSemaphore(settings.DATA_STUDIO_EXPORT_MAX_CONCURRENCY)
+# Permalink exports get a pool of their own: anyone holding a link can start one, and
+# they must not be able to turn the workspace members away from theirs.
+_PUBLIC_EXPORT_SLOTS = threading.BoundedSemaphore(
+    settings.DATA_STUDIO_PUBLIC_EXPORT_MAX_CONCURRENCY
+)
+
+
+def _export_slots(public: bool) -> tuple[threading.BoundedSemaphore, str]:
+    """The slot pool an export draws from, and the setting that sizes it."""
+    if public:
+        return _PUBLIC_EXPORT_SLOTS, "DATA_STUDIO_PUBLIC_EXPORT_MAX_CONCURRENCY"
+    return _EXPORT_SLOTS, "DATA_STUDIO_EXPORT_MAX_CONCURRENCY"
 
 
 def _next_projected_batch(batch_iter, columns):
@@ -97,35 +110,36 @@ async def _tracked_row_batches(
     await audit.finish_success(fetched)
 
 
-@require_POST
-def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpResponse:
-    """Export the full result of a Data Studio SQL query as a streaming CSV download.
+def _stream_query_csv(
+    request: HttpRequest,
+    workspace: Workspace,
+    query: str,
+    *,
+    filename: str,
+    saved_query: SavedQuery | None = None,
+    public: bool = False,
+) -> HttpResponse:
+    """Stream the full result of ``query`` as a CSV attachment, with no row cap.
 
-    No row cap is applied. ``stream_and_log_database_query`` runs the query and fetches its
-    first batch eagerly, so the common failures (invalid SQL, permission error, empty
+    Shared by the two export views, which only differ in where the SQL comes from.
+    ``stream_and_log_database_query`` runs the query and fetches its first batch eagerly, so the common failures (invalid SQL, permission error, empty
     statement) surface here as a clean HTTP 400 before any byte is sent; a failure after that
     can only truncate the already-200 download (logged in :func:`_tracked_row_batches`). A
     read-only connection is held for the whole download, bounded by ``statement_timeout``,
-    ``idle_in_transaction_session_timeout`` and ``_EXPORT_SLOTS`` (excess callers get a 429).
+    ``idle_in_transaction_session_timeout`` and the export slots (excess callers get a 429;
+    ``public`` exports draw from their own pool, see :func:`_export_slots`).
 
     Every outcome writes a ``QueryLog`` entry, as the interactive path does — these are the
-    uncapped runs, so they are the ones worth auditing. The exceptions are the requests that
-    carry no query to audit: an unknown workspace and an empty statement.
+    uncapped runs, so they are the ones worth auditing. The exception is a request that
+    carries no query to audit: an empty statement.
 
     The app README is the design home: why stream rather than buffer, why async, the
     memory/timeout bounds, the resource lifecycle and how the audit entry is written.
     """
     try:
-        workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=workspace_slug
+        ensure_can_run_query(
+            request, workspace, query, _EXPORT_ORIGIN, saved_query=saved_query
         )
-    except Workspace.DoesNotExist:
-        raise Http404("Workspace not found")
-
-    query = (request.POST.get("query") or "").strip()
-
-    try:
-        ensure_can_run_query(request, workspace, query, _EXPORT_ORIGIN)
     except PermissionDenied:
         return HttpResponseForbidden(
             "You are not allowed to run queries on this workspace."
@@ -137,14 +151,16 @@ def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpRespons
     # Acquire only after the cheap request checks above; a full pool turns callers
     # away with a 429 rather than queueing them. Logged, so slot exhaustion is
     # visible in the audit log rather than only in a client-side error.
-    if not _EXPORT_SLOTS.acquire(blocking=False):
+    slots, slots_setting = _export_slots(public)
+    if not slots.acquire(blocking=False):
         log_rejected_query(
             request,
             workspace,
             query,
             _EXPORT_ORIGIN,
             "No export slot free in this worker "
-            f"(DATA_STUDIO_EXPORT_MAX_CONCURRENCY={settings.DATA_STUDIO_EXPORT_MAX_CONCURRENCY}).",
+            f"({slots_setting}={getattr(settings, slots_setting)}).",
+            saved_query=saved_query,
         )
         return HttpResponse(
             "Too many exports are running right now. Please try again in a moment.",
@@ -158,12 +174,12 @@ def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpRespons
     # ExitStack.close() is a no-op after its first call, and only one of the two
     # sites ever runs it (gated by handed_off_to_stream), so it fires exactly once.
     cleanup = ExitStack()
-    cleanup.callback(_EXPORT_SLOTS.release)
+    cleanup.callback(slots.release)
     handed_off_to_stream = False
     try:
         try:
             columns, db_batches, audit = stream_and_log_database_query(
-                request, workspace, query, _EXPORT_ORIGIN
+                request, workspace, query, _EXPORT_ORIGIN, saved_query=saved_query
             )
         except MultipleStatementsError:
             return HttpResponseBadRequest("Only a single SQL statement is allowed.")
@@ -180,7 +196,7 @@ def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpRespons
                 user=request.user,
                 audit=audit,
             ),
-            filename="query-results.csv",
+            filename=filename,
             on_finish=cleanup.close,
         )
 
@@ -207,3 +223,55 @@ def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpRespons
     finally:
         if not handed_off_to_stream:
             cleanup.close()
+
+
+@require_POST
+def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpResponse:
+    """Export the full result of a Data Studio SQL query as a streaming CSV download.
+
+    The SQL comes from the caller, so this is a workspace member's action: it needs
+    the login and the ``databases.run_query`` permission. An unknown workspace is the
+    one refusal that writes no audit entry, since an entry belongs to a workspace.
+    """
+    try:
+        workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=workspace_slug
+        )
+    except Workspace.DoesNotExist:
+        raise Http404("Workspace not found")
+
+    query = (request.POST.get("query") or "").strip()
+    return _stream_query_csv(request, workspace, query, filename="query-results.csv")
+
+
+# csrf_exempt: visitors of a public permalink have no session and no CSRF cookie
+# (the GraphQL endpoint they came through is exempt and never sets one). What the
+# protection would guard against is a cross-site POST that makes a browser download
+# this file, and the file holds what the query's visibility already hands to anyone.
+@csrf_exempt
+@require_POST
+def download_saved_query_csv(request: HttpRequest, slug: str) -> HttpResponse:
+    """Export the full result of a public saved query, addressed by its slug.
+
+    The permalink counterpart of :func:`download_query_csv`: the SQL is the stored
+    one, so no login is needed (``ANONYMOUS_URLS`` in apps.py) and the public visibility
+    is the whole authorization (see ``ensure_can_run_query``). Only public queries are
+    served, whoever asks: a member exports their other queries from the editor. The
+    entry on record names the query, which is what tells a permalink export apart from
+    an editor export in the audit log.
+    """
+    try:
+        saved_query = SavedQuery.objects.select_related("workspace").get(
+            slug=slug, visibility=SavedQueryVisibility.PUBLIC
+        )
+    except SavedQuery.DoesNotExist:
+        raise Http404("Saved query not found")
+
+    return _stream_query_csv(
+        request,
+        saved_query.workspace,
+        saved_query.content,
+        filename=f"{saved_query.slug}.csv",
+        saved_query=saved_query,
+        public=True,
+    )

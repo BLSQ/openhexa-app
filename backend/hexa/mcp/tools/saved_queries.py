@@ -25,7 +25,8 @@ def list_saved_queries(
     """List the saved SQL queries of a workspace's Data Studio, most recently updated first.
 
     Returns each query's id, slug, name, description and visibility (PRIVATE: only its author
-    can see it, WORKSPACE: shared with every workspace member), without the SQL content. Pass
+    can see it, WORKSPACE: shared with every workspace member, PUBLIC: also runnable by anyone
+    with its permalink, without an account), without the SQL content. Pass
     query to filter by name or description. Use get_saved_query with the returned 'slug' to
     get the SQL content, or the returned 'id' when calling update_saved_query.
     """
@@ -73,7 +74,9 @@ def create_saved_query(
     `content` is a single read-only SQL statement against the workspace database; use
     get_db_schema and get_db_table_schema to discover tables and columns first. The query is
     PRIVATE (visible to you only) unless visibility is set to WORKSPACE, which shares it with
-    every member of the workspace. Returns the saved query's id and slug.
+    every member of the workspace, or to PUBLIC, which also lets anyone with its permalink run
+    it without an account (workspace viewers cannot create PUBLIC queries). Returns the saved
+    query's id and slug.
 
     To allow web apps to filter results, use `{{ name }}` placeholders in the SQL and declare
     each one in `parameters`. Supported types are STRING, INTEGER, FLOAT, BOOLEAN, and DATE.
@@ -114,10 +117,14 @@ def update_saved_query(
 ) -> dict:
     """Update a saved SQL query in the Data Studio.
 
-    Provide the saved query UUID (from list_saved_queries) and any fields to update. Only
-    specified non-empty fields are updated. Only the author can change query visibility;
-    workspace editors and admins can modify the name, description, content, and parameters
-    of WORKSPACE queries.
+    Provide the saved query UUID (from list_saved_queries) and any fields to change. Only
+    provided non-empty fields are updated. Only the query's author can change its visibility,
+    except that workspace and organization admins can also make a WORKSPACE query PUBLIC
+    (runnable by anyone with its permalink, without an account) and take it back to WORKSPACE;
+    an author who is only a workspace viewer cannot make it PUBLIC. Other workspace editors
+    and admins can edit the name, description, content and parameters of a WORKSPACE query,
+    and the name and description of a PUBLIC one, but nothing of a PRIVATE one. The content
+    of a PUBLIC query can only be changed by those who may make it PUBLIC.
 
     `parameters` replaces the entire list of declared parameters. When updating SQL content
     that adds or changes placeholders, supply both `content` and `parameters` together to keep

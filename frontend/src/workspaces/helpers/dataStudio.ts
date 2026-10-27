@@ -2,6 +2,10 @@
 // card, which are the two ways a user finds the chart column conventions.
 export const SQL_WIDGETS_DOCS_URL = "https://docs.openhexa.com/sql-widgets/";
 
+// Row caps offered to an interactive run, in the editor and on a public
+// query's page alike; the first one is the default.
+export const MAX_ROWS_OPTIONS = [50, 100, 500, 1000, 10_000];
+
 // Route builders for the Data Studio section. Centralised so the base path and
 // its URL-encoding live in one place, shared by the layout, the saved-queries
 // list, the editor hook and the pages.

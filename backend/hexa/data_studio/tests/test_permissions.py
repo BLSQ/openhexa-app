@@ -1,8 +1,10 @@
 from hexa.core.test import TestCase
 from hexa.data_studio.models import SavedQuery, SavedQueryVisibility
 from hexa.data_studio.permissions import (
+    create_public_saved_query,
     create_saved_query,
     delete_saved_query,
+    publish_saved_query,
     update_saved_query,
     update_saved_query_visibility,
 )
@@ -75,12 +77,57 @@ class SavedQueryPermissionsTest(SavedQueryTestMixin, TestCase):
         self.assertTrue(delete_saved_query(self.USER_ADMIN, query))
         self.assertFalse(update_saved_query(self.USER_OUTSIDER, query))
 
+    def test_create_public_saved_query(self):
+        self.assertTrue(create_public_saved_query(self.USER_ADMIN, self.WORKSPACE))
+        self.assertTrue(create_public_saved_query(self.USER_EDITOR, self.WORKSPACE))
+        # Viewers may save queries, not expose what they read
+        self.assertFalse(create_public_saved_query(self.USER_VIEWER, self.WORKSPACE))
+        self.assertFalse(create_public_saved_query(self.USER_OUTSIDER, self.WORKSPACE))
+
+    def test_publish_saved_query(self):
+        query = self._create(self.USER_EDITOR)
+        self.assertTrue(publish_saved_query(self.USER_EDITOR, query))
+        self.assertTrue(publish_saved_query(self.USER_ADMIN, query))
+        self.assertFalse(publish_saved_query(self.USER_VIEWER, query))
+        self.assertFalse(publish_saved_query(self.USER_OUTSIDER, query))
+        # Editing rights are not publishing rights
+        admin_query = self._create(self.USER_ADMIN)
+        self.assertFalse(publish_saved_query(self.USER_EDITOR, admin_query))
+
+    def test_viewer_cannot_publish_their_own_query(self):
+        query = self._create(self.USER_VIEWER)
+        self.assertFalse(publish_saved_query(self.USER_VIEWER, query))
+
+    def test_publish_private_saved_query(self):
+        # Nobody but its author may expose what only its author can see.
+        query = self._create(self.USER_EDITOR, visibility=SavedQueryVisibility.PRIVATE)
+        self.assertTrue(publish_saved_query(self.USER_EDITOR, query))
+        self.assertFalse(publish_saved_query(self.USER_ADMIN, query))
+
+    def test_publish_saved_query_without_author(self):
+        query = self._create(self.USER_VIEWER)
+        query.created_by = None
+        query.save()
+        self.assertTrue(publish_saved_query(self.USER_ADMIN, query))
+        self.assertFalse(publish_saved_query(self.USER_VIEWER, query))
+
     def test_delete_saved_query(self):
         query = self._create(self.USER_EDITOR)
         self.assertTrue(delete_saved_query(self.USER_EDITOR, query))
         self.assertTrue(delete_saved_query(self.USER_ADMIN, query))
         self.assertFalse(delete_saved_query(self.USER_VIEWER, query))
         self.assertFalse(delete_saved_query(self.USER_OUTSIDER, query))
+
+    def test_delete_public_saved_query(self):
+        # Deleting it breaks the link: beyond its author, a publisher's call.
+        query = self._create(self.USER_ADMIN, visibility=SavedQueryVisibility.PUBLIC)
+        self.assertTrue(delete_saved_query(self.USER_ADMIN, query))
+        self.assertFalse(delete_saved_query(self.USER_EDITOR, query))
+        self.assertFalse(delete_saved_query(self.USER_VIEWER, query))
+
+    def test_author_deletes_their_public_query(self):
+        query = self._create(self.USER_EDITOR, visibility=SavedQueryVisibility.PUBLIC)
+        self.assertTrue(delete_saved_query(self.USER_EDITOR, query))
 
     def test_delete_private_saved_query(self):
         query = self._create(self.USER_VIEWER, visibility=SavedQueryVisibility.PRIVATE)
@@ -196,3 +243,12 @@ class SavedQueryOrganizationPermissionsTest(TestCase):
         visible = set(SavedQuery.objects.filter_for_user(self.USER_ORG_ADMIN))
         self.assertIn(self.SAVED_QUERY, visible)
         self.assertNotIn(self.PRIVATE_SAVED_QUERY, visible)
+
+    def test_publish_via_organization_role(self):
+        self.assertTrue(publish_saved_query(self.USER_ORG_OWNER, self.SAVED_QUERY))
+        self.assertTrue(publish_saved_query(self.USER_ORG_ADMIN, self.SAVED_QUERY))
+        self.assertFalse(publish_saved_query(self.USER_ORG_MEMBER, self.SAVED_QUERY))
+        self.assertFalse(publish_saved_query(self.USER_NON_MEMBER, self.SAVED_QUERY))
+        self.assertFalse(
+            publish_saved_query(self.USER_ORG_ADMIN, self.PRIVATE_SAVED_QUERY)
+        )

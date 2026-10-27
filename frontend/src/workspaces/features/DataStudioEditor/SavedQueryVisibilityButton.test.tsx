@@ -8,6 +8,7 @@ const renderButton = (props: any = {}) => {
     <SavedQueryVisibilityButton
       visibility={props.visibility ?? SavedQueryVisibility.Private}
       canUpdate={props.canUpdate ?? true}
+      canPublish={props.canPublish ?? false}
       saving={props.saving ?? false}
       onChange={onChange}
     />,
@@ -16,7 +17,9 @@ const renderButton = (props: any = {}) => {
 };
 
 const openMenu = () =>
-  fireEvent.click(screen.getByRole("button", { name: /Private|Workspace/ }));
+  fireEvent.click(
+    screen.getByRole("button", { name: /Private|Workspace|Public/ }),
+  );
 
 beforeEach(() => jest.clearAllMocks());
 
@@ -96,5 +99,88 @@ describe("SavedQueryVisibilityButton", () => {
 
     expect(screen.getByText("Workspace")).toBeInTheDocument();
     expect(screen.queryByRole("button")).toBeNull();
+  });
+
+  describe("publishing", () => {
+    it("keeps the public option out of reach without the permission to publish", async () => {
+      const onChange = renderButton({
+        visibility: SavedQueryVisibility.Workspace,
+        canPublish: false,
+      });
+
+      openMenu();
+      const publicItem = await screen.findByRole("menuitem", {
+        name: /Public/,
+      });
+      expect(publicItem).toBeDisabled();
+      expect(
+        screen.getByText(
+          "Only the author, workspace admins and organization admins can make a query public.",
+        ),
+      ).toBeInTheDocument();
+      fireEvent.click(publicItem);
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    // Publishing hands the query to the whole internet, so it is confirmed first.
+    it("asks to confirm before making a query public", async () => {
+      const onChange = renderButton({
+        visibility: SavedQueryVisibility.Workspace,
+        canPublish: true,
+      });
+
+      openMenu();
+      fireEvent.click(await screen.findByRole("menuitem", { name: /Public/ }));
+
+      expect(
+        await screen.findByText("Make this query public?"),
+      ).toBeInTheDocument();
+      expect(onChange).not.toHaveBeenCalled();
+
+      fireEvent.click(screen.getByRole("button", { name: "Make public" }));
+
+      await waitFor(() =>
+        expect(onChange).toHaveBeenCalledWith(SavedQueryVisibility.Public),
+      );
+    });
+
+    // Unpublishing breaks a link that may be in use, so it is confirmed too.
+    it("asks to confirm before taking a public query back to the workspace", async () => {
+      const onChange = renderButton({
+        visibility: SavedQueryVisibility.Public,
+        canPublish: true,
+      });
+
+      openMenu();
+      fireEvent.click(
+        await screen.findByRole("menuitem", { name: /Workspace/ }),
+      );
+
+      expect(
+        await screen.findByText("Stop sharing this query publicly?"),
+      ).toBeInTheDocument();
+      fireEvent.click(
+        screen.getByRole("button", { name: "Stop sharing publicly" }),
+      );
+
+      await waitFor(() =>
+        expect(onChange).toHaveBeenCalledWith(SavedQueryVisibility.Workspace),
+      );
+    });
+
+    // An organization admin who is not the author may publish, and nothing else.
+    it("offers only the public option to someone who may publish but not share", async () => {
+      renderButton({
+        visibility: SavedQueryVisibility.Workspace,
+        canUpdate: false,
+        canPublish: true,
+      });
+
+      openMenu();
+      expect(
+        await screen.findByRole("menuitem", { name: /Private/ }),
+      ).toBeDisabled();
+      expect(screen.getByRole("menuitem", { name: /Public/ })).toBeEnabled();
+    });
   });
 });

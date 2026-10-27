@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { SaveQueryDialogMode } from "workspaces/features/SavedQueries/SaveQueryDialog";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
+import { canChangeVisibility } from "workspaces/features/SavedQueries/savedQueryVisibility";
 import { useSavedQueryMutations } from "workspaces/features/SavedQueries/useSavedQueryMutations";
 import { dataStudioRoutes } from "workspaces/helpers/dataStudio";
 
@@ -69,6 +70,12 @@ export const useSavedQueryEditor = ({
 
   const canUpdate = savedQuery?.permissions.update ?? false;
   const canUpdateVisibility = savedQuery?.permissions.updateVisibility ?? false;
+  const canPublish = savedQuery?.permissions.publish ?? false;
+  // Visitors run whatever SQL a public query holds, so only its publishers may
+  // change it (the backend enforces the same); others can still save a copy.
+  const canSaveContent =
+    canUpdate &&
+    (savedQuery?.visibility !== SavedQueryVisibility.Public || canPublish);
   const isDirty = content !== baseline;
   const hasContent = Boolean(content.trim());
 
@@ -79,7 +86,7 @@ export const useSavedQueryEditor = ({
     ? canCreate
       ? "create"
       : null
-    : canUpdate
+    : canSaveContent
       ? "update"
       : canCreate
         ? "fork"
@@ -111,7 +118,7 @@ export const useSavedQueryEditor = ({
       setDialog({ open: true, mode: "create" });
       return;
     }
-    if (!canUpdate || saving) {
+    if (!canSaveContent || saving) {
       return;
     }
     try {
@@ -126,24 +133,32 @@ export const useSavedQueryEditor = ({
     } catch (err: any) {
       toast.error(err.message);
     }
-  }, [savedQuery, canUpdate, saving, content, update, t]);
+  }, [savedQuery, canSaveContent, saving, content, update, t]);
 
   // Sharing is persisted on its own, without touching the SQL buffer: the content
   // baseline is deliberately left alone so unsaved edits stay unsaved.
   const setVisibility = useCallback(
     async (visibility: SavedQueryVisibility) => {
-      if (!savedQuery || !canUpdateVisibility || saving) {
+      if (
+        !savedQuery ||
+        saving ||
+        !canChangeVisibility(savedQuery.visibility, visibility, {
+          canShare: canUpdateVisibility,
+          canPublish,
+        })
+      ) {
         return;
       }
+      const confirmations = {
+        [SavedQueryVisibility.Private]: t("Query is now private"),
+        [SavedQueryVisibility.Workspace]: t("Query shared with the workspace"),
+        [SavedQueryVisibility.Public]: t("Query is now public"),
+      };
       try {
         const res = await update({ id: savedQuery.id, visibility });
         if (res.ok) {
           setSavedQuery(res.savedQuery);
-          toast.success(
-            visibility === SavedQueryVisibility.Workspace
-              ? t("Query shared with the workspace")
-              : t("Query is now private"),
-          );
+          toast.success(confirmations[visibility]);
         } else {
           toast.error(res.message);
         }
@@ -151,7 +166,7 @@ export const useSavedQueryEditor = ({
         toast.error(err.message);
       }
     },
-    [savedQuery, canUpdateVisibility, saving, update, t],
+    [savedQuery, canUpdateVisibility, canPublish, saving, update, t],
   );
 
   const saveAsNew = useCallback(
@@ -231,6 +246,7 @@ export const useSavedQueryEditor = ({
     saving,
     canUpdate,
     canUpdateVisibility,
+    canPublish,
     dialog,
     savePlan,
     save,

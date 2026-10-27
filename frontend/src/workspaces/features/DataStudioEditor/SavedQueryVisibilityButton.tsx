@@ -8,6 +8,7 @@ import { useTranslation } from "next-i18next";
 import { useState } from "react";
 import { GHOST } from "workspaces/features/DataStudioEditor/toolbarStyles";
 import {
+  canChangeVisibility,
   useSavedQueryVisibilityOption,
   useSavedQueryVisibilityOptions,
 } from "workspaces/features/SavedQueries/savedQueryVisibility";
@@ -15,47 +16,83 @@ import SavedQueryVisibilityBadge from "workspaces/features/SavedQueries/SavedQue
 
 type SavedQueryVisibilityButtonProps = {
   visibility: SavedQueryVisibility;
+  // Sharing with the workspace and unsharing (the author's right).
   canUpdate: boolean;
+  // Making the query public and taking it back to the workspace (the author's,
+  // a workspace admin's or an organization admin's right).
+  canPublish: boolean;
   saving: boolean;
   onChange: (visibility: SavedQueryVisibility) => void;
 };
 
 // Toolbar control for the current query's sharing, sitting next to Save because
 // it is a decision about the query itself rather than about this session.
-// Read-only for members who may edit the query but not unshare it.
+// Read-only for members who may edit the query but neither unshare nor publish it.
 const SavedQueryVisibilityButton = ({
   visibility,
   canUpdate,
+  canPublish,
   saving,
   onChange,
 }: SavedQueryVisibilityButtonProps) => {
   const { t } = useTranslation();
   const options = useSavedQueryVisibilityOptions();
   const current = useSavedQueryVisibilityOption(visibility);
-  // Set while a WORKSPACE -> PRIVATE switch waits for confirmation: unsharing takes
-  // the query away from colleagues who can currently see it, so it is not a
-  // one-click action like sharing is.
-  const [pendingPrivate, setPendingPrivate] = useState(false);
+  // Set while a switch that takes the query away from someone waits for
+  // confirmation: unsharing takes it from colleagues, publishing hands it to
+  // the whole internet, unpublishing breaks a link that may be in use. None of
+  // those is a one-click action like sharing with the workspace is.
+  const [pending, setPending] = useState<SavedQueryVisibility | null>(null);
 
-  if (!canUpdate) {
-    return (
-      <SavedQueryVisibilityBadge
-        visibility={visibility}
-        className="px-2.5 text-xs font-medium text-gray-500"
-      />
-    );
+  if (!canUpdate && !canPublish) {
+    return <SavedQueryVisibilityBadge visibility={visibility} />;
   }
+
+  const isOptionDisabled = (next: SavedQueryVisibility) =>
+    saving ||
+    !canChangeVisibility(visibility, next, {
+      canShare: canUpdate,
+      canPublish,
+    });
 
   const select = (next: SavedQueryVisibility) => {
     if (next === visibility) {
       return;
     }
-    if (next === SavedQueryVisibility.Private) {
-      setPendingPrivate(true);
+    const needsConfirmation =
+      next === SavedQueryVisibility.Private ||
+      next === SavedQueryVisibility.Public ||
+      visibility === SavedQueryVisibility.Public;
+    if (needsConfirmation) {
+      setPending(next);
       return;
     }
     onChange(next);
   };
+
+  const confirmation = {
+    [SavedQueryVisibility.Private]: {
+      title: t("Make this query private?"),
+      body: t(
+        "Other workspace members will no longer see or run this query. You can share it again at any time.",
+      ),
+      action: t("Make private"),
+    },
+    [SavedQueryVisibility.Workspace]: {
+      title: t("Stop sharing this query publicly?"),
+      body: t(
+        "The public link will stop working. Workspace members keep access to the query.",
+      ),
+      action: t("Stop sharing publicly"),
+    },
+    [SavedQueryVisibility.Public]: {
+      title: t("Make this query public?"),
+      body: t(
+        "Anyone with the link will be able to run this query and export its result, without an OpenHEXA account. You can take it back at any time.",
+      ),
+      action: t("Make public"),
+    },
+  }[pending ?? SavedQueryVisibility.Private];
 
   return (
     <>
@@ -81,13 +118,13 @@ const SavedQueryVisibilityButton = ({
                   key={value}
                   type="button"
                   role="menuitem"
-                  disabled={saving}
+                  disabled={isOptionDisabled(value)}
                   onClick={() => {
                     close();
                     select(value);
                   }}
                   className={clsx(
-                    "flex w-full items-start gap-2 rounded-md px-2.5 py-2 text-left",
+                    "flex w-full items-start gap-2 rounded-md px-2.5 py-2 text-left disabled:cursor-not-allowed disabled:opacity-50",
                     value === visibility ? "bg-blue-50" : "hover:bg-gray-100",
                   )}
                 >
@@ -108,41 +145,47 @@ const SavedQueryVisibilityButton = ({
                 </button>
               ),
             )}
+            {!canPublish && visibility !== SavedQueryVisibility.Public && (
+              <p className="px-2.5 py-2 text-xs text-gray-400">
+                {t(
+                  "Only the author, workspace admins and organization admins can make a query public.",
+                )}
+              </p>
+            )}
           </div>
         )}
       </Popover>
 
       <Dialog
-        open={pendingPrivate}
-        onClose={() => !saving && setPendingPrivate(false)}
+        open={pending !== null}
+        onClose={() => !saving && setPending(null)}
         maxWidth="max-w-md"
       >
-        <Dialog.Title onClose={() => setPendingPrivate(false)}>
-          {t("Make this query private?")}
+        <Dialog.Title onClose={() => setPending(null)}>
+          {confirmation.title}
         </Dialog.Title>
         <Dialog.Content>
-          <p className="text-sm text-gray-600">
-            {t(
-              "Other workspace members will no longer see or run this query. You can share it again at any time.",
-            )}
-          </p>
+          <p className="text-sm text-gray-600">{confirmation.body}</p>
         </Dialog.Content>
         <Dialog.Actions>
           <Button
             variant="outlined"
-            onClick={() => setPendingPrivate(false)}
+            onClick={() => setPending(null)}
             disabled={saving}
           >
             {t("Cancel")}
           </Button>
           <Button
             onClick={() => {
-              setPendingPrivate(false);
-              onChange(SavedQueryVisibility.Private);
+              const next = pending;
+              setPending(null);
+              if (next) {
+                onChange(next);
+              }
             }}
             disabled={saving}
           >
-            {t("Make private")}
+            {confirmation.action}
           </Button>
         </Dialog.Actions>
       </Dialog>

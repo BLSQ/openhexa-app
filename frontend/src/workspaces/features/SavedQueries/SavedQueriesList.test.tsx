@@ -93,6 +93,36 @@ describe("SavedQueriesList", () => {
     expect(screen.getByText("Private")).toBeInTheDocument();
   });
 
+  // The permalink is one click away from the list, for public queries only.
+  it("offers to copy the permalink of a public query", async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    renderList({
+      workspace: {
+        savedQueries: {
+          totalItems: 2,
+          totalPages: 1,
+          pageNumber: 1,
+          items: [
+            item("q1", "Query One", "first", SavedQueryVisibility.Public),
+            item("q2", "Query Two", "second"),
+          ],
+        },
+      },
+    });
+
+    const copyButtons = screen.getAllByRole("button", { name: "Copy" });
+    expect(copyButtons).toHaveLength(1);
+
+    fireEvent.click(copyButtons[0]);
+
+    await waitFor(() =>
+      expect(writeText).toHaveBeenCalledWith(
+        `${window.location.origin}/queries/q1-slug`,
+      ),
+    );
+  });
+
   it("shows an empty state when there are no queries", () => {
     renderList({
       workspace: {
