@@ -4,8 +4,9 @@ from unittest.mock import MagicMock, patch
 
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
-from oauth2_provider.models import Application
+from oauth2_provider.models import AccessToken, Application
 
+from hexa.core.test import TestCase
 from hexa.data_studio.models import SavedQuery, SavedQueryVisibility
 from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
 from hexa.mcp.models import MCPConnection, MCPUser
@@ -45,6 +46,12 @@ from hexa.pipelines.models import (
     PipelineRunState,
     PipelineRunTrigger,
     PipelineVersion,
+)
+from hexa.user_management.models import (
+    Organization,
+    OrganizationMembership,
+    OrganizationMembershipRole,
+    User,
 )
 from hexa.webapps.models import Webapp
 from hexa.workspaces.tests.testutils import create_workspace
@@ -580,3 +587,77 @@ class GrantIsACeilingTest(MCPTestCase):
         )
 
         self.assertEqual("Mine", result["name"])
+
+
+class OrganizationGrantAfterRemovalTest(TestCase):
+    """Goes through the MCP endpoint with a bearer token, as a client would."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.CREATOR = User.objects.create_user(
+            "removal-creator@openhexa.org", "password", is_superuser=True
+        )
+        cls.USER = User.objects.create_user("removal@openhexa.org", "password")
+        cls.ORGANIZATION = Organization.objects.create(name="Ministry")
+        cls.MEMBERSHIP = OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.USER,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        cls.WORKSPACE = create_workspace(
+            cls.CREATOR, name="Malaria", organization=cls.ORGANIZATION
+        )
+        application = Application.objects.create(
+            name="Claude",
+            client_id="removal-test-client",
+            client_type=Application.CLIENT_PUBLIC,
+            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+        )
+        connection = MCPConnection.objects.create(
+            user=cls.USER, application=application, tools=all_tool_names()
+        )
+        connection.organizations.set([cls.ORGANIZATION])
+        cls.TOKEN = AccessToken.objects.create(
+            user=cls.USER,
+            application=application,
+            token="removal-token",
+            scope="openhexa:mcp",
+            expires=timezone.now() + timedelta(hours=1),
+        )
+
+    def call_tool(self, name, **arguments):
+        response = self.client.post(
+            "/mcp/",
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "tools/call",
+                    "params": {"name": name, "arguments": arguments},
+                }
+            ),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {self.TOKEN.token}",
+        )
+        self.assertEqual(200, response.status_code)
+        return json.loads(response.json()["result"]["content"][0]["text"])
+
+    def listed_slugs(self):
+        return [
+            workspace["slug"]
+            for workspace in self.call_tool("list_workspaces")["workspaces"]["items"]
+        ]
+
+    def test_the_organization_workspaces_are_reachable_while_a_member(self):
+        self.assertEqual([self.WORKSPACE.slug], self.listed_slugs())
+        self.assertIsNotNone(
+            self.call_tool("get_workspace", slug=self.WORKSPACE.slug)["workspace"]
+        )
+
+    def test_removing_the_membership_cuts_the_organization_off(self):
+        self.MEMBERSHIP.delete()
+
+        self.assertEqual([], self.listed_slugs())
+        self.assertIsNone(
+            self.call_tool("get_workspace", slug=self.WORKSPACE.slug)["workspace"]
+        )
