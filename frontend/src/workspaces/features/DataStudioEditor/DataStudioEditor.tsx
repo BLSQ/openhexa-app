@@ -39,6 +39,7 @@ type DataStudioEditorProps = {
   workspaceSlug: string;
   savedQuery?: SavedQuery_SavedQueryFragment | null;
   canCreate: boolean;
+  canCreatePublic: boolean;
   aiEnabled?: boolean;
   aiBudgetLimitReached?: boolean;
 };
@@ -63,6 +64,7 @@ const DataStudioEditor = ({
   workspaceSlug,
   savedQuery,
   canCreate,
+  canCreatePublic,
   aiEnabled = false,
   aiBudgetLimitReached = false,
 }: DataStudioEditorProps) => {
@@ -372,6 +374,7 @@ const DataStudioEditor = ({
         workspaceSlug={workspaceSlug}
         content={query}
         savedQuery={editor.savedQuery}
+        canCreatePublic={canCreatePublic}
         onClose={editor.closeDialog}
         onSaved={editor.onDialogSaved}
       />

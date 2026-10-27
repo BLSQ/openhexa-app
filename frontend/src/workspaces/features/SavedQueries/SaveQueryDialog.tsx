@@ -27,6 +27,10 @@ type SaveQueryDialogProps = {
     "id" | "name" | "description" | "visibility" | "permissions"
   > | null;
   onSaved?: (savedQuery: SavedQuery_SavedQueryFragment) => void;
+  // Whether the user may make their own queries of this workspace public
+  // (viewers may not). Only read in "create" mode: an existing query says so
+  // through its own permissions.
+  canCreatePublic?: boolean;
 };
 
 // max_length of SavedQuery.name on the backend.
@@ -48,6 +52,7 @@ const SaveQueryDialog = ({
   content,
   savedQuery,
   onSaved,
+  canCreatePublic = false,
 }: SaveQueryDialogProps) => {
   const { t } = useTranslation();
   const { create, update } = useSavedQueryMutations();
@@ -56,11 +61,13 @@ const SaveQueryDialog = ({
   // a workspace admin may publish a query without being allowed to unshare it.
   // The picker gates each option on its own; with neither right it only shows
   // the current state, read-only. Whoever creates a query is its author, who
-  // holds both rights.
+  // may always share it, and may publish it unless they are a viewer.
   const canShare =
     mode === "create" || (savedQuery?.permissions.updateVisibility ?? false);
   const canPublishHere =
-    mode === "create" || (savedQuery?.permissions.publish ?? false);
+    mode === "create"
+      ? canCreatePublic
+      : (savedQuery?.permissions.publish ?? false);
 
   const form = useForm<Values>({
     getInitialState: () => ({

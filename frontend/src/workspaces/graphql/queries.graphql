@@ -82,6 +82,7 @@ query WorkspaceDataStudioPage($workspaceSlug: String!) {
     slug
     permissions {
       createSavedQuery
+      publishSavedQuery
     }
     organization {
       id
@@ -128,6 +129,7 @@ query WorkspaceSavedQueryPage($workspaceSlug: String!, $slug: String!) {
     slug
     permissions {
       createSavedQuery
+      publishSavedQuery
     }
     ...WorkspaceLayout_workspace
   }

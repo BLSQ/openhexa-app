@@ -258,7 +258,27 @@ describe("SaveQueryDialog", () => {
     expect(screen.getByRole("radio", { name: /Public/ })).toBeDisabled();
   });
 
-  // Whoever creates a query is its author, and authors may publish.
+  // A viewer may save queries but not expose the data they read.
+  it("keeps the public option closed to someone who may not publish", () => {
+    render(
+      <SaveQueryDialog
+        open
+        mode="create"
+        workspaceSlug="ws-1"
+        content="SELECT 1"
+        savedQuery={null}
+        canCreatePublic={false}
+        onClose={jest.fn()}
+        onSaved={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("radio", { name: /Public/ })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: /Workspace/ })).toBeEnabled();
+  });
+
+  // Whoever creates a query is its author, and authors who are editors or
+  // admins may publish.
   it("lets the author create a public query", async () => {
     createMock.mockResolvedValue({
       data: {
@@ -277,6 +297,7 @@ describe("SaveQueryDialog", () => {
         workspaceSlug="ws-1"
         content="SELECT 1"
         savedQuery={null}
+        canCreatePublic
         onClose={jest.fn()}
         onSaved={jest.fn()}
       />,

@@ -6421,6 +6421,9 @@ type WorkspacePermissions {
   launchNotebookServer: Boolean!
   manageMembers: Boolean!
   manageTags: Boolean!
+
+  """Permission to make one's own saved queries of the workspace public."""
+  publishSavedQuery: Boolean!
   update: Boolean!
 }
 

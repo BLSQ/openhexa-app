@@ -7230,6 +7230,8 @@ export type WorkspacePermissions = {
   launchNotebookServer: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
   manageTags: Scalars['Boolean']['output'];
+  /** Permission to make one's own saved queries of the workspace public. */
+  publishSavedQuery: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
 
