@@ -1,5 +1,4 @@
 import {
-  BuildingOfficeIcon,
   CheckIcon,
   ChevronDownIcon,
   GlobeAltIcon,
@@ -408,22 +407,30 @@ const MCPPermissionMatrix = ({
             />
           </div>
         </div>
-        <div className="rounded-lg border border-gray-200 p-4">
-          {workspaces.length > SEARCHABLE_FROM && (
-            <input
-              type="search"
-              value={workspaceQuery}
-              disabled={disabled}
-              onChange={(event) => setWorkspaceQuery(event.target.value)}
-              placeholder={t("Filter workspaces")}
-              className="mb-3 w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm placeholder-gray-400 focus:border-gray-400 focus:ring-0 focus:outline-hidden"
-            />
+        <p className="text-sm text-gray-500">
+          {t(
+            "Select an organization to include all of its workspaces, including the ones created later.",
           )}
-          <div className="max-h-96 space-y-4 overflow-y-auto">
+        </p>
+        <div className="overflow-hidden rounded-lg border border-gray-200">
+          {workspaces.length > SEARCHABLE_FROM && (
+            <div className="border-b border-gray-200 p-3">
+              <input
+                type="search"
+                value={workspaceQuery}
+                disabled={disabled}
+                onChange={(event) => setWorkspaceQuery(event.target.value)}
+                placeholder={t("Filter workspaces")}
+                className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm placeholder-gray-400 focus:border-gray-400 focus:ring-0 focus:outline-hidden"
+              />
+            </div>
+          )}
+          <div className="max-h-[28rem] divide-y divide-gray-100 overflow-y-auto">
             {matchingGroups.map(({ organization, workspaces: members }) => {
               const organizationGranted = grantedOrganizations.has(
                 organization.id,
               );
+              const selectedCount = members.filter(isWorkspaceSelected).length;
               const organizationInputId = `${idPrefix}-organization-${organization.id}`;
               // A filter has to show its matches, whatever was collapsed.
               const isOpen =
@@ -431,14 +438,29 @@ const MCPPermissionMatrix = ({
                 openOrganizations.has(organization.id);
               return (
                 <div key={organization.id}>
-                  <div className="flex items-center gap-1 rounded-md bg-gray-50 pr-2">
+                  <div className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50">
+                    <button
+                      type="button"
+                      aria-expanded={isOpen}
+                      aria-controls={`${organizationInputId}-workspaces`}
+                      aria-label={
+                        isOpen ? t("Hide workspaces") : t("Show workspaces")
+                      }
+                      onClick={() => toggleOrganizationOpen(organization.id)}
+                      className="shrink-0 rounded p-0.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+                    >
+                      <ChevronDownIcon
+                        className={clsx(
+                          "h-4 w-4 transition-transform",
+                          !isOpen && "-rotate-90",
+                        )}
+                      />
+                    </button>
                     <label
                       htmlFor={organizationInputId}
                       className={clsx(
-                        "flex min-w-0 flex-1 items-center gap-2.5 rounded-md px-2 py-1.5",
-                        disabled
-                          ? "cursor-not-allowed"
-                          : "cursor-pointer hover:bg-gray-100",
+                        "flex min-w-0 flex-1 items-center gap-2.5",
+                        disabled ? "cursor-not-allowed" : "cursor-pointer",
                       )}
                     >
                       <input
@@ -454,48 +476,39 @@ const MCPPermissionMatrix = ({
                         }
                         className="form-checkbox h-4 w-4 shrink-0 cursor-pointer rounded-sm border-gray-300 text-blue-500 focus:ring-0 focus:ring-offset-0"
                       />
-                      <BuildingOfficeIcon className="h-5 w-5 shrink-0 text-gray-400" />
-                      <span className="min-w-0 flex-1">
-                        <span
-                          className="block truncate text-sm font-medium text-gray-900"
-                          title={organization.name}
-                        >
-                          {organization.name}
-                        </span>
-                        <span className="block truncate text-xs text-gray-500">
-                          {t("All workspaces, including future ones")}
-                        </span>
+                      <span
+                        className="truncate text-sm font-medium text-gray-900"
+                        title={organization.name}
+                      >
+                        {organization.name}
+                      </span>
+                      <span className="shrink-0 text-xs text-gray-400">
+                        {t("{{count}} workspaces", { count: members.length })}
                       </span>
                     </label>
-                    <button
-                      type="button"
-                      aria-expanded={isOpen}
-                      aria-controls={`${organizationInputId}-workspaces`}
-                      onClick={() => toggleOrganizationOpen(organization.id)}
-                      className="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                    >
-                      {t("{{count}} of {{total}} workspaces selected", {
-                        count: members.filter(isWorkspaceSelected).length,
-                        total: members.length,
-                      })}
-                      <ChevronDownIcon
-                        className={clsx(
-                          "h-4 w-4 transition-transform",
-                          !isOpen && "-rotate-90",
-                        )}
-                      />
-                    </button>
+                    {organizationGranted ? (
+                      <span className="shrink-0 rounded bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700">
+                        {t("Includes future workspaces")}
+                      </span>
+                    ) : (
+                      selectedCount > 0 && (
+                        <span className="shrink-0 text-xs text-gray-500">
+                          {t("{{count}} of {{total}} workspaces selected", {
+                            count: selectedCount,
+                            total: members.length,
+                          })}
+                        </span>
+                      )
+                    )}
                   </div>
                   {isOpen && (
                     <div
                       id={`${organizationInputId}-workspaces`}
-                      className="mt-1 grid grid-cols-1 pl-6 sm:grid-cols-2"
+                      className="grid grid-cols-1 pr-3 pb-2 pl-10 sm:grid-cols-2"
                     >
                       {members.length === 0 && (
                         <p className="px-2 py-1.5 text-sm text-gray-500">
-                          {t(
-                            "No workspace yet: new ones will be included if this organization is selected.",
-                          )}
+                          {t("No workspace yet")}
                         </p>
                       )}
                       {members.map((workspace) => (
@@ -558,12 +571,12 @@ const MCPPermissionMatrix = ({
             })}
           </div>
           {organizations.length === 0 && (
-            <p className="text-sm text-gray-500">
+            <p className="p-4 text-sm text-gray-500">
               {t("You are not a member of any workspace yet.")}
             </p>
           )}
           {organizations.length > 0 && matchingGroups.length === 0 && (
-            <p className="text-sm text-gray-500">
+            <p className="p-4 text-sm text-gray-500">
               {t("No workspace matches that filter.")}
             </p>
           )}
