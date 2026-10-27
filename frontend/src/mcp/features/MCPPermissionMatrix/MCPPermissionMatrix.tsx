@@ -407,11 +407,6 @@ const MCPPermissionMatrix = ({
             />
           </div>
         </div>
-        <p className="text-sm text-gray-500">
-          {t(
-            "Select an organization to include all of its workspaces, including the ones created later.",
-          )}
-        </p>
         <div className="overflow-hidden rounded-lg border border-gray-200">
           {workspaces.length > SEARCHABLE_FROM && (
             <div className="border-b border-gray-200 p-3">

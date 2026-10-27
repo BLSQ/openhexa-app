@@ -93,7 +93,13 @@ const ConnectionCard = ({
           }),
         ]
       : []),
-    t("{{count}} workspaces", { count: draft.workspaceSlugs.length }),
+    t("{{count}} workspaces", {
+      count: workspaces.filter(
+        (workspace) =>
+          draft.organizationIds.includes(workspace.organization.id) ||
+          draft.workspaceSlugs.includes(workspace.slug),
+      ).length,
+    }),
   ].join(" · ");
 
   const onSave = async () => {
@@ -144,10 +150,10 @@ const ConnectionCard = ({
           )}
         />
         <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-center gap-2">
             <span className="font-medium text-gray-900">{connection.name}</span>
             {isDirty && (
-              <span className="rounded-sm bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-700">
+              <span className="rounded-sm bg-amber-50 px-1.5 text-[11px] leading-4 font-medium text-amber-700">
                 {t("Unsaved")}
               </span>
             )}
