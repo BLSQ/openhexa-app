@@ -9,6 +9,9 @@ export function getMCPErrorMessage(t: TFunction, errors?: string[]): string {
     TOOL_NOT_FOUND: t(
       "Some selected tools are no longer available. Reload the page and try again.",
     ),
+    ORGANIZATION_NOT_FOUND: t(
+      "You no longer belong to one of the selected organizations. Reload the page and try again.",
+    ),
     WORKSPACE_NOT_FOUND: t(
       "You no longer have access to one of the selected workspaces. Reload the page and try again.",
     ),
