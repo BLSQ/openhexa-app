@@ -32,7 +32,7 @@ class GitRepoFileSourceTest(SimpleTestCase):
     def setUp(self):
         self.client = MagicMock()
         self.client.get_files_tree.return_value = TREE
-        self.client.get_repository_files.return_value = REPO_FILES
+        self.client.get_repository_files_from_tree.return_value = REPO_FILES
         self.client.get_file.side_effect = lambda repo, path, ref, **kw: {
             "index.html": b"<h1>hi</h1>",
             "js/app.js": b"run(app)",
@@ -48,7 +48,7 @@ class GitRepoFileSourceTest(SimpleTestCase):
             ["index.html", "js/app.js", "js/util.js", "logo.png"],
         )
         self.client.get_file.assert_not_called()
-        self.client.get_repository_files.assert_not_called()
+        self.client.get_repository_files_from_tree.assert_not_called()
 
     def test_read_fetches_that_file_alone(self):
         files = self._files()
@@ -59,20 +59,20 @@ class GitRepoFileSourceTest(SimpleTestCase):
         self.client.get_file.assert_any_call(
             "repo", "index.html", "main", org_slug="org"
         )
-        self.client.get_repository_files.assert_not_called()
+        self.client.get_repository_files_from_tree.assert_not_called()
 
     def test_narrow_search_fetches_its_one_file(self):
         result = self._files().grep("run", glob="js/app.*")
         self.assertEqual(result["files"], ["js/app.js"])
         self.client.get_file.assert_called_once()
-        self.client.get_repository_files.assert_not_called()
+        self.client.get_repository_files_from_tree.assert_not_called()
 
     def test_broad_search_loads_every_file_at_once(self):
         result = self._files().grep("run", glob="js/*")
         self.assertEqual(result["files"], ["js/app.js", "js/util.js"])
         self.client.get_file.assert_not_called()
-        self.client.get_repository_files.assert_called_once_with(
-            "repo", "main", org_slug="org", tree=TREE
+        self.client.get_repository_files_from_tree.assert_called_once_with(
+            "repo", TREE, "main", org_slug="org"
         )
 
     def test_too_large_files_are_none_without_download(self):

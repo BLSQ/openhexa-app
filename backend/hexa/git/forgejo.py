@@ -340,16 +340,26 @@ class ForgejoClient(GitClient):
         ref: str = "main",
         *,
         org_slug: str | None = None,
-        tree: list[dict] | None = None,
     ) -> list[dict]:
-        """Fetch the full file tree and return a flat list with path, type, content, and encoding.
+        tree = self.get_files_tree(repo_name, ref, org_slug=org_slug)
+        return self.get_repository_files_from_tree(
+            repo_name, tree, ref, org_slug=org_slug
+        )
+
+    def get_repository_files_from_tree(
+        self,
+        repo_name: str,
+        tree: list[dict],
+        ref: str = "main",
+        *,
+        org_slug: str | None = None,
+    ) -> list[dict]:
+        """Return the entries of `tree` as a flat list with path, type, content, and encoding.
 
         Content is either UTF-8 (for text files) or base64 (for binary files).
         To detect if a blob is binary, check for a NULL byte or a failed UTF-8 decode.
         Blobs too large to read carry too_large=True and no content.
         """
-        if tree is None:
-            tree = self.get_files_tree(repo_name, ref, org_slug=org_slug)
         try:
             archived = self._archive_contents(repo_name, ref, org_slug, tree)
         except (ForgejoAPIError, zipfile.BadZipFile):

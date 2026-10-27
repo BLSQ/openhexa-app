@@ -1190,8 +1190,8 @@ class ForgejoClientRepositoryArchiveTest(TestCase):
         responses.get(ARCHIVE_URL, body=_zip({"index.html": b"<h1>hi</h1>"}))
 
         client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
-        files = client.get_repository_files(
-            "my-repo", tree=[{"path": "index.html", "type": "blob", "size": 11}]
+        files = client.get_repository_files_from_tree(
+            "my-repo", [{"path": "index.html", "type": "blob", "size": 11}]
         )
 
         self.assertEqual(len(responses.calls), 1)

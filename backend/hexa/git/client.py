@@ -121,11 +121,19 @@ class GitClient(ABC):
         ref: str = "main",
         *,
         org_slug: str | None = None,
-        tree: list[dict] | None = None,
     ) -> list[dict]:
-        """Every file and directory of `ref` with its content. Pass the `get_files_tree`
-        result as `tree` when the caller already has it, to skip fetching it again.
-        """
+        ...
+
+    @abstractmethod
+    def get_repository_files_from_tree(
+        self,
+        repo_name: str,
+        tree: list[dict],
+        ref: str = "main",
+        *,
+        org_slug: str | None = None,
+    ) -> list[dict]:
+        """Every file and directory of a `get_files_tree` result, with its content."""
         ...
 
     @abstractmethod

@@ -14,7 +14,7 @@ class GitRepoFileSource(FileSource):
 
     Listing paths, as a glob does, never downloads content. A lookup fetches that one
     file, unless a search prefetches several: they then load all at once through
-    `get_repository_files` (one archive download for a small repository). Contents are
+    `get_repository_files_from_tree` (one archive download for a small repository). Contents are
     kept for the lifetime of the source. Binary and too large files map to None.
     """
 
@@ -64,7 +64,7 @@ class GitRepoFileSource(FileSource):
         }
 
     def _fetch(self, path: str) -> str | None:
-        # Same ceiling as get_repository_files, so both ways of loading agree.
+        # Same ceiling as get_repository_files_from_tree, so both ways of loading agree.
         if self._sizes[path] >= MAX_INLINE_BLOB_SIZE:
             return None
         try:
@@ -80,8 +80,8 @@ class GitRepoFileSource(FileSource):
             entry["path"]: entry["content"]
             if entry["encoding"] == FileEncoding.TEXT
             else None
-            for entry in self._client.get_repository_files(
-                self._repo_name, self._ref, org_slug=self._org_slug, tree=self._tree
+            for entry in self._client.get_repository_files_from_tree(
+                self._repo_name, self._tree, self._ref, org_slug=self._org_slug
             )
             if entry["type"] == "file"
         }

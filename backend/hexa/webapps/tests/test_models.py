@@ -845,7 +845,7 @@ class GitWebappModelTest(TestCase):
             {"path": "video.mp4", "type": "blob"},
         ]
         self.mock_git_client.get_files_tree.return_value = tree
-        self.mock_git_client.get_repository_files.return_value = [
+        self.mock_git_client.get_repository_files_from_tree.return_value = [
             {"path": "js", "type": "directory", "content": None, "encoding": None},
             {
                 "path": "index.html",
@@ -883,11 +883,11 @@ class GitWebappModelTest(TestCase):
         self.mock_git_client.get_files_tree.assert_called_once_with(
             webapp.repository, "main", org_slug=webapp.git_org.slug
         )
-        self.mock_git_client.get_repository_files.assert_not_called()
+        self.mock_git_client.get_repository_files_from_tree.assert_not_called()
 
         self.assertEqual(files.grep("Hi")["files"], ["index.html"])
-        self.mock_git_client.get_repository_files.assert_called_once_with(
-            webapp.repository, "main", org_slug=webapp.git_org.slug, tree=tree
+        self.mock_git_client.get_repository_files_from_tree.assert_called_once_with(
+            webapp.repository, tree, "main", org_slug=webapp.git_org.slug
         )
         self.assertEqual(files.read("index.html")["content"], "<h1>Hi</h1>")
         self.assertEqual(files.grep("x", glob="js/*")["files"], ["js/bundle.js"])
@@ -897,7 +897,9 @@ class GitWebappModelTest(TestCase):
         self.assertEqual(
             files.read("video.mp4"), {"error": "Not a readable text file: video.mp4"}
         )
-        self.assertEqual(self.mock_git_client.get_repository_files.call_count, 1)
+        self.assertEqual(
+            self.mock_git_client.get_repository_files_from_tree.call_count, 1
+        )
 
     def test_multi_table_inheritance(self):
         git_webapp = GitWebapp.create_if_has_perm(
