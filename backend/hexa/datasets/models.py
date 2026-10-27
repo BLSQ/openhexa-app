@@ -2,6 +2,7 @@ import io
 import logging
 import math
 import secrets
+from collections.abc import Callable
 from functools import cached_property
 
 import numpy as np
@@ -34,13 +35,33 @@ class FileUploadError(Exception):
     pass
 
 
-def create_dataset_slug(name: str, workspace):
+# Kept free so they can become fixed routes next to /datasets/<public_slug> without
+# shadowing an existing permalink.
+RESERVED_PUBLIC_SLUGS = {"new", "search", "create", "edit", "settings", "api"}
+
+
+def _unique_slug(name: str, is_taken: Callable[[str], bool]) -> str:
     suffix = ""
     while True:
         slug = slugify(name[: 255 - len(suffix)] + suffix)
-        if not Dataset.objects.filter(workspace=workspace, slug=slug).exists():
+        if not is_taken(slug):
             return slug
         suffix = "-" + secrets.token_hex(3)
+
+
+def create_dataset_slug(name: str, workspace):
+    return _unique_slug(
+        name,
+        lambda slug: Dataset.objects.filter(workspace=workspace, slug=slug).exists(),
+    )
+
+
+def create_dataset_public_slug(name: str):
+    return _unique_slug(
+        name,
+        lambda slug: slug in RESERVED_PUBLIC_SLUGS
+        or Dataset.objects.filter(public_slug=slug).exists(),
+    )
 
 
 def check_principal_perm(principal, workspace_id, perm: str, obj) -> None:
@@ -156,10 +177,16 @@ class Dataset(MetadataMixin, Base):
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     name = models.TextField(max_length=64, null=False, blank=False)
     slug = models.TextField(null=False, blank=False, max_length=255)
+    public_slug = models.TextField(unique=True, editable=False, max_length=255)
     description = models.TextField(blank=True, null=True)
     shared_with_organization = models.BooleanField(default=False)
 
     objects = DatasetManager.from_queryset(DatasetQuerySet)()
+
+    def save(self, *args, **kwargs):
+        if not self.public_slug:
+            self.public_slug = create_dataset_public_slug(self.name)
+        super().save(*args, **kwargs)
 
     @property
     def latest_version(self):

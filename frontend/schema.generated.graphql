@@ -1611,6 +1611,9 @@ type Dataset implements MetadataObject {
   links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
   name: String!
   permissions: DatasetPermissions!
+
+  """Slug unique across the whole instance, used for permalinks."""
+  publicSlug: String!
   sharedWithOrganization: Boolean!
   slug: String!
   targetId: OpaqueID!

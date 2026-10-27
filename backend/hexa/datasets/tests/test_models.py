@@ -159,6 +159,31 @@ class DatasetTest(BaseTestMixin, TestCase):
         )
         self.assertEqual(dataset_1.slug, dataset_2.slug)
 
+    def test_create_dataset_public_slug(self):
+        dataset = self.test_create_dataset(name="My dataset")
+        self.assertEqual(dataset.public_slug, "my-dataset")
+
+    def test_create_dataset_duplicate_public_slug(self):
+        self.test_create_dataset(workspace=self.WORKSPACE, name="dataset_1")
+        with patch("secrets.token_hex", return_value="123"):
+            dataset_2 = self.test_create_dataset(
+                workspace=self.WORKSPACE_2, name="dataset_1"
+            )
+        self.assertEqual(dataset_2.slug, "dataset-1")
+        self.assertEqual(dataset_2.public_slug, "dataset-1-123")
+
+    def test_create_dataset_reserved_public_slug(self):
+        with patch("secrets.token_hex", return_value="123"):
+            dataset = self.test_create_dataset(name="New")
+        self.assertEqual(dataset.slug, "new")
+        self.assertEqual(dataset.public_slug, "new-123")
+
+    def test_update_dataset_keeps_public_slug(self):
+        dataset = self.test_create_dataset(name="My dataset")
+        dataset.update_if_has_perm(principal=self.USER_EDITOR, name="Renamed")
+        dataset.refresh_from_db()
+        self.assertEqual(dataset.public_slug, "my-dataset")
+
     def test_create_dataset_with_double_dash(self):
         dataset = self.test_create_dataset(name="My dataset -- test-")
         self.assertEqual(dataset.slug, "my-dataset-test")
