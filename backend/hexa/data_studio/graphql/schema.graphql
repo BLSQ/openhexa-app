@@ -221,6 +221,8 @@ extend type Workspace {
 extend type WorkspacePermissions {
   "Permission to create a saved query in the workspace."
   createSavedQuery: Boolean!
+  "Permission to make one's own saved queries of the workspace public."
+  publishSavedQuery: Boolean!
 }
 
 extend type Query {

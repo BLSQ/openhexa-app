@@ -276,9 +276,24 @@ class SavedQueryModelTest(SavedQueryTestMixin, TestCase):
 class SavedQueryPublicVisibilityTest(SavedQueryTestMixin, TestCase):
     def test_author_creates_a_public_query(self):
         query = self.create_saved_query(
-            user=self.USER_VIEWER, visibility=SavedQueryVisibility.PUBLIC
+            user=self.USER_EDITOR, visibility=SavedQueryVisibility.PUBLIC
         )
         self.assertTrue(query.is_public)
+
+    def test_viewer_cannot_create_a_public_query(self):
+        # A read-only role must not hand what it reads to anyone on the internet.
+        with self.assertRaises(PermissionDenied):
+            self.create_saved_query(
+                user=self.USER_VIEWER, visibility=SavedQueryVisibility.PUBLIC
+            )
+        self.assertFalse(SavedQuery.objects.exists())
+
+    def test_viewer_cannot_publish_their_own_query(self):
+        query = self.create_saved_query(user=self.USER_VIEWER)
+        with self.assertRaises(PermissionDenied):
+            query.update_if_has_perm(
+                principal=self.USER_VIEWER, visibility=SavedQueryVisibility.PUBLIC
+            )
 
     def test_workspace_admin_publishes_a_shared_query(self):
         query = self.create_saved_query(user=self.USER_VIEWER)
@@ -297,7 +312,7 @@ class SavedQueryPublicVisibilityTest(SavedQueryTestMixin, TestCase):
 
     def test_workspace_admin_takes_a_public_query_back_to_the_workspace(self):
         query = self.create_saved_query(
-            user=self.USER_VIEWER, visibility=SavedQueryVisibility.PUBLIC
+            user=self.USER_EDITOR, visibility=SavedQueryVisibility.PUBLIC
         )
         query.update_if_has_perm(
             principal=self.USER_ADMIN, visibility=SavedQueryVisibility.WORKSPACE
@@ -308,14 +323,14 @@ class SavedQueryPublicVisibilityTest(SavedQueryTestMixin, TestCase):
     def test_only_the_author_makes_a_public_query_private(self):
         # Anyone else would hand the query to its author and lose it themselves.
         query = self.create_saved_query(
-            user=self.USER_VIEWER, visibility=SavedQueryVisibility.PUBLIC
+            user=self.USER_EDITOR, visibility=SavedQueryVisibility.PUBLIC
         )
         with self.assertRaises(PermissionDenied):
             query.update_if_has_perm(
                 principal=self.USER_ADMIN, visibility=SavedQueryVisibility.PRIVATE
             )
         query.update_if_has_perm(
-            principal=self.USER_VIEWER, visibility=SavedQueryVisibility.PRIVATE
+            principal=self.USER_EDITOR, visibility=SavedQueryVisibility.PRIVATE
         )
         query.refresh_from_db()
         self.assertEqual(SavedQueryVisibility.PRIVATE, query.visibility)
@@ -341,7 +356,7 @@ class SavedQueryPublicVisibilityTest(SavedQueryTestMixin, TestCase):
     def test_editor_cannot_change_the_sql_of_a_public_query(self):
         # Visitors run whatever the query holds: rewriting it is a publisher's call.
         query = self.create_saved_query(
-            user=self.USER_VIEWER, visibility=SavedQueryVisibility.PUBLIC
+            user=self.USER_ADMIN, visibility=SavedQueryVisibility.PUBLIC
         )
         with self.assertRaises(PermissionDenied):
             query.update_if_has_perm(principal=self.USER_EDITOR, content="SELECT 2")
@@ -350,7 +365,7 @@ class SavedQueryPublicVisibilityTest(SavedQueryTestMixin, TestCase):
 
     def test_editor_still_renames_a_public_query(self):
         query = self.create_saved_query(
-            user=self.USER_VIEWER, visibility=SavedQueryVisibility.PUBLIC
+            user=self.USER_ADMIN, visibility=SavedQueryVisibility.PUBLIC
         )
         # The unchanged SQL echoed back is not an edit of it.
         query.update_if_has_perm(
@@ -360,16 +375,25 @@ class SavedQueryPublicVisibilityTest(SavedQueryTestMixin, TestCase):
         self.assertEqual("Renamed", query.name)
 
     def test_publishers_change_the_sql_of_a_public_query(self):
-        for user in [self.USER_VIEWER, self.USER_ADMIN]:
+        for user in [self.USER_EDITOR, self.USER_ADMIN]:
             with self.subTest(user=user):
                 query = self.create_saved_query(
-                    user=self.USER_VIEWER,
+                    user=self.USER_EDITOR,
                     name=f"Query of {user.email}",
                     visibility=SavedQueryVisibility.PUBLIC,
                 )
                 query.update_if_has_perm(principal=user, content="SELECT 2")
                 query.refresh_from_db()
                 self.assertEqual("SELECT 2", query.content)
+
+    def test_editor_cannot_delete_a_public_query_of_someone_else(self):
+        # Deleting it would break a link people may be using.
+        query = self.create_saved_query(
+            user=self.USER_ADMIN, visibility=SavedQueryVisibility.PUBLIC
+        )
+        with self.assertRaises(PermissionDenied):
+            query.delete_if_has_perm(principal=self.USER_EDITOR)
+        self.assertTrue(SavedQuery.objects.filter(pk=query.pk).exists())
 
     def test_service_principals_never_reach_other_workspaces_public_queries(self):
         own = self.create_saved_query(name="own")

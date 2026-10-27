@@ -125,9 +125,11 @@ class SavedQueryManager(DefaultSoftDeletedManager.from_queryset(SavedQueryQueryS
         # private until its author decides to share it.
         visibility: str | None = None,
     ):
-        # No publish check for PUBLIC: the principal is about to become the author,
-        # and authors may publish their own queries (see permissions.publish_saved_query).
         if not principal.has_perm("data_studio.create_saved_query", workspace):
+            raise PermissionDenied
+        if visibility == SavedQueryVisibility.PUBLIC and not principal.has_perm(
+            "data_studio.create_public_saved_query", workspace
+        ):
             raise PermissionDenied
 
         # Inside the transaction: a git failure must take the row with it, or the

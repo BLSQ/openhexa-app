@@ -241,6 +241,18 @@ def resolve_workspace_permissions_create_saved_query(
     )
 
 
+@workspace_permissions.field("publishSavedQuery")
+def resolve_workspace_permissions_publish_saved_query(
+    workspace: Workspace, info, **kwargs
+):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("data_studio.create_public_saved_query", workspace)
+        if request.user.is_authenticated
+        else False
+    )
+
+
 def _visible_saved_queries(request: HttpRequest, *, include_public: bool = False):
     return SavedQuery.objects.filter_for_user(
         request.user, include_public=include_public

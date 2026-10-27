@@ -60,7 +60,8 @@ def create_saved_query(
     get_db_schema and get_db_table_schema to discover tables and columns first. The query is
     PRIVATE (visible to you only) unless visibility is set to WORKSPACE, which shares it with
     every member of the workspace, or to PUBLIC, which also lets anyone with its permalink run
-    it without an account. Returns the saved query's id and slug.
+    it without an account (workspace viewers cannot create PUBLIC queries). Returns the saved
+    query's id and slug.
     """
     create_input: dict = {
         "workspaceSlug": workspace_slug,
@@ -92,9 +93,11 @@ def update_saved_query(
     Provide the saved query UUID (from list_saved_queries) and any fields to change. Only
     provided non-empty fields are updated. Only the query's author can change its visibility,
     except that workspace and organization admins can also make a WORKSPACE query PUBLIC
-    (runnable by anyone with its permalink, without an account) and take it back to WORKSPACE.
-    Other workspace editors and admins can edit the name, description and content of a
-    WORKSPACE or PUBLIC query but not of a PRIVATE one.
+    (runnable by anyone with its permalink, without an account) and take it back to WORKSPACE;
+    an author who is only a workspace viewer cannot make it PUBLIC. Other workspace editors
+    and admins can edit the name, description and content of a WORKSPACE query, and the name
+    and description of a PUBLIC one, but nothing of a PRIVATE one. The content of a PUBLIC
+    query can only be changed by those who may make it PUBLIC.
     """
     update_input: dict = {"id": saved_query_id}
     if name:

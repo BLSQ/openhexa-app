@@ -1368,6 +1368,24 @@ class PublicSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
         self.assertEqual(0, QueryLog.objects.count())
 
+    def test_workspace_tells_who_may_publish_their_own_queries(self):
+        for user, expected in [
+            (self.USER_ADMIN, True),
+            (self.USER_EDITOR, True),
+            (self.USER_VIEWER, False),
+        ]:
+            with self.subTest(user=user.email):
+                self.client.force_login(user)
+                r = self.run_query(
+                    "query ($slug: String!) { workspace(slug: $slug) "
+                    "{ permissions { publishSavedQuery } } }",
+                    {"slug": self.WORKSPACE.slug},
+                )
+                self.assertEqual(
+                    expected,
+                    r["data"]["workspace"]["permissions"]["publishSavedQuery"],
+                )
+
     def test_workspace_admin_publishes_through_the_api(self):
         query = self.create_saved_query(user=self.USER_VIEWER)
         self.client.force_login(self.USER_ADMIN)
