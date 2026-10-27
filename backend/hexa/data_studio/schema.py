@@ -51,8 +51,9 @@ saved_query_order_by_enum = EnumType(
 )
 
 # Only the origins a client may declare are bound to the GraphQL enum: the CSV export's
-# origin is set server-side (see views.download_query_csv), so it cannot be claimed on an
-# interactive query and means what it says in the audit log. Derived from the model enum
+# origin is set server-side (see views.download_query_csv), and so are the ones a request
+# earns by who sends it (see query_runner.saved_query_origin), so none of them can be
+# claimed on an interactive query and each means what it says in the audit log. Derived from the model enum
 # rather than hand-listed, so the two stay in sync — a new client-settable value missing
 # from schema.graphql fails loudly when the schema is built.
 execute_sql_origin_enum = EnumType(
@@ -60,7 +61,12 @@ execute_sql_origin_enum = EnumType(
     {
         origin.name: origin
         for origin in QueryLog.Origin
-        if origin not in (QueryLog.Origin.DATA_STUDIO_EXPORT, QueryLog.Origin.WEBAPP)
+        if origin
+        not in (
+            QueryLog.Origin.DATA_STUDIO_EXPORT,
+            QueryLog.Origin.WEBAPP,
+            QueryLog.Origin.PUBLIC,
+        )
     },
 )
 
@@ -113,6 +119,47 @@ def resolve_saved_query_permissions(saved_query: SavedQuery, info, **kwargs):
     return saved_query
 
 
+def _reached_through_permalink(request: HttpRequest, saved_query: SavedQuery) -> bool:
+    """Whether the caller sees this query only because it is public.
+
+    Such a caller gets what the permalink page shows (name, description, result) and
+    nothing that would let them read the SQL or tell who and where it comes from.
+    Memoized on the instance, as several fields of one query ask.
+    """
+    if not saved_query.is_public:
+        return False
+    if not request.user.is_authenticated:
+        return True
+    if not hasattr(saved_query, "_reached_through_permalink"):
+        saved_query._reached_through_permalink = (
+            not SavedQuery.objects.filter_for_user(request.user)
+            .filter(pk=saved_query.pk)
+            .exists()
+        )
+    return saved_query._reached_through_permalink
+
+
+@saved_query_object.field("content")
+def resolve_saved_query_content(saved_query: SavedQuery, info, **kwargs):
+    if _reached_through_permalink(info.context["request"], saved_query):
+        return None
+    return saved_query.content
+
+
+@saved_query_object.field("createdBy")
+def resolve_saved_query_created_by(saved_query: SavedQuery, info, **kwargs):
+    if _reached_through_permalink(info.context["request"], saved_query):
+        return None
+    return saved_query.created_by
+
+
+@saved_query_object.field("workspace")
+def resolve_saved_query_workspace(saved_query: SavedQuery, info, **kwargs):
+    if _reached_through_permalink(info.context["request"], saved_query):
+        return None
+    return saved_query.workspace
+
+
 @saved_query_permissions.field("update")
 def resolve_saved_query_permissions_update(saved_query: SavedQuery, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -140,6 +187,16 @@ def resolve_saved_query_permissions_update_visibility(
     request: HttpRequest = info.context["request"]
     return (
         request.user.has_perm("data_studio.update_saved_query_visibility", saved_query)
+        if request.user.is_authenticated
+        else False
+    )
+
+
+@saved_query_permissions.field("publish")
+def resolve_saved_query_permissions_publish(saved_query: SavedQuery, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("data_studio.publish_saved_query", saved_query)
         if request.user.is_authenticated
         else False
     )
@@ -184,10 +241,10 @@ def resolve_workspace_permissions_create_saved_query(
     )
 
 
-def _visible_saved_queries(request: HttpRequest):
-    return SavedQuery.objects.filter_for_user(request.user).select_related(
-        "created_by", "workspace", "workspace__organization"
-    )
+def _visible_saved_queries(request: HttpRequest, *, include_public: bool = False):
+    return SavedQuery.objects.filter_for_user(
+        request.user, include_public=include_public
+    ).select_related("created_by", "workspace", "workspace__organization")
 
 
 @data_studio_queries.field("savedQuery")
@@ -210,7 +267,10 @@ def resolve_saved_query(_, info, **kwargs):
 def resolve_saved_query_by_slug(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     try:
-        return _visible_saved_queries(request).get(slug=kwargs["slug"])
+        # The permalink lookup: public queries are open to anyone who has the slug.
+        return _visible_saved_queries(request, include_public=True).get(
+            slug=kwargs["slug"]
+        )
     except SavedQuery.DoesNotExist:
         return None
 
@@ -246,7 +306,9 @@ def resolve_execute_saved_query(_, info, **kwargs):
         # No workspace to match on: the slug is unique across workspaces, and
         # `filter_for_user` already confines a web app to the single workspace
         # its token was issued for.
-        saved_query = _visible_saved_queries(request).get(slug=query_input["slug"])
+        saved_query = _visible_saved_queries(request, include_public=True).get(
+            slug=query_input["slug"]
+        )
         result = run_saved_query(
             request,
             saved_query,
@@ -282,6 +344,10 @@ def resolve_execute_saved_query(_, info, **kwargs):
         }
     except Psycopg2Error as e:
         code = "INVALID_ORDER_BY" if _is_order_by_error(e, order_by) else "QUERY_ERROR"
+        # PostgreSQL quotes the failing SQL back (`LINE 1: SELECT ...`), which is
+        # exactly what a permalink visitor must not read: they get the code alone.
+        if _reached_through_permalink(request, saved_query):
+            return {"success": False, "errors": [code]}
         return {"success": False, "errors": [code], "error_message": str(e).strip()}
 
 

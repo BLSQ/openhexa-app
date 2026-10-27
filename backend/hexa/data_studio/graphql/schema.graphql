@@ -143,13 +143,15 @@ input QueryResultOrderBy {
 }
 
 """
-Who a saved query is visible to within its workspace.
+Who a saved query is visible to.
 """
 enum SavedQueryVisibility {
   "Only the author can see, run and edit the query."
   PRIVATE
   "Every member of the workspace can see and run the query."
   WORKSPACE
+  "Every member of the workspace, plus anyone with the permalink: they can run the query and export its result without logging in, but not read its SQL."
+  PUBLIC
 }
 
 """
@@ -162,11 +164,14 @@ type SavedQuery {
   slug: String!
   name: String!
   description: String
-  content: String!
+  "The SQL. Null for a caller who only reaches the query through its public permalink."
+  content: String
   createdAt: DateTime!
   updatedAt: DateTime!
+  "Null for a caller who only reaches the query through its public permalink."
   createdBy: User
-  workspace: Workspace!
+  "Null for a caller who only reaches the query through its public permalink."
+  workspace: Workspace
   visibility: SavedQueryVisibility!
   permissions: SavedQueryPermissions!
 }
@@ -182,8 +187,10 @@ type SavedQueryPermissions {
   update: Boolean!
   "Permission to delete the saved query."
   delete: Boolean!
-  "Permission to share or unshare the saved query."
+  "Permission to share or unshare the saved query, and to make it private."
   updateVisibility: Boolean!
+  "Permission to make the saved query public, and to take a public one back to the workspace."
+  publish: Boolean!
 }
 
 """
@@ -219,10 +226,10 @@ extend type WorkspacePermissions {
 extend type Query {
   "Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace."
   savedQuery(id: ID!, workspaceSlug: String): SavedQuery
-  "Retrieves a saved query by its slug, which is unique across workspaces."
+  "Retrieves a saved query by its slug, which is unique across workspaces. Public queries are returned to anyone, anonymous included."
   savedQueryBySlug(slug: String!): SavedQuery
-  "Runs a saved query against the workspace database and returns its result, without exposing the SQL."
-  executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSQLResult! @loginRequired
+  "Runs a saved query against the workspace database and returns its result, without exposing the SQL. Open to anonymous callers for public queries."
+  executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSQLResult!
 }
 
 """
@@ -304,7 +311,7 @@ input UpdateSavedQueryInput {
   name: String
   content: String
   description: String
-  "Only the author may change this; PERMISSION_DENIED otherwise."
+  "Only the author may change this, except that the author, workspace admins and organization admins may make a query PUBLIC or take a public one back to WORKSPACE; PERMISSION_DENIED otherwise."
   visibility: SavedQueryVisibility
 }
 

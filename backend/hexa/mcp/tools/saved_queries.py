@@ -11,7 +11,8 @@ def list_saved_queries(
     """List the saved SQL queries of a workspace's Data Studio, most recently updated first.
 
     Returns each query's id, slug, name, description and visibility (PRIVATE: only its author
-    can see it, WORKSPACE: shared with every workspace member), without the SQL content. Pass
+    can see it, WORKSPACE: shared with every workspace member, PUBLIC: also runnable by anyone
+    with its permalink, without an account), without the SQL content. Pass
     query to filter by name or description. Use get_saved_query with the returned 'slug' to
     get the SQL content, or the returned 'id' when calling update_saved_query.
     """
@@ -58,7 +59,8 @@ def create_saved_query(
     content is a single read-only SQL statement against the workspace database; use
     get_db_schema and get_db_table_schema to discover tables and columns first. The query is
     PRIVATE (visible to you only) unless visibility is set to WORKSPACE, which shares it with
-    every member of the workspace. Returns the saved query's id and slug.
+    every member of the workspace, or to PUBLIC, which also lets anyone with its permalink run
+    it without an account. Returns the saved query's id and slug.
     """
     create_input: dict = {
         "workspaceSlug": workspace_slug,
@@ -88,9 +90,11 @@ def update_saved_query(
     """Update a saved SQL query in the Data Studio.
 
     Provide the saved query UUID (from list_saved_queries) and any fields to change. Only
-    provided non-empty fields are updated. Only the query's author can change its visibility;
-    other workspace editors and admins can edit the name, description and content of a
-    WORKSPACE query but not of a PRIVATE one.
+    provided non-empty fields are updated. Only the query's author can change its visibility,
+    except that workspace and organization admins can also make a WORKSPACE query PUBLIC
+    (runnable by anyone with its permalink, without an account) and take it back to WORKSPACE.
+    Other workspace editors and admins can edit the name, description and content of a
+    WORKSPACE or PUBLIC query but not of a PRIVATE one.
     """
     update_input: dict = {"id": saved_query_id}
     if name:
