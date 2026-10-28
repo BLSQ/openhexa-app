@@ -8,13 +8,13 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
-from django.db.models import Count, OuterRef, Q, Subquery, Sum
+from django.db.models import Count, OuterRef, Subquery, Sum
 from django.db.models.functions import Collate
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
-from hexa.assistant.models import Conversation, Message
+from hexa.assistant.models import AiUsage
 from hexa.core.admin import GlobalObjectsModelAdmin, country_list
 from hexa.utils.format import format_cost
 
@@ -287,18 +287,20 @@ class CustomUserAdmin(UserAdmin):
             .annotate(
                 case_insensitive_email=Collate("email", "und-x-icu"),
                 total_cost=Subquery(
-                    Conversation.all_objects.filter(user=OuterRef("pk"))
+                    AiUsage.objects.filter(user=OuterRef("pk"))
                     .values("user")
                     .annotate(t=Sum("cost"))
                     .values("t")
                 ),
-                monthly_cost=Sum(
-                    "conversation__messages__cost",
-                    filter=Q(
-                        conversation__messages__role=Message.Role.ASSISTANT,
-                        conversation__messages__created_at__gte=start_of_month,
-                        conversation__messages__created_at__lt=start_of_next_month,
-                    ),
+                monthly_cost=Subquery(
+                    AiUsage.objects.filter(
+                        user=OuterRef("pk"),
+                        created_at__gte=start_of_month,
+                        created_at__lt=start_of_next_month,
+                    )
+                    .values("user")
+                    .annotate(t=Sum("cost"))
+                    .values("t")
                 ),
             )
         )

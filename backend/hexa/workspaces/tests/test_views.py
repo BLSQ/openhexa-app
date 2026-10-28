@@ -1,3 +1,4 @@
+from unittest.mock import patch
 from urllib.parse import quote
 
 from django.core.signing import Signer
@@ -103,10 +104,13 @@ class ViewsTest(TestCase):
 
     def test_workspace_for_notebooks_credentials_200(self):
         self.client.force_login(self.USER_JULIA)
-        response = self.client.post(
-            reverse("workspaces:credentials"),
-            data={"workspace": self.WORKSPACE.slug},
-        )
+        # The AI variables depend on the instance configuration; they have
+        # their own test below.
+        with patch("hexa.workspaces.views.notebooks_ai_env", return_value={}):
+            response = self.client.post(
+                reverse("workspaces:credentials"),
+                data={"workspace": self.WORKSPACE.slug},
+            )
 
         db_credentials = get_db_server_credentials()
 
@@ -144,6 +148,22 @@ class ViewsTest(TestCase):
                 user=self.USER_JULIA
             ).notebooks_server_hash,
         )
+
+    def test_workspace_for_notebooks_credentials_ai_env(self):
+        ai_env = {"HEXA_AI_PROVIDER": "openhexa", "HEXA_AI_MODEL": "claude-sonnet-4-6"}
+        self.client.force_login(self.USER_JULIA)
+        with patch(
+            "hexa.workspaces.views.notebooks_ai_env", return_value=ai_env
+        ) as notebooks_ai_env:
+            response = self.client.post(
+                reverse("workspaces:credentials"),
+                data={"workspace": self.WORKSPACE.slug},
+            )
+
+        self.assertEqual(response.status_code, 200)
+        notebooks_ai_env.assert_called_once_with(self.WORKSPACE.organization)
+        env = response.json()["env"]
+        self.assertEqual({k: env[k] for k in ai_env}, ai_env)
 
     def test_pipeline_invalid_credentials_404(
         self,
