@@ -34,7 +34,7 @@ export default function RemoveMemberDialog({
     refetchQueries: [
       "OrganizationMembers",
       "OrganizationExternalCollaborators",
-      "Organization",
+      "OrganizationWithWorkspaces",
     ],
   });
 
@@ -42,7 +42,7 @@ export default function RemoveMemberDialog({
     refetchQueries: [
       "OrganizationMembers",
       "OrganizationExternalCollaborators",
-      "Organization",
+      "OrganizationWithWorkspaces",
     ],
   });
 

@@ -1305,6 +1305,7 @@
   "You don't have permission to link this dataset": "Vous n'avez pas l'autorisation de lier cet ensemble de données",
   "You don't have permission to run queries on this database.": "Vous n'avez pas la permission d'exécuter des requêtes sur cette base de données.",
   "You don't have permission to update this organization": "Vous n'avez pas l'autorisation de mettre à jour cette organisation",
+  "You have reached the maximum number of users for your plan.": "Vous avez atteint le nombre maximum d'utilisateurs pour votre forfait.",
   "You have reached the maximum number of workspaces for your plan.": "Vous avez atteint le nombre maximum d'espaces de travail pour votre forfait.",
   "You have to select a notebook": "Vous devez sélectionner un cahier",
   "You have to select a workspace": "Vous devez sélectionner un workspace",
