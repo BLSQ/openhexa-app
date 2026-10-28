@@ -21,7 +21,7 @@ from hexa.databases.query_text import (
     OrderByDirectionEnum,
 )
 from hexa.databases.schema import database_object
-from hexa.git.exceptions import GitError
+from hexa.git.exceptions import GitError, GitFileNotFound
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
@@ -182,6 +182,47 @@ def resolve_workspace_permissions_create_saved_query(
         if request.user.is_authenticated
         else False
     )
+
+
+@saved_query_object.field("versions")
+def resolve_saved_query_versions(
+    saved_query: SavedQuery, info, page=None, per_page=None, **kwargs
+):
+    page = page or 1
+    try:
+        return saved_query.get_versions(page=page, per_page=per_page or 20)
+    except GitError:
+        logger.exception(
+            "Could not list the versions of saved query %s", saved_query.slug
+        )
+        return {"items": [], "page": page}
+
+
+@saved_query_object.field("commitDiff")
+def resolve_saved_query_commit_diff(saved_query: SavedQuery, info, ref: str, **kwargs):
+    if not saved_query.has_history:
+        return None
+    try:
+        return saved_query.get_commit_diff(ref)
+    except GitError:
+        return None
+
+
+@saved_query_object.field("versionContent")
+def resolve_saved_query_version_content(
+    saved_query: SavedQuery, info, ref: str, **kwargs
+):
+    if not saved_query.has_history:
+        return None
+    try:
+        return saved_query.get_version_content(ref)
+    except GitFileNotFound:
+        return None
+    except GitError:
+        logger.exception(
+            "Could not read version %s of saved query %s", ref, saved_query.slug
+        )
+        return None
 
 
 def _visible_saved_queries(request: HttpRequest):

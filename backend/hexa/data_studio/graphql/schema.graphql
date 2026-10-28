@@ -169,10 +169,41 @@ type SavedQuery {
   workspace: Workspace!
   visibility: SavedQueryVisibility!
   permissions: SavedQueryPermissions!
+  "The versions of the SQL, newest first. Empty while the history is unavailable."
+  versions(page: Int, perPage: Int): SavedQueryVersionsPage!
+  "The change recorded by one version; null for an unknown ref."
+  commitDiff(ref: String!): SavedQueryCommitDiff
+  "The SQL as of one version; null for an unknown ref."
+  versionContent(ref: String!): String
 }
 
-# Saved queries record a version of their SQL on every save, but nothing here exposes
-# that history yet: the fields to read it land with the UI that browses it.
+"""
+A version of a saved query's SQL: one commit of its history.
+"""
+type SavedQueryVersion {
+  id: String!
+  message: String!
+  authorName: String!
+  authorEmail: String!
+  date: DateTime!
+}
+
+type SavedQueryVersionsPage {
+  items: [SavedQueryVersion!]!
+  page: Int!
+}
+
+"""
+A version of a saved query with the diff it introduced.
+"""
+type SavedQueryCommitDiff {
+  id: String!
+  message: String!
+  authorName: String!
+  authorEmail: String!
+  date: DateTime!
+  rawDiff: String!
+}
 
 """
 Permissions of a saved query.

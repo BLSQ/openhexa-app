@@ -62,9 +62,14 @@ extend type Webapp {
   assistantConversations: [AssistantConversation!]!
 }
 
+extend type SavedQuery {
+  assistantConversations: [AssistantConversation!]!
+}
+
 enum LinkedObjectType {
   Pipeline
   StaticWebapp
+  SavedQuery
 }
 
 """
@@ -94,6 +99,7 @@ enum AssistantToolName {
   propose_pipeline_version
   propose_webapp_version
   read_file
+  save_saved_query_version
   update_saved_query
 }
 

@@ -51,6 +51,42 @@ def _render_schema(tables: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def render_database_schema(workspace) -> str:
+    """The workspace database schema as an instructions block.
+
+    Inlined in full when it fits, otherwise reduced to table names with a pointer
+    to the schema tools; shared by every agent that writes SQL.
+    """
+    try:
+        tables = get_full_database_definition(workspace)
+    except Exception:
+        logger.exception("sql agent: failed to load database schema")
+        return (
+            "## Workspace database schema\n"
+            "The schema could not be loaded. Use the `get_db_schema` tool to "
+            "list the available tables and `get_db_table_schema` to inspect a "
+            "table's columns."
+        )
+    if not tables:
+        return (
+            "## Workspace database schema\n"
+            "The workspace database contains no tables."
+        )
+    schema = _render_schema(tables)
+    if len(schema) > _SCHEMA_MAX_CHARS:
+        names = "\n".join(f"- {table['name']}" for table in tables)
+        return (
+            "## Workspace database schema\n"
+            "The schema is too large to show in full, so only table names are "
+            "listed. Use the `get_db_table_schema` tool to inspect the columns "
+            "of the tables you need.\n" + names
+        )
+    return (
+        "## Workspace database schema\nEach line is `table(column type, ...)`.\n"
+        + schema
+    )
+
+
 class GenerateSqlAgent(BaseAgent):
     """Turns a natural-language request into a validated PostgreSQL query.
 
@@ -95,31 +131,4 @@ class GenerateSqlAgent(BaseAgent):
         return query
 
     def _extra_instructions(self) -> str:
-        try:
-            tables = get_full_database_definition(self.conversation.workspace)
-        except Exception:
-            logger.exception("generate_sql_agent: failed to load database schema")
-            return (
-                "## Workspace database schema\n"
-                "The schema could not be loaded. Use the `get_db_schema` tool to "
-                "list the available tables and `get_db_table_schema` to inspect a "
-                "table's columns."
-            )
-        if not tables:
-            return (
-                "## Workspace database schema\n"
-                "The workspace database contains no tables."
-            )
-        schema = _render_schema(tables)
-        if len(schema) > _SCHEMA_MAX_CHARS:
-            names = "\n".join(f"- {table['name']}" for table in tables)
-            return (
-                "## Workspace database schema\n"
-                "The schema is too large to show in full, so only table names are "
-                "listed. Use the `get_db_table_schema` tool to inspect the columns "
-                "of the tables you need.\n" + names
-            )
-        return (
-            "## Workspace database schema\n"
-            "Each line is `table(column type, ...)`.\n" + schema
-        )
+        return render_database_schema(self.conversation.workspace)

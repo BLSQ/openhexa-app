@@ -10,6 +10,7 @@ class InstructionSet(TextChoices):
     CREATE_WEBAPPS = "create_webapps", "Create Web Apps"
     EDIT_WEBAPP = "edit_webapp", "Edit Web App"
     GENERATE_SQL = "generate_sql", "Generate SQL"
+    EDIT_SAVED_QUERY = "edit_saved_query", "Edit Saved Query"
 
 
 PIPELINE_DOC_TOPICS = ("writing-pipelines", "sdk")
@@ -147,7 +148,24 @@ You translate the user's natural-language request into a single PostgreSQL query
   - SQL comments (`-- ...`) inside the statement are allowed and encouraged to clarify complex queries.
 - Write readable SQL: meaningful aliases, one clause per line for complex queries.
 - If the request is ambiguous, make a reasonable assumption rather than asking a question, and prefer the interpretation that uses the tables available in the schema.
+"""
 
+_EDIT_SAVED_QUERY = """
+# Your task
+You are helping the user iterate on a saved SQL query of the Data Studio, a PostgreSQL query against their workspace database.
+- The query's metadata and current SQL are provided in your context below, together with the database schema. When the schema only lists table names (large database) or when you need more detail, use the `get_db_schema` tool to list tables and `get_db_table_schema` to inspect a table's columns. The workspace slug is injected automatically — do not pass it.
+- You can inspect the schema (tables and columns) but not the data itself: reason about the query from the schema alone.
+- When the user asks for a change to the query, or to write it from scratch:
+  1. Work out the complete new SQL: a single read-only statement (`SELECT`, or `WITH ... SELECT`), without markdown fences. SQL comments (`-- ...`) are allowed and encouraged to clarify complex queries.
+  2. Call `save_saved_query_version` with the whole statement. It is validated against the database and saved as a new version of the query, which the user sees in their editor straight away. If the tool returns an error, fix the statement and call it again.
+  3. Then briefly explain what you changed and why: short and structured, the 2 or 3 most relevant points. Do not repeat the SQL in your reply, the user has it in the editor.
+- Always pass the whole statement, building on the current SQL in your context (or on the version you saved earlier in this conversation). Keep the user's style: their aliases, casing and formatting.
+- A question about the query that does not ask for a change (what it does, why it may be slow) gets a text answer only: do not save a version for it.
+- If the request is ambiguous, make a reasonable assumption rather than asking a question, and prefer the interpretation that uses the tables available in the schema.
+- Before using the tool, do not send any messages.
+"""
+
+_SQL_CHARTS = """
 # Charts and maps
 When the user asks for a chart, a graph, a breakdown, a trend, or a comparison, alias the columns to the convention documented below so Data Studio renders the result as a chart instead of a table. Return those two columns and, unless the user asked for more, nothing else: extra columns do not prevent the chart but only add noise. Aggregate with `GROUP BY`, keep filters in `WHERE`, and add an explicit `ORDER BY` since the chart draws rows in the order returned.
 When the user asks where something is, or for a map, alias the coordinates to `map_latitude` and `map_longitude` (plain numeric columns), or alias `ST_AsGeoJSON(<geometry>)` to `map_geometry` — a raw PostGIS geometry column cannot be drawn, and coordinates must stay numbers. A map does show the other columns it is given, in the popup of each feature, so keep the ones that identify a place and drop the rest.
@@ -166,7 +184,11 @@ _INSTRUCTION_SETS: dict[InstructionSet | tuple[str, str], str] = {
     + _EDIT_WEBAPP
     + _PROPOSAL_RULES
     + _WEBAPP_FILES_DOC,
-    InstructionSet.GENERATE_SQL: _BASE + _GENERATE_SQL + _SQL_WIDGETS_DOC,
+    InstructionSet.GENERATE_SQL: _BASE + _GENERATE_SQL + _SQL_CHARTS + _SQL_WIDGETS_DOC,
+    InstructionSet.EDIT_SAVED_QUERY: _BASE
+    + _EDIT_SAVED_QUERY
+    + _SQL_CHARTS
+    + _SQL_WIDGETS_DOC,
 }
 
 
