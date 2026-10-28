@@ -92,7 +92,7 @@ const WebappDetail = ({
   const isStatic = webapp.type === WebappType.Static;
   const canEdit = Boolean(webapp.permissions?.update);
 
-  const [view, setView] = useState<View>(isStatic ? "code" : "preview");
+  const [view, setView] = useState<View>("preview");
   const [isSaving, setIsSaving] = useState(false);
   const [versionRef, setVersionRef] = useState<string | null>(null);
   const [diffCommitId, setDiffCommitId] = useState<string | null>(null);
