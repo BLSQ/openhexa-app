@@ -80,7 +80,7 @@ const AddOrganizationMemberDialog = (
   const [inviteOrganizationMember] = useInviteOrganizationMemberMutation({
     refetchQueries: [
       "OrganizationMembers",
-      "Organization",
+      "OrganizationWithWorkspaces",
       "OrganizationInvitations",
     ],
   });
@@ -117,6 +117,9 @@ const AddOrganizationMemberDialog = (
         throw new Error(
           "User is already a member of this organization or invited to it",
         );
+      }
+      if (errors.includes(InviteOrganizationMemberError.UsersLimitReached)) {
+        throw new Error(t("Organization has reached its user limit"));
       }
       if (errors.length > 0) {
         throw new Error("An error occurred while inviting the member.");
