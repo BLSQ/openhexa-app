@@ -131,13 +131,14 @@ class Command(BaseCommand):
         runner.setup_test_environment()
         old_config = runner.setup_databases(aliases={DEFAULT_DB_ALIAS})
         try:
-            report = dataset.evaluate_sync(
-                suite.make_task(),
-                name=experiment_name,
-                repeat=options["repeats"],
-                max_concurrency=MAX_CONCURRENCY,
-                metadata=metadata,
-            )
+            with suite.environment():
+                report = dataset.evaluate_sync(
+                    suite.make_task(),
+                    name=experiment_name,
+                    repeat=options["repeats"],
+                    max_concurrency=MAX_CONCURRENCY,
+                    metadata=metadata,
+                )
         finally:
             self._teardown(runner, old_config)
 
@@ -318,6 +319,20 @@ class Command(BaseCommand):
             ("requests", total("requests"), ""),
             ("input tokens", total("input_tokens"), ""),
             ("output tokens", total("output_tokens"), ""),
+            # Cache reads and writes are priced unlike plain input tokens, so two
+            # runs with the same token counts can still differ in cost. Tool call
+            # counts show how a run got to its total.
+            *(
+                (name.replace("_", " "), total(name), "")
+                for name in sorted(
+                    {
+                        name
+                        for run in runs
+                        for name in run.metrics
+                        if name.startswith(("cache_", "calls_"))
+                    }
+                )
+            ),
             (
                 "cost",
                 money(sum(costs)) if costs else "unavailable",
