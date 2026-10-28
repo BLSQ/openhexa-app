@@ -38,16 +38,23 @@ export type AssistantConversation = {
 };
 
 type Props = {
-  linkedObjectId: string;
-  linkedObjectType: LinkedObjectType;
   workspaceSlug: string;
-  proposalToolName: string;
-  onProposedFiles: (
+  // The object the conversation is about. Without one, the conversation runs the
+  // given instruction set (defaulting to the general assistant).
+  linkedObjectId?: string;
+  linkedObjectType?: LinkedObjectType;
+  instructionSet?: string;
+  // The tool whose output is a proposal the editor shows for review. Agents that
+  // apply their changes directly have none and use `onToolResult` instead.
+  proposalToolName?: string;
+  onProposedFiles?: (
     files: unknown[] | null,
     toolInvocationId?: string,
     deletedPaths?: string[],
     commitMessage?: string,
   ) => void;
+  onToolResult?: (toolName: string, output: unknown, success: boolean) => void;
+  onDone?: (output: string | null) => void;
   conversations: AssistantConversation[];
   activeConversationId: string | null;
   onConversationChange: (id: string) => void;
@@ -61,9 +68,12 @@ type Props = {
 export default function EditObjectChatPanel({
   linkedObjectId,
   linkedObjectType,
+  instructionSet,
   workspaceSlug,
   proposalToolName,
   onProposedFiles,
+  onToolResult,
+  onDone,
   conversations,
   activeConversationId,
   onConversationChange,
@@ -90,8 +100,9 @@ export default function EditObjectChatPanel({
       variables: {
         input: {
           workspaceSlug,
-          linkedObjectId,
-          linkedObjectType,
+          ...(linkedObjectId
+            ? { linkedObjectId, linkedObjectType }
+            : { instructionSet }),
         },
       },
     });
@@ -111,6 +122,7 @@ export default function EditObjectChatPanel({
     workspaceSlug,
     linkedObjectId,
     linkedObjectType,
+    instructionSet,
     onConversationCreated,
   ]);
 
@@ -135,6 +147,8 @@ export default function EditObjectChatPanel({
 
   const handleToolResult = useCallback(
     (toolName: string, output: unknown, success: boolean) => {
+      onToolResult?.(toolName, output, success);
+      if (!proposalToolName || !onProposedFiles) return;
       if (toolName !== proposalToolName || !success) return;
       const files = (output as { files?: unknown[] })?.files;
       if (Array.isArray(files)) {
@@ -146,11 +160,12 @@ export default function EditObjectChatPanel({
         );
       }
     },
-    [proposalToolName, onProposedFiles],
+    [proposalToolName, onProposedFiles, onToolResult],
   );
 
   const handleMessagesChange = useCallback(
     (messages: Message[]) => {
+      if (!proposalToolName || !onProposedFiles) return;
       for (let i = messages.length - 1; i >= 0; i--) {
         const msg = messages[i];
         if (msg.role !== "assistant") continue;
@@ -268,6 +283,7 @@ export default function EditObjectChatPanel({
             onConversationNameLoaded={handleConversationNameLoaded}
             onToolResult={handleToolResult}
             onMessagesChange={handleMessagesChange}
+            onDone={onDone}
           />
         </div>
       )}

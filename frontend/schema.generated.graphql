@@ -495,6 +495,7 @@ enum AssistantToolName {
   propose_pipeline_version
   propose_webapp_version
   read_file
+  save_saved_query_version
   update_saved_query
 }
 
@@ -3000,6 +3001,7 @@ type LinkDatasetResult {
 
 enum LinkedObjectType {
   Pipeline
+  SavedQuery
   StaticWebapp
 }
 
@@ -4822,6 +4824,10 @@ A SQL query saved by a user in the Data Studio. Saved queries belong to a
 workspace; their visibility decides which of its members can reach them.
 """
 type SavedQuery {
+  assistantConversations: [AssistantConversation!]!
+
+  """The change recorded by one version; null for an unknown ref."""
+  commitDiff(ref: String!): SavedQueryCommitDiff
   content: String!
   createdAt: DateTime!
   createdBy: User
@@ -4835,8 +4841,26 @@ type SavedQuery {
   """
   slug: String!
   updatedAt: DateTime!
+
+  """The SQL as of one version; null for an unknown ref."""
+  versionContent(ref: String!): String
+
+  """
+  The versions of the SQL, newest first. Empty while the history is unavailable.
+  """
+  versions(page: Int, perPage: Int): SavedQueryVersionsPage!
   visibility: SavedQueryVisibility!
   workspace: Workspace!
+}
+
+"""A version of a saved query with the diff it introduced."""
+type SavedQueryCommitDiff {
+  authorEmail: String!
+  authorName: String!
+  date: DateTime!
+  id: String!
+  message: String!
+  rawDiff: String!
 }
 
 """Enum representing the possible orderings for saved queries."""
@@ -4865,6 +4889,20 @@ type SavedQueryPermissions {
 
   """Permission to share or unshare the saved query."""
   updateVisibility: Boolean!
+}
+
+"""A version of a saved query's SQL: one commit of its history."""
+type SavedQueryVersion {
+  authorEmail: String!
+  authorName: String!
+  date: DateTime!
+  id: String!
+  message: String!
+}
+
+type SavedQueryVersionsPage {
+  items: [SavedQueryVersion!]!
+  page: Int!
 }
 
 """Who a saved query is visible to within its workspace."""

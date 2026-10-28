@@ -1,0 +1,42 @@
+# The history of a saved query: one commit per saved version of its SQL.
+
+fragment SavedQueryVersion_version on SavedQueryVersion {
+  id
+  message
+  authorName
+  authorEmail
+  date
+}
+
+query SavedQueryVersions($slug: String!, $page: Int, $perPage: Int) {
+  savedQueryBySlug(slug: $slug) {
+    id
+    versions(page: $page, perPage: $perPage) {
+      items {
+        ...SavedQueryVersion_version
+      }
+      page
+    }
+  }
+}
+
+query SavedQueryCommitDiff($slug: String!, $ref: String!) {
+  savedQueryBySlug(slug: $slug) {
+    id
+    commitDiff(ref: $ref) {
+      id
+      message
+      authorName
+      authorEmail
+      date
+      rawDiff
+    }
+  }
+}
+
+query SavedQueryVersionContent($slug: String!, $ref: String!) {
+  savedQueryBySlug(slug: $slug) {
+    id
+    versionContent(ref: $ref)
+  }
+}

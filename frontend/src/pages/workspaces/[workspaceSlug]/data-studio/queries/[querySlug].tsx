@@ -1,9 +1,10 @@
+import Breadcrumbs from "core/components/Breadcrumbs";
 import Page from "core/components/Page";
 import { isValidUuid } from "core/helpers";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
-import DataStudioEditor from "workspaces/features/DataStudioEditor";
+import SavedQueryDetail from "workspaces/features/SavedQueryDetail";
 import {
   useWorkspaceSavedQueryPageQuery,
   WorkspaceSavedQueryPageDocument,
@@ -15,6 +16,7 @@ import {
 } from "workspaces/graphql/queries.generated";
 import { dataStudioRoutes } from "workspaces/helpers/dataStudio";
 import DataStudioLayout from "workspaces/layouts/DataStudioLayout";
+import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
   workspaceSlug: string;
@@ -23,7 +25,7 @@ type Props = {
 
 const WorkspaceSavedQueryPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
-  const { data } = useWorkspaceSavedQueryPageQuery({
+  const { data, refetch } = useWorkspaceSavedQueryPageQuery({
     variables: { workspaceSlug: props.workspaceSlug, slug: props.querySlug },
   });
 
@@ -31,19 +33,47 @@ const WorkspaceSavedQueryPage: NextPageWithLayout = (props: Props) => {
     return null;
   }
   const { workspace, savedQueryBySlug: savedQuery } = data;
+  const routes = dataStudioRoutes(workspace.slug);
 
   return (
     <Page title={savedQuery?.name || t("Data Studio")}>
-      <DataStudioLayout workspace={workspace} currentTab="editor">
+      <WorkspaceLayout
+        workspace={workspace}
+        withMarginBottom={false}
+        className="h-screen"
+        header={
+          <Breadcrumbs withHome={false} className="flex-1">
+            <Breadcrumbs.Part isFirst href={routes.base}>
+              {t("Data Studio")}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part href={routes.queries}>
+              {t("Saved queries")}
+            </Breadcrumbs.Part>
+            {savedQuery && (
+              <Breadcrumbs.Part isLast href={routes.query(savedQuery.slug)}>
+                {savedQuery.name}
+              </Breadcrumbs.Part>
+            )}
+          </Breadcrumbs>
+        }
+      >
         {savedQuery ? (
-          // key: remount the editor when switching between saved queries so it
-          // re-initialises from the newly loaded content.
-          <div className="h-full p-4">
-            <DataStudioEditor
-              key={savedQuery.id}
+          // key: remount the page body when switching between saved queries so
+          // the editor re-initialises from the newly loaded content.
+          <div key={savedQuery.id} className="h-full min-h-0">
+            <SavedQueryDetail
               workspaceSlug={workspace.slug}
               savedQuery={savedQuery}
               canCreate={workspace.permissions.createSavedQuery}
+              showAssistant={
+                workspace.organization?.aiSettings?.enabled ?? false
+              }
+              aiBudgetLimitReached={
+                workspace.organization?.aiBudgetLimitReached ?? false
+              }
+              onRefetch={() => {
+                refetch().then();
+              }}
             />
           </div>
         ) : (
@@ -59,7 +89,7 @@ const WorkspaceSavedQueryPage: NextPageWithLayout = (props: Props) => {
             </p>
           </div>
         )}
-      </DataStudioLayout>
+      </WorkspaceLayout>
     </Page>
   );
 };

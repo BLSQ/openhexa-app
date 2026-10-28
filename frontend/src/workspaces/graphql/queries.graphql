@@ -129,10 +129,24 @@ query WorkspaceSavedQueryPage($workspaceSlug: String!, $slug: String!) {
     permissions {
       createSavedQuery
     }
+    organization {
+      id
+      aiSettings {
+        enabled
+      }
+      aiBudgetLimitReached
+    }
     ...WorkspaceLayout_workspace
   }
   savedQueryBySlug(slug: $slug) {
     ...SavedQuery_savedQuery
+    createdAt
+    assistantConversations {
+      id
+      name
+      createdAt
+      updatedAt
+    }
   }
 }
 

@@ -74,6 +74,9 @@ type Props = {
   onMessagesChange?: (messages: Message[]) => void;
   // Called immediately when a tool result arrives during streaming.
   onToolResult?: (toolName: string, output: unknown, success: boolean) => void;
+  // Called when the turn ends, with the agent's validated output when it has one
+  // (e.g. the SQL of the generate-SQL agent); null for a plain text answer.
+  onDone?: (output: string | null) => void;
   // Optional per-message renderer. Rendered below each assistant message bubble.
   renderMessageAfter?: (message: Message) => ReactNode;
 };
@@ -119,6 +122,7 @@ export default function ChatPane({
   onConversationNameLoaded,
   onMessagesChange,
   onToolResult,
+  onDone,
   renderMessageAfter,
 }: Props) {
   const { t } = useTranslation();
@@ -226,6 +230,9 @@ export default function ChatPane({
   const onToolResultRef = useRef(onToolResult);
   onToolResultRef.current = onToolResult;
 
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
+
   const onConversationNameChangeRef = useRef(onConversationNameChange);
   onConversationNameChangeRef.current = onConversationNameChange;
 
@@ -292,8 +299,12 @@ export default function ChatPane({
       onToolResultRef.current?.(tool_name, tool_output, success);
     },
     done: (data) => {
-      const { name } = data as { name?: string };
+      const { name, output } = data as {
+        name?: string;
+        output?: string | null;
+      };
       if (name) notifyConversationNameLoaded(name);
+      onDoneRef.current?.(output ?? null);
       markDone();
     },
     error: (data) => {

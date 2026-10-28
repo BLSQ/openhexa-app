@@ -40,6 +40,7 @@ export function getToolLabels(t: TFunction): Record<string, string> {
     [TOOL.GetSavedQuery]: t("Reading saved query"),
     [TOOL.CreateSavedQuery]: t("Creating saved query"),
     [TOOL.UpdateSavedQuery]: t("Updating saved query"),
+    [TOOL.SaveSavedQueryVersion]: t("Saving query version"),
   };
 }
 

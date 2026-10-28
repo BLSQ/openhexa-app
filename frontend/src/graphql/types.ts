@@ -541,6 +541,7 @@ export enum AssistantToolName {
   ProposePipelineVersion = 'propose_pipeline_version',
   ProposeWebappVersion = 'propose_webapp_version',
   ReadFile = 'read_file',
+  SaveSavedQueryVersion = 'save_saved_query_version',
   UpdateSavedQuery = 'update_saved_query'
 }
 
@@ -2975,6 +2976,7 @@ export type LinkDatasetResult = {
 
 export enum LinkedObjectType {
   Pipeline = 'Pipeline',
+  SavedQuery = 'SavedQuery',
   StaticWebapp = 'StaticWebapp'
 }
 
@@ -5764,6 +5766,9 @@ export type S3ObjectPage = {
  */
 export type SavedQuery = {
   __typename?: 'SavedQuery';
+  assistantConversations: Array<AssistantConversation>;
+  /** The change recorded by one version; null for an unknown ref. */
+  commitDiff?: Maybe<SavedQueryCommitDiff>;
   content: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
   createdBy?: Maybe<User>;
@@ -5774,8 +5779,51 @@ export type SavedQuery = {
   /** Stable identifier, unique within the workspace. Generated from the name and left unchanged when the query is renamed. */
   slug: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
+  /** The SQL as of one version; null for an unknown ref. */
+  versionContent?: Maybe<Scalars['String']['output']>;
+  /** The versions of the SQL, newest first. Empty while the history is unavailable. */
+  versions: SavedQueryVersionsPage;
   visibility: SavedQueryVisibility;
   workspace: Workspace;
+};
+
+
+/**
+ * A SQL query saved by a user in the Data Studio. Saved queries belong to a
+ * workspace; their visibility decides which of its members can reach them.
+ */
+export type SavedQueryCommitDiffArgs = {
+  ref: Scalars['String']['input'];
+};
+
+
+/**
+ * A SQL query saved by a user in the Data Studio. Saved queries belong to a
+ * workspace; their visibility decides which of its members can reach them.
+ */
+export type SavedQueryVersionContentArgs = {
+  ref: Scalars['String']['input'];
+};
+
+
+/**
+ * A SQL query saved by a user in the Data Studio. Saved queries belong to a
+ * workspace; their visibility decides which of its members can reach them.
+ */
+export type SavedQueryVersionsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** A version of a saved query with the diff it introduced. */
+export type SavedQueryCommitDiff = {
+  __typename?: 'SavedQueryCommitDiff';
+  authorEmail: Scalars['String']['output'];
+  authorName: Scalars['String']['output'];
+  date: Scalars['DateTime']['output'];
+  id: Scalars['String']['output'];
+  message: Scalars['String']['output'];
+  rawDiff: Scalars['String']['output'];
 };
 
 /** Enum representing the possible orderings for saved queries. */
@@ -5804,6 +5852,22 @@ export type SavedQueryPermissions = {
   update: Scalars['Boolean']['output'];
   /** Permission to share or unshare the saved query. */
   updateVisibility: Scalars['Boolean']['output'];
+};
+
+/** A version of a saved query's SQL: one commit of its history. */
+export type SavedQueryVersion = {
+  __typename?: 'SavedQueryVersion';
+  authorEmail: Scalars['String']['output'];
+  authorName: Scalars['String']['output'];
+  date: Scalars['DateTime']['output'];
+  id: Scalars['String']['output'];
+  message: Scalars['String']['output'];
+};
+
+export type SavedQueryVersionsPage = {
+  __typename?: 'SavedQueryVersionsPage';
+  items: Array<SavedQueryVersion>;
+  page: Scalars['Int']['output'];
 };
 
 /** Who a saved query is visible to within its workspace. */

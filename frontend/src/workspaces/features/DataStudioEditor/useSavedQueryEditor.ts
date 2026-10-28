@@ -20,6 +20,9 @@ type UseSavedQueryEditorArgs = {
   // Required rather than defaulted: a caller that forgets it would silently lose
   // the navigation guard along with the Save control.
   canCreate: boolean;
+  // Called with the persisted query after every successful in-place write
+  // (content, sharing or details), for owners that keep their own copy of it.
+  onSaved?: (savedQuery: SavedQuery_SavedQueryFragment) => void;
 };
 
 // What saving means for the buffer as it stands:
@@ -55,6 +58,7 @@ export const useSavedQueryEditor = ({
   content,
   initialSavedQuery,
   canCreate,
+  onSaved,
 }: UseSavedQueryEditorArgs) => {
   const { t } = useTranslation();
   const [savedQuery, setSavedQuery] =
@@ -119,6 +123,7 @@ export const useSavedQueryEditor = ({
       if (res.ok) {
         setSavedQuery(res.savedQuery);
         setBaseline(content);
+        onSaved?.(res.savedQuery);
         toast.success(t("Query saved"));
       } else {
         toast.error(res.message);
@@ -126,7 +131,7 @@ export const useSavedQueryEditor = ({
     } catch (err: any) {
       toast.error(err.message);
     }
-  }, [savedQuery, canUpdate, saving, content, update, t]);
+  }, [savedQuery, canUpdate, saving, content, update, onSaved, t]);
 
   // Sharing is persisted on its own, without touching the SQL buffer: the content
   // baseline is deliberately left alone so unsaved edits stay unsaved.
@@ -139,6 +144,7 @@ export const useSavedQueryEditor = ({
         const res = await update({ id: savedQuery.id, visibility });
         if (res.ok) {
           setSavedQuery(res.savedQuery);
+          onSaved?.(res.savedQuery);
           toast.success(
             visibility === SavedQueryVisibility.Workspace
               ? t("Query shared with the workspace")
@@ -151,7 +157,7 @@ export const useSavedQueryEditor = ({
         toast.error(err.message);
       }
     },
-    [savedQuery, canUpdateVisibility, saving, update, t],
+    [savedQuery, canUpdateVisibility, saving, update, onSaved, t],
   );
 
   const saveAsNew = useCallback(
@@ -205,6 +211,13 @@ export const useSavedQueryEditor = ({
     () => setDialog({ open: true, mode: "edit-details" }),
     [],
   );
+
+  // Take a version persisted elsewhere (the AI assistant, a restored version) as
+  // the new baseline: the owner has already put its SQL in the buffer.
+  const adopt = useCallback((sq: SavedQuery_SavedQueryFragment) => {
+    setSavedQuery(sq);
+    setBaseline(sq.content);
+  }, []);
   const closeDialog = useCallback(
     () => setDialog((current) => ({ ...current, open: false })),
     [],
@@ -215,6 +228,7 @@ export const useSavedQueryEditor = ({
       if (dialog.mode === "edit-details") {
         // Only metadata changed; the content baseline is untouched.
         setSavedQuery(sq);
+        onSaved?.(sq);
         return;
       }
       // A new query was created (first save or save-as-new): open its page,
@@ -222,7 +236,7 @@ export const useSavedQueryEditor = ({
       // still counts as dirty against the old baseline, hence the bypass.
       navigateWithoutWarning(dataStudioRoutes(workspaceSlug).query(sq.slug));
     },
-    [dialog, navigateWithoutWarning, workspaceSlug],
+    [dialog, navigateWithoutWarning, workspaceSlug, onSaved],
   );
 
   return {
@@ -240,5 +254,6 @@ export const useSavedQueryEditor = ({
     editDetails,
     closeDialog,
     onDialogSaved,
+    adopt,
   };
 };
