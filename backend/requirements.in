@@ -93,7 +93,7 @@ pydantic-ai-slim[anthropic,google,openai]==2.55.0
 pydantic-evals==2.55.0
 genai-prices==0.1.13
 anthropic[vertex]
-logfire==4.30.0
+logfire==4.41.0
 vcrpy
 
 # OAuth
