@@ -1355,6 +1355,21 @@ class ExecuteSavedQueryWithParametersTest(SavedQueryTestMixin, GraphQLTestCase):
             self._execute(self._in_query().slug, {"labels": ["a", "b", "c"]})["rows"],
         )
 
+    def test_a_placeholder_inside_a_comment_is_refused_and_audited(self):
+        saved_query = self.create_saved_query(
+            content="SELECT id FROM demo -- WHERE label = {{ label }}",
+            parameters=[{"name": "label", "type": "STRING"}],
+        )
+        result = self._execute(
+            saved_query.slug, {"label": "x\n; SET statement_timeout = 0; --"}
+        )
+
+        self.assertEqual(["TEMPLATE_ERROR"], result["errors"])
+        self.assertIn("comment", result["errorMessage"])
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Status.REJECTED, log.status)
+        self.assertEqual(saved_query, log.saved_query)
+
     def test_a_literal_percent_still_works_alongside_a_value(self):
         saved_query = self.create_saved_query(
             content="SELECT id FROM demo WHERE label LIKE '%a%' AND id = {{ id }}",

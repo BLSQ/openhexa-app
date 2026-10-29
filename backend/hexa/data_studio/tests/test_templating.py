@@ -14,7 +14,11 @@ from hexa.data_studio.templating import (
     render_saved_query,
     validate_saved_query_template,
 )
-from hexa.databases.query_text import MultipleStatementsError, to_psycopg2
+from hexa.databases.query_text import (
+    MultipleStatementsError,
+    UnsafePlaceholderError,
+    to_psycopg2,
+)
 
 
 class FakeSavedQuery:
@@ -104,6 +108,48 @@ class RenderTest(SimpleTestCase):
         )
         with self.assertRaises(MultipleStatementsError):
             to_psycopg2(rendered)
+
+    def test_a_placeholder_inside_a_verbatim_region_is_refused(self):
+        # psycopg2 interpolates client-side: a value could close the region and
+        # add a statement, after the single-statement check already passed.
+        for label, content, value in (
+            (
+                "line comment",
+                "SELECT 1 -- d = {{ d }}",
+                "x\n; SET statement_timeout = 0; --",
+            ),
+            (
+                "block comment",
+                "SELECT 1 /* {{ d }} */",
+                "*/; SET statement_timeout = 0; /*",
+            ),
+            ("string literal", "SELECT '{{ d }}'", "'; SET statement_timeout = 0; --"),
+            ("escape string", "SELECT E'{{ d }}'", "'; SET statement_timeout = 0; --"),
+            (
+                "dollar quoted",
+                "SELECT $${{ d }}$$",
+                "$$; SET statement_timeout = 0; SELECT $$",
+            ),
+            (
+                "quoted identifier",
+                'SELECT "{{ d }}" FROM t',
+                '"; SET statement_timeout = 0; SELECT "',
+            ),
+        ):
+            with self.subTest(label):
+                rendered = render(content, [parameter("d")], {"d": value})
+                with self.assertRaises(UnsafePlaceholderError):
+                    to_psycopg2(rendered)
+
+    def test_a_placeholder_next_to_a_verbatim_region_is_fine(self):
+        rendered = render(
+            "SELECT * FROM t WHERE a = 'lit' AND b = {{ d }} -- d is bound\n"
+            'AND c = "col" AND d = {{ d }}',
+            [parameter("d")],
+            {"d": "x\n; SET statement_timeout = 0; --"},
+        )
+        prepared = to_psycopg2(rendered)
+        self.assertEqual(2, prepared.sql.count("%s"))
 
     def test_placeholder_order_matches_value_order(self):
         """Verifies that parameter values match the exact order of placeholders in the rendered SQL."""

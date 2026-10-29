@@ -1216,9 +1216,11 @@ jamais directement insérées dans le texte SQL. Gardez ces recommandations à l
     tri et la pagination via les arguments GraphQL dédiés (`orderBy`, `perPage`, `page`
     et curseurs), et n'ajoutez pas `ORDER BY`, `LIMIT` ou `OFFSET` dans votre SQL.
 
-- **Ne placez pas d'emplacement entre guillemets.**
-    Écrire `WHERE name LIKE '{{ q }}%'` traite l'emplacement comme une chaîne littérale.
-    Écrivez plutôt `WHERE name LIKE {{ q }}` et ajoutez les caractères génériques (`%`)
+- **Ne placez pas d'emplacement entre guillemets ni dans un commentaire.**
+    Un emplacement situé dans une chaîne littérale, un identifiant entre guillemets ou un
+    commentaire, comme `WHERE name LIKE '{{ q }}%'`, est refusé à l'exécution avec
+    `TEMPLATE_ERROR` : la valeur ne pourrait pas y être liée de manière sûre. Écrivez
+    plutôt `WHERE name LIKE {{ q }}` et ajoutez les caractères génériques (`%`)
     directement dans la valeur fournie par la webapp (par exemple `{ q: "dak%" }`).
 
 - **Les paramètres ne sont pas découvrables dynamiquement par les webapps.** Les webapps

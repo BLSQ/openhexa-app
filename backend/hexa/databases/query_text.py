@@ -17,6 +17,10 @@ class MultipleStatementsError(Exception):
     """Raised when more than one SQL statement is submitted for execution."""
 
 
+class UnsafePlaceholderError(Exception):
+    """Raised when a placeholder sits inside a literal, identifier or comment."""
+
+
 class OrderByDirectionEnum(enum.Enum):
     ASC = "ASC"
     DESC = "DESC"
@@ -362,16 +366,33 @@ def count_statement(prepared: PreparedQuery) -> PreparedQuery:
     )
 
 
+def _reject_verbatim_placeholders(text: str, token: str) -> None:
+    # psycopg2 interpolates values client-side, so a placeholder inside a
+    # string, dollar-quoted body, quoted identifier or comment lets a value
+    # close that region and append statements -- after ``from_text`` counted
+    # them. Refusing the placeholder is the only safe answer: quoting cannot
+    # protect text that is already inside a quoted region.
+    for token_type, value in Lexer.get_default_instance().get_tokens(text):
+        if token in value and _is_verbatim(token_type):
+            raise UnsafePlaceholderError(
+                "A parameter cannot be placed inside a string literal, a quoted"
+                " identifier or a comment; write WHERE name = {{ q }} rather"
+                " than WHERE name = '{{ q }}'."
+            )
+
+
 def to_psycopg2(rendered) -> PreparedQuery:
     """Convert a `RenderedQuery` into a `PreparedQuery` for psycopg2 execution.
 
     Replaces template placeholder tokens with psycopg2 `%s` placeholders and
     escapes literal `%` characters to `%%` for psycopg2 string formatting.
-    Validates that the rendered text contains only a single statement.
+    Validates that the rendered text contains only a single statement and that
+    no placeholder sits inside a literal, quoted identifier or comment.
     """
     prepared = PreparedQuery.from_text(rendered.sql)
     if not rendered.params:
         return prepared
+    _reject_verbatim_placeholders(prepared.sql, rendered.token)
 
     def convert(text: str) -> str:
         # Escape literal '%' characters before replacing tokens with '%s' to avoid double-escaping placeholders.

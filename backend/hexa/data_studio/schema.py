@@ -19,6 +19,7 @@ from hexa.databases.query_text import (
     MultipleStatementsError,
     OrderBy,
     OrderByDirectionEnum,
+    UnsafePlaceholderError,
 )
 from hexa.databases.schema import database_object
 from hexa.git.exceptions import GitError
@@ -278,7 +279,7 @@ def resolve_execute_saved_query(_, info, **kwargs):
             "errors": ["INVALID_PARAMETERS"],
             "error_message": str(e),
         }
-    except TemplateRenderError as e:
+    except (TemplateRenderError, UnsafePlaceholderError) as e:
         return {
             "success": False,
             "errors": ["TEMPLATE_ERROR"],

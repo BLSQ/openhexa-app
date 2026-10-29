@@ -1210,10 +1210,12 @@ guidelines in mind when designing queries:
     (`orderBy`, `perPage`, `page`, and cursors), and omit `ORDER BY`, `LIMIT`, and `OFFSET`
     from the saved SQL query.
 
-- **Do not place placeholders inside quotes.**
-    Writing `WHERE name LIKE '{{ q }}%'` treats the placeholder as literal text. Instead,
-    write `WHERE name LIKE {{ q }}` and add any wildcards directly in the parameter value
-    passed by the web app (for example, `{ q: "dak%" }`).
+- **Do not place placeholders inside quotes or comments.**
+    A placeholder inside a string literal, a quoted identifier or a comment, such as
+    `WHERE name LIKE '{{ q }}%'`, is refused at execution time with `TEMPLATE_ERROR`: the
+    value could not be bound safely there. Instead, write `WHERE name LIKE {{ q }}` and
+    add any wildcards directly in the parameter value passed by the web app (for
+    example, `{ q: "dak%" }`).
 
 - **Parameter definitions cannot be queried dynamically by web apps.** Because web apps
     operating under `DATABASE_READ` cannot read saved query metadata, specify the expected

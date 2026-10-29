@@ -10,6 +10,7 @@ from hexa.databases.query_text import (
     MultipleStatementsError,
     OrderBy,
     PreparedQuery,
+    UnsafePlaceholderError,
     paginate_cursor,
     paginate_offset,
     to_psycopg2,
@@ -331,6 +332,7 @@ def run_saved_query(
     except (
         InvalidParametersError,
         TemplateRenderError,
+        UnsafePlaceholderError,
         MultipleStatementsError,
         PaginationError,
     ) as e:
