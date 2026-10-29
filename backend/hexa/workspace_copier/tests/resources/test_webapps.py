@@ -114,19 +114,7 @@ class WebappsCopierAcrossServersTest(SimpleTestCase):
         )
 
     def test_superset_webapp_is_skipped_with_warning(self):
-        servers = FakeServers(
-            [
-                _webapp(
-                    "dash",
-                    type_="SUPERSET",
-                    source={
-                        "__typename": "SupersetSource",
-                        "dashboardId": "42",
-                        "instance": {"name": "BI", "url": "https://bi.org"},
-                    },
-                )
-            ]
-        )
+        servers = FakeServers([_superset("dash")])
 
         result = self.run_copy(servers)
 
@@ -169,6 +157,18 @@ class WebappsCopierAcrossServersTest(SimpleTestCase):
 
         self.assertIn("Web apps created: 1", summary)
         self.assertIn("  * app", summary)
+
+
+def _superset(slug):
+    return _webapp(
+        slug,
+        type_="SUPERSET",
+        source={
+            "__typename": "SupersetSource",
+            "dashboardId": "42",
+            "instance": {"id": "inst-1", "name": "BI", "url": "https://bi.org"},
+        },
+    )
 
 
 def _static_listing(*slugs):
@@ -270,6 +270,30 @@ class WebappsCopierSameServerTest(TestCase):
             NOT_ON_THIS_SERVER_WARNING.format(slug="app"), result.webapps.warnings
         )
         self.git.migrate_repository.assert_not_called()
+
+    def test_superset_webapp_is_copied_within_the_same_organization(self):
+        target = create_workspace(
+            name="Sibling", slug="sibling", organization=self.source_ws.organization
+        )
+        servers = FakeServers([_superset("dash")])
+
+        result = self.run_copy(servers, target_slug=target.slug)
+
+        [create] = servers.calls
+        self.assertEqual(
+            create["source"],
+            {"superset": {"instanceId": "inst-1", "dashboardId": "42"}},
+        )
+        self.assertEqual(result.webapps.created, ["dash"])
+
+    def test_superset_webapp_is_skipped_across_organizations(self):
+        servers = FakeServers([_superset("dash")])
+
+        result = self.run_copy(servers)
+
+        self.assertEqual(servers.calls, [])
+        self.assertEqual(result.webapps.skipped, ["dash"])
+        self.assertTrue(any("same organization" in w for w in result.webapps.warnings))
 
     def test_failed_migration_fails_one_webapp_and_the_next_is_copied(self):
         self._static("broken")

@@ -11,7 +11,9 @@ git history could only be replayed through the API, which loses authors and
 dates and cannot carry large files, so static web apps are skipped there.
 
 Iframe web apps carry no history and are recreated from their URL over GraphQL.
-Superset web apps are skipped with a warning.
+A Superset web app points at a Superset instance that belongs to an organization,
+so it is only copied in a same-server copy within the same organization, where
+that instance is available to the target; otherwise it is skipped with a warning.
 
 Web apps are listed and created through raw ``gql()``: the pinned SDK has no web
 app operations.
@@ -26,7 +28,6 @@ from openhexa.graphql.graphql_client.client import Client
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.webapps.models import (
     GitWebapp,
-    Webapp,
     create_webapp_slug,
     create_webapp_subdomain,
 )
@@ -71,7 +72,7 @@ query ListWorkspaceWebapps($slug: String!, $page: Int!, $perPage: Int!) {
             source {
                 __typename
                 ... on IframeSource { url }
-                ... on SupersetSource { dashboardId instance { name url } }
+                ... on SupersetSource { dashboardId instance { id name url } }
             }
         }
     }
@@ -93,7 +94,8 @@ class WebappsCopier(ResourceCopier):
     label = "Web apps"
     help_text = (
         'Static web apps are copied with their full history only with "Both '
-        'workspaces are on this server". Superset web apps are skipped.'
+        'workspaces are on this server". Superset web apps only within the same '
+        "organization on this server."
     )
 
     def copy(
@@ -122,7 +124,9 @@ class WebappsCopier(ResourceCopier):
                 wa_result.skipped.append(src_slug)
                 reporter.info(f"   skipped web app '{src_slug}' (already exists)")
                 continue
-            if webapp["type"] == "SUPERSET":
+            if webapp["type"] == "SUPERSET" and not _same_organization(
+                source_ws, target_ws
+            ):
                 wa_result.skipped.append(src_slug)
                 wa_result.warnings.append(_superset_warning(webapp))
                 reporter.warning(f"   skipped Superset web app '{src_slug}'")
@@ -151,10 +155,7 @@ class WebappsCopier(ResourceCopier):
                     ).slug
                 else:
                     target_slug = _create_on_target(
-                        target.client,
-                        target.slug,
-                        webapp,
-                        {"iframe": {"url": webapp["source"]["url"]}},
+                        target.client, target.slug, webapp, _source_input(webapp)
                     )
             except (ForgejoAPIError, requests.RequestException) as exc:
                 wa_result.failed.append(src_slug)
@@ -185,15 +186,20 @@ class WebappsCopier(ResourceCopier):
 # ---------------------------------------------------------------------------
 
 
-def _new_webapp_row(model: type[Webapp], webapp: Webapp, target_ws: Workspace):
-    """Build an unsaved copy of ``webapp`` in ``target_ws``.
+def _copy_static(webapp: GitWebapp, target_ws: Workspace) -> GitWebapp:
+    """Copy a static web app's row and repository, keeping its published version.
 
-    The ORM is used directly rather than ``create_if_has_perm``: the copier is
-    only reachable by superusers (admin) and operators (CLI), and on the same
-    server the original author still exists, so the copy keeps it.
+    The row is written with the ORM rather than ``create_if_has_perm``: pre-flight
+    already checked that the token can edit the target, and on the same server
+    the original author still exists, so the copy keeps it.
+
+    The repository is created first: a failed clone leaves nothing behind
+    (Forgejo deletes it), while a row without its repository would be broken.
+    If the row then cannot be saved, the repository is deleted: re-runs skip
+    web apps by name, but the leftover repository would block the next copy.
     """
     slug = create_webapp_slug(webapp.name, target_ws)
-    return model(
+    copy = GitWebapp(
         workspace=target_ws,
         type=webapp.type,
         name=webapp.name,
@@ -205,20 +211,9 @@ def _new_webapp_row(model: type[Webapp], webapp: Webapp, target_ws: Workspace):
         is_public=webapp.is_public,
         allowed_operations=webapp.allowed_operations,
         created_by=webapp.created_by,
+        repository=f"{target_ws.slug}-webapp-{slug}",
+        published_commit=webapp.published_commit,
     )
-
-
-def _copy_static(webapp: GitWebapp, target_ws: Workspace) -> GitWebapp:
-    """Copy a static web app's row and repository, keeping its published version.
-
-    The repository is created first: a failed clone leaves nothing behind
-    (Forgejo deletes it), while a row without its repository would be broken.
-    If the row then cannot be saved, the repository is deleted: re-runs skip
-    web apps by name, but the leftover repository would block the next copy.
-    """
-    copy = _new_webapp_row(GitWebapp, webapp, target_ws)
-    copy.repository = f"{target_ws.slug}-webapp-{copy.slug}"
-    copy.published_commit = webapp.published_commit
     copy.copy_repo_from(webapp)
     try:
         copy.save()
@@ -261,12 +256,34 @@ def _list_webapps(client: Client, slug: str) -> list[dict[str, Any]]:
     return webapps
 
 
+def _same_organization(source_ws: Workspace | None, target_ws: Workspace | None):
+    return (
+        source_ws is not None
+        and target_ws is not None
+        and source_ws.organization_id == target_ws.organization_id
+    )
+
+
+def _source_input(webapp: dict[str, Any]) -> dict[str, Any]:
+    source = webapp["source"]
+    if webapp["type"] == "SUPERSET":
+        return {
+            "superset": {
+                "instanceId": source["instance"]["id"],
+                "dashboardId": source["dashboardId"],
+            }
+        }
+    return {"iframe": {"url": source["url"]}}
+
+
 def _superset_warning(webapp: dict[str, Any]) -> str:
     source = webapp["source"]
     instance = source.get("instance") or {}
     return (
         f"Superset web app '{webapp['slug']}' was not copied: Superset instances "
-        "are configured per server. Recreate it manually on the target (instance "
+        "belong to an organization, so it is only copied when both workspaces are "
+        "on this server and in the same organization. Recreate it manually on the "
+        "target (instance "
         f"'{instance.get('name')}' at {instance.get('url')}, dashboard "
         f"{source.get('dashboardId')})."
     )
