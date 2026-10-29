@@ -1355,6 +1355,16 @@ class ExecuteSavedQueryWithParametersTest(SavedQueryTestMixin, GraphQLTestCase):
             self._execute(self._in_query().slug, {"labels": ["a", "b", "c"]})["rows"],
         )
 
+    def test_a_failing_expression_is_reported_and_audited(self):
+        saved_query = self.create_saved_query(
+            content="SELECT id FROM demo WHERE id = {{ id + 1 }}",
+            parameters=[{"name": "id", "type": "STRING"}],
+        )
+        result = self._execute(saved_query.slug, {"id": "x"})
+
+        self.assertEqual(["TEMPLATE_ERROR"], result["errors"])
+        self.assertEqual(QueryLog.Status.REJECTED, QueryLog.objects.get().status)
+
     def test_a_placeholder_inside_a_comment_is_refused_and_audited(self):
         saved_query = self.create_saved_query(
             content="SELECT id FROM demo -- WHERE label = {{ label }}",

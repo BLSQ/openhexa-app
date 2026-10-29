@@ -205,6 +205,22 @@ class RenderFailureTest(SimpleTestCase):
                 with self.assertRaises(TemplateRenderError):
                     render(content, [parameter("x")], {"x": "hi"})
 
+    def test_a_python_error_in_an_expression_surfaces_as_a_render_error(self):
+        # A raw TypeError would reach the client as a GraphQL error and skip the audit log.
+        for content, parameters, values in (
+            ("SELECT {{ d + 1 }}", [parameter("d")], {"d": "x"}),
+            ("SELECT {{ d | length }}", [parameter("d", "INTEGER")], {"d": 3}),
+            ("SELECT {{ 1 / d }}", [parameter("d", "INTEGER")], {"d": 0}),
+            (
+                "{% for i in d %}{{ i }}{% endfor %}",
+                [parameter("d", "INTEGER")],
+                {"d": 3},
+            ),
+        ):
+            with self.subTest(content=content):
+                with self.assertRaises(TemplateRenderError):
+                    render(content, parameters, values)
+
     def test_a_construct_that_captures_output_is_refused(self):
         """Constructs that capture output without emitting placeholders raise a render error."""
         with self.assertRaises(TemplateRenderError):

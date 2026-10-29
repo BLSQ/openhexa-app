@@ -317,7 +317,11 @@ def render_saved_query(saved_query, values: Any = None) -> RenderedQuery:
     environment = build_environment(finalize=finalize)
     try:
         sql = environment.from_string(saved_query.content).render(bound)
-    except TemplateError as e:
+    except Exception as e:
+        # Expressions run on caller-supplied values, so a template can raise
+        # anything (a TypeError from {{ d + 1 }}, a ZeroDivisionError...), not
+        # only Jinja's TemplateError. Every failure is reported and audited
+        # the same way instead of surfacing as a raw Python error.
         raise TemplateRenderError(str(e)) from e
 
     if sql.count(token) != len(params):
