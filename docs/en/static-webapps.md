@@ -1168,7 +1168,11 @@ WHERE district = ANY({{ districts }})
 
 Parameters are defined using the `parameters` argument on the `createSavedQuery`
 and `updateSavedQuery` GraphQL mutations, or through the `create_saved_query`
-and `update_saved_query` MCP tools.
+and `update_saved_query` MCP tools. A query is treated as a template only once it
+declares at least one parameter: every placeholder must then match a declared
+parameter, or saving fails with `INVALID_TEMPLATE`. A query without parameters is
+sent to PostgreSQL exactly as written, so braces in plain SQL (such as a nested
+array literal `'{{1,2},{3,4}}'`) need no escaping.
 
 In your web app, pass parameter values by name alongside any sorting and pagination
 options:

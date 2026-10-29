@@ -210,10 +210,25 @@ class CreateSavedQueryTest(SavedQueryTestCase):
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
             name="Filtered",
-            content="SELECT * FROM t LIMIT {{ limit }}",
+            content="SELECT * FROM t WHERE n = {{ n }} LIMIT {{ limit }}",
+            parameters=[{"name": "n", "type": "INTEGER"}],
         )
         self.assertFalse(result["success"])
         self.assertEqual(result["errors"], ["INVALID_TEMPLATE"])
+
+    def test_create_saved_query_without_parameters_is_plain_sql(self):
+        # Without a declaration the SQL is not a template, so braces are kept as-is.
+        content = "SELECT '{{1,2},{3,4}}'::int[][]"
+        result = create_saved_query(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name="Plain",
+            content=content,
+        )
+        self.assertTrue(result["success"], result["errors"])
+        db_query = SavedQuery.objects.get(id=result["savedQuery"]["id"])
+        self.assertEqual(db_query.content, content)
+        self.assertEqual(db_query.parameters, [])
 
     def test_create_saved_query_rejects_an_invalid_declaration(self):
         result = create_saved_query(
@@ -323,7 +338,8 @@ class UpdateSavedQueryTest(SavedQueryTestCase):
         result = update_saved_query(
             user=self.USER_VIEWER,
             saved_query_id=str(self.SAVED_QUERY.id),
-            content="SELECT 1 LIMIT {{ limit }}",
+            content="SELECT 1 WHERE n = {{ n }} LIMIT {{ limit }}",
+            parameters=[{"name": "n", "type": "INTEGER"}],
         )
         self.assertFalse(result["success"])
         self.assertEqual(result["errors"], ["INVALID_TEMPLATE"])

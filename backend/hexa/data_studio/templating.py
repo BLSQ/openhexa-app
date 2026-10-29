@@ -171,11 +171,16 @@ def normalize_parameters(parameters: Any) -> list[dict]:
 def validate_saved_query_template(content: str, parameters: Any) -> list[dict]:
     """Validate template syntax and parameter declarations when saving a query.
 
+    A query is a template only once it declares parameters; without any, its SQL is
+    plain text that is never parsed, so braces in it (a nested array literal such as
+    ``'{{1,2},{3,4}}'``) need no escaping. This mirrors ``render_saved_query``.
     Ensures the template syntax is valid, disallows unsupported tags ({% include %},
     {% import %}), and confirms all variables used in the SQL are declared.
     Returns the normalized parameter specifications.
     """
     normalized = normalize_parameters(parameters)
+    if not normalized:
+        return normalized
     ast = _parse(content)
 
     if next(iter(meta.find_referenced_templates(ast)), None) is not None:

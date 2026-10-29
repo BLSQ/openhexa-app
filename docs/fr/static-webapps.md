@@ -1173,7 +1173,12 @@ WHERE district = ANY({{ districts }})
 
 Les paramètres se configurent via l'argument `parameters` des mutations GraphQL
 `createSavedQuery` et `updateSavedQuery`, ou via les outils MCP `create_saved_query`
-et `update_saved_query`.
+et `update_saved_query`. Une requête n'est traitée comme un modèle qu'à partir du
+moment où elle déclare au moins un paramètre : chaque emplacement doit alors
+correspondre à un paramètre déclaré, sinon l'enregistrement échoue avec
+`INVALID_TEMPLATE`. Une requête sans paramètre est envoyée à PostgreSQL telle quelle,
+si bien que les accolades d'un SQL ordinaire (par exemple un littéral de tableau
+imbriqué `'{{1,2},{3,4}}'`) n'ont pas besoin d'être échappées.
 
 Dans votre webapp, transmettez les valeurs des paramètres par nom aux côtés des options
 de tri et de pagination :

@@ -246,7 +246,7 @@ class EnvironmentTest(SimpleTestCase):
         ):
             with self.subTest(content=content):
                 with self.assertRaises(InvalidTemplateError):
-                    validate_saved_query_template(content, [])
+                    validate_saved_query_template(content, [parameter("x")])
 
     def test_collect_template_variables(self):
         self.assertEqual(
@@ -373,15 +373,28 @@ class ValidateOnSaveTest(SimpleTestCase):
         )
 
     def test_rejected_templates(self):
-        for label, content, parameters in (
-            ("undeclared variable", "SELECT {{ foo }}", []),
-            ("syntax error", "SELECT {{ foo ", []),
-            ("include", "{% include 'x' %}", []),
-            ("import", "{% import 'm' as m %}", []),
+        for label, content in (
+            ("undeclared variable", "SELECT {{ foo }}"),
+            ("syntax error", "SELECT {{ foo "),
+            ("include", "{% include 'x' %}"),
+            ("import", "{% import 'm' as m %}"),
         ):
             with self.subTest(label):
                 with self.assertRaises(InvalidTemplateError):
-                    validate_saved_query_template(content, parameters)
+                    validate_saved_query_template(content, [parameter("a")])
+
+    def test_a_query_without_parameters_is_not_parsed_as_a_template(self):
+        # Plain SQL may hold braces (nested array literals, "{#" in a string...)
+        # that Jinja cannot parse; they are only meaningful once parameters exist.
+        for content in (
+            "SELECT '{{1,2},{3,4}}'::int[][]",
+            "SELECT '{#tag'",
+            "SELECT 1 -- {% not a tag",
+            "SELECT {{ forgotten }}",
+        ):
+            with self.subTest(content=content):
+                self.assertEqual([], validate_saved_query_template(content, None))
+                self.assertEqual([], validate_saved_query_template(content, []))
 
     def test_rejected_specs(self):
         for label, parameters in (

@@ -79,9 +79,10 @@ def create_saved_query(
     each one in `parameters`. Supported types are STRING, INTEGER, FLOAT, BOOLEAN, and DATE.
     Set `multiple: true` for list values, which can be filtered with `= ANY({{ name }})`.
     Parameter values are bound safely at execution time. Sorting and pagination should be
-    handled using `executeSavedQuery` rather than in SQL. All variables in the SQL must be
-    declared in `parameters`. See the 'Query templating' section of the static web apps
-    documentation for complete rules.
+    handled using `executeSavedQuery` rather than in SQL. The SQL is only treated as a
+    template once `parameters` is non-empty, and every variable it uses must then be
+    declared; without parameters, the SQL is sent to PostgreSQL as written. See the
+    'Query templating' section of the static web apps documentation for complete rules.
     """
     create_input: dict = {
         "workspaceSlug": workspace_slug,

@@ -213,6 +213,8 @@ after template rendering, binding pagination arguments after the template values
   queries are created or updated via the API (`create_if_has_perm`, `update_if_has_perm`).
   Normalization fills in default values for optional properties (`multiple`, `required`,
   `default`, `help`), ensuring stored definitions always match GraphQL non-null field requirements.
+  The SQL is parsed as a template only when parameters are declared, matching execution:
+  plain queries may hold braces (nested array literals) that Jinja cannot parse.
 - **Template snippets:** Features like `{% include %}` and `{% import %}` are currently
   rejected during validation until a dedicated snippet loader and snippet model are introduced.
 

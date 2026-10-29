@@ -1543,9 +1543,14 @@ class SavedQueryParametersSchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         )
 
     def test_create_rejects_an_undeclared_variable(self):
-        result = self._create("SELECT {{ ghost }}", [])
+        result = self._create("SELECT {{ ghost }}", [{"name": "a", "type": "INTEGER"}])
         self.assertEqual(["INVALID_TEMPLATE"], result["errors"])
         self.assertFalse(result["success"])
+
+    def test_create_without_parameters_is_plain_sql(self):
+        result = self._create("SELECT '{{1,2},{3,4}}'::int[][]", [])
+        self.assertTrue(result["success"], result["errors"])
+        self.assertEqual([], result["savedQuery"]["parameters"])
 
     def test_create_rejects_an_invalid_spec(self):
         result = self._create("SELECT 1", [{"name": "1bad", "type": "INTEGER"}])

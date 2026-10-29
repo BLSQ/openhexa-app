@@ -53,7 +53,16 @@ class SavedQueryParametersTest(SavedQueryTestMixin, TestCase):
 
     def test_create_rejects_an_undeclared_variable(self):
         with self.assertRaises(InvalidTemplateError):
-            self.create_saved_query(content="SELECT {{ ghost }}")
+            self.create_saved_query(
+                content="SELECT {{ ghost }}",
+                parameters=[{"name": "a", "type": "INTEGER"}],
+            )
+
+    def test_create_without_parameters_keeps_braces_verbatim(self):
+        content = "SELECT '{{1,2},{3,4}}'::int[][]"
+        saved_query = self.create_saved_query(content=content)
+        self.assertEqual(content, saved_query.content)
+        self.assertEqual([], saved_query.parameters)
 
     def test_create_rejects_an_invalid_spec(self):
         with self.assertRaises(InvalidParametersError):
