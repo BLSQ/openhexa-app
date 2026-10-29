@@ -1612,8 +1612,10 @@ type Dataset implements MetadataObject {
   name: String!
   permissions: DatasetPermissions!
 
-  """Slug unique across the whole instance, used for permalinks."""
-  publicSlug: String!
+  """
+  Slug unique across the whole instance, used for permalinks. Only set once the dataset needs one.
+  """
+  publicSlug: String
   sharedWithOrganization: Boolean!
   slug: String!
   targetId: OpaqueID!

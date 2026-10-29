@@ -1644,8 +1644,8 @@ export type Dataset = MetadataObject & {
   links: DatasetLinkPage;
   name: Scalars['String']['output'];
   permissions: DatasetPermissions;
-  /** Slug unique across the whole instance, used for permalinks. */
-  publicSlug: Scalars['String']['output'];
+  /** Slug unique across the whole instance, used for permalinks. Only set once the dataset needs one. */
+  publicSlug?: Maybe<Scalars['String']['output']>;
   sharedWithOrganization: Scalars['Boolean']['output'];
   slug: Scalars['String']['output'];
   targetId: Scalars['OpaqueID']['output'];

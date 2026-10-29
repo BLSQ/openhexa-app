@@ -8,15 +8,16 @@ from functools import cached_property
 import numpy as np
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db import models, transaction
+from django.db import IntegrityError, models, transaction
 from django.db.models import JSONField, Prefetch, Q
 from django.utils.translation import gettext_lazy as _
 from dpq.models import BaseJob
 from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
+from hexa.core.validators import RESERVED_PUBLIC_SLUGS, validate_public_slug
 from hexa.datasets.api import get_blob
 from hexa.files import storage
 from hexa.metadata.models import MetadataMixin
@@ -35,11 +36,6 @@ class FileUploadError(Exception):
     pass
 
 
-# Kept free so they can become fixed routes next to /datasets/<public_slug> without
-# shadowing an existing permalink.
-RESERVED_PUBLIC_SLUGS = {"new", "search", "create", "edit", "settings", "api"}
-
-
 def _unique_slug(name: str, is_taken: Callable[[str], bool]) -> str:
     suffix = ""
     while True:
@@ -56,9 +52,9 @@ def create_dataset_slug(name: str, workspace):
     )
 
 
-def create_dataset_public_slug(name: str):
+def create_dataset_public_slug(slug: str):
     return _unique_slug(
-        name,
+        slug,
         lambda slug: slug in RESERVED_PUBLIC_SLUGS
         or Dataset.objects.filter(public_slug=slug).exists(),
     )
@@ -177,16 +173,46 @@ class Dataset(MetadataMixin, Base):
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     name = models.TextField(max_length=64, null=False, blank=False)
     slug = models.TextField(null=False, blank=False, max_length=255)
-    public_slug = models.TextField(unique=True, editable=False, max_length=255)
+    public_slug = models.TextField(
+        unique=True,
+        null=True,
+        editable=False,
+        max_length=255,
+        validators=[validate_public_slug],
+    )
     description = models.TextField(blank=True, null=True)
     shared_with_organization = models.BooleanField(default=False)
 
     objects = DatasetManager.from_queryset(DatasetQuerySet)()
 
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        instance = super().from_db(db, field_names, values)
+        instance._persisted_public_slug = instance.__dict__.get("public_slug")
+        return instance
+
     def save(self, *args, **kwargs):
-        if not self.public_slug:
-            self.public_slug = create_dataset_public_slug(self.name)
+        persisted = getattr(self, "_persisted_public_slug", None)
+        if persisted and self.__dict__.get("public_slug") != persisted:
+            raise ValidationError("A dataset public slug cannot be changed once set.")
         super().save(*args, **kwargs)
+        self._persisted_public_slug = self.__dict__.get("public_slug")
+
+    def ensure_public_slug(self) -> str:
+        """Public slugs are only claimed once needed, then never change. The conditional
+        update keeps concurrent callers from overwriting each other's slug.
+        """
+        while not self.public_slug:
+            try:
+                with transaction.atomic():
+                    Dataset.objects.filter(pk=self.pk, public_slug__isnull=True).update(
+                        public_slug=create_dataset_public_slug(self.slug)
+                    )
+            except IntegrityError:
+                continue
+            self.refresh_from_db(fields=["public_slug"])
+        self._persisted_public_slug = self.public_slug
+        return self.public_slug
 
     @property
     def latest_version(self):

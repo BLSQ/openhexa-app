@@ -579,6 +579,7 @@ class GraphQLProxyMiddlewareTest(TestCase):
         webapp = self._create_scoped_webapp(
             "datasets-read-app", [Webapp.OperationScope.DATASETS_READ]
         )
+        dataset.ensure_public_slug()
         session = self._create_webapp_session(webapp, self.USER)
         response = self._graphql_post(
             "datasets-read-app",

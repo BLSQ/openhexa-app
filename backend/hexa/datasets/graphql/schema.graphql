@@ -5,8 +5,8 @@ Dataset is a collection of files that are related to each other and are versione
 type Dataset implements MetadataObject{
   id: ID!
   slug: String!
-  "Slug unique across the whole instance, used for permalinks."
-  publicSlug: String!
+  "Slug unique across the whole instance, used for permalinks. Only set once the dataset needs one."
+  publicSlug: String
   name: String!
   description: String
   createdAt: DateTime!
