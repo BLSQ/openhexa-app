@@ -306,7 +306,7 @@ jwcrypto==1.5.7
     # via django-oauth-toolkit
 kubernetes==33.1.0
     # via -r requirements.in
-logfire==4.30.0
+logfire==4.41.0
     # via -r requirements.in
 logfire-api==4.25.0
     # via
