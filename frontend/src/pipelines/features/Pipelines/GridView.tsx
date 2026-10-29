@@ -41,7 +41,7 @@ const GridView = ({
   onSort,
   currentSort,
 }: GridViewProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const defaultSortBy = useMemo(
     () => pipelineSorting.convertToDataGridSort(currentSort),
@@ -78,7 +78,11 @@ const GridView = ({
           )}
         </BaseColumn>
         <BaseColumn id="source" label={t("Source")} disableSortBy={true}>
-          {(pipeline) => <Badge>{formatPipelineSource(pipeline.type, !!pipeline.sourceTemplate)}</Badge>}
+          {(pipeline) => (
+            <Badge>
+              {formatPipelineSource(pipeline.type, !!pipeline.sourceTemplate)}
+            </Badge>
+          )}
         </BaseColumn>
         <BaseColumn id="tags" label={t("Tags")} disableSortBy={true}>
           {(pipeline) => (
@@ -97,13 +101,15 @@ const GridView = ({
             />
           )}
         </BaseColumn>
-        <BaseColumn label={t("Last Run")} id="lastRunStatus" disableSortBy={true}>
+        <BaseColumn
+          label={t("Last Run")}
+          id="lastRunStatus"
+          disableSortBy={true}
+        >
           {(pipeline) => {
             if (pipeline.lastRuns.items.length > 0) {
               return (
-                <PipelineRunStatusBadge
-                  run={pipeline.lastRuns.items[0]}
-                />
+                <PipelineRunStatusBadge run={pipeline.lastRuns.items[0]} />
               );
             }
             return <p>{t("Not yet run")}</p>;
@@ -115,20 +121,27 @@ const GridView = ({
           label={t("Last Run Date")}
         />
         <BaseColumn id="schedule" label={t("Schedule")} disableSortBy={true}>
-          {(pipeline) =>
-            pipeline.schedule ? (
-              <span
-                className="font-mono text-sm"
-                title={
-                  getCronExpressionDescription(pipeline.schedule) ?? undefined
-                }
-              >
-                {pipeline.schedule}
-              </span>
-            ) : (
-              <span className="text-gray-400">&mdash;</span>
-            )
-          }
+          {(pipeline) => {
+            if (!pipeline.schedule) {
+              return <span className="text-gray-400">&mdash;</span>;
+            }
+            const description = getCronExpressionDescription(
+              pipeline.schedule,
+              i18n.language as "en" | "fr",
+            );
+            return (
+              <div className="flex max-w-56 flex-col">
+                {description && (
+                  <span className="truncate" title={`${description} (UTC)`}>
+                    {description}
+                  </span>
+                )}
+                <span className="font-mono text-sm text-gray-500">
+                  {pipeline.schedule}
+                </span>
+              </div>
+            );
+          }}
         </BaseColumn>
         <DateColumn
           id="createdAt"
