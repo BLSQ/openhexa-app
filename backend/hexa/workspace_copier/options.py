@@ -8,3 +8,7 @@ class CopyOptions:
 
     include_connection_secrets: bool = True
     """Copy secret connection field values; when False they are created empty."""
+
+    same_server: bool = False
+    """Both workspaces are on this server: also copy the database and static web
+    apps, which need its database and git server directly."""

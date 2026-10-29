@@ -68,7 +68,11 @@ class ExecuteCopyRunTest(TestCase):
 
     def test_passes_stored_inputs_to_run_copy(self, mock_run_copy):
         mock_run_copy.return_value = CopyResult()
-        run = _create_run(all_dataset_versions=True, include_connection_secrets=False)
+        run = _create_run(
+            all_dataset_versions=True,
+            include_connection_secrets=False,
+            same_server=True,
+        )
 
         execute_copy_run(str(run.id))
 
@@ -79,6 +83,7 @@ class ExecuteCopyRunTest(TestCase):
         self.assertIsNone(kwargs["target_workspace_slug"])
         self.assertTrue(kwargs["options"].all_dataset_versions)
         self.assertFalse(kwargs["options"].include_connection_secrets)
+        self.assertTrue(kwargs["options"].same_server)
 
     def test_partial_failures_mark_success_with_errors(self, mock_run_copy):
         mock_run_copy.side_effect = _copy_recording(

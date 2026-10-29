@@ -1,6 +1,6 @@
 """Connection copier: copy every workspace connection to the target.
 
-REMOTE branch — ported from ``migrate_lib/connections.py``. Secret field values
+Ported from ``migrate_lib/connections.py``. Secret field values
 come through the source API only because we authenticate as a Django superuser:
 the ``value`` resolver redacts secret fields unless the caller has
 ``workspaces.update_connection``, which a superuser short-circuits to True. If a
@@ -12,8 +12,6 @@ re-derive the slug/code server-side), createConnection honors a caller-supplied
 slug and only suffixes it on collision. The target workspace is fresh, so the
 source slug carries over intact, keeping pipeline parameters that reference a
 connection by slug valid.
-
-The LOCAL (ORM) branch is implemented in a later phase.
 """
 
 from typing import Any
@@ -61,13 +59,7 @@ class ConnectionsCopier(ResourceCopier):
         *,
         options: CopyOptions = CopyOptions(),
     ) -> None:
-        if source.is_remote and target.is_remote:
-            self._copy_remote(source, target, result, reporter, options)
-        else:
-            raise NotImplementedError(
-                "LOCAL connections copy (native ORM clone) is implemented in a "
-                "later phase"
-            )
+        self._copy_remote(source, target, result, reporter, options)
 
     def _copy_remote(
         self,

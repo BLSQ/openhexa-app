@@ -6,12 +6,11 @@ From the Django admin, a copy runs as an **async job** on a dedicated worker (se
 
 ## How it works
 
-A single `orchestrator.copy_workspace(source, target, *, resources)` owns an ordered registry of **resource copiers** and runs the selected ones in dependency order. Both sides are `Endpoint` values:
+A single `orchestrator.copy_workspace(source, target, *, resources)` owns an ordered registry of **resource copiers** and runs the selected ones in dependency order. Both sides are `Endpoint` values, reached over GraphQL through `transport.py` using a ServiceAccount Bearer token — this server included (a blank server URL means this server's own GraphQL endpoint, `INTERNAL_BASE_URL/graphql/`).
 
-- **LOCAL**: same server, read/written via the Django ORM.
-- **REMOTE**: another server, reached over GraphQL through `transport.py` using a ServiceAccount Bearer token.
+The read-vs-write asymmetry lives inside each copier (it reads from `source`, writes to `target`), so the orchestration is written once and shared by every entry point.
 
-The read-vs-write asymmetry lives inside each copier (it reads from `source`, writes to `target`), so the orchestration is written once and shared by every entry point. The medium (ORM vs GraphQL) is chosen per endpoint, per resource.
+Two resources need direct access to the server's database and git server, so they only run in a **same-server copy** (`--same-server` on the CLI, "Both workspaces are on this server" in the admin): the workspace [database](#database) and [static web apps](#static-web-apps-on-the-same-server). The operator states it explicitly rather than the copier guessing from URLs, which have several valid spellings for the same server. Pre-flight checks that the source workspace (and an existing target) are in this server's database, so a wrong flag stops the run before anything is copied.
 
 ```
 service.run_copy(...)        # builds both Endpoints, calls the orchestrator
@@ -28,11 +27,11 @@ order (see `orchestrator.WORKSPACE_COPIERS`):
 | ------------- | ------------------------- |----------------------------------------------------------------------------------------------------|
 | `workspace`   | `WorkspaceMetadataCopier` | **mandatory** — creates the target, yields its handle                                              |
 | `files`       | `FilesCopier`             | bucket objects (streamed through a temp file — see [Large files](#large-files)); the target bucket is listed first and files matching by key + size are skipped, as is anything under a `SKIPPED_DIRECTORIES` scratch dir |
-| `database`    | `DatabaseCopier`          | native Postgres copy when both endpoints are LOCAL; else skipped with manual instructions — see [Database](#database) |
+| `database`    | `DatabaseCopier`          | native Postgres copy in a same-server copy; else skipped with manual instructions — see [Database](#database) |
 | `connections` | `ConnectionsCopier`       | connections + secret fields                                                                        |
 | `pipelines`   | `PipelinesCopier`         | pipelines + versions<br>Notes: The `.ipynb` file is copied for notebook pipelines<br>Schedules are not copied to avoid them running immediately after a copy. This allows a human to validate the copied pipeline and schedule it manually.
 | `datasets`    | `DatasetsCopier`          | datasets **owned** by the workspace                                                                |
-| `webapps`     | `WebappsCopier`           | web apps<br>Notes: Static web apps are copied **only when both workspaces are on this server** — see [Static web apps on the same server](#static-web-apps-on-the-same-server): Forgejo clones the repository into the target organization itself (`POST /repos/migrate`), so every commit, branch, author and date is kept, there is no file size limit, and the commit shas are unchanged — the published version carries over as-is. The row is written with the ORM; the copy keeps the source repository's visibility, and branch protection and the git proxy collaborator are applied again. If the clone fails Forgejo removes it; if the row then cannot be saved the repository is deleted, so a re-run retries it.<br>Across servers, static web apps are skipped with a warning.<br>Iframe web apps are recreated from their URL. Superset web apps are skipped with a warning.<br>Subdomains, custom domains, favorites and the "powered by" setting are not copied, so public web app URLs change. |
+| `webapps`     | `WebappsCopier`           | web apps<br>Notes: Static web apps are copied **only in a same-server copy** — see [Static web apps on the same server](#static-web-apps-on-the-same-server): Forgejo clones the repository into the target organization itself (`POST /repos/migrate`), so every commit, branch, author and date is kept, there is no file size limit, and the commit shas are unchanged — the published version carries over as-is. The row is written with the ORM; the copy keeps the source repository's visibility, and branch protection and the git proxy collaborator are applied again. If the clone fails Forgejo removes it; if the row then cannot be saved the repository is deleted, so a re-run retries it.<br>Across servers, static web apps are skipped with a warning.<br>Iframe web apps are recreated from their URL. Superset web apps are skipped with a warning.<br>Subdomains, custom domains, favorites and the "powered by" setting are not copied, so public web app URLs change. |
 
 Template pipelines are **not** in this registry — they are server-wide, not a
 per-workspace resource, so they are copied by a separate flow (see
@@ -59,18 +58,18 @@ multi-GB transfer runs as long as it needs.
 
 ## Database
 
-When both endpoints are LOCAL (blank source and target URLs), the target database is replaced by a native copy of the source (`CREATE DATABASE ... WITH TEMPLATE`, see `hexa.databases.api.replace_empty_database_with_copy`). This is a file-level copy, much faster than a dump/restore.
+In a same-server copy, the target database is replaced by a native copy of the source (`CREATE DATABASE ... WITH TEMPLATE`, see `hexa.databases.api.replace_empty_database_with_copy`). This is a file-level copy, much faster than a dump/restore.
 
-The other resources are only copied between REMOTE endpoints for now, so a same-server copy takes two runs: the usual one (with URLs), which creates the target workspace and skips the database, then a database-only run on that server, with blank URLs:
+A run without `--same-server` skips the database and prints the command to copy it afterwards into the workspace it created:
 
 ```
-./manage.py copy_workspace \
+./manage.py copy_workspace --same-server \
 	--source-workspace-slug my-workspace \
 	--target-workspace-slug my-workspace-ab12 \
-	--resources database
+	--resources database \
+	--source-token 'service-account-token' \
+	--target-token 'service-account-token'
 ```
-
-The skipped database step of the first run prints this exact command.
 
 - **No open connections**: Postgres refuses to copy a database while anyone is connected to it. The copier checks first and fails early with the number of open connections (notebooks, pipelines, BI tools...). Close them and re-run into the same target workspace with `--target-workspace-slug`. During the copy itself, new connections to the source are refused.
 - **The target database is never overwritten** once it holds data (any table or view besides PostGIS's own): the database step is skipped instead.
@@ -101,12 +100,10 @@ Both are simple wrappers around `service.run_copy`, so we can easily maintain di
 Example usage:
 
 ```
-# Localhost to localhost
-./manage.py copy_workspace \
+# Within this server (blank URLs), database and static web apps included
+./manage.py copy_workspace --same-server \
 	--source-workspace-slug my-workspace \
-	--source-url http://app:8000/graphql/ \
 	--source-token 'source-service-account-token' \
-	--target-url http://app:8000/graphql/ \
 	--target-organization org-uuid \
 	--target-workspace-name "My Workspace (copy)" \ # optional
 	--target-token 'target-service-account-token'
@@ -123,7 +120,7 @@ Example usage:
 	--all-dataset-versions # optional; default copies only each dataset's latest version
 ```
 
-Tokens are ServiceAccount tokens (managed under Django admin → Service accounts). A remote side needs one with permission to read the source workspace / create under the target organization. `--target-workspace-name` is optional and defaults to the same name as the source workspace.
+Tokens are ServiceAccount tokens (managed under Django admin → Service accounts). Each side, this server included, needs one with permission to read the source workspace / create under the target organization. `--target-workspace-name` is optional and defaults to the same name as the source workspace.
 
 #### Re-running into an existing workspace (idempotency)
 
@@ -149,19 +146,9 @@ When `--target-workspace-slug` is set:
 
 #### Static web apps on the same server
 
-Static web apps are copied when both workspaces are on this server, which the web app copier checks itself:
+Static web apps are copied in a same-server copy (`--same-server`, or "Both workspaces are on this server" in the admin). The run copies everything else as usual over GraphQL, and static web apps in the same run, directly through the ORM and Forgejo, since both workspaces are in this server's database. Iframe web apps still go through GraphQL.
 
-- **From the admin** (or the CLI with URLs pointing at this server and tokens): a blank server URL becomes this server's own GraphQL endpoint (`INTERNAL_BASE_URL/graphql/`). The run copies everything as usual over GraphQL, and static web apps are copied in the same run, directly through the ORM and Forgejo, since both workspaces are in this server's database.
-- **From the CLI with blank URLs** (LOCAL endpoints): only the web app and database copiers support it for now, the other copiers are skipped with a warning. The target must already exist (`--target-workspace-slug`), since creating a workspace provisions its database and bucket:
-
-```
-./manage.py copy_workspace \
-	--source-workspace-slug my-workspace \
-	--target-workspace-slug my-workspace-ab12 \
-	--resources webapps
-```
-
-A server URL typed by hand only counts as this server when it matches `INTERNAL_BASE_URL/graphql/` exactly; otherwise static web apps are skipped as for another server.
+Without the option, static web apps are skipped with a warning. With it, if a workspace turns out not to be on this server (a new target created on another one), each static web app fails with a message saying so.
 
 Forgejo refuses to clone from private network addresses by default, itself included. The server's Forgejo needs the host of `GIT_SERVER_URL` in its allow-list (`forgejo` in `docker-compose.yaml`):
 

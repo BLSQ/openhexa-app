@@ -2,19 +2,20 @@ from unittest.mock import MagicMock, patch
 
 import httpx
 from django.db import IntegrityError
-from django.test import SimpleTestCase, override_settings
+from django.test import SimpleTestCase
 
 from hexa.core.test import TestCase
 from hexa.git.forgejo import ForgejoAPIError
-from hexa.superset.models import SupersetDashboard, SupersetInstance
 from hexa.user_management.models import User
-from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
+from hexa.webapps.models import GitWebapp, Webapp
 from hexa.workspace_copier.endpoints import Endpoint
+from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.progress import NullReporter
 from hexa.workspace_copier.resources.webapps import (
     MIGRATION_REFUSED_HINT,
-    MIXED_ENDPOINTS_WARNING,
     NOT_COPIED_NOTE,
+    NOT_ON_THIS_SERVER_WARNING,
+    STATIC_ACROSS_SERVERS_WARNING,
     WebappsCopier,
 )
 from hexa.workspace_copier.results import CopyResult, format_summary
@@ -74,11 +75,11 @@ class FakeServers:
         raise AssertionError(f"unexpected operation {operation_name}")
 
 
-class WebappsCopierRemoteTest(SimpleTestCase):
+class WebappsCopierAcrossServersTest(SimpleTestCase):
     def run_copy(self, servers):
         result = CopyResult()
-        source = Endpoint.remote(servers.source_client, "src")
-        target = Endpoint.remote(servers.target_client, "tgt")
+        source = Endpoint(servers.source_client, "src")
+        target = Endpoint(servers.target_client, "tgt")
         with patch("hexa.workspace_copier.resources.webapps.gql", servers):
             WebappsCopier().copy(source, target, result, NullReporter())
         return result
@@ -108,7 +109,9 @@ class WebappsCopierRemoteTest(SimpleTestCase):
 
         self.assertEqual(servers.calls, [])
         self.assertEqual(result.webapps.skipped, ["app"])
-        self.assertTrue(any("same server" in w for w in result.webapps.warnings))
+        self.assertIn(
+            STATIC_ACROSS_SERVERS_WARNING.format(slug="app"), result.webapps.warnings
+        )
 
     def test_superset_webapp_is_skipped_with_warning(self):
         servers = FakeServers(
@@ -168,69 +171,59 @@ class WebappsCopierRemoteTest(SimpleTestCase):
         self.assertIn("  * app", summary)
 
 
-class WebappsCopierMixedEndpointsTest(SimpleTestCase):
-    def test_nothing_is_copied_when_only_one_side_is_local(self):
-        result = CopyResult()
-
-        WebappsCopier().copy(
-            Endpoint.local("src"),
-            Endpoint.remote(MagicMock(), "tgt"),
-            result,
-            NullReporter(),
-        )
-
-        self.assertEqual(result.webapps.created, [])
-        self.assertEqual(result.webapps.warnings, [MIXED_ENDPOINTS_WARNING])
+def _static_listing(*slugs):
+    return [
+        _webapp(slug, type_="STATIC", source={"__typename": "GitSource"})
+        for slug in slugs
+    ]
 
 
-class WebappsCopierLocalTest(TestCase):
+class WebappsCopierSameServerTest(TestCase):
     PUBLISHED_SHA = "aabbccdd1234567890abcdef1234567890abcdef"
 
     def setUp(self):
         patcher = patch("hexa.git.mixins.get_forgejo_client")
         self.git = MagicMock()
-        self.git.get_commits.return_value = [{"id": self.PUBLISHED_SHA}]
         self.git.get_repository.return_value = {"private": True}
         patcher.start().return_value = self.git
         self.addCleanup(patcher.stop)
 
         self.author = User.objects.create_user("author@bluesquarehub.com", "pw")
-        self.source_ws = create_workspace(
-            name="Source", slug="source", db_name="source_db"
-        )
-        self.target_ws = create_workspace(
-            name="Target", slug="target", db_name="target_db"
-        )
+        self.source_ws = create_workspace(name="Source", slug="source", db_name="src")
+        self.target_ws = create_workspace(name="Target", slug="target", db_name="tgt")
 
-    def run_copy(self):
+    def run_copy(self, servers, target_slug="target"):
         result = CopyResult()
-        WebappsCopier().copy(
-            Endpoint.local("source", workspace=self.source_ws),
-            Endpoint.local("target", workspace=self.target_ws),
-            result,
-            NullReporter(),
-        )
+        with patch("hexa.workspace_copier.resources.webapps.gql", servers):
+            WebappsCopier().copy(
+                Endpoint(servers.source_client, "source"),
+                Endpoint(servers.target_client, target_slug),
+                result,
+                NullReporter(),
+                options=CopyOptions(same_server=True),
+            )
         return result
 
-    def _static(self, name, workspace=None):
+    def _static(self, slug):
         return GitWebapp.objects.create(
-            workspace=workspace or self.source_ws,
+            workspace=self.source_ws,
             type=Webapp.WebappType.STATIC,
-            name=name,
-            slug=name.lower(),
-            subdomain=f"{(workspace or self.source_ws).slug}-{name.lower()}",
+            name=slug.title(),
+            slug=slug,
+            subdomain=f"source-{slug}",
             description="desc",
             is_public=True,
             allowed_operations=["FILES_READ"],
             created_by=self.author,
-            repository=f"{(workspace or self.source_ws).slug}-webapp-{name.lower()}",
+            repository=f"source-webapp-{slug}",
             published_commit=self.PUBLISHED_SHA,
         )
 
     def test_static_webapp_is_copied_with_its_repository(self):
-        source = self._static("App")
+        source = self._static("app")
+        servers = FakeServers(_static_listing("app"))
 
-        result = self.run_copy()
+        result = self.run_copy(servers)
 
         copy = GitWebapp.objects.get(workspace=self.target_ws)
         self.assertEqual(result.webapps.created, [copy.slug])
@@ -253,77 +246,40 @@ class WebappsCopierLocalTest(TestCase):
         self.git.protect_branch.assert_called_once_with(
             self.target_ws.organization.slug, copy.repository
         )
+        self.assertEqual(servers.calls, [])
 
-    def test_iframe_webapp_is_copied_without_git(self):
-        Webapp.objects.create(
-            workspace=self.source_ws,
-            type=Webapp.WebappType.IFRAME,
-            name="Embed",
-            slug="embed",
-            subdomain="source-embed",
-            url="https://embed.org",
-            created_by=self.author,
-        )
+    def test_iframe_webapp_still_goes_through_graphql(self):
+        servers = FakeServers([_webapp("embed")])
 
-        result = self.run_copy()
+        result = self.run_copy(servers)
 
-        copy = Webapp.objects.get(workspace=self.target_ws)
-        self.assertEqual(result.webapps.created, [copy.slug])
-        self.assertEqual(copy.url, "https://embed.org")
-        self.assertEqual(copy.type, Webapp.WebappType.IFRAME)
+        [create] = servers.calls
+        self.assertEqual(create["source"], {"iframe": {"url": "https://embed.org"}})
+        self.assertEqual(result.webapps.created, ["embed"])
         self.git.migrate_repository.assert_not_called()
 
-    def test_superset_webapp_is_skipped(self):
-        instance = SupersetInstance.objects.create(
-            name="BI",
-            url="https://bi.org",
-            api_username="user",
-            api_password="pw",
-            organization=self.source_ws.organization,
+    def test_workspace_not_on_this_server_fails_static_webapps(self):
+        self._static("app")
+        servers = FakeServers(_static_listing("app") + [_webapp("embed")])
+
+        result = self.run_copy(servers, target_slug="on-another-server")
+
+        self.assertEqual(result.webapps.failed, ["app"])
+        self.assertEqual(result.webapps.created, ["embed"])
+        self.assertIn(
+            NOT_ON_THIS_SERVER_WARNING.format(slug="app"), result.webapps.warnings
         )
-        SupersetWebapp.objects.create(
-            workspace=self.source_ws,
-            type=Webapp.WebappType.SUPERSET,
-            name="Dash",
-            slug="dash",
-            subdomain="source-dash",
-            created_by=self.author,
-            superset_dashboard=SupersetDashboard.objects.create(
-                external_id="42", name="Dash", superset_instance=instance
-            ),
-        )
-
-        result = self.run_copy()
-
-        self.assertEqual(result.webapps.skipped, ["dash"])
-        self.assertFalse(Webapp.objects.filter(workspace=self.target_ws).exists())
-
-    def test_existing_webapp_is_skipped_by_name(self):
-        self._static("App")
-        self._static("App", workspace=self.target_ws)
-
-        result = self.run_copy()
-
-        self.assertEqual(result.webapps.skipped, ["app"])
-        self.git.migrate_repository.assert_not_called()
-
-    def test_deleted_webapp_is_not_copied(self):
-        self._static("App").delete()
-
-        result = self.run_copy()
-
-        self.assertEqual(result.webapps.created, [])
         self.git.migrate_repository.assert_not_called()
 
     def test_failed_migration_fails_one_webapp_and_the_next_is_copied(self):
-        self._static("Broken")
-        self._static("Fine")
+        self._static("broken")
+        self._static("fine")
         self.git.migrate_repository.side_effect = [
             ForgejoAPIError("POST", "/api/v1/repos/migrate", 500, "server error"),
             {},
         ]
 
-        result = self.run_copy()
+        result = self.run_copy(FakeServers(_static_listing("broken", "fine")))
 
         self.assertEqual(result.webapps.failed, ["broken"])
         self.assertEqual(result.webapps.created, ["fine"])
@@ -338,7 +294,7 @@ class WebappsCopierLocalTest(TestCase):
         self.git.delete_repository.assert_not_called()
 
     def test_refused_migration_names_the_forgejo_setting(self):
-        self._static("App")
+        self._static("app")
         self.git.migrate_repository.side_effect = ForgejoAPIError(
             "POST",
             "http://forgejo:3000/api/v1/repos/migrate",
@@ -346,124 +302,21 @@ class WebappsCopierLocalTest(TestCase):
             '{"message":"You can not import from disallowed hosts."}',
         )
 
-        result = self.run_copy()
-
-        self.assertEqual(result.webapps.failed, ["app"])
-        self.assertTrue(
-            any(MIGRATION_REFUSED_HINT in w for w in result.webapps.warnings)
-        )
-
-    def test_repository_is_deleted_when_the_row_cannot_be_saved(self):
-        self._static("App")
-
-        with patch.object(GitWebapp, "save", side_effect=IntegrityError("dup")):
-            with self.assertRaises(IntegrityError):
-                self.run_copy()
-
-        self.git.delete_repository.assert_called_once_with(
-            self.target_ws.organization.slug, "target-webapp-app"
-        )
-
-
-THIS_SERVER = "http://app:8000"
-
-
-@override_settings(INTERNAL_BASE_URL=THIS_SERVER)
-class WebappsCopierSameServerRemoteTest(TestCase):
-    """The admin path: GraphQL endpoints whose URL is this server's own."""
-
-    PUBLISHED_SHA = "aabbccdd1234567890abcdef1234567890abcdef"
-
-    def setUp(self):
-        patcher = patch("hexa.git.mixins.get_forgejo_client")
-        self.git = MagicMock()
-        self.git.get_repository.return_value = {"private": True}
-        patcher.start().return_value = self.git
-        self.addCleanup(patcher.stop)
-
-        self.author = User.objects.create_user("author@bluesquarehub.com", "pw")
-        self.source_ws = create_workspace(name="Source", slug="source", db_name="src")
-        self.target_ws = create_workspace(name="Target", slug="target", db_name="tgt")
-        self.source_app = GitWebapp.objects.create(
-            workspace=self.source_ws,
-            type=Webapp.WebappType.STATIC,
-            name="App",
-            slug="app",
-            subdomain="source-app",
-            created_by=self.author,
-            repository="source-webapp-app",
-            published_commit=self.PUBLISHED_SHA,
-        )
-
-    def run_copy(self, servers, url=f"{THIS_SERVER}/graphql/"):
-        servers.source_client.url = url
-        servers.target_client.url = url
-        result = CopyResult()
-        with patch("hexa.workspace_copier.resources.webapps.gql", servers):
-            WebappsCopier().copy(
-                Endpoint.remote(servers.source_client, "source"),
-                Endpoint.remote(servers.target_client, "target"),
-                result,
-                NullReporter(),
-            )
-        return result
-
-    def test_static_webapp_is_copied_when_both_sides_are_this_server(self):
-        servers = FakeServers(
-            [_webapp("app", type_="STATIC", source={"__typename": "GitSource"})]
-        )
-
-        result = self.run_copy(servers)
-
-        copy = GitWebapp.objects.get(workspace=self.target_ws)
-        self.assertEqual(result.webapps.created, [copy.slug])
-        self.assertEqual(copy.published_commit, self.PUBLISHED_SHA)
-        self.assertEqual(copy.created_by, self.author)
-        self.git.migrate_repository.assert_called_once_with(
-            source_org_slug=self.source_ws.organization.slug,
-            source_repo_name="source-webapp-app",
-            target_org_slug=self.target_ws.organization.slug,
-            target_repo_name=copy.repository,
-            private=True,
-        )
-        self.assertEqual(servers.calls, [])
-
-    def test_iframe_webapp_still_goes_through_graphql(self):
-        servers = FakeServers([_webapp("embed")])
-
-        result = self.run_copy(servers)
-
-        [create] = servers.calls
-        self.assertEqual(create["source"], {"iframe": {"url": "https://embed.org"}})
-        self.assertEqual(result.webapps.created, ["embed"])
-        self.git.migrate_repository.assert_not_called()
-
-    def test_static_webapp_is_skipped_when_a_side_is_another_server(self):
-        servers = FakeServers(
-            [_webapp("app", type_="STATIC", source={"__typename": "GitSource"})]
-        )
-
-        result = self.run_copy(servers, url="https://api.openhexa.org/graphql/")
-
-        self.assertEqual(result.webapps.skipped, ["app"])
-        self.assertFalse(GitWebapp.objects.filter(workspace=self.target_ws).exists())
-        self.git.migrate_repository.assert_not_called()
-
-    def test_failed_migration_is_reported_and_the_run_has_failures(self):
-        self.git.migrate_repository.side_effect = ForgejoAPIError(
-            "POST",
-            "http://forgejo:3000/api/v1/repos/migrate",
-            422,
-            '{"message":"You can not import from disallowed hosts."}',
-        )
-        servers = FakeServers(
-            [_webapp("app", type_="STATIC", source={"__typename": "GitSource"})]
-        )
-
-        result = self.run_copy(servers)
+        result = self.run_copy(FakeServers(_static_listing("app")))
 
         self.assertEqual(result.webapps.failed, ["app"])
         self.assertTrue(result.has_failures)
         self.assertTrue(
             any(MIGRATION_REFUSED_HINT in w for w in result.webapps.warnings)
+        )
+
+    def test_repository_is_deleted_when_the_row_cannot_be_saved(self):
+        self._static("app")
+
+        with patch.object(GitWebapp, "save", side_effect=IntegrityError("dup")):
+            with self.assertRaises(IntegrityError):
+                self.run_copy(FakeServers(_static_listing("app")))
+
+        self.git.delete_repository.assert_called_once_with(
+            self.target_ws.organization.slug, "target-webapp-app"
         )

@@ -1,10 +1,9 @@
 """Workspace metadata copier (runs first; creates the target workspace).
 
-REMOTE branch — ported from ``migrate_lib/workspaces.py``: recreate the
-workspace on the target via the ``createWorkspace`` GraphQL mutation, reading
-back the server-assigned slug (the server always re-derives the slug from the
-name, so we never pass one). The LOCAL (ORM) branch is implemented in a later
-phase.
+Ported from ``migrate_lib/workspaces.py``: recreate the workspace on the target
+via the ``createWorkspace`` GraphQL mutation, reading back the server-assigned
+slug (the server always re-derives the slug from the name, so we never pass
+one).
 """
 
 from typing import Any
@@ -27,9 +26,6 @@ class WorkspaceMetadataCopier(ResourceCopier):
     name = "workspace"
     label = "Workspace metadata"
     mandatory = True
-    # Only through an existing target: creating one locally is refused up front
-    # by the service (see ``_verify_endpoints``).
-    supports_local = True
 
     def copy(
         self,
@@ -47,10 +43,7 @@ class WorkspaceMetadataCopier(ResourceCopier):
         src_ws = source.get_workspace("source")
         result.workspace_name = target.workspace_name or src_ws.name
 
-        if target.is_remote:
-            target_slug = self._create_remote(target, src_ws, result)
-        else:
-            target_slug = self._create_local(target, src_ws)
+        target_slug = self._create(target, src_ws, result)
 
         target.slug = target_slug
         result.workspace_slug = target_slug
@@ -73,8 +66,8 @@ class WorkspaceMetadataCopier(ResourceCopier):
         result.workspace_name = ws.name
         reporter.info(f"   using existing workspace {ws.name!r} (slug '{target.slug}')")
 
-    def _create_remote(self, target: Endpoint, src_ws: Any, result: CopyResult) -> str:
-        """Create the workspace on a remote target, returning the server slug.
+    def _create(self, target: Endpoint, src_ws: Any, result: CopyResult) -> str:
+        """Create the workspace on the target, returning the server slug.
 
         The server (see resolve_create_workspace + create_workspace_slug in
         openhexa-app) ignores any `slug` passed in the input — it derives the
@@ -113,9 +106,3 @@ class WorkspaceMetadataCopier(ResourceCopier):
                     + ",".join(upd.errors or [])
                 )
         return created_slug
-
-    def _create_local(self, target: Endpoint, src_ws: Any) -> str:
-        raise NotImplementedError(
-            "LOCAL workspace creation (native ORM clone) is implemented in a "
-            "later phase"
-        )

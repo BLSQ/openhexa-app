@@ -2,8 +2,7 @@
 
 Owns the ordered registry of resource copiers and runs the selected ones in
 dependency order: workspace metadata first (it creates the target and yields its
-handle), then the rest. The medium (ORM vs GraphQL) is decided per endpoint
-inside each copier, so this orchestration is written once and shared by every
+handle), then the rest. This orchestration is written once and shared by every
 flow (CLI + admin).
 """
 
@@ -27,7 +26,7 @@ from hexa.workspace_copier.results import CopyResult
 WORKSPACE_COPIERS: list[ResourceCopier] = [
     WorkspaceMetadataCopier(),  # Mandatory first step
     FilesCopier(),
-    DatabaseCopier(),  # LOCAL→LOCAL: native pg; else skip + warning
+    DatabaseCopier(),  # same server: native pg; else skip + warning
     ConnectionsCopier(),
     PipelinesCopier(),
     DatasetsCopier(),
@@ -81,14 +80,6 @@ def copy_workspace(
                 message = f"{copier.name}: dependency '{dep}' not selected — may be incomplete"
                 result.warn(message)
                 reporter.warning(message)
-        if (source.is_local or target.is_local) and not copier.supports_local:
-            message = (
-                f"{copier.name}: skipped, it does not support the local server "
-                "(blank server URL) yet"
-            )
-            result.warn(message)
-            reporter.warning(message)
-            continue
         reporter.info(f"=> Copying {copier.name} ...")
         copier.copy(source, target, result, reporter, options=options)
         # Every line is timestamped, so bracketing each copier with a start and

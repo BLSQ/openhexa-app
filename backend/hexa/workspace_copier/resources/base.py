@@ -1,9 +1,8 @@
 """ResourceCopier: the one abstraction the orchestrator relies on.
 
-Each copier owns everything about one resource across both mediums. Within
-``copy`` the read path branches on ``source.mode`` and the write path on
-``target.mode`` (ORM when LOCAL, GraphQL when REMOTE), recording what it
-did/skipped/failed on the shared :class:`CopyResult`.
+Each copier owns everything about one resource: within ``copy`` it reads from
+``source`` and writes to ``target``, recording what it did/skipped/failed on the
+shared :class:`CopyResult`.
 """
 
 from abc import ABC, abstractmethod
@@ -32,9 +31,6 @@ class ResourceCopier(ABC):
 
     option_fields: tuple[str, ...] = ()
     """``CopyWorkspaceForm`` fields tuning this copier, rendered under its checkbox."""
-
-    supports_local: bool = False
-    """Whether it handles a LOCAL endpoint; if not, a run with one skips it."""
 
     @abstractmethod
     def copy(

@@ -53,6 +53,7 @@ class CopyWorkspaceViewTest(TestCase):
         self.assertEqual(run.source_token, "src-secret")
         # An unticked checkbox is absent from the POST.
         self.assertFalse(run.include_connection_secrets)
+        self.assertFalse(run.same_server)
         mock_run_copy.assert_not_called()
 
         job = WorkspaceCopyJob.objects.get()

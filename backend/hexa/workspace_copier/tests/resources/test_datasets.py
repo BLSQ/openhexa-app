@@ -32,8 +32,8 @@ def _detail(slug="my-dataset", **overrides):
 
 class DatasetsCopierRemoteTest(SimpleTestCase):
     def setUp(self):
-        self.source = Endpoint.remote(MagicMock(), "src")
-        self.target = Endpoint.remote(MagicMock(), "tgt")
+        self.source = Endpoint(MagicMock(), "src")
+        self.target = Endpoint(MagicMock(), "tgt")
         self.result = CopyResult()
 
     @patch("hexa.workspace_copier.resources.datasets._copy_versions")
@@ -133,12 +133,6 @@ class DatasetsCopierRemoteTest(SimpleTestCase):
 
         self.assertEqual(self.result.datasets.created, [("empty", [])])
         self.assertEqual(mock_versions.call_args.args[4], [])
-
-    def test_local_endpoint_not_yet_implemented(self):
-        with self.assertRaises(NotImplementedError):
-            DatasetsCopier().copy(
-                Endpoint.local("src"), self.target, self.result, NullReporter()
-            )
 
 
 class ListSourceDatasetsTest(SimpleTestCase):
@@ -268,8 +262,8 @@ class RelativeUriTest(SimpleTestCase):
 
 class CopyVersionsTest(SimpleTestCase):
     def setUp(self):
-        self.source = Endpoint.remote(MagicMock(), "src")
-        self.target = Endpoint.remote(MagicMock(), "tgt")
+        self.source = Endpoint(MagicMock(), "src")
+        self.target = Endpoint(MagicMock(), "tgt")
         self.ds_result = DatasetsResult()
 
     def _copy(self, versions):
@@ -390,8 +384,8 @@ class DatasetsCopierOptionsTest(SimpleTestCase):
         mock_versions.return_value = []
 
         DatasetsCopier().copy(
-            Endpoint.remote(MagicMock(), "src"),
-            Endpoint.remote(MagicMock(), "tgt"),
+            Endpoint(MagicMock(), "src"),
+            Endpoint(MagicMock(), "tgt"),
             CopyResult(),
             NullReporter(),
             options=CopyOptions(all_dataset_versions=True),

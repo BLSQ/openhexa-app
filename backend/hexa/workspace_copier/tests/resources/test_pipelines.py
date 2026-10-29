@@ -16,8 +16,8 @@ from hexa.workspace_copier.transport import GraphQLError
 
 class PipelinesCopierRemoteTest(SimpleTestCase):
     def setUp(self):
-        self.source = Endpoint.remote(MagicMock(), "src")
-        self.target = Endpoint.remote(MagicMock(), "tgt")
+        self.source = Endpoint(MagicMock(), "src")
+        self.target = Endpoint(MagicMock(), "tgt")
         self.result = CopyResult()
 
     @patch("hexa.workspace_copier.resources.pipelines._update_settings")
@@ -149,12 +149,6 @@ class PipelinesCopierRemoteTest(SimpleTestCase):
         self.assertEqual(self.result.pipelines.failed, ["bad-one"])
         self.assertEqual(self.result.pipelines.created, [("good-one", [])])
         self.assertTrue(any("bad-one" in w for w in self.result.pipelines.warnings))
-
-    def test_local_endpoint_not_yet_implemented(self):
-        with self.assertRaises(NotImplementedError):
-            PipelinesCopier().copy(
-                Endpoint.local("src"), self.target, self.result, NullReporter()
-            )
 
 
 class UploadVersionsTest(SimpleTestCase):

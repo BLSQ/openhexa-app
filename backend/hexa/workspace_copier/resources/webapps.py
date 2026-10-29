@@ -2,27 +2,25 @@
 
 A *static* web app is a row plus a git repository on the server's Forgejo, and
 its published version is any commit of that repository, not necessarily the
-latest. It is only copied when both workspaces are on this server — local
-endpoints (CLI with blank URLs), or remote ones pointing at this server's own
-GraphQL endpoint (the admin's blank URLs). Forgejo then clones the repository
+latest. It is only copied in a same-server copy (``CopyOptions.same_server``),
+when both workspaces are in this server's database. Forgejo then clones the repository
 into the target organization itself, which keeps every commit, branch, author
 and date, has no file size limit, and keeps the commit shas, so the published
 version carries over as-is; the row is written with the ORM. Across servers the
 git history could only be replayed through the API, which loses authors and
 dates and cannot carry large files, so static web apps are skipped there.
 
-Iframe web apps carry no history and are recreated from their URL. Superset web
-apps are skipped with a warning.
+Iframe web apps carry no history and are recreated from their URL over GraphQL.
+Superset web apps are skipped with a warning.
 
-The remote side goes through raw ``gql()``: the pinned SDK has no web app
-operations.
+Web apps are listed and created through raw ``gql()``: the pinned SDK has no web
+app operations.
 """
 
 from typing import Any
 
 import httpx
 import requests
-from django.conf import settings
 from openhexa.graphql.graphql_client.client import Client
 
 from hexa.git.forgejo import ForgejoAPIError
@@ -50,12 +48,12 @@ NOT_COPIED_NOTE = (
 
 STATIC_ACROSS_SERVERS_WARNING = (
     "static web app '{slug}' was not copied: static web apps are only copied "
-    "between workspaces of the same server (leave both server URLs blank)."
+    "when both workspaces are on this server (same-server copy)."
 )
 
-MIXED_ENDPOINTS_WARNING = (
-    "web apps were not copied: they are copied when both workspaces are on the "
-    "same server, or (iframe web apps only) when both are remote."
+NOT_ON_THIS_SERVER_WARNING = (
+    "static web app '{slug}' could not be copied: the workspaces are not both on "
+    "this server, run the copy without the same-server option."
 )
 
 MIGRATION_REFUSED_HINT = (
@@ -94,10 +92,9 @@ class WebappsCopier(ResourceCopier):
     name = "webapps"
     label = "Web apps"
     help_text = (
-        "Static web apps are copied with their full history when both workspaces "
-        "are on this server (blank URLs). Superset web apps are skipped."
+        'Static web apps are copied with their full history only with "Both '
+        'workspaces are on this server". Superset web apps are skipped.'
     )
-    supports_local = True
 
     def copy(
         self,
@@ -108,77 +105,12 @@ class WebappsCopier(ResourceCopier):
         *,
         options: CopyOptions = CopyOptions(),
     ) -> None:
-        result.webapps = WebappsResult()
-        if source.is_local and target.is_local:
-            self._copy_local(source, target, result.webapps, reporter)
-        elif source.is_remote and target.is_remote:
-            self._copy_remote(source, target, result.webapps, reporter)
-        else:
-            result.webapps.warnings.append(MIXED_ENDPOINTS_WARNING)
-            reporter.warning(f"   {MIXED_ENDPOINTS_WARNING}")
-            return
-        if result.webapps.created:
-            result.webapps.warnings.append(NOT_COPIED_NOTE)
-
-    def _copy_local(
-        self,
-        source: Endpoint,
-        target: Endpoint,
-        wa_result: WebappsResult,
-        reporter: ProgressReporter,
-    ) -> None:
-        target_ws = target.get_workspace("target")
-        existing_names = set(
-            Webapp.objects.filter(workspace=target_ws).values_list("name", flat=True)
-        )
-        webapps = Webapp.objects.filter(
-            workspace=source.get_workspace("source")
-        ).order_by("created_at")
-
-        for webapp in webapps:
-            if webapp.name in existing_names:
-                wa_result.skipped.append(webapp.slug)
-                reporter.info(f"   skipped web app '{webapp.slug}' (already exists)")
-                continue
-            if webapp.type == Webapp.WebappType.SUPERSET:
-                wa_result.skipped.append(webapp.slug)
-                wa_result.warnings.append(
-                    f"Superset web app '{webapp.slug}' was not copied: recreate it "
-                    "manually on the target."
-                )
-                reporter.warning(f"   skipped Superset web app '{webapp.slug}'")
-                continue
-
-            reporter.info(f"   copying web app '{webapp.slug}' ...")
-            try:
-                if webapp.type == Webapp.WebappType.STATIC:
-                    copy = _copy_static_local(webapp.gitwebapp, target_ws)
-                else:
-                    copy = _new_webapp_row(Webapp, webapp, target_ws)
-                    copy.save()
-            except (ForgejoAPIError, requests.RequestException) as exc:
-                wa_result.failed.append(webapp.slug)
-                wa_result.warnings.append(
-                    f"web app '{webapp.slug}' could not be copied — handle "
-                    f"manually ({_describe_git_error(exc)})."
-                )
-                reporter.warning(f"   FAILED to copy web app '{webapp.slug}' ({exc})")
-                continue
-            wa_result.created.append(copy.slug)
-            reporter.info(f"   created web app '{copy.slug}'")
-
-    def _copy_remote(
-        self,
-        source: Endpoint,
-        target: Endpoint,
-        wa_result: WebappsResult,
-        reporter: ProgressReporter,
-    ) -> None:
-        same_server = _on_this_server(source) and _on_this_server(target)
-        if same_server:
+        wa_result = result.webapps = WebappsResult()
+        source_ws = target_ws = None
+        if options.same_server:
             # Same database: the static copy below works on the rows directly.
-            source_ws = Workspace.objects.get(slug=source.slug)
-            target_ws = Workspace.objects.get(slug=target.slug)
+            source_ws = Workspace.objects.filter(slug=source.slug).first()
+            target_ws = Workspace.objects.filter(slug=target.slug).first()
         webapps = _list_webapps(source.client, source.slug)
         # Names are unique per workspace while target slugs may get a random
         # suffix, so the name is what identifies an already-copied web app.
@@ -195,18 +127,25 @@ class WebappsCopier(ResourceCopier):
                 wa_result.warnings.append(_superset_warning(webapp))
                 reporter.warning(f"   skipped Superset web app '{src_slug}'")
                 continue
-            if webapp["type"] == "STATIC" and not same_server:
+            if webapp["type"] == "STATIC" and not options.same_server:
                 wa_result.skipped.append(src_slug)
                 wa_result.warnings.append(
                     STATIC_ACROSS_SERVERS_WARNING.format(slug=src_slug)
                 )
                 reporter.warning(f"   skipped static web app '{src_slug}'")
                 continue
+            if webapp["type"] == "STATIC" and (source_ws is None or target_ws is None):
+                wa_result.failed.append(src_slug)
+                wa_result.warnings.append(
+                    NOT_ON_THIS_SERVER_WARNING.format(slug=src_slug)
+                )
+                reporter.warning(f"   FAILED to copy web app '{src_slug}'")
+                continue
 
             reporter.info(f"   copying web app '{src_slug}' ...")
             try:
                 if webapp["type"] == "STATIC":
-                    target_slug = _copy_static_local(
+                    target_slug = _copy_static(
                         GitWebapp.objects.get(workspace=source_ws, slug=src_slug),
                         target_ws,
                     ).slug
@@ -237,24 +176,13 @@ class WebappsCopier(ResourceCopier):
                 continue
             wa_result.created.append(target_slug)
             reporter.info(f"   created web app '{target_slug}'")
+        if wa_result.created:
+            wa_result.warnings.append(NOT_COPIED_NOTE)
 
 
 # ---------------------------------------------------------------------------
 # Same server
 # ---------------------------------------------------------------------------
-
-
-def _on_this_server(endpoint: Endpoint) -> bool:
-    """Whether the endpoint is this server, reached locally or over GraphQL.
-
-    The admin turns a blank server URL into this server's own GraphQL endpoint
-    (built from ``INTERNAL_BASE_URL``, as the copy worker reaches the backend
-    that way), so a remote endpoint at that URL is this server too.
-    """
-    if endpoint.is_local:
-        return True
-    this_server = f"{settings.INTERNAL_BASE_URL.rstrip('/')}/graphql"
-    return str(endpoint.client.url).rstrip("/") == this_server
 
 
 def _new_webapp_row(model: type[Webapp], webapp: Webapp, target_ws: Workspace):
@@ -280,7 +208,7 @@ def _new_webapp_row(model: type[Webapp], webapp: Webapp, target_ws: Workspace):
     )
 
 
-def _copy_static_local(webapp: GitWebapp, target_ws: Workspace) -> GitWebapp:
+def _copy_static(webapp: GitWebapp, target_ws: Workspace) -> GitWebapp:
     """Copy a static web app's row and repository, keeping its published version.
 
     The repository is created first: a failed clone leaves nothing behind
@@ -311,7 +239,7 @@ def _describe_git_error(exc: Exception) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Across servers
+# GraphQL
 # ---------------------------------------------------------------------------
 
 

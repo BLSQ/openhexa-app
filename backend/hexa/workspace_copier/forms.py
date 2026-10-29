@@ -1,7 +1,6 @@
 """Forms backing the workspace-copier admin views."""
 
 from django import forms
-from django.conf import settings
 
 from hexa.workspace_copier.orchestrator import WORKSPACE_COPIERS
 from hexa.workspace_copier.templates import DEFAULT_SOURCE_URL
@@ -27,12 +26,6 @@ def _help_texts() -> dict[str, str]:
     return {c.name: c.help_text for c in WORKSPACE_COPIERS if c.help_text}
 
 
-def _this_server_graphql_url() -> str:
-    # The worker runs the copy, and INTERNAL_BASE_URL is how workers reach the
-    # backend (pipelines and the dataset worker use it too).
-    return f"{settings.INTERNAL_BASE_URL.rstrip('/')}/graphql/"
-
-
 class ResourceSelect(forms.CheckboxSelectMultiple):
     """Checkbox list where a mandatory copier is checked and locked.
 
@@ -51,9 +44,9 @@ class ResourceSelect(forms.CheckboxSelectMultiple):
 class CopyWorkspaceForm(forms.Form):
     """Pick a source endpoint, a target endpoint, and the resources to copy.
 
-    A blank server URL defaults to this server's GraphQL endpoint: the local
-    (ORM) copy isn't implemented, so this server is reached over GraphQL like
-    any other, and a token is required on both sides. The mandatory
+    A blank server URL means this server's GraphQL endpoint (resolved by the
+    service): this server is reached over GraphQL like any other, so a token is
+    required on both sides. The mandatory
     workspace-metadata copier is always run regardless of what the operator
     selects.
     """
@@ -107,6 +100,15 @@ class CopyWorkspaceForm(forms.Form):
         help_text="Slug of the existing workspace to copy into.",
     )
 
+    same_server = forms.BooleanField(
+        required=False,
+        label="Both workspaces are on this server",
+        label_suffix="",
+        help_text="Also copies the workspace database and static web apps, which "
+        "need direct access to this server's database and git server. The run "
+        "stops before copying anything if a workspace is not on this server.",
+    )
+
     resources = forms.MultipleChoiceField(
         required=False,
         choices=_resource_choices,
@@ -152,10 +154,6 @@ class CopyWorkspaceForm(forms.Form):
 
     def clean(self):
         cleaned = super().clean()
-        for side in ("source", "target"):
-            if not cleaned.get(f"{side}_url"):
-                cleaned[f"{side}_url"] = _this_server_graphql_url()
-
         if cleaned.get("target_mode") == "existing":
             # Hidden fields may still carry values typed before switching mode.
             cleaned["target_organization"] = ""

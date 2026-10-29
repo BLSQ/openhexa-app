@@ -16,12 +16,11 @@ from hexa.workspace_copier.results import CopyResult
 
 
 class FakeCopier(ResourceCopier):
-    def __init__(self, name, *, mandatory=False, depends_on=(), supports_local=False):
+    def __init__(self, name, *, mandatory=False, depends_on=()):
         self.name = name
         self.label = name
         self.mandatory = mandatory
         self.depends_on = depends_on
-        self.supports_local = supports_local
         self.calls = []
         self.options = {}
 
@@ -38,7 +37,7 @@ class FailingCopier(FakeCopier):
 
 
 def _remote():
-    return Endpoint.remote(MagicMock(), "ws")
+    return Endpoint(MagicMock(), "ws")
 
 
 class ResolveSelectionTest(SimpleTestCase):
@@ -136,21 +135,3 @@ class CopyWorkspaceTest(SimpleTestCase):
             copy_workspace(_remote(), _remote(), NullReporter(), result=result)
         self.assertIn("ran:workspace", result.warnings)
         self.assertIsNotNone(result.started_at)
-
-    def test_copier_without_local_support_is_skipped_in_a_local_run(self):
-        fakes = [
-            FakeCopier("workspace", mandatory=True, supports_local=True),
-            FakeCopier("files"),
-            FakeCopier("webapps", supports_local=True),
-        ]
-        with patch.object(orchestrator, "WORKSPACE_COPIERS", fakes):
-            result = copy_workspace(
-                Endpoint.local("src"), Endpoint.local("tgt"), NullReporter()
-            )
-        ran = [w for w in result.warnings if w.startswith("ran:")]
-        self.assertEqual(ran, ["ran:workspace", "ran:webapps"])
-        self.assertTrue(any(w.startswith("files: skipped") for w in result.warnings))
-
-    def test_database_copier_runs_in_a_local_run(self):
-        database = next(c for c in WORKSPACE_COPIERS if c.name == "database")
-        self.assertTrue(database.supports_local)
