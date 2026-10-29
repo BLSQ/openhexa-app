@@ -59,16 +59,6 @@ class ConnectionsCopier(ResourceCopier):
         *,
         options: CopyOptions = CopyOptions(),
     ) -> None:
-        self._copy_remote(source, target, result, reporter, options)
-
-    def _copy_remote(
-        self,
-        source: Endpoint,
-        target: Endpoint,
-        result: CopyResult,
-        reporter: ProgressReporter,
-        options: CopyOptions,
-    ) -> None:
         conns_result = ConnectionsResult()
         result.connections = conns_result
         include_secrets = options.include_connection_secrets

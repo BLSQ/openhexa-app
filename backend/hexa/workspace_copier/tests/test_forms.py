@@ -72,14 +72,14 @@ class CopyWorkspaceFormTest(SimpleTestCase):
         self.assertTrue(form.is_valid(), form.errors)
         self.assertEqual(form.cleaned_data["target_workspace_slug"], "")
 
-    def test_remote_source_requires_token(self):
+    def test_source_url_requires_token(self):
         form = CopyWorkspaceForm(
             data=_base_data(source_url="https://example.org/graphql/", source_token="")
         )
         self.assertFalse(form.is_valid())
         self.assertIn("source_token", form.errors)
 
-    def test_remote_source_with_token_is_valid(self):
+    def test_source_url_with_token_is_valid(self):
         form = CopyWorkspaceForm(
             data=_base_data(source_url="https://example.org/graphql/")
         )

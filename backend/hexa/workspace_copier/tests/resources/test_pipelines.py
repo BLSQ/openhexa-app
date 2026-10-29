@@ -14,7 +14,7 @@ from hexa.workspace_copier.results import CopyResult, PipelinesResult
 from hexa.workspace_copier.transport import GraphQLError
 
 
-class PipelinesCopierRemoteTest(SimpleTestCase):
+class PipelinesCopierTest(SimpleTestCase):
     def setUp(self):
         self.source = Endpoint(MagicMock(), "src")
         self.target = Endpoint(MagicMock(), "tgt")

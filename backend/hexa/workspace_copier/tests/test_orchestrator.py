@@ -36,7 +36,7 @@ class FailingCopier(FakeCopier):
         raise RuntimeError("boom")
 
 
-def _remote():
+def _endpoint():
     return Endpoint(MagicMock(), "ws")
 
 
@@ -86,7 +86,7 @@ class CopyWorkspaceTest(SimpleTestCase):
             FakeCopier("pipelines", depends_on=("files",)),
         ]
         with patch.object(orchestrator, "WORKSPACE_COPIERS", fakes):
-            result = copy_workspace(_remote(), _remote(), NullReporter())
+            result = copy_workspace(_endpoint(), _endpoint(), NullReporter())
         ran = [w for w in result.warnings if w.startswith("ran:")]
         self.assertEqual(ran, ["ran:workspace", "ran:files", "ran:pipelines"])
 
@@ -98,7 +98,7 @@ class CopyWorkspaceTest(SimpleTestCase):
         ]
         with patch.object(orchestrator, "WORKSPACE_COPIERS", fakes):
             result = copy_workspace(
-                _remote(), _remote(), NullReporter(), resources={"pipelines"}
+                _endpoint(), _endpoint(), NullReporter(), resources={"pipelines"}
             )
         self.assertTrue(
             any("dependency 'files' not selected" in w for w in result.warnings)
@@ -110,7 +110,7 @@ class CopyWorkspaceTest(SimpleTestCase):
         fakes = [FakeCopier("workspace", mandatory=True), FakeCopier("datasets")]
         options = CopyOptions(all_dataset_versions=True)
         with patch.object(orchestrator, "WORKSPACE_COPIERS", fakes):
-            copy_workspace(_remote(), _remote(), NullReporter(), options=options)
+            copy_workspace(_endpoint(), _endpoint(), NullReporter(), options=options)
         self.assertTrue(all(f.options is options for f in fakes))
 
     def test_no_warning_when_dependency_selected(self):
@@ -121,7 +121,10 @@ class CopyWorkspaceTest(SimpleTestCase):
         ]
         with patch.object(orchestrator, "WORKSPACE_COPIERS", fakes):
             result = copy_workspace(
-                _remote(), _remote(), NullReporter(), resources={"files", "pipelines"}
+                _endpoint(),
+                _endpoint(),
+                NullReporter(),
+                resources={"files", "pipelines"},
             )
         self.assertFalse(any("not selected" in w for w in result.warnings))
 
@@ -132,6 +135,6 @@ class CopyWorkspaceTest(SimpleTestCase):
             patch.object(orchestrator, "WORKSPACE_COPIERS", fakes),
             self.assertRaises(RuntimeError),
         ):
-            copy_workspace(_remote(), _remote(), NullReporter(), result=result)
+            copy_workspace(_endpoint(), _endpoint(), NullReporter(), result=result)
         self.assertIn("ran:workspace", result.warnings)
         self.assertIsNotNone(result.started_at)

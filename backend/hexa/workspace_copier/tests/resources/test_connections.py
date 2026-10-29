@@ -21,7 +21,7 @@ def _conn(slug, fields):
     }
 
 
-class ConnectionsCopierRemoteTest(SimpleTestCase):
+class ConnectionsCopierTest(SimpleTestCase):
     def setUp(self):
         self.source = Endpoint(MagicMock(), "src")
         self.target = Endpoint(MagicMock(), "tgt")

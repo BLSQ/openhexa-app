@@ -30,7 +30,7 @@ def _detail(slug="my-dataset", **overrides):
     return detail
 
 
-class DatasetsCopierRemoteTest(SimpleTestCase):
+class DatasetsCopierTest(SimpleTestCase):
     def setUp(self):
         self.source = Endpoint(MagicMock(), "src")
         self.target = Endpoint(MagicMock(), "tgt")

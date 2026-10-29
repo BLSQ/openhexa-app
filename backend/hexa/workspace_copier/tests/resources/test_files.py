@@ -39,7 +39,7 @@ def fake_walk(source_objects, target_objects=()):
     return [iter(target_objects), iter(source_objects)]
 
 
-class FilesCopierRemoteTest(SimpleTestCase):
+class FilesCopierTest(SimpleTestCase):
     def setUp(self):
         self.source = Endpoint(MagicMock(), "src")
         self.target = Endpoint(MagicMock(), "tgt")

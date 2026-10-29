@@ -22,8 +22,8 @@ def _src_ws(**overrides):
     return SimpleNamespace(**data)
 
 
-class WorkspaceMetadataCopierRemoteTest(SimpleTestCase):
-    def test_creates_remote_target_and_stores_slug(self):
+class WorkspaceMetadataCopierTest(SimpleTestCase):
+    def test_creates_target_and_stores_slug(self):
         source = Endpoint(MagicMock(), "src")
         source.client.workspace.return_value = _src_ws()
         target = Endpoint(MagicMock())
