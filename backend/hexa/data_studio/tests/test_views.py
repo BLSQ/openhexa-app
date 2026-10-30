@@ -10,8 +10,11 @@ from psycopg2.errors import QueryCanceled
 
 from hexa.core.csv import UTF8_BOM
 from hexa.core.test import TestCase
-from hexa.data_studio.models import QueryLog
-from hexa.databases.tests.helpers import seed_demo_table
+from hexa.data_studio.models import QueryLog, SavedQueryVisibility
+from hexa.databases.tests.helpers import (
+    provision_workspace_database,
+    seed_demo_table,
+)
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
@@ -19,6 +22,8 @@ from hexa.workspaces.models import (
     WorkspaceMembershipRole,
 )
 from hexa.workspaces.tests.testutils import create_workspace
+
+from .testutils import SavedQueryTestMixin
 
 # Shared with the frontend (DataStudioEditor/downloadQueryCsv.test.ts): the one
 # source of truth for the download-handshake constants the two tiers must agree
@@ -57,7 +62,7 @@ class DownloadQueryCsvViewTest(TestCase):
             countries=[],
             provision_db_on=cls,
         )
-        setattr(cls.WORKSPACE, "database", cls.DB1)
+        cls.WORKSPACE.database = cls.DB1
         WorkspaceMembership.objects.create(
             user=cls.USER_SABRINA,
             workspace=cls.WORKSPACE,
@@ -424,3 +429,88 @@ class DownloadQueryCsvViewTest(TestCase):
     def test_download_requires_login(self):
         response = self.client.post(self._url(), {"query": "SELECT 1"})
         self.assertEqual(302, response.status_code)
+
+
+class DownloadSavedQueryCsvViewTest(SavedQueryTestMixin, TestCase):
+    """The permalink export: a public query's full result, for anyone."""
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        provision_workspace_database(cls, cls.WORKSPACE)
+
+    @staticmethod
+    def _url(slug):
+        return reverse("data_studio:download_saved_query_csv", args=[slug])
+
+    def test_visitor_downloads_a_public_query(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b")])
+        query = self.create_saved_query(
+            content="SELECT id, label FROM demo ORDER BY id",
+            visibility=SavedQueryVisibility.PUBLIC,
+        )
+
+        response = self.client.post(self._url(query.slug))
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(
+            f'attachment; filename="{query.slug}.csv"',
+            response.headers["Content-Disposition"],
+        )
+        self.assertEqual(
+            UTF8_BOM + "id,label\r\n1,a\r\n2,b\r\n",
+            DownloadQueryCsvViewTest._collect(response).decode("utf-8"),
+        )
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Status.SUCCESS, log.status)
+        # Still an uncapped export; naming the query is what tells it apart from an
+        # editor export.
+        self.assertEqual(QueryLog.Origin.DATA_STUDIO_EXPORT, log.origin)
+        self.assertEqual(query, log.saved_query)
+        self.assertIsNone(log.user)
+
+    def test_only_public_queries_are_served(self):
+        for visibility in [
+            SavedQueryVisibility.WORKSPACE,
+            SavedQueryVisibility.PRIVATE,
+        ]:
+            with self.subTest(visibility=visibility):
+                query = self.create_saved_query(
+                    name=f"q {visibility}", visibility=visibility
+                )
+                # Not even to a member: they export from the editor.
+                self.client.force_login(self.USER_EDITOR)
+                self.assertEqual(
+                    404, self.client.post(self._url(query.slug)).status_code
+                )
+        self.assertEqual(0, QueryLog.objects.count())
+
+    def test_visitors_have_a_slot_pool_of_their_own(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+        query = self.create_saved_query(
+            content="SELECT id FROM demo", visibility=SavedQueryVisibility.PUBLIC
+        )
+        exhausted = threading.BoundedSemaphore(1)
+        exhausted.acquire()
+        members_slots = threading.BoundedSemaphore(1)
+
+        with (
+            mock.patch("hexa.data_studio.views._PUBLIC_EXPORT_SLOTS", exhausted),
+            mock.patch("hexa.data_studio.views._EXPORT_SLOTS", members_slots),
+        ):
+            response = self.client.post(self._url(query.slug))
+
+            self.assertEqual(429, response.status_code)
+            self.assertIn(
+                "DATA_STUDIO_PUBLIC_EXPORT_MAX_CONCURRENCY",
+                QueryLog.objects.get().error_message,
+            )
+            # Visitors filling their pool leave the members' one untouched.
+            self.assertTrue(members_slots.acquire(blocking=False))
+
+    def test_unknown_slug_returns_404(self):
+        self.assertEqual(404, self.client.post(self._url("nope")).status_code)
+
+    def test_rejects_get(self):
+        query = self.create_saved_query(visibility=SavedQueryVisibility.PUBLIC)
+        self.assertEqual(405, self.client.get(self._url(query.slug)).status_code)

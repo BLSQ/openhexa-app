@@ -35,6 +35,7 @@ const WorkspaceDataStudioPage: NextPageWithLayout = (props: Props) => {
           <DataStudioEditor
             workspaceSlug={workspace.slug}
             canCreate={workspace.permissions.createSavedQuery}
+            canCreatePublic={workspace.permissions.publishSavedQuery}
             aiEnabled={aiEnabled}
             aiBudgetLimitReached={aiBudgetLimitReached}
           />

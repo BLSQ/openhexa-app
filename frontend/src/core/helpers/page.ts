@@ -12,7 +12,9 @@ interface GetServerSidePropsContextWithUser extends GetServerSidePropsContext {
 interface CreateGetServerSideProps {
   i18n?: string[];
   requireAuth?: boolean;
-  redirectIfLoggedIn?: string | ((ctx: GetServerSidePropsContextWithUser) => string);
+  redirectIfLoggedIn?:
+    | string
+    | ((ctx: GetServerSidePropsContextWithUser) => string);
   getServerSideProps?: (
     ctx: GetServerSidePropsContextWithUser,
     client: CustomApolloClient,
@@ -50,7 +52,8 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
     const t1 = perfLogs ? performance.now() : 0;
     const getMePromise = getMe(ctx).then((me) => {
       ctx.me = me;
-      if (perfLogs) console.log(`[page] getMe: ${(performance.now() - t1).toFixed(1)}ms`);
+      if (perfLogs)
+        console.log(`[page] getMe: ${(performance.now() - t1).toFixed(1)}ms`);
       return me;
     });
 
@@ -64,7 +67,9 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
       ? Promise.resolve(getServerSideProps(ctx, client)).catch((err) => {
           if (
             err instanceof ApolloError &&
-            err.graphQLErrors.some((e) => e.extensions?.code === "UNAUTHENTICATED")
+            err.graphQLErrors.some(
+              (e) => e.extensions?.code === "UNAUTHENTICATED",
+            )
           ) {
             unauthenticatedError = err;
             return undefined;
@@ -103,9 +108,14 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
       // tries to access a page that is not /workspaces or /user or /register or /organizations
       if (
         !features.some((f) => f.code === "openhexa_legacy") &&
-        !["/workspaces", "/user", "/register", "/organizations", "/mcp"].some(
-          (path) => ctx.resolvedUrl.startsWith(path),
-        )
+        ![
+          "/workspaces",
+          "/user",
+          "/register",
+          "/organizations",
+          "/mcp",
+          "/queries",
+        ].some((path) => ctx.resolvedUrl.startsWith(path))
       ) {
         return {
           redirect: {
@@ -125,7 +135,10 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
       me?.user?.language ?? getAcceptPreferredLocale(ctx.req.headers) ?? "en",
       i18n,
     );
-    if (perfLogs) console.log(`[page] translations: ${(performance.now() - t2).toFixed(1)}ms`);
+    if (perfLogs)
+      console.log(
+        `[page] translations: ${(performance.now() - t2).toFixed(1)}ms`,
+      );
 
     const result = {
       props: {
@@ -135,7 +148,10 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
       },
     } as any;
 
-    if (perfLogs) console.log(`[page] everything: ${(performance.now() - t0).toFixed(1)}ms`);
+    if (perfLogs)
+      console.log(
+        `[page] everything: ${(performance.now() - t0).toFixed(1)}ms`,
+      );
     if (getServerSideProps) {
       return {
         ...result,

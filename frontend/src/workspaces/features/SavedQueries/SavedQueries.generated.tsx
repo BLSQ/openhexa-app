@@ -5,23 +5,23 @@ import { UserColumn_UserFragmentDoc } from '../../../core/components/DataGrid/Us
 import { User_UserFragmentDoc } from '../../../core/features/User/User.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type SavedQueryListItem_SavedQueryFragment = { __typename?: 'SavedQuery', id: string, slug: string, name: string, description?: string | null, updatedAt: any, visibility: Types.SavedQueryVisibility, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean, updateVisibility: boolean } };
+export type SavedQueryListItem_SavedQueryFragment = { __typename?: 'SavedQuery', id: string, slug: string, name: string, description?: string | null, updatedAt: any, visibility: Types.SavedQueryVisibility, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean, updateVisibility: boolean, publish: boolean } };
 
-export type SavedQuery_SavedQueryFragment = { __typename?: 'SavedQuery', id: string, slug: string, name: string, description?: string | null, content: string, updatedAt: any, visibility: Types.SavedQueryVisibility, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean, updateVisibility: boolean } };
+export type SavedQuery_SavedQueryFragment = { __typename?: 'SavedQuery', id: string, slug: string, name: string, description?: string | null, content?: string | null, updatedAt: any, visibility: Types.SavedQueryVisibility, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean, updateVisibility: boolean, publish: boolean } };
 
 export type CreateSavedQueryMutationVariables = Types.Exact<{
   input: Types.CreateSavedQueryInput;
 }>;
 
 
-export type CreateSavedQueryMutation = { __typename?: 'Mutation', createSavedQuery: { __typename?: 'CreateSavedQueryResult', success: boolean, errors: Array<Types.CreateSavedQueryError>, savedQuery?: { __typename?: 'SavedQuery', id: string, slug: string, name: string, description?: string | null, content: string, updatedAt: any, visibility: Types.SavedQueryVisibility, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean, updateVisibility: boolean } } | null } };
+export type CreateSavedQueryMutation = { __typename?: 'Mutation', createSavedQuery: { __typename?: 'CreateSavedQueryResult', success: boolean, errors: Array<Types.CreateSavedQueryError>, savedQuery?: { __typename?: 'SavedQuery', id: string, slug: string, name: string, description?: string | null, content?: string | null, updatedAt: any, visibility: Types.SavedQueryVisibility, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean, updateVisibility: boolean, publish: boolean } } | null } };
 
 export type UpdateSavedQueryMutationVariables = Types.Exact<{
   input: Types.UpdateSavedQueryInput;
 }>;
 
 
-export type UpdateSavedQueryMutation = { __typename?: 'Mutation', updateSavedQuery: { __typename?: 'UpdateSavedQueryResult', success: boolean, errors: Array<Types.UpdateSavedQueryError>, savedQuery?: { __typename?: 'SavedQuery', id: string, slug: string, name: string, description?: string | null, content: string, updatedAt: any, visibility: Types.SavedQueryVisibility, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean, updateVisibility: boolean } } | null } };
+export type UpdateSavedQueryMutation = { __typename?: 'Mutation', updateSavedQuery: { __typename?: 'UpdateSavedQueryResult', success: boolean, errors: Array<Types.UpdateSavedQueryError>, savedQuery?: { __typename?: 'SavedQuery', id: string, slug: string, name: string, description?: string | null, content?: string | null, updatedAt: any, visibility: Types.SavedQueryVisibility, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean, updateVisibility: boolean, publish: boolean } } | null } };
 
 export type DeleteSavedQueryMutationVariables = Types.Exact<{
   input: Types.DeleteSavedQueryInput;
@@ -45,6 +45,7 @@ export const SavedQueryListItem_SavedQueryFragmentDoc = gql`
     update
     delete
     updateVisibility
+    publish
   }
 }
     ${UserColumn_UserFragmentDoc}`;
@@ -64,6 +65,7 @@ export const SavedQuery_SavedQueryFragmentDoc = gql`
     update
     delete
     updateVisibility
+    publish
   }
 }
     ${User_UserFragmentDoc}`;

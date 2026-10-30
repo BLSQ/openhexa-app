@@ -10,4 +10,9 @@ urlpatterns = [
         views.download_query_csv,
         name="download_query_csv",
     ),
+    path(
+        "queries/<str:slug>/download/",
+        views.download_saved_query_csv,
+        name="download_saved_query_csv",
+    ),
 ]

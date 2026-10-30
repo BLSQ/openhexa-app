@@ -78,3 +78,26 @@ Apache Superset is a popular open-source data visualization and exploration plat
 4. **Test and save**
     - Click **Test Connection** to verify the setup.
     - If successful, click **Connect** to save the database connection.
+
+## Make a saved query public
+
+A query saved in the Data Studio has one of three visibilities:
+
+- **Private**: only its author can see and run it.
+- **Workspace**: every member of the workspace can see and run it.
+- **Public**: everything **Workspace** allows, plus a public link that anyone can open, even without an OpenHEXA account.
+
+A public link (`/queries/<slug>`) shows the query's name, description and result. Visitors can change how many rows are shown and download the full result as CSV. They never see the SQL, its author or the workspace it belongs to. Public links are hidden from search engines.
+
+!!! info "Who can make a query public"
+    - The author of the query, if they are an editor or admin of the workspace (viewers cannot make queries public)
+    - Workspace admins
+    - Organization admins and owners
+
+    The same people can take a public query back to **Workspace**. Making a query **Private** remains the author's decision only. A private query can only be made public by its author.
+
+    Only these people can change the SQL of a public query, because visitors run whatever it contains. Workspace editors can still rename it, change its description or save a copy. Deleting a public query breaks its link, so only its author and the people above can delete it.
+
+To make a query public, open it in the Data Studio, click its visibility in the toolbar and choose **Public**. Copy the link from the **Public link** button in the toolbar or from the saved queries list.
+
+If a query stops being public, its link stops working: visitors who are not logged in are sent to the login page, and everyone else gets a "page not found" error.

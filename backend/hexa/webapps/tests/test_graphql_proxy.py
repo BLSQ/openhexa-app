@@ -1544,7 +1544,8 @@ class GraphQLProxyWorkspaceScopingTest(TestCase):
         """`executeSavedQuery` takes a slug and no workspace, so nothing in the
         request says which workspace to look in. What keeps a web app to its own
         is `filter_for_user`, which confines a WebappUser to the workspace its
-        session was issued for.
+        session was issued for. That holds for public queries too, which anyone
+        may run from their permalink: whether web apps may is HEXA-1847's call.
         """
         webapp = Webapp.objects.create(
             name="Db App A",
@@ -1556,26 +1557,32 @@ class GraphQLProxyWorkspaceScopingTest(TestCase):
             is_public=False,
             allowed_operations=[Webapp.OperationScope.DATABASE_READ],
         )
-        saved_query = SavedQuery.objects.create(
-            workspace=self.WORKSPACE_B,
-            created_by=self.USER,
-            name="B only",
-            content="SELECT 1",
-            visibility=SavedQueryVisibility.WORKSPACE,
-        )
         session = self._create_session(webapp, self.USER)
 
-        response = self._graphql_post(
-            "db-app-a",
-            f'query {{ executeSavedQuery(input: {{ slug: "{saved_query.slug}" }}) '
-            f"{{ success errors }} }}",
-            session.session_key,
-        )
+        for visibility in [
+            SavedQueryVisibility.WORKSPACE,
+            SavedQueryVisibility.PUBLIC,
+        ]:
+            with self.subTest(visibility=visibility):
+                saved_query = SavedQuery.objects.create(
+                    workspace=self.WORKSPACE_B,
+                    created_by=self.USER,
+                    name=f"B only, {visibility}",
+                    content="SELECT 1",
+                    visibility=visibility,
+                )
 
-        self.assertEqual(response.status_code, 200)
-        result = json.loads(response.content)["data"]["executeSavedQuery"]
-        self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
-        self.assertEqual(0, QueryLog.objects.count())
+                response = self._graphql_post(
+                    "db-app-a",
+                    f'query {{ executeSavedQuery(input: {{ slug: "{saved_query.slug}" }}) '
+                    f"{{ success errors }} }}",
+                    session.session_key,
+                )
+
+                self.assertEqual(response.status_code, 200)
+                result = json.loads(response.content)["data"]["executeSavedQuery"]
+                self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
+                self.assertEqual(0, QueryLog.objects.count())
 
     def _create_scoped_webapp_a(self, slug, scopes):
         return Webapp.objects.create(

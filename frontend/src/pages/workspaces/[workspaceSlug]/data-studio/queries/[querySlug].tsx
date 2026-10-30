@@ -44,6 +44,7 @@ const WorkspaceSavedQueryPage: NextPageWithLayout = (props: Props) => {
               workspaceSlug={workspace.slug}
               savedQuery={savedQuery}
               canCreate={workspace.permissions.createSavedQuery}
+              canCreatePublic={workspace.permissions.publishSavedQuery}
             />
           </div>
         ) : (

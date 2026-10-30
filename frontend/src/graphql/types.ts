@@ -5046,7 +5046,7 @@ export type Query = {
   datasetVersionFile?: Maybe<DatasetVersionFile>;
   /** Search datasets. */
   datasets: DatasetPage;
-  /** Runs a saved query against the workspace database and returns its result, without exposing the SQL. */
+  /** Runs a saved query against the workspace database and returns its result, without exposing the SQL. Open to anonymous callers for public queries. */
   executeSavedQuery: ExecuteSqlResult;
   /** Get a file by its path within a workspace. */
   getFileByPath?: Maybe<BucketObject>;
@@ -5113,7 +5113,7 @@ export type Query = {
   readWebappFile: ReadWebappFileResult;
   /** Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace. */
   savedQuery?: Maybe<SavedQuery>;
-  /** Retrieves a saved query by its slug, which is unique across workspaces. */
+  /** Retrieves a saved query by its slug, which is unique across workspaces. Public queries are returned to anyone, anonymous included. */
   savedQueryBySlug?: Maybe<SavedQuery>;
   searchDatabaseTables: DatabaseTableResultPage;
   searchDatasets: DatasetResultPage;
@@ -5873,8 +5873,10 @@ export type S3ObjectPage = {
  */
 export type SavedQuery = {
   __typename?: 'SavedQuery';
-  content: Scalars['String']['output'];
+  /** The SQL. Null for a caller who only reaches the query through its public permalink. */
+  content?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
+  /** Null for a caller who only reaches the query through its public permalink. */
   createdBy?: Maybe<User>;
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
@@ -5884,7 +5886,8 @@ export type SavedQuery = {
   slug: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
   visibility: SavedQueryVisibility;
-  workspace: Workspace;
+  /** Null for a caller who only reaches the query through its public permalink. */
+  workspace?: Maybe<Workspace>;
 };
 
 /** Enum representing the possible orderings for saved queries. */
@@ -5909,16 +5912,20 @@ export type SavedQueryPermissions = {
   __typename?: 'SavedQueryPermissions';
   /** Permission to delete the saved query. */
   delete: Scalars['Boolean']['output'];
+  /** Permission to make the saved query public, and to take a public one back to the workspace. */
+  publish: Scalars['Boolean']['output'];
   /** Permission to edit the saved query. */
   update: Scalars['Boolean']['output'];
-  /** Permission to share or unshare the saved query. */
+  /** Permission to share or unshare the saved query, and to make it private. */
   updateVisibility: Scalars['Boolean']['output'];
 };
 
-/** Who a saved query is visible to within its workspace. */
+/** Who a saved query is visible to. */
 export enum SavedQueryVisibility {
   /** Only the author can see, run and edit the query. */
   Private = 'PRIVATE',
+  /** Every member of the workspace, plus anyone with the permalink: they can run the query and export its result without logging in, but not read its SQL. */
+  Public = 'PUBLIC',
   /** Every member of the workspace can see and run the query. */
   Workspace = 'WORKSPACE'
 }
@@ -6705,7 +6712,7 @@ export type UpdateSavedQueryInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
-  /** Only the author may change this; PERMISSION_DENIED otherwise. */
+  /** Only the author may change this, except that the author, workspace admins and organization admins may make a query PUBLIC or take a public one back to WORKSPACE; PERMISSION_DENIED otherwise. */
   visibility?: InputMaybe<SavedQueryVisibility>;
 };
 
@@ -7332,6 +7339,8 @@ export type WorkspacePermissions = {
   launchNotebookServer: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
   manageTags: Scalars['Boolean']['output'];
+  /** Permission to make one's own saved queries of the workspace public. */
+  publishSavedQuery: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
 

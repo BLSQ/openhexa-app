@@ -50,20 +50,17 @@ const clearCookie = (name: string) => {
   document.cookie = `${name}=; Max-Age=0; path=/`;
 };
 
-// Downloads the full result of a SQL query by POSTing it to the backend, which
-// streams a CSV attachment back. A form POST (rather than fetch) lets the
-// browser stream the response straight to disk, so even very large exports never
-// have to be held in browser memory. maxRows is intentionally not sent: the
-// download is always the entire result set.
+// POSTs `fields` to `action` through the hidden iframe, which lets the browser
+// stream the CSV attachment straight to disk so even very large exports never
+// have to be held in browser memory.
 //
 // The returned promise resolves once the download has demonstrably started and
 // rejects (with the server's message when readable) if the backend returns an
 // error instead — see SUCCESS_COOKIE_PREFIX and the iframe load handler below.
-export const downloadQueryCsv = (
-  workspaceSlug: string,
-  query: string,
+const submitCsvDownload = (
+  action: string,
+  fields: Record<string, string>,
 ): Promise<void> => {
-  const apiBasePath = process.env.NEXT_PUBLIC_API_BASE_PATH ?? "";
   const csrfToken = getCookie("csrftoken");
   const iframe = ensureDownloadFrame();
 
@@ -72,13 +69,13 @@ export const downloadQueryCsv = (
 
   const form = document.createElement("form");
   form.method = "POST";
-  form.action = `${apiBasePath}/data-studio/${encodeURIComponent(
-    workspaceSlug,
-  )}/query/download/`;
+  form.action = action;
   form.target = DOWNLOAD_FRAME_NAME;
   form.style.display = "none";
 
-  appendHiddenField(form, "query", query);
+  Object.entries(fields).forEach(([name, value]) =>
+    appendHiddenField(form, name, value),
+  );
   appendHiddenField(form, "download_token", token);
   if (typeof csrfToken === "string") {
     appendHiddenField(form, "csrfmiddlewaretoken", csrfToken);
@@ -130,3 +127,28 @@ export const downloadQueryCsv = (
     form.remove();
   });
 };
+
+const apiBasePath = () => process.env.NEXT_PUBLIC_API_BASE_PATH ?? "";
+
+// Downloads the full result of a SQL query. maxRows is intentionally not sent:
+// the download is always the entire result set.
+export const downloadQueryCsv = (
+  workspaceSlug: string,
+  query: string,
+): Promise<void> =>
+  submitCsvDownload(
+    `${apiBasePath()}/data-studio/${encodeURIComponent(
+      workspaceSlug,
+    )}/query/download/`,
+    { query },
+  );
+
+// Downloads the full result of a public saved query, from its permalink page.
+// The SQL stays server-side: the slug is all the request carries.
+export const downloadSavedQueryCsv = (slug: string): Promise<void> =>
+  submitCsvDownload(
+    `${apiBasePath()}/data-studio/queries/${encodeURIComponent(
+      slug,
+    )}/download/`,
+    {},
+  );

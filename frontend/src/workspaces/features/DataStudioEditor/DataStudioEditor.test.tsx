@@ -216,7 +216,12 @@ const renderEditor = (
 ) =>
   render(
     <CookiesProvider>
-      <DataStudioEditor workspaceSlug="ws-1" canCreate={false} {...props} />
+      <DataStudioEditor
+        workspaceSlug="ws-1"
+        canCreate={false}
+        canCreatePublic={false}
+        {...props}
+      />
     </CookiesProvider>,
   );
 

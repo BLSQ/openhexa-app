@@ -1213,3 +1213,197 @@ class ExecuteSavedQueryPaginationTest(SavedQueryTestMixin, GraphQLTestCase):
             denied = self._execute(saved_query.slug, page=1)
         self.assertEqual(["PERMISSION_DENIED"], denied["errors"])
         self.assertIsNone(denied["pageInfo"])
+
+
+class PublicSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
+    """The permalink: anyone may read and run a public query, but not its SQL."""
+
+    BY_SLUG_QUERY = """
+        query ($slug: String!) {
+            savedQueryBySlug(slug: $slug) {
+                name description content visibility
+                createdBy { id }
+                workspace { slug }
+                permissions { update publish }
+            }
+        }
+    """
+    EXECUTE_QUERY = """
+        query ($input: ExecuteSavedQueryInput!) {
+            executeSavedQuery(input: $input) { success errors rows }
+        }
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        provision_workspace_database(cls, cls.WORKSPACE)
+
+    def _get_by_slug(self, slug):
+        return self.run_query(self.BY_SLUG_QUERY, {"slug": slug})["data"][
+            "savedQueryBySlug"
+        ]
+
+    def _execute(self, slug):
+        return self.run_query(self.EXECUTE_QUERY, {"input": {"slug": slug}})["data"][
+            "executeSavedQuery"
+        ]
+
+    def test_visitor_reads_a_public_query_without_its_sql(self):
+        query = self.create_saved_query(visibility=SavedQueryVisibility.PUBLIC)
+
+        for user in [None, self.USER_OUTSIDER]:
+            with self.subTest(user=user):
+                self.client.logout()
+                if user:
+                    self.client.force_login(user)
+                self.assertEqual(
+                    {
+                        "name": "My query",
+                        "description": "a query",
+                        "content": None,
+                        "visibility": "PUBLIC",
+                        "createdBy": None,
+                        "workspace": None,
+                        "permissions": {"update": False, "publish": False},
+                    },
+                    self._get_by_slug(query.slug),
+                )
+
+    def test_member_reads_a_public_query_in_full(self):
+        query = self.create_saved_query(visibility=SavedQueryVisibility.PUBLIC)
+        self.client.force_login(self.USER_ADMIN)
+
+        result = self._get_by_slug(query.slug)
+
+        self.assertEqual("SELECT 1", result["content"])
+        self.assertEqual(self.WORKSPACE.slug, result["workspace"]["slug"])
+        self.assertEqual(str(self.USER_EDITOR.id), result["createdBy"]["id"])
+        self.assertTrue(result["permissions"]["publish"])
+
+    def test_visitor_cannot_read_a_shared_query(self):
+        query = self.create_saved_query()
+        self.assertIsNone(self._get_by_slug(query.slug))
+
+    def test_visitor_cannot_look_up_a_public_query_by_id(self):
+        # Only the permalink, keyed on the slug, opens a query to visitors.
+        query = self.create_saved_query(visibility=SavedQueryVisibility.PUBLIC)
+        r = self.run_query(
+            "query ($id: ID!) { savedQuery(id: $id) { id } }", {"id": str(query.id)}
+        )
+        self.assertIsNone(r["data"]["savedQuery"])
+
+    def test_visitor_runs_a_public_query(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+        query = self.create_saved_query(
+            content="SELECT id FROM demo", visibility=SavedQueryVisibility.PUBLIC
+        )
+
+        result = self._execute(query.slug)
+
+        self.assertEqual({"success": True, "errors": [], "rows": [{"id": 1}]}, result)
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Origin.PUBLIC, log.origin)
+        self.assertIsNone(log.user)
+        self.assertEqual(query, log.saved_query)
+
+    def test_member_running_a_public_query_keeps_their_origin(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+        query = self.create_saved_query(
+            content="SELECT id FROM demo", visibility=SavedQueryVisibility.PUBLIC
+        )
+        self.client.force_login(self.USER_VIEWER)
+
+        self._execute(query.slug)
+
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Origin.OTHER, log.origin)
+        self.assertEqual(self.USER_VIEWER, log.user)
+
+    def test_visitor_gets_no_error_message_quoting_the_sql(self):
+        # PostgreSQL quotes the failing SQL (`LINE 1: SELECT ...`) in its message.
+        query = self.create_saved_query(
+            content="SELECT secret_column FROM missing_table",
+            visibility=SavedQueryVisibility.PUBLIC,
+        )
+
+        result = self.run_query(
+            """
+            query ($input: ExecuteSavedQueryInput!) {
+                executeSavedQuery(input: $input) { success errors errorMessage }
+            }
+            """,
+            {"input": {"slug": query.slug}},
+        )["data"]["executeSavedQuery"]
+
+        self.assertEqual(
+            {"success": False, "errors": ["QUERY_ERROR"], "errorMessage": None},
+            result,
+        )
+
+    def test_member_gets_the_error_message_of_a_public_query(self):
+        query = self.create_saved_query(
+            content="SELECT secret_column FROM missing_table",
+            visibility=SavedQueryVisibility.PUBLIC,
+        )
+        self.client.force_login(self.USER_VIEWER)
+
+        result = self.run_query(
+            """
+            query ($input: ExecuteSavedQueryInput!) {
+                executeSavedQuery(input: $input) { errors errorMessage }
+            }
+            """,
+            {"input": {"slug": query.slug}},
+        )["data"]["executeSavedQuery"]
+
+        self.assertEqual(["QUERY_ERROR"], result["errors"])
+        self.assertIn("missing_table", result["errorMessage"])
+
+    def test_visitor_cannot_run_a_shared_query(self):
+        query = self.create_saved_query()
+
+        result = self._execute(query.slug)
+
+        self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
+        self.assertEqual(0, QueryLog.objects.count())
+
+    def test_workspace_tells_who_may_publish_their_own_queries(self):
+        for user, expected in [
+            (self.USER_ADMIN, True),
+            (self.USER_EDITOR, True),
+            (self.USER_VIEWER, False),
+        ]:
+            with self.subTest(user=user.email):
+                self.client.force_login(user)
+                r = self.run_query(
+                    "query ($slug: String!) { workspace(slug: $slug) "
+                    "{ permissions { publishSavedQuery } } }",
+                    {"slug": self.WORKSPACE.slug},
+                )
+                self.assertEqual(
+                    expected,
+                    r["data"]["workspace"]["permissions"]["publishSavedQuery"],
+                )
+
+    def test_workspace_admin_publishes_through_the_api(self):
+        query = self.create_saved_query(user=self.USER_VIEWER)
+        self.client.force_login(self.USER_ADMIN)
+
+        r = self.run_query(
+            """
+            mutation ($input: UpdateSavedQueryInput!) {
+                updateSavedQuery(input: $input) { success errors savedQuery { visibility } }
+            }
+            """,
+            {"input": {"id": str(query.id), "visibility": "PUBLIC"}},
+        )
+
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "savedQuery": {"visibility": "PUBLIC"},
+            },
+            r["data"]["updateSavedQuery"],
+        )
