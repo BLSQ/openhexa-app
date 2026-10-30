@@ -1069,6 +1069,7 @@ input ExecuteSavedQueryInput {
   after: String                # le endCursor de la page précédente
   before: String               # le startCursor de la page suivante
   includeTotalItems: Boolean
+  parameters: JSON             # Valeurs des paramètres (nom -> valeur) pour les requêtes paramétrées
 }
 
 input QueryResultOrderBy {
@@ -1107,6 +1108,8 @@ enum ExecuteSQLError {
   INVALID_ORDER_BY
   INVALID_CURSOR
   INVALID_PAGINATION
+  INVALID_PARAMETERS
+  TEMPLATE_ERROR
 }
 ```
 
@@ -1147,6 +1150,94 @@ deux fois : donnez un alias aux colonnes dans la requête enregistrée),
 tri, et `INVALID_PAGINATION` pour des arguments contradictoires, comme `page`
 avec un curseur, ou `after` avec `before`.
 
+#### Requêtes paramétrées
+
+Les requêtes enregistrées peuvent déclarer des paramètres, ce qui permet aux webapps
+d'appliquer des filtres dynamiques sans modifier le SQL sous-jacent. Vous définissez
+les emplacements de paramètres dans le SQL avec `{{ nom_parametre }}` et déclarez le
+nom et le type de chaque paramètre :
+
+```sql
+SELECT district, period, cases
+FROM malaria_indicators
+WHERE district = ANY({{ districts }})
+  AND period >= {{ start_date }}
+```
+
+```json
+[
+  { "name": "districts",  "type": "STRING", "multiple": true, "required": true },
+  { "name": "start_date", "type": "DATE",   "default": "2026-01-01" }
+]
+```
+
+Les paramètres se configurent via l'argument `parameters` des mutations GraphQL
+`createSavedQuery` et `updateSavedQuery`, ou via les outils MCP `create_saved_query`
+et `update_saved_query`. Une requête n'est traitée comme un modèle qu'à partir du
+moment où elle déclare au moins un paramètre : chaque emplacement doit alors
+correspondre à un paramètre déclaré, sinon l'enregistrement échoue avec
+`INVALID_TEMPLATE`. Une requête sans paramètre est envoyée à PostgreSQL telle quelle,
+si bien que les accolades d'un SQL ordinaire (par exemple un littéral de tableau
+imbriqué `'{{1,2},{3,4}}'`) n'ont pas besoin d'être échappées.
+
+Dans votre webapp, transmettez les valeurs des paramètres par nom aux côtés des options
+de tri et de pagination :
+
+```js
+{ input: { slug: "malaria-by-district", parameters: { districts: ["Dakar", "Thiès"] }, orderBy: [{ column: "period", direction: "DESC" }], perPage: 50 } }
+```
+
+Si un paramètre n'est pas envoyé, sa valeur par défaut s'applique (dans l'exemple
+ci-dessus, `start_date` prend la valeur `"2026-01-01"`). Les types pris en charge sont
+`STRING`, `INTEGER`, `FLOAT`, `BOOLEAN` et `DATE` (une chaîne ISO `AAAA-MM-JJ`), et chaque
+type peut accepter une liste de valeurs avec `"multiple": true`.
+
+L'API renvoie `INVALID_PARAMETERS` si un paramètre obligatoire est manquant, si un nom
+de paramètre non déclaré est fourni, ou si une valeur est du mauvais type (par exemple,
+transmettre une chaîne comme `"10"` pour un `INTEGER`). Si le modèle ne peut pas être
+rendu avec les valeurs fournies, l'API renvoie `TEMPLATE_ERROR`.
+
+**Les valeurs des paramètres sont liées de manière sécurisée lors de l'exécution.** Elles
+sont traitées par le pilote de base de données comme des paramètres de requête et ne sont
+jamais directement insérées dans le texte SQL. Gardez ces recommandations à l'esprit :
+
+- **Filtrez sur une liste avec `= ANY`, et excluez avec `<> ALL` :**
+
+    ```sql
+    WHERE district = ANY({{ districts }})     -- garder ces districts
+    WHERE district <> ALL({{ districts }})    -- exclure ces districts
+    ```
+
+    PostgreSQL traduit en interne les clauses `IN` en `= ANY(array)`, et `= ANY` est la
+    syntaxe adaptée aux tableaux de paramètres. Cela gère également les listes vides sans
+    erreur : si un utilisateur vide une sélection multiple et que la webapp envoie
+    `districts: []`, la condition ne renvoie simplement aucune ligne au lieu de provoquer
+    une erreur de syntaxe SQL. Évitez d'écrire `IN ({{ districts }})`, ce qui déclenche
+    une erreur de type dans PostgreSQL (`operator does not exist: text = text[]`).
+
+- **Les paramètres représentent des valeurs de données, pas des identifiants SQL.**
+    Vous ne pouvez pas utiliser un paramètre pour un nom de colonne ou une clause de tri
+    (par exemple, `ORDER BY {{ sort }}` traite la valeur comme une constante). Gérez le
+    tri et la pagination via les arguments GraphQL dédiés (`orderBy`, `perPage`, `page`
+    et curseurs), et n'ajoutez pas `ORDER BY`, `LIMIT` ou `OFFSET` dans votre SQL.
+
+- **Ne placez pas d'emplacement entre guillemets ni dans un commentaire.**
+    Un emplacement situé dans une chaîne littérale, un identifiant entre guillemets ou un
+    commentaire, comme `WHERE name LIKE '{{ q }}%'`, est refusé à l'exécution avec
+    `TEMPLATE_ERROR` : la valeur ne pourrait pas y être liée de manière sûre. Écrivez
+    plutôt `WHERE name LIKE {{ q }}` et ajoutez les caractères génériques (`%`)
+    directement dans la valeur fournie par la webapp (par exemple `{ q: "dak%" }`).
+
+- **Les paramètres ne sont pas découvrables dynamiquement par les webapps.** Les webapps
+    avec la permission `DATABASE_READ` n'ayant pas accès aux métadonnées des requêtes
+    enregistrées, configurez les noms et types de paramètres attendus directement dans
+    le code de votre frontend, tout comme le slug de la requête.
+
+Les curseurs de pagination sont associés aux valeurs de paramètres utilisées lors de leur
+génération. Si vous tentez de paginer avec un curseur en modifiant les valeurs de paramètres,
+l'API renvoie `INVALID_CURSOR`.
+
+
 ```html
 <!DOCTYPE html>
 <html>
@@ -1167,6 +1258,8 @@ avec un curseur, ou `after` avec `before`.
 
   <script>
     const SAVED_QUERY_SLUG = "ma-requete-enregistree";
+    // Omettez ce champ ou passez {} si la requête n'a pas de paramètres déclarés.
+    const QUERY_PARAMETERS = {};
 
     async function gql(query, variables) {
       const res = await fetch("/graphql/", {
@@ -1189,7 +1282,7 @@ avec un curseur, ou `after` avec `before`.
             pageInfo { hasNextPage }
           }
         }
-      `, { input: { slug: SAVED_QUERY_SLUG, perPage: 100 } });
+      `, { input: { slug: SAVED_QUERY_SLUG, perPage: 100, parameters: QUERY_PARAMETERS } });
 
       if (!result.success) {
         out.textContent = "Erreur : " + result.errors.join(", ");

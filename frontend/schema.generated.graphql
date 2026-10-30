@@ -1205,6 +1205,8 @@ input CreatePipelineVersionInput {
 
 """Errors that can occur when creating a saved query."""
 enum CreateSavedQueryError {
+  INVALID_PARAMETERS
+  INVALID_TEMPLATE
   PERMISSION_DENIED
 
   """
@@ -1219,6 +1221,7 @@ input CreateSavedQueryInput {
   content: String!
   description: String
   name: String!
+  parameters: [SavedQueryParameterInput!]
 
   """Defaults to PRIVATE when omitted."""
   visibility: SavedQueryVisibility
@@ -2442,6 +2445,7 @@ enum ExecuteSQLError {
   statement that cannot be paginated (e.g. an EXPLAIN).
   """
   INVALID_PAGINATION
+  INVALID_PARAMETERS
 
   """
   More than one SQL statement was submitted; only a single statement is allowed.
@@ -2460,9 +2464,8 @@ enum ExecuteSQLError {
 
   """The query was cancelled because it exceeded the statement timeout."""
   QUERY_TIMEOUT
-
-  """No saved query with this slug, or it is not visible to the caller."""
   SAVED_QUERY_NOT_FOUND
+  TEMPLATE_ERROR
 }
 
 """
@@ -2549,6 +2552,9 @@ input ExecuteSavedQueryInput {
 
   """The 1-based page to return. Cannot be combined with a cursor."""
   page: Int
+
+  """Parameter values for the saved query, supplied as a name-to-value map."""
+  parameters: JSON
 
   """
   The number of rows per page; defaults to 50 and is capped to a server-side hard limit. Ignored for an EXPLAIN.
@@ -4929,6 +4935,7 @@ type SavedQuery {
   description: String
   id: ID!
   name: String!
+  parameters: [SavedQueryParameter!]!
   permissions: SavedQueryPermissions!
 
   """
@@ -4954,6 +4961,39 @@ type SavedQueryPage {
   pageNumber: Int!
   totalItems: Int!
   totalPages: Int!
+}
+
+"""
+A parameter declared on a saved query. Parameter values are bound safely at execution time.
+"""
+type SavedQueryParameter {
+  default: Generic
+  help: String
+
+  """Whether this parameter accepts a list of values of the specified type."""
+  multiple: Boolean!
+  name: String!
+  required: Boolean!
+  type: SavedQueryParameterType!
+}
+
+"""Input specification for declaring a saved query parameter."""
+input SavedQueryParameterInput {
+  default: Generic
+  help: String
+  multiple: Boolean
+  name: String!
+  required: Boolean
+  type: SavedQueryParameterType!
+}
+
+"""Supported data types for saved query parameters."""
+enum SavedQueryParameterType {
+  BOOLEAN
+  DATE
+  FLOAT
+  INTEGER
+  STRING
 }
 
 """Permissions of a saved query."""
@@ -5860,6 +5900,8 @@ type UpdatePipelineVersionResult {
 
 """Errors that can occur when updating a saved query."""
 enum UpdateSavedQueryError {
+  INVALID_PARAMETERS
+  INVALID_TEMPLATE
   PERMISSION_DENIED
   SAVED_QUERY_NOT_FOUND
 
@@ -5875,6 +5917,11 @@ input UpdateSavedQueryInput {
   description: String
   id: ID!
   name: String
+
+  """
+  Parameter definitions for the query. Omit or pass null to keep current parameters, or pass [] to remove all parameters.
+  """
+  parameters: [SavedQueryParameterInput!]
 
   """Only the author may change this; PERMISSION_DENIED otherwise."""
   visibility: SavedQueryVisibility

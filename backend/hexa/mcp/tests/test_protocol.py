@@ -1,8 +1,10 @@
 from django.db import models
 from django.test import SimpleTestCase
 
+from hexa.data_studio.templating import PARAMETER_TYPES
 from hexa.mcp.protocol import _get_tool_schema, get_tools_list
 from hexa.mcp.tools.pipelines import create_pipeline
+from hexa.mcp.tools.saved_queries import create_saved_query
 from hexa.mcp.tools.webapps import create_static_webapp, get_static_webapp_file
 from hexa.pipelines.models import PipelineFunctionalType
 from hexa.webapps.models import Webapp
@@ -116,9 +118,31 @@ class ToolSchemaTest(SimpleTestCase):
             {"type": "array", "items": {"type": "string", "enum": ["red", "green"]}},
         )
 
-    def test_non_list_generic_falls_back_to_string(self):
+    def test_dict_is_an_object(self):
         properties = _get_tool_schema(_list_tool)["properties"]
-        self.assertEqual(properties["mapping"]["type"], "string")
+        self.assertEqual(properties["mapping"], {"type": "object"})
+
+    def test_list_of_typed_dict_is_an_array_of_described_objects(self):
+        schema = _get_tool_schema(create_saved_query)
+        self.assertEqual(
+            schema["properties"]["parameters"],
+            {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string"},
+                        "type": {"type": "string", "enum": list(PARAMETER_TYPES)},
+                        "multiple": {"type": "boolean"},
+                        "required": {"type": "boolean"},
+                        "default": {},
+                        "help": {"type": "string"},
+                    },
+                    "required": ["name", "type"],
+                },
+            },
+        )
+        self.assertNotIn("parameters", schema["required"])
 
     def test_create_pipeline_functional_type_exposes_graphql_values(self):
         schema = _get_tool_schema(create_pipeline)
