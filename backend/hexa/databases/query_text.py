@@ -4,6 +4,7 @@ import enum
 import re
 import unicodedata
 from dataclasses import dataclass, replace
+from typing import Protocol
 
 import sqlparse
 from psycopg2 import sql
@@ -366,6 +367,26 @@ def count_statement(prepared: PreparedQuery) -> PreparedQuery:
     )
 
 
+class RenderedTemplate(Protocol):
+    """What ``to_psycopg2`` reads from a rendered query template.
+
+    Structural rather than imported: ``hexa.data_studio.templating.RenderedQuery``
+    is the producer, and this module sits below ``data_studio``.
+    """
+
+    @property
+    def sql(self) -> str:
+        ...
+
+    @property
+    def params(self) -> list:
+        ...
+
+    @property
+    def token(self) -> str:
+        ...
+
+
 def _reject_verbatim_placeholders(text: str, token: str) -> None:
     # psycopg2 interpolates values client-side, so a placeholder inside a
     # string, dollar-quoted body, quoted identifier or comment lets a value
@@ -381,8 +402,8 @@ def _reject_verbatim_placeholders(text: str, token: str) -> None:
             )
 
 
-def to_psycopg2(rendered) -> PreparedQuery:
-    """Convert a `RenderedQuery` into a `PreparedQuery` for psycopg2 execution.
+def to_psycopg2(rendered: RenderedTemplate) -> PreparedQuery:
+    """Convert a rendered query template into a `PreparedQuery` for psycopg2 execution.
 
     Replaces template placeholder tokens with psycopg2 `%s` placeholders and
     escapes literal `%` characters to `%%` for psycopg2 string formatting.
