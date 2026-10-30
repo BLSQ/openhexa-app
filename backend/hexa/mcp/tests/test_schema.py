@@ -4,9 +4,18 @@ from django.utils import timezone
 from oauth2_provider.models import AccessToken, Application
 
 from hexa.core.test import GraphQLTestCase
-from hexa.mcp.models import MCPConnection
-from hexa.user_management.models import User
-from hexa.workspaces.models import WorkspaceMembership, WorkspaceMembershipRole
+from hexa.mcp.models import MCPConnection, MCPUser
+from hexa.user_management.models import (
+    Organization,
+    OrganizationMembership,
+    OrganizationMembershipRole,
+    User,
+)
+from hexa.workspaces.models import (
+    Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
+)
 from hexa.workspaces.tests.testutils import create_workspace
 
 CONNECTIONS_QUERY = """
@@ -356,6 +365,104 @@ class AuthorizeMCPConnectionTest(GraphQLTestCase):
 
         self.assertFalse(payload["success"])
         self.assertEqual(["WORKSPACE_NOT_FOUND"], payload["errors"])
+
+    def test_an_organization_can_be_granted_as_a_whole(self):
+        self.client.force_login(self.USER)
+
+        payload = self.authorize(
+            tools=["list_files"],
+            organizationIds=[str(self.WORKSPACE.organization_id)],
+        )
+
+        self.assertTrue(payload["success"], payload["errors"])
+        connection = MCPConnection.objects.get(
+            user=self.USER, application=self.APPLICATION
+        )
+        self.assertEqual(
+            [self.WORKSPACE.organization], list(connection.organizations.all())
+        )
+
+    def test_an_organization_the_user_does_not_belong_to_is_refused(self):
+        foreign = Organization.objects.create(name="Foreign")
+        self.client.force_login(self.USER)
+
+        payload = self.authorize(organizationIds=[str(foreign.id)])
+
+        self.assertFalse(payload["success"])
+        self.assertEqual(["ORGANIZATION_NOT_FOUND"], payload["errors"])
+        self.assertFalse(MCPConnection.objects.exists())
+
+
+class OrganizationGrantScopeTest(GraphQLTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.CREATOR = User.objects.create_user(
+            "org-creator@openhexa.org", "password", is_superuser=True
+        )
+        cls.ADMIN = User.objects.create_user("org-admin@openhexa.org", "password")
+        cls.MEMBER = User.objects.create_user("org-member@openhexa.org", "password")
+        cls.ORGANIZATION = Organization.objects.create(name="Ministry")
+        cls.OTHER_ORGANIZATION = Organization.objects.create(name="Elsewhere")
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ADMIN,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.MEMBER,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+        cls.WORKSPACE = create_workspace(
+            cls.CREATOR, name="Malaria", organization=cls.ORGANIZATION
+        )
+        cls.OUTSIDE = create_workspace(
+            cls.CREATOR, name="Outside", organization=cls.OTHER_ORGANIZATION
+        )
+        cls.APPLICATION = Application.objects.create(
+            name="Claude",
+            client_id="org-scope-test-client",
+            client_type=Application.CLIENT_PUBLIC,
+            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+        )
+
+    def mcp_user(self, user):
+        connection = MCPConnection.objects.create(
+            user=user, application=self.APPLICATION
+        )
+        connection.organizations.set([self.ORGANIZATION])
+        return MCPUser.from_user(user, connection)
+
+    def reachable(self, mcp_user):
+        return set(Workspace.objects.filter_for_user(mcp_user))
+
+    def test_workspaces_created_after_the_grant_are_in_scope(self):
+        mcp_user = self.mcp_user(self.ADMIN)
+        later = create_workspace(
+            self.CREATOR, name="Later", organization=self.ORGANIZATION
+        )
+
+        self.assertEqual({self.WORKSPACE, later}, self.reachable(mcp_user))
+
+    def test_workspaces_of_other_organizations_stay_out_of_scope(self):
+        WorkspaceMembership.objects.create(
+            user=self.ADMIN, workspace=self.OUTSIDE, role=WorkspaceMembershipRole.ADMIN
+        )
+
+        self.assertNotIn(self.OUTSIDE, self.reachable(self.mcp_user(self.ADMIN)))
+
+    def test_a_plain_member_does_not_reach_workspaces_they_do_not_belong_to(self):
+        self.assertEqual(set(), self.reachable(self.mcp_user(self.MEMBER)))
+
+    def test_a_plain_member_reaches_the_workspaces_they_join(self):
+        mcp_user = self.mcp_user(self.MEMBER)
+        WorkspaceMembership.objects.create(
+            user=self.MEMBER,
+            workspace=self.WORKSPACE,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        self.assertEqual({self.WORKSPACE}, self.reachable(mcp_user))
 
 
 class MCPAuthorizationRequestTest(GraphQLTestCase):

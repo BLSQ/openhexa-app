@@ -527,6 +527,7 @@ type AssistantToolSegment {
 
 enum AuthorizeMCPConnectionError {
   CLIENT_NOT_FOUND
+  ORGANIZATION_NOT_FOUND
   TOOL_NOT_FOUND
   WORKSPACE_NOT_FOUND
 }
@@ -537,6 +538,7 @@ Creates the connection if this is the client's first authorization.
 """
 input AuthorizeMCPConnectionInput {
   clientId: String!
+  organizationIds: [UUID!]
   tools: [String!]
   workspaceSlugs: [String!]
 }
@@ -3150,6 +3152,7 @@ type MCPConnection {
   id: UUID!
   lastUsedAt: DateTime
   name: String!
+  organizations: [Organization!]!
   tools: [String!]!
   workspaces: [Workspace!]!
 }
@@ -5536,12 +5539,14 @@ type UpdateExternalCollaboratorResult {
 
 enum UpdateMCPConnectionError {
   NOT_FOUND
+  ORGANIZATION_NOT_FOUND
   TOOL_NOT_FOUND
   WORKSPACE_NOT_FOUND
 }
 
 input UpdateMCPConnectionInput {
   id: UUID!
+  organizationIds: [UUID!]
   tools: [String!]
   workspaceSlugs: [String!]
 }

@@ -7,12 +7,20 @@ fragment MCPConnection_connection on MCPConnection {
     slug
     name
   }
+  organizations {
+    id
+    name
+  }
   tools
 }
 
 query AccountMCPConnections($page: Int, $perPage: Int) {
   mcpConnections {
     ...MCPConnection_connection
+  }
+  organizations {
+    id
+    name
   }
   mcpTools {
     name
@@ -31,11 +39,18 @@ query AccountMCPConnections($page: Int, $perPage: Int) {
       currentMembership {
         role
       }
+      organization {
+        id
+      }
     }
   }
 }
 
 query MCPAuthorizationRequest($clientId: String!, $page: Int, $perPage: Int) {
+  organizations {
+    id
+    name
+  }
   mcpAuthorizationRequest(clientId: $clientId) {
     clientName
     connection {
@@ -58,6 +73,9 @@ query MCPAuthorizationRequest($clientId: String!, $page: Int, $perPage: Int) {
       }
       currentMembership {
         role
+      }
+      organization {
+        id
       }
     }
   }

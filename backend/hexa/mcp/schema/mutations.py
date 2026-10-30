@@ -5,6 +5,7 @@ from oauth2_provider.models import AccessToken, Application, Grant, RefreshToken
 
 from hexa.mcp.models import MCPConnection
 from hexa.mcp.protocol import get_tools_catalogue
+from hexa.user_management.models import Organization
 from hexa.workspaces.models import Workspace
 
 mcp_mutations = MutationType()
@@ -32,22 +33,40 @@ def resolve_workspaces(user, input):
     return workspaces
 
 
+def resolve_organizations(user, input):
+    ids = input.get("organization_ids")
+    if ids is None:
+        return None
+    organizations = list(Organization.objects.filter_for_user(user).filter(id__in=ids))
+    if len(organizations) != len(set(ids)):
+        raise LookupError
+    return organizations
+
+
 def validate_grant(user, grant_input):
     if unknown_tool_names(grant_input):
         return None, "TOOL_NOT_FOUND"
     try:
-        return resolve_workspaces(user, grant_input), None
+        workspaces = resolve_workspaces(user, grant_input)
     except LookupError:
         return None, "WORKSPACE_NOT_FOUND"
+    try:
+        organizations = resolve_organizations(user, grant_input)
+    except LookupError:
+        return None, "ORGANIZATION_NOT_FOUND"
+    return (workspaces, organizations), None
 
 
-def apply_grant(connection: MCPConnection, input, workspaces) -> MCPConnection:
+def apply_grant(connection: MCPConnection, input, scope) -> MCPConnection:
+    workspaces, organizations = scope
     with transaction.atomic():
         if "tools" in input:
             connection.tools = sorted(set(input["tools"]))
         connection.save()
         if workspaces is not None:
             connection.workspaces.set(workspaces)
+        if organizations is not None:
+            connection.organizations.set(organizations)
     return connection
 
 
@@ -63,7 +82,7 @@ def resolve_authorize_mcp_connection(_, info, **kwargs):
             "errors": ["CLIENT_NOT_FOUND"],
             "mcp_connection": None,
         }
-    workspaces, error = validate_grant(request.user, input)
+    scope, error = validate_grant(request.user, input)
     if error:
         return {"success": False, "errors": [error], "mcp_connection": None}
 
@@ -75,7 +94,7 @@ def resolve_authorize_mcp_connection(_, info, **kwargs):
     return {
         "success": True,
         "errors": [],
-        "mcp_connection": apply_grant(connection, input, workspaces),
+        "mcp_connection": apply_grant(connection, input, scope),
     }
 
 
@@ -88,14 +107,14 @@ def resolve_update_mcp_connection(_, info, **kwargs):
     if connection is None:
         return {"success": False, "errors": ["NOT_FOUND"], "mcp_connection": None}
 
-    workspaces, error = validate_grant(request.user, input)
+    scope, error = validate_grant(request.user, input)
     if error:
         return {"success": False, "errors": [error], "mcp_connection": None}
 
     return {
         "success": True,
         "errors": [],
-        "mcp_connection": apply_grant(connection, input, workspaces),
+        "mcp_connection": apply_grant(connection, input, scope),
     }
 
 

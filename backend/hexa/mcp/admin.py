@@ -24,5 +24,5 @@ class MCPConnectionAdmin(admin.ModelAdmin):
     list_display = ("user", "application", "last_used_at", "created_at")
     list_select_related = ("user", "application")
     search_fields = ("user__email", "application__name")
-    filter_horizontal = ("workspaces",)
+    filter_horizontal = ("workspaces", "organizations")
     readonly_fields = ("user", "application", "last_used_at")

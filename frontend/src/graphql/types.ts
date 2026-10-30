@@ -572,6 +572,7 @@ export type AssistantToolSegment = {
 
 export enum AuthorizeMcpConnectionError {
   ClientNotFound = 'CLIENT_NOT_FOUND',
+  OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
   ToolNotFound = 'TOOL_NOT_FOUND',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
@@ -582,6 +583,7 @@ export enum AuthorizeMcpConnectionError {
  */
 export type AuthorizeMcpConnectionInput = {
   clientId: Scalars['String']['input'];
+  organizationIds?: InputMaybe<Array<Scalars['UUID']['input']>>;
   tools?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlugs?: InputMaybe<Array<Scalars['String']['input']>>;
 };
@@ -3116,6 +3118,7 @@ export type McpConnection = {
   id: Scalars['UUID']['output'];
   lastUsedAt?: Maybe<Scalars['DateTime']['output']>;
   name: Scalars['String']['output'];
+  organizations: Array<Organization>;
   tools: Array<Scalars['String']['output']>;
   workspaces: Array<Workspace>;
 };
@@ -6448,12 +6451,14 @@ export type UpdateExternalCollaboratorResult = {
 
 export enum UpdateMcpConnectionError {
   NotFound = 'NOT_FOUND',
+  OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
   ToolNotFound = 'TOOL_NOT_FOUND',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
 export type UpdateMcpConnectionInput = {
   id: Scalars['UUID']['input'];
+  organizationIds?: InputMaybe<Array<Scalars['UUID']['input']>>;
   tools?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlugs?: InputMaybe<Array<Scalars['String']['input']>>;
 };

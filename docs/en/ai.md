@@ -32,7 +32,7 @@ On the hosted platform, each organization has a monthly AI budget set by its sub
 
 OpenHEXA provides a [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server so that external AI assistants can inspect and interact with your workspaces. Setup instructions for supported clients are available at `/mcp/wiki` on your OpenHEXA instance (for example, <https://app.openhexa.org/mcp/wiki>), and the full tool catalogue is at `/mcp`.
 
-Connecting a client works through OAuth: the client redirects you to OpenHEXA, where you sign in and select exactly which workspaces it may access and which tools it may call. You can restrict or revoke these permissions at any time from **Account → MCP connections**. Changes take effect on the next tool call.
+Connecting a client works through OAuth: the client redirects you to OpenHEXA, where you sign in and select exactly which workspaces it may access and which tools it may call. Workspaces are grouped by organization: selecting an organization grants all of its workspaces, including those created or joined later. You can restrict or revoke these permissions at any time from **Account → MCP connections**. Changes take effect on the next tool call.
 
 With MCP, the underlying model is chosen and run by your external AI client, not OpenHEXA. Anything returned by a tool (such as file contents, dataset previews, or pipeline code) is sent to that client and processed under its provider's terms of service. Only grant access to the workspaces and tools you actually need.
 
