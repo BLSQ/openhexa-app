@@ -1,5 +1,24 @@
 # Changelog
 
+## [5.21.0](https://github.com/BLSQ/openhexa-app/compare/5.20.2...5.21.0) (2026-10-30)
+
+
+### Features
+
+* Allow injecting template parameters into saved queries (HEXA-1793 part 2) ([#2130](https://github.com/BLSQ/openhexa-app/issues/2130)) ([08c0c7f](https://github.com/BLSQ/openhexa-app/commit/08c0c7f23e2774f53a104368eb21645fc4035992))
+* surgical file reading tools (HEXA-1758) ([#2152](https://github.com/BLSQ/openhexa-app/issues/2152)) ([cf238cc](https://github.com/BLSQ/openhexa-app/commit/cf238ccc0d237d5e256d923543cb9f4f13672c6b))
+
+
+### Bug Fixes
+
+* add URL to OPENHEXA env to easily find the source webapp in OH ([#2180](https://github.com/BLSQ/openhexa-app/issues/2180)) ([d64fbff](https://github.com/BLSQ/openhexa-app/commit/d64fbff8dce41a4a399c9ddee63b8be41637d2a2))
+* improve error message and disable button when org user limit is reached ([#2198](https://github.com/BLSQ/openhexa-app/issues/2198)) ([6112e6b](https://github.com/BLSQ/openhexa-app/commit/6112e6bfaf5ed6aa957b615538eed91082501a74))
+* little UI glitch on the MCP permissions page for FR users (HEXA-1859) ([#2177](https://github.com/BLSQ/openhexa-app/issues/2177)) ([399e64d](https://github.com/BLSQ/openhexa-app/commit/399e64d7fce6703c08105679ff447c948764df28))
+* long filenames hide the code section (HEXA-1856) ([#2160](https://github.com/BLSQ/openhexa-app/issues/2160)) ([a19b224](https://github.com/BLSQ/openhexa-app/commit/a19b224107e590b5451355862ef0e7578ccc2ca9))
+* remove the attribution from the map to prevent overlapping(HEXA-1803) ([#2150](https://github.com/BLSQ/openhexa-app/issues/2150)) ([a87ec98](https://github.com/BLSQ/openhexa-app/commit/a87ec98197f5379cc2d26f61c14a9f36479ef5bf))
+* space issue in combobox (HEXA-1857)([#2157](https://github.com/BLSQ/openhexa-app/issues/2157)) ([7a7f183](https://github.com/BLSQ/openhexa-app/commit/7a7f183112b17bec7039433980f889833d968d2b))
+* webapps in worktrees ([#2181](https://github.com/BLSQ/openhexa-app/issues/2181)) ([bb9a0ea](https://github.com/BLSQ/openhexa-app/commit/bb9a0ea072b65457737241f40f052787dc2b0d81))
+
 ## [5.20.2](https://github.com/BLSQ/openhexa-app/compare/5.20.1...5.20.2) (2026-10-21)
 
 
