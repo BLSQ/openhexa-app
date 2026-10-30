@@ -1,8 +1,7 @@
 """Pipeline copier: list source pipelines, copy each (with versions) to target.
 
-REMOTE branch — ported from ``migrate_lib/pipelines.py``. The LOCAL (ORM) branch
-is implemented in a later phase. ``_upload_version`` is kept module-level because
-the template copier reuses it to back template versions.
+Ported from ``migrate_lib/pipelines.py``. ``_upload_version`` is kept
+module-level because the template copier reuses it to back template versions.
 
 A *notebook* pipeline needs its ``.ipynb`` present on the target before
 ``createPipeline`` succeeds, so this copier transfers that one file itself
@@ -86,21 +85,6 @@ class PipelinesCopier(ResourceCopier):
         reporter: ProgressReporter,
         *,
         options: CopyOptions = CopyOptions(),
-    ) -> None:
-        if source.is_remote and target.is_remote:
-            self._copy_remote(source, target, result, reporter)
-        else:
-            raise NotImplementedError(
-                "LOCAL pipelines copy (native ORM clone) is implemented in a "
-                "later phase"
-            )
-
-    def _copy_remote(
-        self,
-        source: Endpoint,
-        target: Endpoint,
-        result: CopyResult,
-        reporter: ProgressReporter,
     ) -> None:
         pipes_result = PipelinesResult()
         result.pipelines = pipes_result

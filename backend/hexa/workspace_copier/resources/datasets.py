@@ -142,22 +142,6 @@ class DatasetsCopier(ResourceCopier):
         *,
         options: CopyOptions = CopyOptions(),
     ) -> None:
-        if source.is_remote and target.is_remote:
-            self._copy_remote(source, target, result, reporter, options)
-        else:
-            raise NotImplementedError(
-                "LOCAL datasets copy (native ORM clone) is implemented in a "
-                "later phase"
-            )
-
-    def _copy_remote(
-        self,
-        source: Endpoint,
-        target: Endpoint,
-        result: CopyResult,
-        reporter: ProgressReporter,
-        options: CopyOptions,
-    ) -> None:
         ds_result = DatasetsResult()
         result.datasets = ds_result
 

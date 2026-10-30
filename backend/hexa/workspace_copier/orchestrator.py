@@ -2,8 +2,7 @@
 
 Owns the ordered registry of resource copiers and runs the selected ones in
 dependency order: workspace metadata first (it creates the target and yields its
-handle), then the rest. The medium (ORM vs GraphQL) is decided per endpoint
-inside each copier, so this orchestration is written once and shared by every
+handle), then the rest. This orchestration is written once and shared by every
 flow (CLI + admin).
 """
 
@@ -20,16 +19,18 @@ from hexa.workspace_copier.resources.database import DatabaseCopier
 from hexa.workspace_copier.resources.datasets import DatasetsCopier
 from hexa.workspace_copier.resources.files import FilesCopier
 from hexa.workspace_copier.resources.pipelines import PipelinesCopier
+from hexa.workspace_copier.resources.webapps import WebappsCopier
 from hexa.workspace_copier.resources.workspace import WorkspaceMetadataCopier
 from hexa.workspace_copier.results import CopyResult
 
 WORKSPACE_COPIERS: list[ResourceCopier] = [
     WorkspaceMetadataCopier(),  # Mandatory first step
     FilesCopier(),
-    DatabaseCopier(),  # LOCAL→LOCAL: native pg; else skip + warning
+    DatabaseCopier(),  # same server: native pg; else skip + warning
     ConnectionsCopier(),
     PipelinesCopier(),
     DatasetsCopier(),
+    WebappsCopier(),
 ]
 
 

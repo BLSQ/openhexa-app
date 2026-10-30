@@ -22,11 +22,11 @@ def _src_ws(**overrides):
     return SimpleNamespace(**data)
 
 
-class WorkspaceMetadataCopierRemoteTest(SimpleTestCase):
-    def test_creates_remote_target_and_stores_slug(self):
-        source = Endpoint.remote(MagicMock(), "src")
+class WorkspaceMetadataCopierTest(SimpleTestCase):
+    def test_creates_target_and_stores_slug(self):
+        source = Endpoint(MagicMock(), "src")
         source.client.workspace.return_value = _src_ws()
-        target = Endpoint.remote(MagicMock())
+        target = Endpoint(MagicMock())
         target.client.create_workspace.return_value = MagicMock(
             success=True, workspace=SimpleNamespace(slug="my-workspace-ab12")
         )
@@ -39,9 +39,9 @@ class WorkspaceMetadataCopierRemoteTest(SimpleTestCase):
         self.assertEqual(result.workspace_name, "My Workspace")
 
     def test_sets_docker_image_when_present(self):
-        source = Endpoint.remote(MagicMock(), "src")
+        source = Endpoint(MagicMock(), "src")
         source.client.workspace.return_value = _src_ws(docker_image="custom:1")
-        target = Endpoint.remote(MagicMock())
+        target = Endpoint(MagicMock())
         target.client.create_workspace.return_value = MagicMock(
             success=True, workspace=SimpleNamespace(slug="slug")
         )
@@ -53,9 +53,9 @@ class WorkspaceMetadataCopierRemoteTest(SimpleTestCase):
         target.client.update_workspace.assert_called_once()
 
     def test_existing_target_slug_skips_creation(self):
-        source = Endpoint.remote(MagicMock(), "src")
+        source = Endpoint(MagicMock(), "src")
         source.client.workspace.return_value = _src_ws()
-        target = Endpoint.remote(MagicMock(), "existing-ws")
+        target = Endpoint(MagicMock(), "existing-ws")
         target.client.workspace.return_value = SimpleNamespace(name="Existing WS")
         result = CopyResult()
 
@@ -67,10 +67,10 @@ class WorkspaceMetadataCopierRemoteTest(SimpleTestCase):
         self.assertEqual(result.workspace_name, "Existing WS")
 
     def test_workspace_stashed_during_pre_flight_is_not_fetched_again(self):
-        source = Endpoint.remote(MagicMock(), "src")
+        source = Endpoint(MagicMock(), "src")
         source.client.workspace.return_value = _src_ws()
         # What _build_existing_target hands over once it has verified the slug.
-        target = Endpoint.remote(
+        target = Endpoint(
             MagicMock(), "existing-ws", workspace=SimpleNamespace(name="Existing WS")
         )
         result = CopyResult()
@@ -81,17 +81,9 @@ class WorkspaceMetadataCopierRemoteTest(SimpleTestCase):
         self.assertEqual(result.workspace_name, "Existing WS")
 
     def test_missing_source_workspace_raises(self):
-        source = Endpoint.remote(MagicMock(), "missing")
+        source = Endpoint(MagicMock(), "missing")
         source.client.workspace.return_value = None
-        target = Endpoint.remote(MagicMock())
+        target = Endpoint(MagicMock())
 
         with self.assertRaises(GraphQLError):
-            WorkspaceMetadataCopier().copy(source, target, CopyResult(), NullReporter())
-
-    def test_local_target_not_yet_implemented(self):
-        source = Endpoint.remote(MagicMock(), "src")
-        source.client.workspace.return_value = _src_ws()
-        target = Endpoint.local()
-
-        with self.assertRaises(NotImplementedError):
             WorkspaceMetadataCopier().copy(source, target, CopyResult(), NullReporter())

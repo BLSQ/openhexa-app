@@ -1,4 +1,4 @@
-from django.test import SimpleTestCase, override_settings
+from django.test import SimpleTestCase
 
 from hexa.workspace_copier.forms import CopyWorkspaceForm
 
@@ -19,14 +19,15 @@ def _base_data(**overrides):
 
 
 class CopyWorkspaceFormTest(SimpleTestCase):
-    @override_settings(
-        BASE_URL="http://localhost:8000", INTERNAL_BASE_URL="http://app:8000"
-    )
-    def test_blank_url_defaults_to_this_server_internal_url(self):
+    def test_same_server_is_off_by_default(self):
         form = CopyWorkspaceForm(data=_base_data())
         self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual(form.cleaned_data["source_url"], "http://app:8000/graphql/")
-        self.assertEqual(form.cleaned_data["target_url"], "http://app:8000/graphql/")
+        self.assertFalse(form.cleaned_data["same_server"])
+
+    def test_same_server_can_be_checked(self):
+        form = CopyWorkspaceForm(data=_base_data(same_server="on"))
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertTrue(form.cleaned_data["same_server"])
 
     def test_token_is_required_for_this_server_too(self):
         form = CopyWorkspaceForm(data=_base_data(source_token="", target_token=""))
@@ -71,14 +72,14 @@ class CopyWorkspaceFormTest(SimpleTestCase):
         self.assertTrue(form.is_valid(), form.errors)
         self.assertEqual(form.cleaned_data["target_workspace_slug"], "")
 
-    def test_remote_source_requires_token(self):
+    def test_source_url_requires_token(self):
         form = CopyWorkspaceForm(
             data=_base_data(source_url="https://example.org/graphql/", source_token="")
         )
         self.assertFalse(form.is_valid())
         self.assertIn("source_token", form.errors)
 
-    def test_remote_source_with_token_is_valid(self):
+    def test_source_url_with_token_is_valid(self):
         form = CopyWorkspaceForm(
             data=_base_data(source_url="https://example.org/graphql/")
         )
