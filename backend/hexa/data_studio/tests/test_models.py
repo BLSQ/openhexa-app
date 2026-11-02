@@ -428,7 +428,8 @@ class SavedQueryPublicVisibilityTest(SavedQueryTestMixin, TestCase):
         query.refresh_from_db()
         self.assertEqual(SavedQueryVisibility.PRIVATE, query.visibility)
 
-    def test_filter_for_user_includes_public_queries_only_on_request(self):
+    def test_filter_for_user_keeps_public_queries_to_their_workspace(self):
+        # Only the permalink lookups reach public queries from outside (see schema.py)
         public = self.create_saved_query(
             name="public", visibility=SavedQueryVisibility.PUBLIC
         )
@@ -436,11 +437,6 @@ class SavedQueryPublicVisibilityTest(SavedQueryTestMixin, TestCase):
 
         for user in [AnonymousUser(), self.USER_OUTSIDER]:
             self.assertFalse(SavedQuery.objects.filter_for_user(user).exists())
-            self.assertEqual(
-                [public],
-                list(SavedQuery.objects.filter_for_user(user, include_public=True)),
-            )
-        # Members keep seeing the public queries of their workspace either way
         self.assertEqual(
             {public, shared},
             set(SavedQuery.objects.filter_for_user(self.USER_VIEWER)),
@@ -487,28 +483,6 @@ class SavedQueryPublicVisibilityTest(SavedQueryTestMixin, TestCase):
         with self.assertRaises(PermissionDenied):
             query.delete_if_has_perm(principal=self.USER_EDITOR)
         self.assertTrue(SavedQuery.objects.filter(pk=query.pk).exists())
-
-    def test_service_principals_never_reach_other_workspaces_public_queries(self):
-        own = self.create_saved_query(name="own")
-        elsewhere = self.create_saved_query(
-            user=self.USER_ADMIN,
-            workspace=self.WORKSPACE_2,
-            name="elsewhere",
-            visibility=SavedQueryVisibility.PUBLIC,
-        )
-
-        pipeline_run = MagicMock(PipelineRun)
-        pipeline_run.pipeline = MagicMock(Pipeline)
-        pipeline_run.pipeline.workspace = self.WORKSPACE
-        pipeline_run.pipeline.workspace_id = self.WORKSPACE.id
-        visible = set(
-            SavedQuery.objects.filter_for_user(
-                PipelineRunUser(pipeline_run), include_public=True
-            )
-        )
-
-        self.assertEqual({own}, visible)
-        self.assertNotIn(elsewhere, visible)
 
 
 class SavedQueryAuthorDeletionTest(SavedQueryTestMixin, TestCase):

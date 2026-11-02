@@ -23,10 +23,11 @@ from hexa.databases.query_text import (
 )
 from hexa.databases.schema import database_object
 from hexa.git.exceptions import GitError
+from hexa.user_management.models import ServicePrincipal
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
-from .models import QueryLog, SavedQuery
+from .models import QueryLog, SavedQuery, SavedQueryVisibility
 from .pagination import PaginationError
 from .query_runner import run_and_log_database_query, run_saved_query
 from .templating import (
@@ -259,9 +260,27 @@ def resolve_workspace_permissions_publish_saved_query(
     )
 
 
-def _visible_saved_queries(request: HttpRequest, *, include_public: bool = False):
-    return SavedQuery.objects.filter_for_user(
-        request.user, include_public=include_public
+def _visible_saved_queries(request: HttpRequest):
+    return SavedQuery.objects.filter_for_user(request.user).select_related(
+        "created_by", "workspace", "workspace__organization"
+    )
+
+
+def _saved_queries_reachable_by_permalink(request: HttpRequest):
+    """What a permalink opens: the queries the user may see, plus the public queries of
+    every workspace, for anonymous users too.
+
+    Service principals (web apps, pipeline runs, MCP connections) stay confined to the
+    workspaces they were issued for: opening other workspaces' public queries to them
+    is a decision of its own (HEXA-1847).
+    """
+    visible = _visible_saved_queries(request)
+    if isinstance(request.user, ServicePrincipal):
+        return visible
+    # `pk__in` rather than `|`: `filter_for_user` returns a distinct queryset, except
+    # for superusers, and Django refuses to combine distinct and non-distinct ones.
+    return SavedQuery.objects.filter(
+        Q(pk__in=visible) | Q(visibility=SavedQueryVisibility.PUBLIC)
     ).select_related("created_by", "workspace", "workspace__organization")
 
 
@@ -286,9 +305,7 @@ def resolve_saved_query_by_slug(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     try:
         # The permalink lookup: public queries are open to anyone who has the slug.
-        return _visible_saved_queries(request, include_public=True).get(
-            slug=kwargs["slug"]
-        )
+        return _saved_queries_reachable_by_permalink(request).get(slug=kwargs["slug"])
     except SavedQuery.DoesNotExist:
         return None
 
@@ -324,7 +341,7 @@ def resolve_execute_saved_query(_, info, **kwargs):
         # No workspace to match on: the slug is unique across workspaces, and
         # `filter_for_user` already confines a web app to the single workspace
         # its token was issued for.
-        saved_query = _visible_saved_queries(request, include_public=True).get(
+        saved_query = _saved_queries_reachable_by_permalink(request).get(
             slug=query_input["slug"]
         )
         result = run_saved_query(

@@ -2,17 +2,22 @@ from unittest import mock
 
 from django.core.exceptions import PermissionDenied
 from django.db import connection
+from django.test import RequestFactory
 from django.test.utils import CaptureQueriesContext
 
 from hexa.core.test import GraphQLTestCase
 from hexa.data_studio.models import QueryLog, SavedQuery, SavedQueryVisibility
 from hexa.data_studio.query_runner import run_saved_query
+from hexa.data_studio.schema import _saved_queries_reachable_by_permalink
 from hexa.databases.tests.helpers import (
     provision_workspace_database,
     seed_demo_table,
 )
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.git.testutils import make_git_client_mock
+from hexa.pipelines.authentication import PipelineRunUser
+from hexa.pipelines.models import Pipeline, PipelineRun
+from hexa.user_management.models import User
 
 from .testutils import SavedQueryTestMixin
 
@@ -1669,6 +1674,36 @@ class PublicSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
             "query ($id: ID!) { savedQuery(id: $id) { id } }", {"id": str(query.id)}
         )
         self.assertIsNone(r["data"]["savedQuery"])
+
+    def test_superuser_reads_a_public_query(self):
+        query = self.create_saved_query(visibility=SavedQueryVisibility.PUBLIC)
+        superuser = User.objects.create_user(
+            "root@bluesquarehub.com", "rootpassword", is_superuser=True
+        )
+        self.client.force_login(superuser)
+
+        self.assertEqual("SELECT 1", self._get_by_slug(query.slug)["content"])
+
+    def test_service_principals_never_reach_other_workspaces_public_queries(self):
+        own = self.create_saved_query(name="own")
+        elsewhere = self.create_saved_query(
+            user=self.USER_ADMIN,
+            workspace=self.WORKSPACE_2,
+            name="elsewhere",
+            visibility=SavedQueryVisibility.PUBLIC,
+        )
+
+        pipeline_run = mock.MagicMock(PipelineRun)
+        pipeline_run.pipeline = mock.MagicMock(Pipeline)
+        pipeline_run.pipeline.workspace = self.WORKSPACE
+        pipeline_run.pipeline.workspace_id = self.WORKSPACE.id
+        request = RequestFactory().get("/")
+        request.user = PipelineRunUser(pipeline_run)
+
+        visible = set(_saved_queries_reachable_by_permalink(request))
+
+        self.assertEqual({own}, visible)
+        self.assertNotIn(elsewhere, visible)
 
     def test_visitor_runs_a_public_query(self):
         seed_demo_table(self.WORKSPACE, [(1, "a")])

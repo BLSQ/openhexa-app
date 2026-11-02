@@ -70,26 +70,7 @@ WORKSPACE_WIDE_VISIBILITIES = [
 
 
 class SavedQueryQuerySet(BaseQuerySet, SoftDeleteQuerySet):
-    def filter_for_user(
-        self, user: AnonymousUser | UserInterface, *, include_public: bool = False
-    ) -> models.QuerySet:
-        """Every saved query the user may open.
-
-        ``include_public`` adds the public queries of every workspace, which anyone
-        with their permalink may open, logged in or not. Opt-in so that only the
-        permalink entry points reach beyond what the user's memberships grant.
-
-        Service principals (web apps, pipeline runs, MCP connections) never get it:
-        they stay confined to the workspaces they were issued for. Opening other
-        workspaces' public queries to them is a decision of its own (HEXA-1847).
-        """
-        public = models.Q(visibility=SavedQueryVisibility.PUBLIC)
-
-        # Not routed through _filter_for_user_and_query_object when anonymous: that
-        # helper turns anonymous users away, while public queries must stay reachable.
-        if not user.is_authenticated:
-            return self.filter(public) if include_public else self.none()
-
+    def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
         accessible = models.Q(visibility__in=WORKSPACE_WIDE_VISIBILITIES)
         # Service principals (pipeline runs, webapps) impersonate a workspace rather
         # than a person, so they never own a private query - a deliberate call for
@@ -102,14 +83,10 @@ class SavedQueryQuerySet(BaseQuerySet, SoftDeleteQuerySet):
         ):
             accessible |= models.Q(created_by=user)
 
-        query = (
-            models.Q(workspace__in=Workspace.objects.filter_for_user(user)) & accessible
-        )
-        if include_public and not isinstance(user, ServicePrincipal):
-            query |= public
         return self._filter_for_user_and_query_object(
             user,
-            query,
+            models.Q(workspace__in=Workspace.objects.filter_for_user(user))
+            & accessible,
             return_all_if_superuser=not isinstance(user, ServicePrincipal),
         )
 

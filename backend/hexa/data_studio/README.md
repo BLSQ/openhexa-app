@@ -49,9 +49,10 @@ workspace are not shown there: like a web app, the visitor gets the result, not 
   whatever SQL the query holds, so a workspace editor who could rewrite it would decide what
   a link already handed out serves. Editors keep renaming and describing it. Deleting a public
   query breaks its link, so it is likewise the author's or a publisher's call.
-- **What a visitor reads.** `filter_for_user(include_public=True)` adds public queries, for
-  anonymous users too; only the permalink lookups (`savedQueryBySlug`, `executeSavedQuery`)
-  ask for it, so listings and every other lookup stay within what membership grants.
+- **What a visitor reads.** `filter_for_user` keeps public queries to their workspace, like
+  any other query. Only the permalink lookups (`savedQueryBySlug`, `executeSavedQuery`) add
+  the public queries of every workspace on top (`schema._saved_queries_reachable_by_permalink`),
+  for anonymous users too, so listings and every other lookup stay within what membership grants.
   Service principals (web apps, pipeline runs, MCP) never get it: they stay confined to their
   workspaces until HEXA-1847 decides otherwise. A caller who reaches a query only because it
   is public gets `null` for `content`, `createdBy` and `workspace`, and no `errorMessage`
