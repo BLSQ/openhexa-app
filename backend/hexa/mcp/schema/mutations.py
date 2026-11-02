@@ -1,3 +1,5 @@
+from typing import Any
+
 from ariadne import MutationType
 from django.db import transaction
 from django.http import HttpRequest
@@ -5,20 +7,22 @@ from oauth2_provider.models import AccessToken, Application, Grant, RefreshToken
 
 from hexa.mcp.models import MCPConnection
 from hexa.mcp.protocol import get_tools_catalogue
-from hexa.user_management.models import Organization
+from hexa.user_management.models import Organization, User
 from hexa.workspaces.models import Workspace
 
 mcp_mutations = MutationType()
 
+GrantScope = tuple[list[Workspace] | None, list[Organization] | None]
 
-def unknown_tool_names(input) -> bool:
+
+def unknown_tool_names(input: dict[str, Any]) -> bool:
     names = input.get("tools")
     if names is None:
         return False
     return bool(set(names) - {tool["name"] for tool in get_tools_catalogue()})
 
 
-def resolve_workspaces(user, input):
+def resolve_workspaces(user: User, input: dict[str, Any]) -> list[Workspace] | None:
     """The workspaces named by the input, or None when it names none.
 
     Filtered for the user, so a grant can never name a workspace they have no
@@ -33,7 +37,9 @@ def resolve_workspaces(user, input):
     return workspaces
 
 
-def resolve_organizations(user, input):
+def resolve_organizations(
+    user: User, input: dict[str, Any]
+) -> list[Organization] | None:
     ids = input.get("organization_ids")
     if ids is None:
         return None
@@ -43,7 +49,9 @@ def resolve_organizations(user, input):
     return organizations
 
 
-def validate_grant(user, grant_input):
+def validate_grant(
+    user: User, grant_input: dict[str, Any]
+) -> tuple[GrantScope, None] | tuple[None, str]:
     if unknown_tool_names(grant_input):
         return None, "TOOL_NOT_FOUND"
     try:
@@ -57,7 +65,9 @@ def validate_grant(user, grant_input):
     return (workspaces, organizations), None
 
 
-def apply_grant(connection: MCPConnection, input, scope) -> MCPConnection:
+def apply_grant(
+    connection: MCPConnection, input: dict[str, Any], scope: GrantScope
+) -> MCPConnection:
     workspaces, organizations = scope
     with transaction.atomic():
         if "tools" in input:
