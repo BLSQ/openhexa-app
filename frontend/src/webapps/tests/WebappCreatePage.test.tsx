@@ -104,7 +104,6 @@ const graphqlMocks: MockedResponse[] = [
           workspaceSlug: "test-workspace",
           name: "Test Webapp",
           icon: undefined,
-          isPublic: undefined,
           source: {
             iframe: {
               url: "http://test-webapp.com",

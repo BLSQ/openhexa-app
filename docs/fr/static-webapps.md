@@ -42,6 +42,8 @@ Chaque webapp obtient un sous-domaine sous le domaine webapps du workspace — p
 - **Privé** (par défaut) : seuls les membres authentifiés du workspace peuvent voir la webapp. Les webapps statiques privées peuvent aussi appeler l'API GraphQL d'OpenHEXA via un point d'accès sur leur propre URL (voir ci-dessous).
 - **Public** : n'importe qui ayant l'URL peut consulter la webapp. Les webapps publiques **ne peuvent pas** appeler le proxy GraphQL — si vous avez besoin d'exposer des données du workspace publiquement, générez un export statique depuis un pipeline et servez-le comme un fichier dans la webapp.
 
+Pour changer la visibilité, utilisez le bouton **Rendre publique** / **Rendre privée** dans l'en-tête de la webapp et confirmez dans la fenêtre qui s'ouvre. Il est accessible aux membres qui peuvent modifier la webapp. L'état actuel est indiqué par un badge à côté du nom de la webapp.
+
 ## Appeler l'API GraphQL d'OpenHEXA
 
 Les webapps statiques privées peuvent appeler l'API GraphQL de la plateforme depuis leur code JavaScript, via un point d'accès sur leur propre URL, pour lire les données du workspace et lancer des pipelines. Le reste de cette page couvre cette API en détail — les webapps publiques et iframe ne peuvent pas utiliser ce point d'accès.
