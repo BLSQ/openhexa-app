@@ -147,7 +147,7 @@ export const downloadQueryCsv = (
 // The SQL stays server-side: the slug is all the request carries.
 export const downloadSavedQueryCsv = (slug: string): Promise<void> =>
   submitCsvDownload(
-    `${apiBasePath()}/data-studio/queries/${encodeURIComponent(
+    `${apiBasePath()}/data-studio/public/queries/${encodeURIComponent(
       slug,
     )}/download/`,
     {},

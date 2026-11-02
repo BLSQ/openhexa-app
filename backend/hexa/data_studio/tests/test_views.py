@@ -486,6 +486,26 @@ class DownloadSavedQueryCsvViewTest(SavedQueryTestMixin, TestCase):
                 )
         self.assertEqual(0, QueryLog.objects.count())
 
+    def test_query_slugged_like_the_editor_route_is_served(self):
+        # "query" is what the slug generator falls back to, and the editor export's
+        # route has "query" in the same position.
+        query = self.create_saved_query(
+            name="Query", visibility=SavedQueryVisibility.PUBLIC
+        )
+        self.assertEqual("query", query.slug)
+
+        response = self.client.post(self._url(query.slug))
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(
+            'attachment; filename="query.csv"', response.headers["Content-Disposition"]
+        )
+        # Reading the stream to its end is what gives the export slot back
+        self.assertEqual(
+            UTF8_BOM + "?column?\r\n1\r\n",
+            DownloadQueryCsvViewTest._collect(response).decode("utf-8"),
+        )
+
     def test_public_query_of_an_archived_workspace_is_not_served(self):
         query = self.create_saved_query(visibility=SavedQueryVisibility.PUBLIC)
         Workspace.objects.filter(pk=self.WORKSPACE.pk).update(archived=True)

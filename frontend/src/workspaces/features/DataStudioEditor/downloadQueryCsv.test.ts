@@ -76,7 +76,7 @@ describe("downloadQueryCsv", () => {
     const form = submittedForms[0];
     expect(form.method).toBe("post");
     expect(form.getAttribute("action")).toContain(
-      "/data-studio/queries/my%20query%2Fslug/download/",
+      "/data-studio/public/queries/my%20query%2Fslug/download/",
     );
     expect(form.target).toBe("data-studio-csv-download-frame");
     expect(fieldValue(form, CONTRACT.fields.query)).toBeUndefined();

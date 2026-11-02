@@ -10,8 +10,10 @@ urlpatterns = [
         views.download_query_csv,
         name="download_query_csv",
     ),
+    # One segment longer than the route above on purpose: any `<x>/<slug>/download/`
+    # would be caught by it when the slug is "query", the slug generator's fallback.
     path(
-        "queries/<str:slug>/download/",
+        "public/queries/<str:slug>/download/",
         views.download_saved_query_csv,
         name="download_saved_query_csv",
     ),
