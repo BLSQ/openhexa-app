@@ -6,6 +6,7 @@ from django.test import SimpleTestCase
 
 from hexa.core.test import TestCase
 from hexa.git.forgejo import ForgejoAPIError
+from hexa.git.naming import REPO_NAME_MAX_LENGTH, build_repo_name
 from hexa.user_management.models import User
 from hexa.webapps.models import GitWebapp, Webapp
 from hexa.workspace_copier.endpoints import Endpoint
@@ -247,6 +248,22 @@ class WebappsCopierSameServerTest(TestCase):
             self.target_ws.organization.slug, copy.repository
         )
         self.assertEqual(servers.calls, [])
+
+    def test_long_repository_name_is_shortened_for_forgejo(self):
+        target_ws = create_workspace(
+            name="Long target", slug="long-target-" + "w" * 48, db_name="long"
+        )
+        slug = "long-app-" + "a" * 45
+        self._static(slug)
+        servers = FakeServers(_static_listing(slug))
+
+        self.run_copy(servers, target_slug=target_ws.slug)
+
+        copy = GitWebapp.objects.get(workspace=target_ws)
+        self.assertLessEqual(len(copy.repository), REPO_NAME_MAX_LENGTH)
+        self.assertEqual(
+            copy.repository, build_repo_name(f"{target_ws.slug}-webapp-{copy.slug}")
+        )
 
     def test_iframe_webapp_still_goes_through_graphql(self):
         servers = FakeServers([_webapp("embed")])

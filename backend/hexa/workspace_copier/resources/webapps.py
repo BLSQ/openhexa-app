@@ -26,6 +26,7 @@ import requests
 from openhexa.graphql.graphql_client.client import Client
 
 from hexa.git.forgejo import ForgejoAPIError
+from hexa.git.naming import build_repo_name
 from hexa.webapps.models import (
     GitWebapp,
     create_webapp_slug,
@@ -211,7 +212,7 @@ def _copy_static(webapp: GitWebapp, target_ws: Workspace) -> GitWebapp:
         is_public=webapp.is_public,
         allowed_operations=webapp.allowed_operations,
         created_by=webapp.created_by,
-        repository=f"{target_ws.slug}-webapp-{slug}",
+        repository=build_repo_name(f"{target_ws.slug}-webapp-{slug}"),
         published_commit=webapp.published_commit,
     )
     copy.copy_repo_from(webapp)
