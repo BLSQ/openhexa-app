@@ -1,11 +1,11 @@
 from unittest.mock import MagicMock, patch
 
-from hexa.assistant.agents.edit_pipeline_agent import (
+from hexa.assistant.instructions import InstructionSet
+from hexa.assistant.models import Conversation, Message, ToolInvocation
+from hexa.assistant.tools.pipelines import (
     ProposedFile,
     propose_pipeline_version,
 )
-from hexa.assistant.instructions import InstructionSet
-from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.core.test import TestCase
 from hexa.user_management.models import User
 from hexa.workspaces.tests.testutils import create_workspace

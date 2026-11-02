@@ -125,6 +125,18 @@ class GitClient(ABC):
         ...
 
     @abstractmethod
+    def get_repository_files_from_tree(
+        self,
+        repo_name: str,
+        tree: list[dict],
+        ref: str = "main",
+        *,
+        org_slug: str | None = None,
+    ) -> list[dict]:
+        """Every file and directory of a `get_files_tree` result, with its content."""
+        ...
+
+    @abstractmethod
     def get_commit(
         self,
         org_slug: str,

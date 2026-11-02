@@ -1,21 +1,19 @@
-import json
-
-from pydantic import BaseModel
-
 from hexa.assistant.agents.base import BaseAgent
-from hexa.assistant.agents.proposals import (
-    nothing_to_delete_error,
-    resolve_commit_message,
-    resolve_deleted_paths,
-)
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.keys import AgentKey
-from hexa.assistant.models import Conversation, ToolInvocation
+from hexa.assistant.models import ToolInvocation
+from hexa.assistant.tools.proposals import pending_proposal
+from hexa.assistant.tools.webapps import (
+    glob_webapp_files,
+    grep_webapp_files,
+    propose_webapp_version,
+    read_webapp_file,
+)
 from hexa.git.enums import FileEncoding
 from hexa.mcp.tools.connections import list_connections
 from hexa.mcp.tools.databases import get_db_schema, get_db_table_schema
 from hexa.mcp.tools.datasets import get_dataset, list_datasets, preview_dataset_file
-from hexa.mcp.tools.files import list_files, read_file
+from hexa.mcp.tools.files import glob_files, grep_files, list_files, read_file
 from hexa.mcp.tools.help import get_help_or_doc
 from hexa.mcp.tools.pipelines import get_pipeline, list_pipelines
 from hexa.mcp.tools.saved_queries import (
@@ -24,144 +22,10 @@ from hexa.mcp.tools.saved_queries import (
     list_saved_queries,
     update_saved_query,
 )
-from hexa.mcp.tools.webapps import get_static_webapp_file
 from hexa.webapps.models import GitWebapp
 
 _MAX_INLINE_LINES = 300
 _WEBAPP_ENTRY_POINT = "index.html"
-
-
-class ProposedFile(BaseModel):
-    path: str
-    content: str
-
-
-class FilePatch(BaseModel):
-    path: str
-    old_string: str
-    new_string: str
-
-
-def propose_webapp_version(
-    webapp: GitWebapp,
-    modified_files: list[ProposedFile] | None = None,
-    file_patches: list[FilePatch] | str | None = None,
-    deleted_files: list[str] | None = None,
-    commit_message: str | None = None,
-    conversation: Conversation | None = None,
-) -> dict:
-    """Propose changes to the web app files.
-
-    Two ways to describe changes — use whichever fits:
-
-    - modified_files: pass the full new content for files you created or rewrote entirely
-      (each entry needs a 'path' and 'content').
-    - file_patches: for targeted edits to existing files, pass {path, old_string, new_string}.
-      The backend finds old_string in the current file and replaces it with new_string.
-      Prefer this over modified_files when changing a few lines of a large file — you
-      only need to read and reproduce the lines that actually change.
-
-    List any files to remove in deleted_files. A directory path removes everything under it.
-    Deletions cover binary files (images, fonts) too, even though their content is never
-    inlined here.
-    Unchanged files are preserved automatically.
-    You can mix modified_files and file_patches in the same call.
-    Pass commit_message to describe the change as a Conventional Commit: a
-    `type(scope): summary` subject line, optionally followed by a blank line and a
-    short body explaining why.
-    It becomes the commit message if the user accepts the proposal.
-    """
-    if isinstance(file_patches, str):
-        try:
-            raw = json.loads(file_patches)
-            file_patches = [FilePatch(**item) for item in raw]
-        except (json.JSONDecodeError, TypeError, ValueError):
-            return {
-                "error": "file_patches must be a list of {path, old_string, new_string} objects."
-            }
-
-    if not modified_files and not file_patches and not deleted_files:
-        return {
-            "error": (
-                "No changes provided. Pass modified files in modified_files, "
-                "targeted find/replace edits in file_patches, or paths to remove "
-                "in deleted_files. Do not call this tool until you have the actual changes ready."
-            )
-        }
-
-    current_files: dict[str, str] = {}
-    deleted_paths: set[str] = set()
-
-    pending = None
-    if conversation is not None:
-        pending = (
-            ToolInvocation.objects.filter(
-                message__conversation=conversation,
-                tool_name="propose_webapp_version",
-                success=True,
-                proposal_pending=True,
-            )
-            .order_by("-created_at")
-            .first()
-        )
-
-    repo_files = None
-    if pending and pending.tool_output:
-        for f in pending.tool_output.get("files", []):
-            current_files[f["path"]] = f["content"]
-        deleted_paths.update(pending.tool_output.get("deleted_paths", []))
-    else:
-        repo_files = webapp.get_files(include_binary_content=False)
-        for f in repo_files:
-            if f.get("encoding") == FileEncoding.TEXT and f.get("content") is not None:
-                current_files[f["path"]] = f["content"]
-
-    for patch in file_patches or []:
-        if patch.path not in current_files:
-            return {
-                "error": f"Cannot patch '{patch.path}': file not found in the current version."
-            }
-        original = current_files[patch.path]
-        if patch.old_string not in original:
-            return {
-                "error": (
-                    f"Cannot patch '{patch.path}': old_string not found in the file. "
-                    "Make sure it matches the current content exactly, including whitespace."
-                )
-            }
-        current_files[patch.path] = original.replace(
-            patch.old_string, patch.new_string, 1
-        )
-
-    for f in modified_files or []:
-        current_files[f.path] = f.content
-        deleted_paths.discard(f.path)
-
-    if deleted_files:
-        if repo_files is None:
-            repo_files = webapp.get_files(include_binary_content=False)
-        known_paths = (
-            {f["path"] for f in repo_files if f.get("type") == "file"}
-            | set(current_files)
-            | deleted_paths
-        )
-        resolved, unmatched = resolve_deleted_paths(deleted_files, known_paths)
-        if unmatched:
-            return nothing_to_delete_error(unmatched)
-        deleted_paths |= resolved
-        for path in resolved:
-            current_files.pop(path, None)
-
-    output = {
-        "files": [{"path": k, "content": v} for k, v in current_files.items()],
-        "deleted_paths": sorted(deleted_paths),
-    }
-    message = resolve_commit_message(
-        commit_message, pending.tool_output if pending else None
-    )
-    if message:
-        output["commit_message"] = message
-    return output
 
 
 class EditWebappAgent(BaseAgent):
@@ -170,12 +34,16 @@ class EditWebappAgent(BaseAgent):
     history_strip_tools = {"propose_webapp_version"}
     tools = [
         get_help_or_doc,
-        get_static_webapp_file,
+        glob_webapp_files,
+        grep_webapp_files,
+        read_webapp_file,
         list_datasets,
         get_dataset,
         preview_dataset_file,
         list_connections,
         list_files,
+        glob_files,
+        grep_files,
         read_file,
         list_pipelines,
         get_pipeline,
@@ -230,16 +98,7 @@ class EditWebappAgent(BaseAgent):
         if webapp.description:
             lines.append(f"Description: {webapp.description}")
 
-        pending = (
-            ToolInvocation.objects.filter(
-                message__conversation=self.conversation,
-                tool_name="propose_webapp_version",
-                success=True,
-                proposal_pending=True,
-            )
-            .order_by("-created_at")
-            .first()
-        )
+        pending = pending_proposal(self.conversation, "propose_webapp_version")
 
         if pending and pending.tool_output:
             proposed_files = pending.tool_output.get("files", [])
@@ -278,9 +137,8 @@ class EditWebappAgent(BaseAgent):
             lines.append("")
             lines.append(
                 "### Files\n"
-                f"Call `get_static_webapp_file` with webapp slug `{webapp.slug}` "
-                f"and the file path to read any text file. "
-                f"For large files pass `start_line` and `end_line` to read only the relevant section."
+                "Call `read_webapp_file` with a file path to read any text file. "
+                "Locate code with `grep_webapp_files` first and read only that section."
             )
             for f in all_files:
                 if f.get("encoding") == FileEncoding.TEXT:

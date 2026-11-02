@@ -56,7 +56,7 @@ black==26.10.1
     # via ariadne-codegen
 bleach==6.4.0
     # via django-sql-dashboard
-boto3==1.43.114
+boto3==1.43.118
     # via
     #   -r requirements.in
     #   moto
@@ -292,6 +292,7 @@ isort==6.0.1
     # via ariadne-codegen
 jinja2==3.1.6
     # via
+    #   -r requirements.in
     #   moto
     #   openhexa-sdk
 jiter==0.17.0
@@ -306,7 +307,7 @@ jwcrypto==1.5.7
     # via django-oauth-toolkit
 kubernetes==33.1.0
     # via -r requirements.in
-logfire==4.30.0
+logfire==4.41.0
     # via -r requirements.in
 logfire-api==4.25.0
     # via

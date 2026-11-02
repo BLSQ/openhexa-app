@@ -4,8 +4,10 @@ from collections import namedtuple
 from django.conf import settings
 from django.db import models
 
+from hexa.core.text_files import TextFiles
 from hexa.git.client import GitClient
 from hexa.git.forgejo import ForgejoAPIError, get_forgejo_client
+from hexa.git.repo_file_source import GitRepoFileSource
 from hexa.user_management.models import User
 
 logger = logging.getLogger(__name__)
@@ -46,6 +48,20 @@ class GitRepoMixin(models.Model):
             ),
             "page": page,
         }
+
+    def get_text_files(self, ref: str = "main") -> TextFiles:
+        """The repository's files for glob, grep and read: the text of each file, or None
+        for binary and too large ones. Loaded like the file tree editors see it, so
+        whatever a proposal can patch can be read first.
+        """
+        return TextFiles(
+            GitRepoFileSource(
+                self.client,
+                self.repository,
+                ref,
+                org_slug=self.git_org.slug,
+            )
+        )
 
     def get_commit_diff(self, sha: str) -> dict:
         return {

@@ -8,7 +8,6 @@ query ListFiles($workspaceSlug: String!, $prefix: String, $page: Int, $perPage: 
         items {
           name
           key
-          path
           type
           size
           updatedAt
@@ -18,12 +17,62 @@ query ListFiles($workspaceSlug: String!, $prefix: String, $page: Int, $perPage: 
   }
 }
 
-query ReadFileContent($workspaceSlug: String!, $filePath: String!, $startLine: Int, $endLine: Int) {
-  readFileContent(workspaceSlug: $workspaceSlug, filePath: $filePath, startLine: $startLine, endLine: $endLine) {
+query ReadFileContent($workspaceSlug: String!, $filePath: String!, $startLine: Int, $endLine: Int, $lineNumbers: Boolean) {
+  readFileContent(workspaceSlug: $workspaceSlug, filePath: $filePath, startLine: $startLine, endLine: $endLine, lineNumbers: $lineNumbers) {
     success
     errors
     content
     size
+    startLine
+    endLine
+    totalLines
+    notice
+  }
+}
+
+query GlobFiles($workspaceSlug: String!, $pattern: String!, $prefix: String) {
+  globFiles(workspaceSlug: $workspaceSlug, pattern: $pattern, prefix: $prefix) {
+    success
+    errors
+    paths
+    truncated
+    notice
+  }
+}
+
+query GrepFiles(
+  $workspaceSlug: String!
+  $pattern: String!
+  $glob: String!
+  $prefix: String
+  $outputMode: GrepOutputMode
+  $ignoreCase: Boolean
+  $context: Int
+  $headLimit: Int
+  $offset: Int
+) {
+  grepFiles(
+    workspaceSlug: $workspaceSlug
+    pattern: $pattern
+    glob: $glob
+    prefix: $prefix
+    outputMode: $outputMode
+    ignoreCase: $ignoreCase
+    context: $context
+    headLimit: $headLimit
+    offset: $offset
+  ) {
+    success
+    errors
+    files
+    content
+    counts {
+      path
+      count
+    }
+    total
+    truncated
+    notice
   }
 }
 

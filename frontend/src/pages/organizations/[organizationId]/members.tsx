@@ -16,6 +16,7 @@ import AddOrganizationMemberDialog from "organizations/features/OrganizationMemb
 import { useState } from "react";
 import OrganizationInvitations from "organizations/features/OrganizationInvitations";
 import Title from "core/components/Title";
+import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 
 type Props = {
   organization: OrganizationWithWorkspacesQuery["organization"];
@@ -39,6 +40,10 @@ const OrganizationMembersPage: NextPageWithLayout<Props> = ({
     return null;
   }
 
+  const usersLimit = organization.subscription?.limits.users;
+  const isUsersLimitReached =
+    usersLimit != null && organization.usage.users >= usersLimit;
+
   return (
     <Page title={t("Members")}>
       <OrganizationLayout
@@ -53,14 +58,21 @@ const OrganizationMembersPage: NextPageWithLayout<Props> = ({
           </div>
         }
         headerActions={
-          <Button
-            variant="primary"
-            onClick={() => setIsNewMemberDialogOpen(true)}
-            leadingIcon={<PlusIcon className="w-4" />}
-            disabled={!organization.permissions.manageMembers}
+          <SubscriptionLimitTooltip
+            isLimitReached={isUsersLimitReached}
+            title={t(
+              "You have reached the maximum number of users for your plan.",
+            )}
           >
-            {t("Invite member")}
-          </Button>
+            <Button
+              variant="primary"
+              onClick={() => setIsNewMemberDialogOpen(true)}
+              leadingIcon={<PlusIcon className="w-4" />}
+              disabled={!organization.permissions.manageMembers}
+            >
+              {t("Invite member")}
+            </Button>
+          </SubscriptionLimitTooltip>
         }
       >
         <OrganizationMembers organizationId={organization.id} />

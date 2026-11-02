@@ -706,6 +706,34 @@ class GraphQLProxyMiddlewareTest(TestCase):
             data["readFileContent"], {"success": True, "errors": [], "content": "hello"}
         )
 
+    @patch("hexa.files.schema.queries.storage")
+    def test_allowed_read_file_content_query_returns_line_window(self, mock_storage):
+        mock_storage.get_bucket_object.return_value = StorageObject(
+            key="a.txt",
+            name="a.txt",
+            path="a.txt",
+            size=6,
+            updated_at=None,
+            type="file",
+        )
+        mock_storage.read_object.return_value = b"a\nb\nc\n"
+        data = self._post_with_scopes(
+            "read-file-window-app",
+            [Webapp.OperationScope.FILES_READ],
+            f'query {{ readFileContent(workspaceSlug: "{self.WORKSPACE.slug}", filePath: "a.txt", '
+            "startLine: 2, endLine: 2) { content startLine endLine totalLines notice } }",
+        )
+        self.assertEqual(
+            data["readFileContent"],
+            {
+                "content": "b\n",
+                "startLine": 2,
+                "endLine": 2,
+                "totalLines": 3,
+                "notice": None,
+            },
+        )
+
     @patch("hexa.files.schema.mutations.storage")
     def test_allowed_prepare_object_download_mutation_returns_url(self, mock_storage):
         mock_storage.generate_download_url.return_value = (
@@ -865,6 +893,86 @@ class GraphQLProxyMiddlewareTest(TestCase):
             content="SELECT 1 AS probe",
             visibility=visibility,
         )
+
+    def test_database_read_scope_passes_parameters(self):
+        """Verifies that web apps with DATABASE_READ scope can pass parameters to executeSavedQuery."""
+        saved_query = SavedQuery.objects.create(
+            workspace=self.WORKSPACE,
+            created_by=self.USER,
+            name="Templated probe",
+            content="SELECT {{ n }} AS probe",
+            visibility=SavedQueryVisibility.WORKSPACE,
+            parameters=[
+                {
+                    "name": "n",
+                    "type": "INTEGER",
+                    "multiple": False,
+                    "required": True,
+                    "default": None,
+                    "help": "",
+                }
+            ],
+        )
+        webapp = self._create_scoped_webapp(
+            "db-app", [Webapp.OperationScope.DATABASE_READ]
+        )
+        session = self._create_webapp_session(webapp, self.USER)
+
+        with patch(
+            "hexa.data_studio.query_runner.execute_database_query",
+            return_value={
+                "columns": ["probe"],
+                "rows": [{"probe": 2}],
+                "row_count": 1,
+                "truncated": False,
+                "duration_ms": 1,
+                "first_row": {"probe": 2},
+                "last_row": {"probe": 2},
+            },
+        ) as execute:
+            response = self._graphql_post(
+                "db-app",
+                f"""query {{
+                    executeSavedQuery(input: {{
+                        slug: "{saved_query.slug}", parameters: {{ n: 2 }}
+                    }}) {{ success errors rows }}
+                }}""",
+                session_key=session.session_key,
+            )
+
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.content)["data"]["executeSavedQuery"]
+        self.assertTrue(result["success"], result["errors"])
+        # Parameter values are bound safely through psycopg2 rather than inlined into SQL.
+        statement = execute.call_args.args[1]
+        self.assertIn("%s", statement.sql)
+        self.assertNotIn("2", statement.sql)
+        self.assertEqual([2], statement.params)
+
+        query_log = QueryLog.objects.get(workspace=self.WORKSPACE)
+        self.assertEqual(QueryLog.Origin.WEBAPP, query_log.origin)
+        self.assertEqual({"n": 2}, query_log.parameters)
+
+    def test_database_read_scope_cannot_reach_execute_sql(self):
+        """Web apps with DATABASE_READ scope cannot execute arbitrary SQL queries."""
+        webapp = self._create_scoped_webapp(
+            "db-app", [Webapp.OperationScope.DATABASE_READ]
+        )
+        session = self._create_webapp_session(webapp, self.USER)
+
+        response = self._graphql_post(
+            "db-app",
+            f"""query {{
+                workspace(slug: "{self.WORKSPACE.slug}") {{
+                    database {{ executeSQL(query: "SELECT 1") {{ success errors }} }}
+                }}
+            }}""",
+            session_key=session.session_key,
+        )
+
+        # `workspace` is not in this scope, so the proxy refuses it outright.
+        self.assertEqual(403, response.status_code)
+        self.assertEqual(0, QueryLog.objects.count())
 
     def test_database_read_scope_runs_a_saved_query(self):
         saved_query = self._create_saved_query()

@@ -42,7 +42,7 @@ const ConvertToMemberDialog = (props: ConvertToMemberDialogProps) => {
     refetchQueries: [
       "OrganizationMembers",
       "OrganizationExternalCollaborators",
-      "Organization",
+      "OrganizationWithWorkspaces",
     ],
   });
 

@@ -164,6 +164,70 @@ type ReadFileContentResult {
   errors: [ReadFileContentError!]!
   content: String
   size: Int
+  "First line of the returned window (1-indexed)."
+  startLine: Int
+  "Last line of the returned window (inclusive)."
+  endLine: Int
+  "Number of lines in the whole file."
+  totalLines: Int
+  "Set when the window is partial or empty, telling how to read on."
+  notice: String
+}
+
+enum GlobFilesError {
+  NOT_FOUND
+  PERMISSION_DENIED
+  INVALID_PATH
+}
+
+type GlobFilesResult {
+  success: Boolean!
+  errors: [GlobFilesError!]!
+  "Matching paths, sorted, at most 100."
+  paths: [String!]
+  "True when more paths match than were returned."
+  truncated: Boolean
+  notice: String
+}
+
+"""
+How grepFiles reports its matches.
+"""
+enum GrepOutputMode {
+  "Paths of the files that match."
+  FILES_WITH_MATCHES
+  "Matching lines as `path:line:text`, context lines as `path-line-text`."
+  CONTENT
+  "Number of matches per file, and their total."
+  COUNT
+}
+
+enum GrepFilesError {
+  NOT_FOUND
+  PERMISSION_DENIED
+  INVALID_PATH
+  INVALID_PATTERN
+}
+
+type GrepFileCount {
+  path: String!
+  count: Int!
+}
+
+type GrepFilesResult {
+  success: Boolean!
+  errors: [GrepFilesError!]!
+  "With outputMode FILES_WITH_MATCHES."
+  files: [String!]
+  "With outputMode CONTENT."
+  content: String
+  "With outputMode COUNT."
+  counts: [GrepFileCount!]
+  "With outputMode COUNT: matches across all files."
+  total: Int
+  "True when there are more entries past headLimit, or the search stopped early."
+  truncated: Boolean
+  notice: String
 }
 
 input WriteFileContentInput {
@@ -222,9 +286,28 @@ extend type Query {
   getFileByPath(workspaceSlug: String!, path: String!): BucketObject @loginRequired
 
   """
-  Read the text content of a file from a workspace's bucket.
+  Read the text content of a file from a workspace's bucket. startLine and endLine
+  (1-indexed, inclusive) select a window. lineNumbers prefixes each line with its number
+  and returns at most 2000 lines, clipping lines over 2000 characters. A full read is
+  limited to 1 MB files; a windowed read (a line range or lineNumbers) to 10 MB files,
+  and without lineNumbers to a 1 MB window.
   """
-  readFileContent(workspaceSlug: String!, filePath: String!, startLine: Int, endLine: Int): ReadFileContentResult! @loginRequired
+  readFileContent(workspaceSlug: String!, filePath: String!, startLine: Int, endLine: Int, lineNumbers: Boolean = false): ReadFileContentResult! @loginRequired
+
+  """
+  Find files in a workspace's bucket by path pattern, e.g. `**/*.csv`: `*` stays within a
+  directory and `**` spans any depth. prefix narrows the listing to one directory.
+  Hidden files are skipped.
+  """
+  globFiles(workspaceSlug: String!, pattern: String!, prefix: String): GlobFilesResult! @loginRequired
+
+  """
+  Search the text files of a workspace's bucket matching `glob` with a Python regular
+  expression. Every file searched is downloaded: a search stops after 50 MB or 20 seconds
+  and returns what it found with a notice. Files over 1 MB are skipped. headLimit and
+  offset page through the entries.
+  """
+  grepFiles(workspaceSlug: String!, pattern: String!, glob: String!, prefix: String, outputMode: GrepOutputMode = FILES_WITH_MATCHES, ignoreCase: Boolean = false, context: Int = 0, headLimit: Int, offset: Int = 0): GrepFilesResult! @loginRequired
 }
 
 extend type WorkspacePermissions {

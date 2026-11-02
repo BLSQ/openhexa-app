@@ -1,7 +1,8 @@
-from ariadne import ObjectType
+from ariadne import EnumType, ObjectType
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
 
+from hexa.core.text_files import GrepOutputMode
 from hexa.files import storage
 from hexa.files.backends.base import StorageObject
 from hexa.files.utils import is_safe_path
@@ -90,4 +91,6 @@ def resolve_object_type(obj: StorageObject, info):
     return obj.type.upper()
 
 
-bindables = [bucket_object, bucket_object_object]
+grep_output_mode_enum = EnumType("GrepOutputMode", GrepOutputMode)
+
+bindables = [bucket_object, bucket_object_object, grep_output_mode_enum]

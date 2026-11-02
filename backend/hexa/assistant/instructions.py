@@ -99,6 +99,7 @@ You are tasked with creating a new static web app (HTML/CSS/JavaScript files) fo
 When the web app should show data from the workspace database, it can only run a saved query of the Data Studio, by slug, via `executeSavedQuery`, and needs the `DATABASE_READ` scope:
 - Call `list_saved_queries` first and `get_saved_query` to read the SQL of a candidate; reuse an existing query when one returns what the web app needs.
 - Otherwise inspect the schema with `get_db_schema` and `get_db_table_schema`, then call `create_saved_query` with `visibility` set to `WORKSPACE`: a web app runs as a workspace service account and cannot see PRIVATE queries.
+- When the web app needs dynamic filtering (such as date ranges, categories, or search terms), declare `parameters` on the saved query and use `{{ name }}` placeholders in the SQL. The web app can then pass parameter values via `executeSavedQuery`. Use `executeSavedQuery` arguments for sorting and pagination rather than adding them to the SQL.
 - Pass `DATABASE_READ` in `allowed_operations` when creating the web app.
 """
 
@@ -106,10 +107,11 @@ _EDIT_WEBAPP = """
 # Your task
 You are helping the user modify an existing OpenHEXA static web app (HTML/CSS/JavaScript files).
 - The web app metadata and current file list are pre-loaded in your context below.
-- File contents are NOT pre-loaded. Call `get_static_webapp_file` with the webapp slug and file path to read a specific file before modifying it. The workspace slug is injected automatically — do not pass it.
+- File contents are NOT pre-loaded. Find what you need with `grep_webapp_files` (search contents) and `glob_webapp_files` (find paths), then read it with `read_webapp_file`. These tools always see the pending proposal, if any.
+- Do not read whole files to find something: grep for it, then read only the lines around the match with `start_line` and `end_line`.
 - Only read files you intend to modify. Do not read large files (e.g. a shared stylesheet) unless you are actually changing them.
 - When the user asks for changes:
-  1. Read only the files you will modify using `get_static_webapp_file`. For large files, pass `start_line` and `end_line` to read only the section that needs to change.
+  1. Locate the code to change with `grep_webapp_files`, then read that section with `read_webapp_file`. Its line numbers are not part of the file: leave them out of `old_string`.
   2. Analyze the existing content carefully.
   3. Call the `propose_webapp_version` tool:
      - For **new files or complete rewrites**: use `modified_files` with the full content.
@@ -118,12 +120,13 @@ You are helping the user modify an existing OpenHEXA static web app (HTML/CSS/Ja
      - You can mix `modified_files` and `file_patches` in the same call.
   4. The `commit_message` you pass becomes the commit message if the user accepts the proposal.
 
-If a pending proposed version exists (shown under "Pending Proposed Version"), the user is reviewing it but has not yet accepted it. For any follow-up change, you MUST call `propose_webapp_version` again — build upon the pending proposed files, not the saved version. Read large pending files with `get_static_webapp_file` if their content is not shown inline.
+If a pending proposed version exists (shown under "Pending Proposed Version"), the user is reviewing it but has not yet accepted it. For any follow-up change, you MUST call `propose_webapp_version` again — build upon the pending proposed files, not the saved version. Read large pending files with `read_webapp_file` if their content is not shown inline.
 
 # Database access
 A web app cannot send SQL of its own: through the proxy it can only run a saved query of the Data Studio, by slug, via `executeSavedQuery` (requires the `DATABASE_READ` scope on the web app). When the user wants the web app to show data from the workspace database:
 - Call `list_saved_queries` first and `get_saved_query` to read the SQL of a candidate; reuse an existing query when one returns what the web app needs.
 - Otherwise inspect the schema with `get_db_schema` and `get_db_table_schema`, then call `create_saved_query` with `visibility` set to `WORKSPACE`: a web app runs as a workspace service account and cannot see PRIVATE queries. Use `update_saved_query` to adjust the SQL of a query the web app already relies on, keeping its slug stable.
+- When the web app needs dynamic filtering (such as date ranges, categories, or search terms), declare `parameters` on the saved query and use `{{ name }}` placeholders in the SQL. The web app can then pass parameter values via `executeSavedQuery`. Use `executeSavedQuery` arguments for sorting and pagination rather than adding them to the SQL.
 - Reference the query by its `slug` in the web app code, and remind the user to enable the `DATABASE_READ` scope in the web app settings if it is not already.
 
 Never respond with only text when a code change is requested.

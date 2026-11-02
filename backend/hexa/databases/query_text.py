@@ -4,6 +4,7 @@ import enum
 import re
 import unicodedata
 from dataclasses import dataclass, replace
+from typing import Protocol
 
 import sqlparse
 from psycopg2 import sql
@@ -15,6 +16,10 @@ from sqlparse.sql import Statement, Token
 
 class MultipleStatementsError(Exception):
     """Raised when more than one SQL statement is submitted for execution."""
+
+
+class UnsafePlaceholderError(Exception):
+    """Raised when a placeholder sits inside a literal, identifier or comment."""
 
 
 class OrderByDirectionEnum(enum.Enum):
@@ -359,4 +364,64 @@ def count_statement(prepared: PreparedQuery) -> PreparedQuery:
         is_wrappable=False,
         body="",
         params=params,
+    )
+
+
+class RenderedTemplate(Protocol):
+    """What ``to_psycopg2`` reads from a rendered query template.
+
+    Structural rather than imported: ``hexa.data_studio.templating.RenderedQuery``
+    is the producer, and this module sits below ``data_studio``.
+    """
+
+    @property
+    def sql(self) -> str:
+        ...
+
+    @property
+    def params(self) -> list:
+        ...
+
+    @property
+    def token(self) -> str:
+        ...
+
+
+def _reject_verbatim_placeholders(text: str, token: str) -> None:
+    # psycopg2 interpolates values client-side, so a placeholder inside a
+    # string, dollar-quoted body, quoted identifier or comment lets a value
+    # close that region and append statements -- after ``from_text`` counted
+    # them. Refusing the placeholder is the only safe answer: quoting cannot
+    # protect text that is already inside a quoted region.
+    for token_type, value in Lexer.get_default_instance().get_tokens(text):
+        if token in value and _is_verbatim(token_type):
+            raise UnsafePlaceholderError(
+                "A parameter cannot be placed inside a string literal, a quoted"
+                " identifier or a comment; write WHERE name = {{ q }} rather"
+                " than WHERE name = '{{ q }}'."
+            )
+
+
+def to_psycopg2(rendered: RenderedTemplate) -> PreparedQuery:
+    """Convert a rendered query template into a `PreparedQuery` for psycopg2 execution.
+
+    Replaces template placeholder tokens with psycopg2 `%s` placeholders and
+    escapes literal `%` characters to `%%` for psycopg2 string formatting.
+    Validates that the rendered text contains only a single statement and that
+    no placeholder sits inside a literal, quoted identifier or comment.
+    """
+    prepared = PreparedQuery.from_text(rendered.sql)
+    if not rendered.params:
+        return prepared
+    _reject_verbatim_placeholders(prepared.sql, rendered.token)
+
+    def convert(text: str) -> str:
+        # Escape literal '%' characters before replacing tokens with '%s' to avoid double-escaping placeholders.
+        return text.replace("%", "%%").replace(rendered.token, "%s")
+
+    return replace(
+        prepared,
+        sql=convert(prepared.sql),
+        body=convert(prepared.body),
+        params=list(rendered.params),
     )
