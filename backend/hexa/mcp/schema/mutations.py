@@ -73,11 +73,29 @@ def apply_grant(
         if "tools" in input:
             connection.tools = sorted(set(input["tools"]))
         connection.save()
-        if workspaces is not None:
-            connection.workspaces.set(workspaces)
         if organizations is not None:
             connection.organizations.set(organizations)
+        if workspaces is not None or organizations is not None:
+            if workspaces is None:
+                workspaces = list(connection.workspaces.all())
+            connection.workspaces.set(uncovered_workspaces(connection, workspaces))
     return connection
+
+
+def uncovered_workspaces(
+    connection: MCPConnection, workspaces: list[Workspace]
+) -> list[Workspace]:
+    """The workspaces not already granted through the connection's organizations.
+
+    Mirrors the permission page, which drops a workspace once its whole organization
+    is granted, so a grant is stored the same way whichever client wrote it.
+    """
+    organization_ids = set(connection.organizations.values_list("id", flat=True))
+    return [
+        workspace
+        for workspace in workspaces
+        if workspace.organization_id not in organization_ids
+    ]
 
 
 @mcp_mutations.field("authorizeMCPConnection")

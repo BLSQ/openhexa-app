@@ -382,6 +382,36 @@ class AuthorizeMCPConnectionTest(GraphQLTestCase):
             [self.WORKSPACE.organization], list(connection.organizations.all())
         )
 
+    def test_a_workspace_covered_by_a_granted_organization_is_not_stored(self):
+        self.client.force_login(self.USER)
+
+        payload = self.authorize(
+            tools=["list_files"],
+            workspaceSlugs=[self.WORKSPACE.slug],
+            organizationIds=[str(self.WORKSPACE.organization_id)],
+        )
+
+        self.assertTrue(payload["success"], payload["errors"])
+        connection = MCPConnection.objects.get(
+            user=self.USER, application=self.APPLICATION
+        )
+        self.assertEqual([], list(connection.workspaces.all()))
+        self.assertEqual(
+            [self.WORKSPACE.organization], list(connection.organizations.all())
+        )
+
+    def test_granting_only_an_organization_drops_its_saved_workspaces(self):
+        self.client.force_login(self.USER)
+        self.authorize(tools=["list_files"], workspaceSlugs=[self.WORKSPACE.slug])
+
+        payload = self.authorize(organizationIds=[str(self.WORKSPACE.organization_id)])
+
+        self.assertTrue(payload["success"], payload["errors"])
+        connection = MCPConnection.objects.get(
+            user=self.USER, application=self.APPLICATION
+        )
+        self.assertEqual([], list(connection.workspaces.all()))
+
     def test_an_organization_the_user_does_not_belong_to_is_refused(self):
         foreign = Organization.objects.create(name="Foreign")
         self.client.force_login(self.USER)
