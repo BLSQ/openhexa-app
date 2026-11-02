@@ -9,6 +9,7 @@ import Time from "core/components/Time";
 import { CustomApolloClient } from "core/helpers/apollo";
 import { getMCPErrorMessage } from "mcp/helpers";
 import MCPPermissionMatrix, {
+  isWorkspaceGranted,
   MCPGrant,
   MCPTool,
   MCPOrganization,
@@ -94,10 +95,8 @@ const ConnectionCard = ({
         ]
       : []),
     t("{{count}} workspaces", {
-      count: workspaces.filter(
-        (workspace) =>
-          draft.organizationIds.includes(workspace.organization.id) ||
-          draft.workspaceSlugs.includes(workspace.slug),
+      count: workspaces.filter((workspace) =>
+        isWorkspaceGranted(draft, workspace),
       ).length,
     }),
   ].join(" · ");

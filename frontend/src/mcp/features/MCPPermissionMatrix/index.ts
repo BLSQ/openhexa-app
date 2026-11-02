@@ -1,4 +1,4 @@
-export { default } from "./MCPPermissionMatrix";
+export { default, isWorkspaceGranted } from "./MCPPermissionMatrix";
 export type {
   MCPGrant,
   MCPOrganization,

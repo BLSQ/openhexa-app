@@ -36,6 +36,13 @@ export type MCPWorkspace = {
   organization: { id: string };
 };
 
+export function isWorkspaceGranted(grant: MCPGrant, workspace: MCPWorkspace) {
+  return (
+    grant.organizationIds.includes(workspace.organization.id) ||
+    grant.workspaceSlugs.includes(workspace.slug)
+  );
+}
+
 type OrganizationGroup = {
   organization: MCPOrganization;
   workspaces: MCPWorkspace[];
@@ -197,8 +204,7 @@ const MCPPermissionMatrix = ({
     [grant.organizationIds],
   );
   const isWorkspaceSelected = (workspace: MCPWorkspace) =>
-    grantedOrganizations.has(workspace.organization.id) ||
-    grant.workspaceSlugs.includes(workspace.slug);
+    isWorkspaceGranted(grant, workspace);
   const selectedWorkspaces = workspaces.filter(isWorkspaceSelected);
 
   const groupLabels: Record<McpResource, string> = {
