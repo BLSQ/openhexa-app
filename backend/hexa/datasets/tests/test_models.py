@@ -1,7 +1,11 @@
 from unittest.mock import MagicMock, patch
 
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.core.exceptions import (
+    ObjectDoesNotExist,
+    PermissionDenied,
+    ValidationError,
+)
 from django.test import override_settings
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -158,6 +162,67 @@ class DatasetTest(BaseTestMixin, TestCase):
             workspace=self.WORKSPACE_2, name="dataset_1", description="description_1"
         )
         self.assertEqual(dataset_1.slug, dataset_2.slug)
+
+    def test_create_dataset_has_no_public_slug(self):
+        dataset = self.test_create_dataset(name="My dataset")
+        self.assertIsNone(dataset.public_slug)
+
+    def test_ensure_public_slug_defaults_to_slug(self):
+        dataset = self.test_create_dataset(name="My dataset")
+        self.assertEqual(dataset.ensure_public_slug(), "my-dataset")
+        dataset.refresh_from_db()
+        self.assertEqual(dataset.public_slug, "my-dataset")
+
+    def test_ensure_public_slug_is_idempotent(self):
+        dataset = self.test_create_dataset(name="My dataset")
+        dataset.ensure_public_slug()
+        with patch("secrets.token_hex", return_value="123"):
+            self.assertEqual(dataset.ensure_public_slug(), "my-dataset")
+
+    def test_ensure_public_slug_keeps_slug_set_concurrently(self):
+        dataset = self.test_create_dataset(name="My dataset")
+        Dataset.objects.get(pk=dataset.pk).ensure_public_slug()
+        with patch("secrets.token_hex", return_value="123"):
+            self.assertEqual(dataset.ensure_public_slug(), "my-dataset")
+
+    def test_ensure_public_slug_duplicate(self):
+        self.test_create_dataset(
+            workspace=self.WORKSPACE, name="dataset_1"
+        ).ensure_public_slug()
+        dataset_2 = self.test_create_dataset(
+            workspace=self.WORKSPACE_2, name="dataset_1"
+        )
+        with patch("secrets.token_hex", return_value="123"):
+            self.assertEqual(dataset_2.ensure_public_slug(), "dataset-1-123")
+        self.assertEqual(dataset_2.slug, "dataset-1")
+
+    def test_ensure_public_slug_reserved(self):
+        dataset = self.test_create_dataset(name="New")
+        with patch("secrets.token_hex", return_value="123"):
+            self.assertEqual(dataset.ensure_public_slug(), "new-123")
+        self.assertEqual(dataset.slug, "new")
+
+    def test_public_slug_cannot_change(self):
+        dataset = self.test_create_dataset(name="My dataset")
+        dataset.ensure_public_slug()
+        dataset.public_slug = "other"
+        with self.assertRaises(ValidationError):
+            dataset.save()
+
+    def test_loaded_public_slug_cannot_change(self):
+        dataset = self.test_create_dataset(name="My dataset")
+        dataset.ensure_public_slug()
+        dataset = Dataset.objects.get(pk=dataset.pk)
+        dataset.public_slug = None
+        with self.assertRaises(ValidationError):
+            dataset.save()
+
+    def test_update_dataset_keeps_public_slug(self):
+        dataset = self.test_create_dataset(name="My dataset")
+        dataset.ensure_public_slug()
+        dataset.update_if_has_perm(principal=self.USER_EDITOR, name="Renamed")
+        dataset.refresh_from_db()
+        self.assertEqual(dataset.public_slug, "my-dataset")
 
     def test_create_dataset_with_double_dash(self):
         dataset = self.test_create_dataset(name="My dataset -- test-")
