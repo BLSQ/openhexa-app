@@ -783,7 +783,7 @@
   "Provider": "Fournisseur",
   "Public": "Public",
   "Public link": "Lien public",
-  "Public web apps can't call the OpenHEXA API. If this app loads workspace data or runs pipelines, it will stop working, and its API access settings will be hidden.": "Les applications web publiques ne peuvent pas appeler l'API OpenHEXA. Si cette application charge des données de l'espace de travail ou lance des pipelines, elle cessera de fonctionner et ses paramètres d'accès API seront masqués.",
+  "Public web apps can't call the OpenHEXA API yet, support is in the works. Until then, if this app loads workspace data or runs pipelines, it will stop working, and its API access settings will be hidden.": "Les applications web publiques ne peuvent pas encore appeler l'API OpenHEXA, c'est en cours de développement. D'ici là, si cette application charge des données de l'espace de travail ou lance des pipelines, elle cessera de fonctionner et ses paramètres d'accès API seront masqués.",
   "Publish": "Publier",
   "Publish a new Template Version": "Publier une nouvelle version du modèle",
   "Publish as Template": "Publier en tant que modèle",

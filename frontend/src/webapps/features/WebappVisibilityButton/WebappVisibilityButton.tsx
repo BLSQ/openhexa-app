@@ -112,7 +112,7 @@ const WebappVisibilityButton = ({ webapp }: WebappVisibilityButtonProps) => {
               {isStatic && (
                 <p>
                   {t(
-                    "Public web apps can't call the OpenHEXA API. If this app loads workspace data or runs pipelines, it will stop working, and its API access settings will be hidden.",
+                    "Public web apps can't call the OpenHEXA API yet, support is in the works. Until then, if this app loads workspace data or runs pipelines, it will stop working, and its API access settings will be hidden.",
                   )}
                 </p>
               )}
