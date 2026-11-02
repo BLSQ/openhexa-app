@@ -280,8 +280,9 @@ def saved_query_origin(request: HttpRequest, saved_query) -> str:
     """
     if getattr(request, "webapp", None) is not None:
         return QueryLog.Origin.WEBAPP
-    if saved_query.is_public and not request.user.has_perm(
-        "databases.run_query", saved_query.workspace
+    if saved_query.is_public and not (
+        request.user.is_authenticated
+        and request.user.has_perm("databases.run_query", saved_query.workspace)
     ):
         return QueryLog.Origin.PUBLIC
     return QueryLog.Origin.OTHER
