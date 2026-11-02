@@ -34,6 +34,15 @@ export type WebappVersionsQueryVariables = Types.Exact<{
 
 export type WebappVersionsQuery = { __typename?: 'Query', webapp?: { __typename?: 'Webapp', id: string, source: { __typename?: 'GitSource', publishedVersion?: string | null } | { __typename?: 'IframeSource' } | { __typename?: 'SupersetSource' }, versions?: { __typename?: 'WebappVersionsPage', page: number, items: Array<{ __typename?: 'WebappVersion', id: string, message: string, authorName: string, authorEmail: string, date: any }> } | null } | null };
 
+export type WebappPreviewUrlQueryVariables = Types.Exact<{
+  workspaceSlug: Types.Scalars['String']['input'];
+  webappSlug: Types.Scalars['String']['input'];
+  ref?: Types.InputMaybe<Types.Scalars['String']['input']>;
+}>;
+
+
+export type WebappPreviewUrlQuery = { __typename?: 'Query', webapp?: { __typename?: 'Webapp', id: string, previewUrl: string } | null };
+
 export type WebappFilesQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
   webappSlug: Types.Scalars['String']['input'];
@@ -213,6 +222,49 @@ export type WebappVersionsQueryHookResult = ReturnType<typeof useWebappVersionsQ
 export type WebappVersionsLazyQueryHookResult = ReturnType<typeof useWebappVersionsLazyQuery>;
 export type WebappVersionsSuspenseQueryHookResult = ReturnType<typeof useWebappVersionsSuspenseQuery>;
 export type WebappVersionsQueryResult = Apollo.QueryResult<WebappVersionsQuery, WebappVersionsQueryVariables>;
+export const WebappPreviewUrlDocument = gql`
+    query WebappPreviewUrl($workspaceSlug: String!, $webappSlug: String!, $ref: String) {
+  webapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {
+    id
+    previewUrl(ref: $ref)
+  }
+}
+    `;
+
+/**
+ * __useWebappPreviewUrlQuery__
+ *
+ * To run a query within a React component, call `useWebappPreviewUrlQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWebappPreviewUrlQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWebappPreviewUrlQuery({
+ *   variables: {
+ *      workspaceSlug: // value for 'workspaceSlug'
+ *      webappSlug: // value for 'webappSlug'
+ *      ref: // value for 'ref'
+ *   },
+ * });
+ */
+export function useWebappPreviewUrlQuery(baseOptions: Apollo.QueryHookOptions<WebappPreviewUrlQuery, WebappPreviewUrlQueryVariables> & ({ variables: WebappPreviewUrlQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WebappPreviewUrlQuery, WebappPreviewUrlQueryVariables>(WebappPreviewUrlDocument, options);
+      }
+export function useWebappPreviewUrlLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WebappPreviewUrlQuery, WebappPreviewUrlQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WebappPreviewUrlQuery, WebappPreviewUrlQueryVariables>(WebappPreviewUrlDocument, options);
+        }
+export function useWebappPreviewUrlSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WebappPreviewUrlQuery, WebappPreviewUrlQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<WebappPreviewUrlQuery, WebappPreviewUrlQueryVariables>(WebappPreviewUrlDocument, options);
+        }
+export type WebappPreviewUrlQueryHookResult = ReturnType<typeof useWebappPreviewUrlQuery>;
+export type WebappPreviewUrlLazyQueryHookResult = ReturnType<typeof useWebappPreviewUrlLazyQuery>;
+export type WebappPreviewUrlSuspenseQueryHookResult = ReturnType<typeof useWebappPreviewUrlSuspenseQuery>;
+export type WebappPreviewUrlQueryResult = Apollo.QueryResult<WebappPreviewUrlQuery, WebappPreviewUrlQueryVariables>;
 export const WebappFilesDocument = gql`
     query WebappFiles($workspaceSlug: String!, $webappSlug: String!, $ref: String) {
   webapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {

@@ -12,7 +12,7 @@ from hexa.mcp.tools.webapps import (
     list_static_webapps,
     update_static_webapp,
 )
-from hexa.webapps.models import Webapp
+from hexa.webapps.models import GitWebapp, Webapp
 
 from .testutils import MCPTestCase
 
@@ -355,6 +355,34 @@ class UpdateStaticWebappTest(MCPTestCase):
         )
         client.commit_files.assert_called_once()
         self.assertEqual(client.commit_files.call_args[0][1], new_files)
+        self.assertEqual(client.commit_files.call_args[0][2], "Update webapp content")
+
+    @_mock_forgejo()
+    def test_update_static_webapp_files_with_commit_message(self, mock_forgejo):
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("CommitMsg"),
+            files_json=json.dumps([{"path": "index.html", "content": "<h1>old</h1>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_id = str(create_result["webapp"]["id"])
+        client.commit_files.reset_mock()
+
+        result = update_static_webapp(
+            user=self.USER_ADMIN,
+            webapp_id=webapp_id,
+            files_json=json.dumps([{"path": "index.html", "content": "<h1>new</h1>"}]),
+            commit_message="feat: new heading",
+        )
+
+        self.assertTrue(result["success"], result)
+        self.assertEqual(client.commit_files.call_args[0][2], "feat: new heading")
+        # Saving a version no longer publishes it.
+        self.assertEqual(
+            GitWebapp.objects.get(pk=webapp_id).published_commit, INITIAL_SHA
+        )
 
     @_mock_forgejo()
     def test_update_static_webapp_files_base64(self, mock_forgejo):
@@ -708,6 +736,33 @@ class EditStaticWebappFileTest(MCPTestCase):
             client.commit_files.call_args[0][1],
             [{"path": "index.html", "content": "<h1>new</h1>", "encoding": "TEXT"}],
         )
+        self.assertEqual(client.commit_files.call_args[0][2], "Edit index.html")
+
+    @_mock_forgejo()
+    def test_edit_static_webapp_file_with_commit_message(self, mock_forgejo):
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("EditMsg"),
+            files_json=json.dumps([{"path": "index.html", "content": "<h1>old</h1>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_id = str(create_result["webapp"]["id"])
+        client.get_file.return_value = b"<h1>old</h1>"
+        client.commit_files.reset_mock()
+
+        result = edit_static_webapp_file(
+            user=self.USER_ADMIN,
+            webapp_id=webapp_id,
+            path="index.html",
+            old_string="old",
+            new_string="new",
+            commit_message="fix: rename heading",
+        )
+
+        self.assertTrue(result["success"], result)
+        self.assertEqual(client.commit_files.call_args[0][2], "fix: rename heading")
 
     @_mock_forgejo()
     def test_edit_static_webapp_file_string_not_found(self, mock_forgejo):

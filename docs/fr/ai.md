@@ -19,7 +19,7 @@ L'assistant est disponible dans les workspaces d'une organisation dès lors qu'u
 | **Pipelines → Créer → Créer avec l'IA** | Génère un nouveau pipeline ainsi que la première version de son code à partir de votre description. |
 | **Éditeur de code d'un pipeline → panneau de discussion** | Lit les fichiers du pipeline et propose des modifications ou une nouvelle version. Rien n'est enregistré tant que vous n'avez pas relu et accepté la proposition. |
 | **Web Apps → Créer → Créer avec l'IA** | Crée une application web statique à partir de votre description, puis l'ouvre dans l'éditeur de code. |
-| **Éditeur de code d'une webapp → panneau de discussion** | Lit les fichiers de l'application web et propose des modifications, que vous pouvez relire et accepter avant enregistrement. |
+| **Webapp → panneau de discussion** | Lit les fichiers de l'application web et enregistre chaque modification comme une nouvelle version, visible immédiatement dans l'éditeur et l'aperçu. Rien n'est mis en ligne tant que vous ne publiez pas la version depuis la vue Historique. |
 | **Data Studio → Générer du SQL** | Traduit une question en langage naturel en une unique requête `SELECT` en lecture seule. Le modèle ne voit que le schéma de la base de données (noms et types des tables et des colonnes), jamais les données des tables. Avant d'être affichée, la requête est simplement planifiée par la base de données pour détecter d'éventuelles erreurs de syntaxe, sans être exécutée. Elle n'est exécutée que lorsque vous choisissez de la lancer. |
 
 Un modèle léger attribue également un titre court et automatique à chaque conversation.
@@ -45,7 +45,7 @@ Dans les deux cas, l'IA agit **en votre nom** : chaque appel d'outil passe par l
 | Tâche | Données lues | Données écrites |
 | --- | --- | --- |
 | Créer / modifier un pipeline | Métadonnées et description du workspace, jeux de données et aperçus de leurs fichiers, fichiers du workspace, noms des connexions et de leurs champs (jamais les valeurs secrètes), code et fichiers du pipeline, documentation OpenHEXA | Crée le pipeline (création) ; propose des modifications ou une nouvelle version à valider (modification) |
-| Créer / modifier une webapp | Identique aux pipelines, plus le schéma de la base de données (tables et colonnes, jamais les lignes), les requêtes enregistrées, la liste des pipelines et les fichiers de l'application web | Crée l'application web ; crée ou met à jour des requêtes enregistrées ; propose des modifications à valider |
+| Créer / modifier une webapp | Identique aux pipelines, plus le schéma de la base de données (tables et colonnes, jamais les lignes), les requêtes enregistrées, la liste des pipelines et les fichiers de l'application web | Crée l'application web ; crée ou met à jour des requêtes enregistrées ; enregistre de nouvelles versions des fichiers de l'application web (jamais publiées automatiquement) |
 | Générer du SQL | Uniquement le schéma de la base de données (noms et types des tables et des colonnes). Elle ne lit jamais les lignes des tables, et aucun résultat de requête n'est envoyé au modèle | Rien : la requête est seulement affichée pour relecture |
 
 Si le workspace possède une description, celle-ci est fournie à l'assistant comme contexte. Les administrateurs du workspace peuvent s'en servir pour documenter les conventions de données, mais l'assistant la traite comme un élément informatif, et non comme une instruction pouvant outrepasser ses règles.

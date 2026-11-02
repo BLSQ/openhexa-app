@@ -9,13 +9,9 @@ import {
   SparklesIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import AssistantProposalBanner from "assistant/features/AssistantProposalBanner";
 import WebappEditChatPanel, {
   WebappConversation,
-  WebappProposedFile,
 } from "assistant/features/WebappEditChatPanel";
-import { useResolveAssistantProposalMutation } from "assistant/graphql/mutations.generated";
-import useProposalCommitMessage from "assistant/hooks/useProposalCommitMessage";
 import Button from "core/components/Button";
 import DetailShell, {
   AssistantDock,
@@ -44,12 +40,17 @@ import {
   useState,
 } from "react";
 import { toast } from "react-toastify";
+import { useApolloClient } from "@apollo/client";
 import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
-import { useWebappVersionsQuery } from "webapps/graphql/queries.generated";
+import {
+  useWebappPreviewUrlQuery,
+  useWebappVersionsQuery,
+} from "webapps/graphql/queries.generated";
 import CommitDiff from "webapps/features/CommitDiff/CommitDiff";
 import WebappApiAccess from "webapps/features/WebappApiAccess";
 import WebappFilesEditor from "webapps/features/WebappFilesEditor/WebappFilesEditor";
 import WebappHistory from "webapps/features/WebappHistory/WebappHistory";
+import RestoreWebappVersionDialog from "webapps/features/RestoreWebappVersionDialog/RestoreWebappVersionDialog";
 import WebappIframe from "webapps/features/WebappIframe";
 import { getWebappTypeLabel } from "webapps/helpers";
 
@@ -97,12 +98,14 @@ const WebappDetail = ({
   const [versionRef, setVersionRef] = useState<string | null>(null);
   const [diffCommitId, setDiffCommitId] = useState<string | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [restoreTarget, setRestoreTarget] = useState<string | null>(null);
 
   const [name, setName] = useState<string>(webapp.name ?? "");
   const [subdomain, setSubdomain] = useState<string>(webapp.subdomain ?? "");
   const [sourceUrl, setSourceUrl] = useState<string>(webapp.url ?? "");
   const [icon, setIcon] = useState<string | null>(webapp.icon ?? null);
 
+  const client = useApolloClient();
   const [updateWebapp] = useUpdateWebappMutation();
   const clearCache = useCacheKey("webapps");
 
@@ -116,12 +119,32 @@ const WebappDetail = ({
   const { data: versionsData } = useWebappVersionsQuery({
     variables: { workspaceSlug, webappSlug, page: 1, perPage: 1 },
     skip: !isStatic,
+    fetchPolicy: "cache-and-network",
   });
   const latestVersion = versionsData?.webapp?.versions?.items?.[0];
-  const publishedVersionId =
-    webapp.source?.__typename === "GitSource"
-      ? webapp.source.publishedVersion
-      : null;
+  const latestVersionId: string | null = latestVersion?.id ?? null;
+  const publishedVersionId: string | null =
+    versionsData?.webapp?.source?.__typename === "GitSource"
+      ? versionsData.webapp.source.publishedVersion
+      : webapp.source?.__typename === "GitSource"
+        ? webapp.source.publishedVersion
+        : null;
+  const isLiveLatest =
+    latestVersionId !== null && latestVersionId === publishedVersionId;
+
+  // The preview renders the browsed version, or the latest one by default. The
+  // ref lives in the preview session on the backend, so the URL itself does not
+  // change: the iframe is keyed on the ref to reload when it does, and it is
+  // only mounted once the query storing the ref has resolved, otherwise the
+  // iframe would fetch the previous ref from the session.
+  const previewRef = versionRef ?? latestVersionId;
+  const { data: previewData, loading: previewLoading } =
+    useWebappPreviewUrlQuery({
+      variables: { workspaceSlug, webappSlug, ref: previewRef },
+      skip: !isStatic || !previewRef,
+      fetchPolicy: "network-only",
+    });
+  const previewReady = !isStatic || !previewRef || !previewLoading;
 
   const browseCommit = useCallback((commitId: string) => {
     setDiffCommitId(null);
@@ -129,17 +152,32 @@ const WebappDetail = ({
     setView("code");
   }, []);
 
-  const handlePublishVersion = async () => {
-    if (!versionRef || isPublishing) return;
+  const previewCommit = useCallback((commitId: string) => {
+    setDiffCommitId(null);
+    setVersionRef(commitId);
+    setView("preview");
+  }, []);
+
+  // Reloads the webapp and every mounted versions list: the header pill, the
+  // History tab and the version picker all observe the same query under
+  // different variables, so they are refetched by name rather than one by one.
+  const refreshVersions = useCallback(() => {
+    onRefetch();
+    client.refetchQueries({ include: ["WebappVersions"] }).then();
+  }, [onRefetch, client]);
+
+  const handlePublishLatest = async () => {
+    if (!latestVersionId || isPublishing) return;
     setIsPublishing(true);
     try {
       const { data } = await updateWebapp({
-        variables: { input: { id: webapp.id, publishedVersionId: versionRef } },
-        refetchQueries: ["WebappVersions"],
+        variables: {
+          input: { id: webapp.id, publishedVersionId: latestVersionId },
+        },
       });
       if (data?.updateWebapp?.success) {
         toast.success(t("Version published successfully"));
-        onRefetch();
+        refreshVersions();
       } else {
         toast.error(t("Failed to publish version"));
       }
@@ -149,6 +187,14 @@ const WebappDetail = ({
       setIsPublishing(false);
     }
   };
+
+  // The restored version shows up as the latest one, so the preview and the
+  // editor follow it again.
+  const handleRestored = useCallback(() => {
+    setVersionRef(null);
+    setDiffCommitId(null);
+    refreshVersions();
+  }, [refreshVersions]);
 
   const urlParts = useMemo(
     () => splitServeUrl(webapp.serveUrl, webapp.subdomain),
@@ -221,82 +267,13 @@ const WebappDetail = ({
       ? subdomain !== (webapp.subdomain ?? "")
       : sourceUrl !== (webapp.url ?? ""));
 
-  // ---- assistant / proposals ----
-  const [resolveProposal] = useResolveAssistantProposalMutation();
-  const [proposedFiles, setProposedFiles] = useState<
-    WebappProposedFile[] | null
-  >(null);
-  const [proposedDeletedPaths, setProposedDeletedPaths] = useState<
-    string[] | null
-  >(null);
-  const [proposedToolInvocationId, setProposedToolInvocationId] = useState<
-    string | null
-  >(null);
-  // A proposal streamed by the agent is shown before its invocation is persisted
-  // (that only happens when the turn ends), so it cannot be resolved yet.
-  const proposalBlockedReason =
-    proposedFiles !== null && proposedToolInvocationId === null
-      ? t("Waiting for the assistant to finish…")
-      : undefined;
-  const {
-    commitMessage: proposedCommitMessage,
-    setCommitMessage: setProposedCommitMessage,
-    receiveCommitMessage,
-    resetCommitMessage,
-  } = useProposalCommitMessage();
-
-  const handleProposedFiles = useCallback(
-    (
-      files: WebappProposedFile[] | null,
-      toolInvocationId?: string,
-      deletedPaths?: string[],
-      commitMessage?: string,
-    ) => {
-      setProposedFiles(files);
-      setProposedDeletedPaths(deletedPaths ?? null);
-      receiveCommitMessage(commitMessage);
-      if (toolInvocationId !== undefined) {
-        setProposedToolInvocationId(toolInvocationId);
-      } else if (files !== null) {
-        setProposedToolInvocationId(null);
-      }
-      if (files) {
-        // Proposals always apply to the latest version, never to a browsed commit.
-        setVersionRef(null);
-        setDiffCommitId(null);
-        setView("code");
-      }
-    },
-    [receiveCommitMessage],
-  );
-
-  const handleDismiss = useCallback(async () => {
-    setProposedFiles(null);
-    setProposedDeletedPaths(null);
-    resetCommitMessage();
-    const idToDismiss = proposedToolInvocationId;
-    setProposedToolInvocationId(null);
-    if (idToDismiss) {
-      await resolveProposal({ variables: { toolInvocationId: idToDismiss } });
-    }
-  }, [proposedToolInvocationId, resolveProposal, resetCommitMessage]);
-
-  const handleSaveSuccess = useCallback(() => {
-    onRefetch();
-    const idToResolve = proposedToolInvocationId;
-    setProposedFiles(null);
-    setProposedDeletedPaths(null);
-    resetCommitMessage();
-    setProposedToolInvocationId(null);
-    if (idToResolve) {
-      resolveProposal({ variables: { toolInvocationId: idToResolve } });
-    }
-  }, [
-    proposedToolInvocationId,
-    resolveProposal,
-    resetCommitMessage,
-    onRefetch,
-  ]);
+  // A new version was committed, by the assistant or from the editor: the
+  // preview and the editor follow the latest version again.
+  const handleVersionSaved = useCallback(() => {
+    setVersionRef(null);
+    setDiffCommitId(null);
+    refreshVersions();
+  }, [refreshVersions]);
 
   const [conversations, setConversations] = useState<WebappConversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<
@@ -329,10 +306,106 @@ const WebappDetail = ({
   ];
 
   const previewUrl =
-    (isStatic ? webapp.previewUrl : null) ||
+    (isStatic ? previewData?.webapp?.previewUrl || webapp.previewUrl : null) ||
     webapp.url ||
     webapp.serveUrl ||
     "";
+
+  const shortRef = (ref: string) => ref.substring(0, 7);
+
+  const versionPill = !isStatic ? (
+    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
+      <span className="h-[7px] w-[7px] rounded-full bg-emerald-500" />
+      {t("Live")}
+    </span>
+  ) : versionRef ? (
+    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gray-600">
+      <span className="h-[7px] w-[7px] rounded-full bg-gray-400" />
+      {t("Version")}{" "}
+      <code className="font-mono text-gray-700">{shortRef(versionRef)}</code>
+    </span>
+  ) : isLiveLatest ? (
+    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
+      <span className="h-[7px] w-[7px] rounded-full bg-emerald-500" />
+      {t("Live")}
+    </span>
+  ) : latestVersionId ? (
+    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-700">
+      <span className="h-[7px] w-[7px] rounded-full bg-amber-500" />
+      {t("Unpublished changes")}
+    </span>
+  ) : null;
+
+  const publishButton = canEdit && (
+    <button
+      onClick={handlePublishLatest}
+      disabled={isPublishing}
+      className="inline-flex items-center gap-1.5 rounded border border-amber-300 bg-white px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-50 disabled:opacity-60"
+    >
+      {isPublishing && <Spinner size="xs" />}
+      {isPublishing ? t("Publishing...") : t("Publish")}
+    </button>
+  );
+
+  const rollbackButton = (ref: string) =>
+    canEdit &&
+    ref !== latestVersionId && (
+      <button
+        onClick={() => setRestoreTarget(ref)}
+        className="inline-flex items-center gap-1.5 rounded border border-amber-300 bg-white px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-50"
+      >
+        {t("Roll back to this version")}
+      </button>
+    );
+
+  // Shown above the code and preview panes whenever what is displayed is not
+  // the live version: an older version being browsed, or unpublished changes.
+  const versionBanner = !isStatic ? null : versionRef ? (
+    <BrowsingVersionBanner
+      label={
+        <>
+          {view === "code" ? t("Browsing version") : t("Previewing version")}{" "}
+          <code className="font-mono text-amber-900">
+            {shortRef(versionRef)}
+          </code>{" "}
+          &middot; {t("read-only")}
+          {publishedVersionId && versionRef !== publishedVersionId && (
+            <>
+              {" "}
+              &middot; {t("live is")}{" "}
+              <code className="font-mono text-amber-900">
+                {shortRef(publishedVersionId)}
+              </code>
+            </>
+          )}
+        </>
+      }
+      actions={rollbackButton(versionRef)}
+      onBack={() => setVersionRef(null)}
+    />
+  ) : latestVersionId && !isLiveLatest ? (
+    <div className="flex flex-none items-center gap-3 border-b border-amber-100 bg-amber-50 px-5 py-2 text-[13px]">
+      <span className="text-amber-800">
+        {t("Latest version")}{" "}
+        <code className="font-mono text-amber-900">
+          {shortRef(latestVersionId)}
+        </code>{" "}
+        {t("is not live")}
+        {publishedVersionId ? (
+          <>
+            {" "}
+            &middot; {t("live is")}{" "}
+            <code className="font-mono text-amber-900">
+              {shortRef(publishedVersionId)}
+            </code>
+          </>
+        ) : (
+          <> &middot; {t("no version is published yet")}</>
+        )}
+      </span>
+      <div className="ml-auto flex items-center gap-3">{publishButton}</div>
+    </div>
+  ) : null;
 
   return (
     <DetailShell>
@@ -394,12 +467,7 @@ const WebappDetail = ({
             onChange={setView}
             actions={
               <>
-                {view === "preview" && (
-                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
-                    <span className="h-[7px] w-[7px] rounded-full bg-emerald-500" />
-                    {t("Live")}
-                  </span>
-                )}
+                {(view === "preview" || view === "code") && versionPill}
                 {assistantAvailable && !isAssistantOpen && (
                   <div className="ml-auto flex-none">
                     <Button
@@ -418,59 +486,18 @@ const WebappDetail = ({
 
           {view === "code" && isStatic && (
             <div className="flex min-h-0 flex-1 flex-col">
-              {versionRef && (
-                <BrowsingVersionBanner
-                  label={
-                    <>
-                      {t("Browsing")}{" "}
-                      <code className="font-mono text-amber-900">
-                        {versionRef.substring(0, 7)}
-                      </code>{" "}
-                      &middot; {t("read-only")}
-                    </>
-                  }
-                  actions={
-                    canEdit &&
-                    versionRef !== publishedVersionId && (
-                      <button
-                        onClick={handlePublishVersion}
-                        disabled={isPublishing}
-                        className="inline-flex items-center gap-1.5 rounded border border-amber-300 bg-white px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-50 disabled:opacity-60"
-                      >
-                        {isPublishing && <Spinner size="xs" />}
-                        {isPublishing ? t("Publishing...") : t("Publish")}
-                      </button>
-                    )
-                  }
-                  onBack={() => setVersionRef(null)}
-                />
-              )}
-              {proposedFiles && (
-                <AssistantProposalBanner
-                  label={t("Proposed changes from AI assistant")}
-                  message={proposedCommitMessage ?? undefined}
-                  messagePlaceholder={t("Commit message")}
-                  onMessageChange={setProposedCommitMessage}
-                  onDismiss={handleDismiss}
-                  disabledReason={proposalBlockedReason}
-                  className="mx-5 mt-4"
-                />
-              )}
+              {versionBanner}
               <div className="min-h-0 flex-1 p-5">
                 <div className="h-full min-h-0 overflow-hidden rounded-[10px] border border-gray-200">
                   <WebappFilesEditor
-                    key={versionRef ?? "latest"}
+                    key={versionRef ?? latestVersionId ?? "latest"}
                     webappId={webapp.id}
                     workspaceSlug={workspaceSlug}
                     webappSlug={webappSlug}
                     isEditable={canEdit && !versionRef}
                     versionRef={versionRef ?? undefined}
-                    proposedFiles={proposedFiles ?? undefined}
-                    proposedDeletedPaths={proposedDeletedPaths ?? undefined}
-                    proposedCommitMessage={proposedCommitMessage ?? undefined}
                     flush
-                    onSaveSuccess={handleSaveSuccess}
-                    saveDisabledReason={proposalBlockedReason}
+                    onSaveSuccess={handleVersionSaved}
                   />
                 </div>
               </div>
@@ -478,15 +505,25 @@ const WebappDetail = ({
           )}
 
           {view === "preview" && (
-            <DetailViewPane className="bg-gray-100 p-5">
-              <div className="mx-auto h-full max-w-[900px] overflow-hidden rounded-[10px] border border-gray-200 bg-white shadow-sm">
-                <WebappIframe
-                  url={previewUrl}
-                  type={webapp.type}
-                  style={{ height: "100%" }}
-                />
-              </div>
-            </DetailViewPane>
+            <div className="flex min-h-0 flex-1 flex-col">
+              {versionBanner}
+              <DetailViewPane className="bg-gray-100 p-5">
+                <div className="mx-auto h-full max-w-[900px] overflow-hidden rounded-[10px] border border-gray-200 bg-white shadow-sm">
+                  {previewReady ? (
+                    <WebappIframe
+                      key={`${previewUrl}:${previewRef ?? ""}`}
+                      url={previewUrl}
+                      type={webapp.type}
+                      style={{ height: "100%" }}
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center">
+                      <Spinner size="md" />
+                    </div>
+                  )}
+                </div>
+              </DetailViewPane>
+            </div>
           )}
 
           {view === "history" && isStatic && (
@@ -513,6 +550,9 @@ const WebappDetail = ({
                   webappSlug={webappSlug}
                   onSelectCommit={setDiffCommitId}
                   onBrowseCommit={browseCommit}
+                  onPreviewCommit={previewCommit}
+                  onRollbackCommit={setRestoreTarget}
+                  canEdit={canEdit}
                 />
               )}
             </DetailViewPane>
@@ -660,7 +700,7 @@ const WebappDetail = ({
             <WebappEditChatPanel
               webappId={webapp.id}
               workspaceSlug={workspaceSlug}
-              onProposedFiles={handleProposedFiles}
+              onVersionSaved={handleVersionSaved}
               conversations={conversations}
               activeConversationId={activeConversationId}
               onConversationChange={setActiveConversationId}
@@ -682,6 +722,15 @@ const WebappDetail = ({
           </AssistantDock>
         )}
       </DetailShell.Body>
+      {isStatic && (
+        <RestoreWebappVersionDialog
+          open={restoreTarget !== null}
+          onClose={() => setRestoreTarget(null)}
+          webappId={webapp.id}
+          versionId={restoreTarget}
+          onRestored={handleRestored}
+        />
+      )}
     </DetailShell>
   );
 };

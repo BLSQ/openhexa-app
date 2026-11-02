@@ -16,6 +16,7 @@ from hexa.superset.models import SupersetInstance
 from hexa.user_management.models import (
     User,
 )
+from hexa.webapps.middlewares import get_preview_ref, set_preview_ref
 from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
 from hexa.webapps.tests.testutils import make_upstream, read_body
 from hexa.workspaces.models import (
@@ -842,6 +843,66 @@ class PreviewSessionSubdomainTest(TestCase):
             "/", HTTP_HOST=f"{session_key}.{self.SUBDOMAIN_BASE}"
         )
         self.assertEqual(response.get("Referrer-Policy"), "no-referrer")
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_session_ref_is_served_instead_of_the_published_commit(
+        self, mock_get_client
+    ):
+        mock_get_client.return_value.get_file.return_value = b"<html>draft</html>"
+
+        session_key = self._mint_session(self.USER_MEMBER, self.PRIVATE_WEBAPP)
+        set_preview_ref(session_key, "sha-draft")
+        response = self.client.get(
+            "/", HTTP_HOST=f"{session_key}.{self.SUBDOMAIN_BASE}"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b"<html>draft</html>")
+        self.assertEqual(response["ETag"], 'W/"sha-draft"')
+        self.assertEqual(
+            mock_get_client.return_value.get_file.call_args[0][2], "sha-draft"
+        )
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_session_without_ref_serves_the_published_commit(self, mock_get_client):
+        mock_get_client.return_value.get_file.return_value = b"<html>live</html>"
+
+        session_key = self._mint_session(self.USER_MEMBER, self.PRIVATE_WEBAPP)
+        response = self.client.get(
+            "/", HTTP_HOST=f"{session_key}.{self.SUBDOMAIN_BASE}"
+        )
+
+        self.assertEqual(response["ETag"], 'W/"sha-ps"')
+        self.assertEqual(
+            mock_get_client.return_value.get_file.call_args[0][2], "sha-ps"
+        )
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_session_ref_is_ignored_on_the_serve_host(self, mock_get_client):
+        # The ref only travels with the hostname label; the same session used as a
+        # cookie on the public subdomain keeps serving the live version.
+        mock_get_client.return_value.get_file.return_value = b"<html>live</html>"
+
+        session_key = self._mint_session(self.USER_MEMBER, self.PRIVATE_WEBAPP)
+        set_preview_ref(session_key, "sha-draft")
+        self.client.cookies["hexa_webapp_session"] = session_key
+        response = self.client.get(
+            "/", HTTP_HOST=f"{self.PRIVATE_WEBAPP.subdomain}.{self.SUBDOMAIN_BASE}"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["ETag"], 'W/"sha-ps"')
+        self.assertEqual(
+            mock_get_client.return_value.get_file.call_args[0][2], "sha-ps"
+        )
+
+    def test_set_preview_ref_can_be_cleared(self):
+        session_key = self._mint_session(self.USER_MEMBER, self.PRIVATE_WEBAPP)
+        set_preview_ref(session_key, "sha-draft")
+        self.assertEqual(get_preview_ref(session_key), "sha-draft")
+
+        set_preview_ref(session_key, None)
+        self.assertIsNone(get_preview_ref(session_key))
 
     def test_invalid_session_key_subdomain_falls_through_to_404(self):
         # 32 lowercase-alphanumeric chars that isn't a real session key

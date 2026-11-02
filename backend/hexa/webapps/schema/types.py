@@ -1,9 +1,13 @@
+import logging
+
 from ariadne import ObjectType, UnionType
 
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.user_management.utils import is_two_factor_pending
 from hexa.utils.base64_image_encode_decode import encode_base64_image
 from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
+
+logger = logging.getLogger(__name__)
 
 webapp_permissions = ObjectType("WebappPermissions")
 webapp_object = ObjectType("Webapp")
@@ -49,17 +53,29 @@ def resolve_url(webapp: Webapp, info, **kwargs):
 
 
 @webapp_object.field("previewUrl")
-def resolve_preview_url(webapp: Webapp, info, **kwargs):
+def resolve_preview_url(webapp: Webapp, info, ref=None, **kwargs):
     request = info.context["request"]
     if not request.user.is_authenticated or is_two_factor_pending(request):
         return webapp.serve_url
     from hexa.webapps.middlewares import get_or_create_preview_url
 
+    if ref and webapp.type == Webapp.WebappType.STATIC:
+        git_webapp = GitWebapp.objects.get(pk=webapp.pk)
+        if not git_webapp.client.commit_exists(
+            git_webapp.git_org.slug, git_webapp.repository, ref
+        ):
+            logger.warning(
+                "Ignoring unknown preview ref %s for webapp %s", ref, webapp.pk
+            )
+            ref = None
+    else:
+        ref = None
+
     # The preview URL carries the session key as its first DNS label, so the
     # iframe authenticates without any cookie — sidestepping the third-party
     # cookie block in Safari, incognito, and Firefox strict. An existing valid
     # session is reused when available instead of minting a new one.
-    return get_or_create_preview_url(request, webapp, request.user)
+    return get_or_create_preview_url(request, webapp, request.user, ref=ref)
 
 
 @webapp_object.field("icon")

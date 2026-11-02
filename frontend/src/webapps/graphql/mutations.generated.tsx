@@ -10,6 +10,13 @@ export type UpdateWebappMutationVariables = Types.Exact<{
 
 export type UpdateWebappMutation = { __typename?: 'Mutation', updateWebapp: { __typename?: 'UpdateWebappResult', success: boolean, errors: Array<Types.UpdateWebappError>, webapp?: { __typename?: 'Webapp', id: string, allowedOperations: Array<Types.WebappOperationScope>, url: string, source: { __typename?: 'GitSource', publishedVersion?: string | null } | { __typename?: 'IframeSource', url: string } | { __typename?: 'SupersetSource' } } | null } };
 
+export type RestoreWebappVersionMutationVariables = Types.Exact<{
+  input: Types.RestoreWebappVersionInput;
+}>;
+
+
+export type RestoreWebappVersionMutation = { __typename?: 'Mutation', restoreWebappVersion: { __typename?: 'RestoreWebappVersionResult', success: boolean, errors: Array<Types.RestoreWebappVersionError>, webapp?: { __typename?: 'Webapp', id: string, source: { __typename?: 'GitSource', publishedVersion?: string | null } | { __typename?: 'IframeSource' } | { __typename?: 'SupersetSource' } } | null } };
+
 export type CreateWebappMutationVariables = Types.Exact<{
   input: Types.CreateWebappInput;
 }>;
@@ -93,6 +100,48 @@ export function useUpdateWebappMutation(baseOptions?: Apollo.MutationHookOptions
 export type UpdateWebappMutationHookResult = ReturnType<typeof useUpdateWebappMutation>;
 export type UpdateWebappMutationResult = Apollo.MutationResult<UpdateWebappMutation>;
 export type UpdateWebappMutationOptions = Apollo.BaseMutationOptions<UpdateWebappMutation, UpdateWebappMutationVariables>;
+export const RestoreWebappVersionDocument = gql`
+    mutation RestoreWebappVersion($input: RestoreWebappVersionInput!) {
+  restoreWebappVersion(input: $input) {
+    success
+    errors
+    webapp {
+      id
+      source {
+        ... on GitSource {
+          publishedVersion
+        }
+      }
+    }
+  }
+}
+    `;
+export type RestoreWebappVersionMutationFn = Apollo.MutationFunction<RestoreWebappVersionMutation, RestoreWebappVersionMutationVariables>;
+
+/**
+ * __useRestoreWebappVersionMutation__
+ *
+ * To run a mutation, you first call `useRestoreWebappVersionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRestoreWebappVersionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [restoreWebappVersionMutation, { data, loading, error }] = useRestoreWebappVersionMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRestoreWebappVersionMutation(baseOptions?: Apollo.MutationHookOptions<RestoreWebappVersionMutation, RestoreWebappVersionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RestoreWebappVersionMutation, RestoreWebappVersionMutationVariables>(RestoreWebappVersionDocument, options);
+      }
+export type RestoreWebappVersionMutationHookResult = ReturnType<typeof useRestoreWebappVersionMutation>;
+export type RestoreWebappVersionMutationResult = Apollo.MutationResult<RestoreWebappVersionMutation>;
+export type RestoreWebappVersionMutationOptions = Apollo.BaseMutationOptions<RestoreWebappVersionMutation, RestoreWebappVersionMutationVariables>;
 export const CreateWebappDocument = gql`
     mutation CreateWebapp($input: CreateWebappInput!) {
   createWebapp(input: $input) {

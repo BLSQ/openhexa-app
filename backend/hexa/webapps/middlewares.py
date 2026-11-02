@@ -39,6 +39,10 @@ AUTH_TOKEN_MAX_AGE = 30
 
 SESSION_USER_ID = "user_id"
 SESSION_WEBAPP_ID = "webapp_id"
+# Commit sha a preview session renders instead of the published one. Set through
+# `Webapp.previewUrl(ref)`; only honoured when the session key travels in the
+# hostname, never through the cookie, so the serve host always shows the live app.
+SESSION_REF = "ref"
 PREVIEW_KEYS_FIELD = "webapp_preview_keys"
 
 POWERED_BY_BANNER_HEIGHT = "2.25rem"
@@ -75,12 +79,13 @@ def _serve_static_webapp(webapp: Webapp, request: HttpRequest) -> HttpResponseBa
     except GitWebapp.DoesNotExist:
         return _webapp_not_found()
 
-    # Cache strategy: tie the ETag to the published commit so a new publish
-    # immediately invalidates clients (no time-based staleness window), and
-    # pair it with `no-cache` so browsers revalidate on every request instead
-    # of trusting their local copy. The 304 short-circuit avoids the Forgejo
+    # Cache strategy: tie the ETag to the served commit so a new publish (or a
+    # preview switching version) immediately invalidates clients, and pair it
+    # with `no-cache` so browsers revalidate on every request instead of
+    # trusting their local copy. The 304 short-circuit avoids the Forgejo
     # round-trip when the content hasn't changed.
-    etag = f'W/"{git_webapp.published_commit}"' if git_webapp.published_commit else None
+    served_ref = getattr(request, "preview_ref", None) or git_webapp.published_commit
+    etag = f'W/"{served_ref}"' if served_ref else None
     if etag and request.META.get("HTTP_IF_NONE_MATCH") == etag:
         not_modified = HttpResponseNotModified()
         not_modified["ETag"] = etag
@@ -88,7 +93,7 @@ def _serve_static_webapp(webapp: Webapp, request: HttpRequest) -> HttpResponseBa
         return not_modified
 
     path = request.path.lstrip("/") or "index.html"
-    response = serve_webapp(request, git_webapp, path)
+    response = serve_webapp(request, git_webapp, path, ref=served_ref)
     if etag:
         response["Cache-Control"] = _cache_control(webapp)
         response["ETag"] = etag
@@ -266,11 +271,34 @@ def get_or_create_preview_session_key(
     return session.session_key
 
 
-def get_or_create_preview_url(request: HttpRequest, webapp: Webapp, user: User) -> str:
+def get_or_create_preview_url(
+    request: HttpRequest, webapp: Webapp, user: User, ref: str | None = None
+) -> str:
     """Preview URL for (user, webapp): the (rotating) session key as the first
     DNS label of the webapp host, so it authenticates without a cookie.
+
+    With `ref`, the preview renders that commit instead of the published one.
+    Without it the session keeps whatever it currently renders.
     """
-    return webapp_host_url(get_or_create_preview_session_key(request, webapp, user))
+    session_key = get_or_create_preview_session_key(request, webapp, user)
+    if ref:
+        set_preview_ref(session_key, ref)
+    return webapp_host_url(session_key)
+
+
+def set_preview_ref(session_key: str, ref: str | None) -> None:
+    store = SessionStore(session_key=session_key)
+    if store.get(SESSION_REF) == ref:
+        return
+    if ref:
+        store[SESSION_REF] = ref
+    else:
+        store.pop(SESSION_REF, None)
+    store.save()
+
+
+def get_preview_ref(session_key: str) -> str | None:
+    return SessionStore(session_key=session_key).get(SESSION_REF)
 
 
 def _check_webapp_session(request: HttpRequest, webapp: Webapp) -> WebappUser | None:
@@ -437,6 +465,7 @@ def webapp_subdomain_middleware(
         webapp = _webapp_from_session_key(subdomain)
         if webapp is not None:
             request.COOKIES[WEBAPP_SESSION_COOKIE] = subdomain
+            request.preview_ref = get_preview_ref(subdomain)
         else:
             try:
                 webapp = Webapp.objects.get(subdomain=subdomain)

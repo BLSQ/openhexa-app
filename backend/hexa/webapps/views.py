@@ -135,11 +135,12 @@ def _serve_stream(upstream, content_type):
     return response
 
 
-def serve_webapp(request, git_webapp, path="index.html"):
+def serve_webapp(request, git_webapp, path="index.html", ref=None):
     if not is_safe_path(path):
         return HttpResponseBadRequest("Invalid path")
 
-    if not git_webapp.published_commit:
+    ref = ref or git_webapp.published_commit
+    if not ref:
         return HttpResponseNotFound("No published version")
 
     content_type = _guess_content_type(path)
@@ -150,7 +151,7 @@ def serve_webapp(request, git_webapp, path="index.html"):
             content = client.get_file(
                 git_webapp.repository,
                 path,
-                git_webapp.published_commit,
+                ref,
                 org_slug=git_webapp.git_org.slug,
             )
             return HttpResponse(content, content_type=content_type)
@@ -158,7 +159,7 @@ def serve_webapp(request, git_webapp, path="index.html"):
         upstream = client.stream_file(
             git_webapp.repository,
             path,
-            git_webapp.published_commit,
+            ref,
             org_slug=git_webapp.git_org.slug,
             headers=_forwarded_request_headers(request),
         )

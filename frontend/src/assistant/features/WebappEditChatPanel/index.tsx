@@ -2,20 +2,21 @@ import { useCallback } from "react";
 import EditObjectChatPanel, {
   AssistantConversation,
 } from "assistant/features/EditObjectChatPanel";
+import { TOOL } from "assistant/helpers/tools";
 import { LinkedObjectType } from "graphql/types";
 
 export type WebappConversation = AssistantConversation;
-export type WebappProposedFile = { path: string; content: string };
+
+const SAVE_TOOLS: string[] = [
+  TOOL.UpdateStaticWebapp,
+  TOOL.EditStaticWebappFile,
+];
 
 type Props = {
   webappId: string;
   workspaceSlug: string;
-  onProposedFiles: (
-    files: WebappProposedFile[] | null,
-    toolInvocationId?: string,
-    deletedPaths?: string[],
-    commitMessage?: string,
-  ) => void;
+  // The assistant committed a new version of the web app files.
+  onVersionSaved?: () => void;
   conversations: WebappConversation[];
   activeConversationId: string | null;
   onConversationChange: (id: string) => void;
@@ -28,24 +29,16 @@ type Props = {
 
 export default function WebappEditChatPanel({
   webappId,
-  onProposedFiles,
+  onVersionSaved,
   ...rest
 }: Props) {
-  const handleProposedFiles = useCallback(
-    (
-      files: unknown[] | null,
-      toolInvocationId?: string,
-      deletedPaths?: string[],
-      commitMessage?: string,
-    ) => {
-      onProposedFiles(
-        files as WebappProposedFile[] | null,
-        toolInvocationId,
-        deletedPaths,
-        commitMessage,
-      );
+  const handleToolResult = useCallback(
+    (toolName: string, _output: unknown, success: boolean) => {
+      if (success && SAVE_TOOLS.includes(toolName)) {
+        onVersionSaved?.();
+      }
     },
-    [onProposedFiles],
+    [onVersionSaved],
   );
 
   return (
@@ -53,8 +46,7 @@ export default function WebappEditChatPanel({
       {...rest}
       linkedObjectId={webappId}
       linkedObjectType={LinkedObjectType.StaticWebapp}
-      proposalToolName="propose_webapp_version"
-      onProposedFiles={handleProposedFiles}
+      onToolResult={handleToolResult}
     />
   );
 }

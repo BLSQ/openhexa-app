@@ -19,7 +19,7 @@ The assistant is available in the workspaces of an organization where an adminis
 | **Pipelines → Create → Create with AI** | Generates a new pipeline and the initial version of its code from your description. |
 | **Pipeline code editor → chat panel** | Reads the pipeline's files and proposes updates or a new version. Nothing is saved until you review and accept the proposal. |
 | **Web Apps → Create → Create with AI** | Generates a static web app from your description, then opens it in the code editor. |
-| **Web app code editor → chat panel** | Reads the web app's files and proposes updates, which you can review and accept before saving. |
+| **Web app → chat panel** | Reads the web app's files and saves each change as a new version, visible in the editor and the preview straight away. Nothing goes live until you publish the version from the History view. |
 | **Data Studio → Generate SQL** | Translates a natural language question into a single read-only `SELECT` query. The model only sees the database schema (table and column names and types)—never the data in the tables. Before displaying the query, the database generates an execution plan to catch syntax errors without running it. The query only runs when you choose to execute it. |
 
 A lightweight model also automatically gives each conversation a short title.
@@ -45,7 +45,7 @@ In both cases, the AI acts **on your behalf**: every tool call goes through the 
 | Task | Reads | Writes |
 | --- | --- | --- |
 | Create / edit pipeline | Workspace metadata and description, datasets and dataset file previews, workspace files, connection names and field names (never secret values), the pipeline's code and files, OpenHEXA documentation | Creates the pipeline (creation); proposes updates or a new version for you to accept (editing) |
-| Create / edit web app | Same as pipelines, plus the database schema (tables and columns, never rows), saved queries, the workspace pipeline list, and the web app's files | Creates the web app; creates or updates saved queries; proposes updates for you to accept |
+| Create / edit web app | Same as pipelines, plus the database schema (tables and columns, never rows), saved queries, the workspace pipeline list, and the web app's files | Creates the web app; creates or updates saved queries; saves new versions of the web app's files (never published automatically) |
 | Generate SQL | Only the database schema: table and column names and types. It never reads the rows of any table, and no query result is ever sent to the model | Nothing: the query is only displayed for you to review |
 
 If the workspace has a description, it is provided to the assistant as background context. Workspace administrators can use it to document data conventions or context, but the assistant treats it as informative context, not as instructions that can override its guidelines.

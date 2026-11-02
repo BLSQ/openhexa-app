@@ -103,6 +103,33 @@ EDIT_WEBAPP_FILE_MUTATION = """
 """
 
 
+RESTORE_WEBAPP_VERSION_MUTATION = """
+    mutation restoreWebappVersion($input: RestoreWebappVersionInput!) {
+        restoreWebappVersion(input: $input) {
+            success
+            errors
+            webapp {
+                id
+                source {
+                    ... on GitSource {
+                        publishedVersion
+                    }
+                }
+            }
+        }
+    }
+"""
+
+PREVIEW_URL_QUERY = """
+    query webappPreviewUrl($workspaceSlug: String!, $slug: String!, $ref: String) {
+        webapp(workspaceSlug: $workspaceSlug, slug: $slug) {
+            id
+            previewUrl(ref: $ref)
+        }
+    }
+"""
+
+
 COMMIT_DIFF_QUERY = """
     query webappCommitDiff($workspaceSlug: String!, $slug: String!, $ref: String!) {
         webapp(workspaceSlug: $workspaceSlug, slug: $slug) {
@@ -305,8 +332,9 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
         result = response["data"]["updateWebapp"]
         self.assertTrue(result["success"])
 
+        # Saving a version never publishes it; that is an explicit step.
         self.GIT_WEBAPP.refresh_from_db()
-        self.assertEqual(self.GIT_WEBAPP.published_commit, "sha123abc")
+        self.assertIsNone(self.GIT_WEBAPP.published_commit)
 
         mock_client.commit_files.assert_called_once_with(
             "webapp-commitrepo",
@@ -542,6 +570,29 @@ class GitWebappEditFileTest(GraphQLTestCase):
         )["data"]["editWebappFile"]
 
     @patch("hexa.git.mixins.get_forgejo_client")
+    def test_edit_file_with_commit_message(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"<h1>old</h1>"
+        mock_client.commit_files.return_value = "sha-edit"
+        mock_get_client.return_value = mock_client
+
+        result = self._run(
+            {
+                "path": "index.html",
+                "oldString": "old",
+                "newString": "new",
+                "commitMessage": "  fix: rename heading  ",
+            }
+        )
+
+        self.assertTrue(result["success"], result)
+        self.assertEqual(
+            mock_client.commit_files.call_args[0][2], "fix: rename heading"
+        )
+        self.GIT_WEBAPP.refresh_from_db()
+        self.assertIsNone(self.GIT_WEBAPP.published_commit)
+
+    @patch("hexa.git.mixins.get_forgejo_client")
     def test_edit_file_success(self, mock_get_client):
         mock_client = MagicMock()
         mock_client.get_file.return_value = b"<h1>old title</h1>\n<p>keep me</p>"
@@ -731,6 +782,7 @@ class GitWebappPublishVersionTest(GraphQLTestCase):
     def test_publish_version_success(self, mock_get_client):
         mock_client = MagicMock()
         mock_client.commit_exists.return_value = True
+        mock_client.get_commits.return_value = [{"id": "abc123def456"}]
         mock_get_client.return_value = mock_client
 
         self.client.force_login(self.USER)
@@ -758,6 +810,7 @@ class GitWebappPublishVersionTest(GraphQLTestCase):
     def test_publish_version_can_change(self, mock_get_client):
         mock_client = MagicMock()
         mock_client.commit_exists.return_value = True
+        mock_client.get_commits.return_value = [{"id": "new-sha-789"}]
         mock_get_client.return_value = mock_client
 
         self.GIT_WEBAPP.published_commit = "old-sha"
@@ -801,6 +854,30 @@ class GitWebappPublishVersionTest(GraphQLTestCase):
         self.assertFalse(result["success"])
         self.assertIn("VERSION_NOT_FOUND", result["errors"])
 
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_publish_version_rejects_an_older_commit(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.commit_exists.return_value = True
+        mock_client.get_commits.return_value = [{"id": "head-sha"}]
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            UPDATE_WEBAPP_MUTATION,
+            {
+                "input": {
+                    "id": str(self.GIT_WEBAPP.id),
+                    "publishedVersionId": "older-sha",
+                }
+            },
+        )
+
+        result = response["data"]["updateWebapp"]
+        self.assertFalse(result["success"])
+        self.assertIn("VERSION_NOT_LATEST", result["errors"])
+        self.GIT_WEBAPP.refresh_from_db()
+        self.assertIsNone(self.GIT_WEBAPP.published_commit)
+
     def test_publish_version_permission_denied(self):
         viewer = User.objects.create_user("publishviewer@test.com", "password")
         WorkspaceMembership.objects.create(
@@ -839,6 +916,111 @@ class GitWebappPublishVersionTest(GraphQLTestCase):
         result = response["data"]["updateWebapp"]
         self.assertFalse(result["success"])
         self.assertIn("WEBAPP_NOT_FOUND", result["errors"])
+
+
+class GitWebappRestoreVersionTest(GraphQLTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user("restoreuser@test.com", "password")
+        cls.WS = create_workspace(name="Restore WS", slug="restore-ws")
+        WorkspaceMembership.objects.create(
+            user=cls.USER,
+            workspace=cls.WS,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        cls.GIT_WEBAPP = GitWebapp.objects.create(
+            workspace=cls.WS,
+            name="Restore Test App",
+            slug="restore-test-app",
+            subdomain="restore-test-app",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.USER,
+            repository="webapp-restorerepo",
+            published_commit="head-sha",
+        )
+
+    def _run(self, version_id, user=None):
+        self.client.force_login(user or self.USER)
+        return self.run_query(
+            RESTORE_WEBAPP_VERSION_MUTATION,
+            {"input": {"id": str(self.GIT_WEBAPP.id), "versionId": version_id}},
+        )["data"]["restoreWebappVersion"]
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_restore_version_commits_and_publishes(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.commit_exists.return_value = True
+        mock_client.get_files_tree.side_effect = lambda repo, ref, **kw: {
+            "main": [{"path": "index.html", "type": "blob", "sha": "new"}],
+            "old-sha": [{"path": "index.html", "type": "blob", "sha": "old"}],
+        }[ref]
+        mock_client.get_file.return_value = b"<h1>old</h1>"
+        mock_client.commit_files.return_value = "restore-sha"
+        mock_client.get_commits.return_value = [{"id": "restore-sha"}]
+        mock_get_client.return_value = mock_client
+
+        result = self._run("old-sha")
+
+        self.assertTrue(result["success"], result)
+        self.assertEqual(result["errors"], [])
+        self.assertEqual(result["webapp"]["source"]["publishedVersion"], "restore-sha")
+        self.assertEqual(
+            mock_client.commit_files.call_args[0][2], "Restore version old-sha"
+        )
+        self.GIT_WEBAPP.refresh_from_db()
+        self.assertEqual(self.GIT_WEBAPP.published_commit, "restore-sha")
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_restore_version_not_found(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.commit_exists.return_value = False
+        mock_get_client.return_value = mock_client
+
+        result = self._run("missing-sha")
+
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["VERSION_NOT_FOUND"])
+        mock_client.commit_files.assert_not_called()
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_restore_version_git_failure(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.commit_exists.return_value = True
+        mock_client.get_files_tree.side_effect = ForgejoAPIError(
+            "GET", "/trees", 500, "boom"
+        )
+        mock_get_client.return_value = mock_client
+
+        result = self._run("old-sha")
+
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["RESTORE_FAILED"])
+
+    def test_restore_version_permission_denied(self):
+        viewer = User.objects.create_user("restoreviewer@test.com", "password")
+        WorkspaceMembership.objects.create(
+            user=viewer, workspace=self.WS, role=WorkspaceMembershipRole.VIEWER
+        )
+
+        result = self._run("old-sha", user=viewer)
+
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["PERMISSION_DENIED"])
+
+    def test_restore_version_webapp_not_found(self):
+        self.client.force_login(self.USER)
+        result = self.run_query(
+            RESTORE_WEBAPP_VERSION_MUTATION,
+            {
+                "input": {
+                    "id": "00000000-0000-0000-0000-000000000000",
+                    "versionId": "old-sha",
+                }
+            },
+        )["data"]["restoreWebappVersion"]
+
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["WEBAPP_NOT_FOUND"])
 
 
 class GitWebappQueryTest(GraphQLTestCase):
@@ -1151,6 +1333,51 @@ class GitWebappQueryTest(GraphQLTestCase):
         )["data"]["webapp"]["previewUrl"]
 
         self.assertEqual(first, second)
+
+    @override_settings(WEBAPPS_DOMAIN="webapps.localhost:8000")
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_preview_url_with_ref_stores_it_in_the_session(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_commits.return_value = []
+        mock_client.get_repository_files.return_value = []
+        mock_client.commit_exists.return_value = True
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        variables = {"workspaceSlug": self.WS.slug, "slug": "query-test-app"}
+        plain = self.run_query(PREVIEW_URL_QUERY, variables)["data"]["webapp"][
+            "previewUrl"
+        ]
+        with_ref = self.run_query(PREVIEW_URL_QUERY, {**variables, "ref": "sha-draft"})[
+            "data"
+        ]["webapp"]["previewUrl"]
+
+        # Same session, same URL: the ref lives in the session, not in the URL.
+        self.assertEqual(plain, with_ref)
+        session_key = urlparse(with_ref).hostname.split(".", 1)[0]
+        self.assertEqual(SessionStore(session_key=session_key).get("ref"), "sha-draft")
+
+        # Without a ref the session keeps rendering what it was set to.
+        self.run_query(PREVIEW_URL_QUERY, variables)
+        self.assertEqual(SessionStore(session_key=session_key).get("ref"), "sha-draft")
+
+    @override_settings(WEBAPPS_DOMAIN="webapps.localhost:8000")
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_preview_url_ignores_an_unknown_ref(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_commits.return_value = []
+        mock_client.get_repository_files.return_value = []
+        mock_client.commit_exists.return_value = False
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        preview_url = self.run_query(
+            PREVIEW_URL_QUERY,
+            {"workspaceSlug": self.WS.slug, "slug": "query-test-app", "ref": "nope"},
+        )["data"]["webapp"]["previewUrl"]
+
+        session_key = urlparse(preview_url).hostname.split(".", 1)[0]
+        self.assertIsNone(SessionStore(session_key=session_key).get("ref"))
 
     @patch("hexa.git.mixins.get_forgejo_client")
     def test_preview_url_unauthenticated_returns_serve_url(self, mock_get_client):

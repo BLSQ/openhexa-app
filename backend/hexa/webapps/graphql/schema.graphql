@@ -78,7 +78,7 @@ type Webapp {
   description: String
   url: String!
   serveUrl: String!
-  previewUrl: String!
+  previewUrl(ref: String): String!  # With `ref`, the preview renders that commit instead of the published one.
   pointsToOpenhexaWebapp: Boolean!
   subdomain: String!
   type: WebappType!
@@ -223,6 +223,7 @@ enum UpdateWebappError {
   INVALID_URL
   SAVE_FAILED
   VERSION_NOT_FOUND
+  VERSION_NOT_LATEST
   SUBDOMAIN_NOT_LOWERCASE
   SUBDOMAIN_TOO_SHORT
   SUBDOMAIN_HAS_DOTS
@@ -244,6 +245,7 @@ input EditWebappFileInput {
   oldString: String!
   newString: String!
   replaceAll: Boolean
+  commitMessage: String
 }
 
 """
@@ -270,6 +272,36 @@ enum EditWebappFileError {
   STRING_NOT_UNIQUE
   NO_CHANGE
   SAVE_FAILED
+}
+
+"""
+Input for restoring an older version of a static web app.
+"""
+input RestoreWebappVersionInput {
+  id: UUID!
+  versionId: String!
+}
+
+"""
+Represents the result of restoring a web app version. The restored content is
+committed as the new latest version on main and published.
+"""
+type RestoreWebappVersionResult {
+  success: Boolean!
+  errors: [RestoreWebappVersionError!]!
+  webapp: Webapp
+}
+
+"""
+Represents the error message for a web app version restore.
+"""
+enum RestoreWebappVersionError {
+  WEBAPPS_NOT_CONFIGURED
+  WEBAPP_NOT_FOUND
+  PERMISSION_DENIED
+  TYPE_MISMATCH
+  VERSION_NOT_FOUND
+  RESTORE_FAILED
 }
 
 """
@@ -385,6 +417,7 @@ extend type Mutation {
   createWebapp(input: CreateWebappInput!): CreateWebappResult! @loginRequired
   updateWebapp(input: UpdateWebappInput!): UpdateWebappResult! @loginRequired
   editWebappFile(input: EditWebappFileInput!): EditWebappFileResult! @loginRequired
+  restoreWebappVersion(input: RestoreWebappVersionInput!): RestoreWebappVersionResult! @loginRequired
   deleteWebapp(input: DeleteWebappInput!): DeleteWebappResult! @loginRequired
   addToFavorites(input: AddToFavoritesInput!): AddToFavoritesResult! @loginRequired
   removeFromFavorites(input: RemoveFromFavoritesInput!): RemoveFromFavoritesResult! @loginRequired

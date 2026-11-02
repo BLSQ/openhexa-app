@@ -1,52 +1,28 @@
-import json
 from unittest.mock import patch
 
-from pydantic_ai.messages import ModelRequest, ModelResponse, TextPart, ToolReturnPart
-from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 from pydantic_ai.models.test import TestModel
 
-from hexa.assistant.agents.edit_webapp_agent import _MAX_INLINE_LINES, EditWebappAgent
+from hexa.assistant.agents.edit_webapp_agent import EditWebappAgent
 from hexa.assistant.instructions import InstructionSet, get_instructions
-from hexa.assistant.models import Conversation, Message, ToolInvocation
+from hexa.assistant.models import Conversation
+from hexa.git.testutils import make_git_client_mock
 from hexa.webapps.models import GitWebapp, Webapp
 
 from ._helpers import FakeModelBuilder, _make_tool_call_model, run_agent
 from ._testcase import AgentTestCase
 
-
-def _make_capturing_tool_call_model(
-    tool_name: str, tool_args: dict, captured_requests: list
-) -> FunctionModel:
-    """Like _make_tool_call_model, but records the messages each request receives."""
-
-    def func(messages: list, agent_info: AgentInfo) -> ModelResponse:
-        return ModelResponse(parts=[TextPart(content="Chat title")])
-
-    stream_calls = []
-
-    async def stream_func(messages, agent_info):
-        stream_calls.append(1)
-        captured_requests.append(list(messages))
-        if len(stream_calls) == 1:
-            yield {
-                0: DeltaToolCall(
-                    name=tool_name,
-                    json_args=json.dumps(tool_args),
-                    tool_call_id="call-test-001",
-                )
-            }
-        else:
-            yield "Done."
-
-    return FunctionModel(func, stream_function=stream_func)
+SHA = "a" * 40
+NEW_SHA = "b" * 40
 
 
-class EditWebappAgentExtraInstructionsTest(AgentTestCase):
+class EditWebappAgentTestCase(AgentTestCase):
     def setUp(self):
         super().setUp()
-        patcher = patch("hexa.git.mixins.get_forgejo_client")
-        self.mock_forgejo = patcher.start()
-        self.mock_forgejo.return_value.get_repository_files.return_value = []
+        self.client_mock = make_git_client_mock(SHA)
+        patcher = patch(
+            "hexa.git.mixins.get_forgejo_client", return_value=self.client_mock
+        )
+        patcher.start()
         self.addCleanup(patcher.stop)
 
     def _make_webapp(self, name="Test App", slug="test-app", description=""):
@@ -59,9 +35,10 @@ class EditWebappAgentExtraInstructionsTest(AgentTestCase):
             type=Webapp.WebappType.STATIC,
             created_by=self.user,
             repository=f"ws-webapp-{slug}",
+            published_commit=SHA,
         )
 
-    def _make_agent(self, webapp=None):
+    def _make_agent(self, webapp=None, model=None):
         conversation = Conversation(
             user=self.user,
             workspace=self.workspace,
@@ -70,24 +47,10 @@ class EditWebappAgentExtraInstructionsTest(AgentTestCase):
         if webapp is not None:
             conversation.linked_object = webapp
         conversation.save()
-        return EditWebappAgent(conversation, FakeModelBuilder(TestModel()))
+        return EditWebappAgent(conversation, FakeModelBuilder(model or TestModel()))
 
-    def _make_pending_invocation(self, conversation, files):
-        message = Message.objects.create(
-            conversation=conversation,
-            role=Message.Role.ASSISTANT,
-            content=[],
-        )
-        return ToolInvocation.objects.create(
-            message=message,
-            tool_name="propose_webapp_version",
-            tool_call_id="call-pending-001",
-            tool_input={},
-            success=True,
-            proposal_pending=True,
-            tool_output={"files": files},
-        )
 
+class EditWebappAgentExtraInstructionsTest(EditWebappAgentTestCase):
     def test_no_webapp_returns_empty_string(self):
         agent = self._make_agent(webapp=None)
         self.assertEqual(agent._extra_instructions(), "")
@@ -122,24 +85,18 @@ class EditWebappAgentExtraInstructionsTest(AgentTestCase):
         agent = self._make_agent(webapp=webapp)
         self.assertNotIn("Description:", agent._extra_instructions())
 
-    def test_webapp_is_injected_into_context(self):
+    def test_webapp_id_is_injected_into_context(self):
         webapp = self._make_webapp(name="Context App", slug="context-app")
         agent = self._make_agent(webapp=webapp)
-        self.assertIn("webapp", agent._context)
-        self.assertEqual(agent._context["webapp"], webapp)
+        self.assertEqual(agent._context["webapp_id"], str(webapp.id))
+        self.assertNotIn("webapp", agent._context)
 
-    def test_no_webapp_context_is_none(self):
+    def test_no_webapp_leaves_context_without_webapp_id(self):
         agent = self._make_agent(webapp=None)
-        self.assertIn("webapp", agent._context)
-        self.assertIsNone(agent._context["webapp"])
+        self.assertNotIn("webapp_id", agent._context)
 
-    def test_conversation_is_injected_into_context(self):
-        agent = self._make_agent(webapp=None)
-        self.assertIn("conversation", agent._context)
-        self.assertEqual(agent._context["conversation"], agent.conversation)
-
-    def test_file_manifest_shown_when_no_pending_proposal(self):
-        self.mock_forgejo.return_value.get_repository_files.return_value = [
+    def test_file_manifest_inlines_the_entry_point(self):
+        self.client_mock.get_repository_files.return_value = [
             {
                 "path": "index.html",
                 "type": "file",
@@ -159,10 +116,11 @@ class EditWebappAgentExtraInstructionsTest(AgentTestCase):
         self.assertIn("index.html", instructions)
         self.assertIn("style.css", instructions)
         self.assertIn("<h1>Hi</h1>", instructions)
+        self.assertNotIn("body {}", instructions)
         self.assertIn("get_static_webapp_file", instructions)
 
     def test_binary_files_marked_in_manifest(self):
-        self.mock_forgejo.return_value.get_repository_files.return_value = [
+        self.client_mock.get_repository_files.return_value = [
             {
                 "path": "index.html",
                 "type": "file",
@@ -177,172 +135,108 @@ class EditWebappAgentExtraInstructionsTest(AgentTestCase):
         self.assertIn("logo.png", instructions)
         self.assertIn("binary", instructions)
 
-    def test_pending_proposal_small_file_is_inlined(self):
-        webapp = self._make_webapp(name="Pending App", slug="pending-app")
-        agent = self._make_agent(webapp=webapp)
-        self._make_pending_invocation(
-            agent.conversation,
-            [{"path": "index.html", "content": "<h1>Draft</h1>"}],
+
+class EditWebappAgentToolCallTest(EditWebappAgentTestCase):
+    """The MCP tools run in a worker thread with their own database connection, so
+    the GraphQL layer is mocked here; the MCP and webapp suites cover what it does.
+    """
+
+    def _run_tool(self, tool_name, tool_args, graphql_response):
+        webapp = self._make_webapp(name="Tool Test App", slug="tool-test-app")
+        agent = self._make_agent(
+            webapp=webapp, model=_make_tool_call_model(tool_name, tool_args)
         )
-        instructions = agent._extra_instructions()
-        self.assertIn("Pending Proposed Version", instructions)
-        self.assertIn("index.html", instructions)
-        self.assertIn("<h1>Draft</h1>", instructions)
+        calls = []
 
-    def test_pending_proposal_large_file_is_not_inlined(self):
-        webapp = self._make_webapp(name="Large App", slug="large-app")
-        agent = self._make_agent(webapp=webapp)
-        large_content = "\n".join(f"line {i}" for i in range(_MAX_INLINE_LINES + 1))
-        self._make_pending_invocation(
-            agent.conversation,
-            [{"path": "bundle.js", "content": large_content}],
-        )
-        instructions = agent._extra_instructions()
-        self.assertIn("bundle.js", instructions)
-        self.assertNotIn("line 0", instructions)
-        self.assertIn("not shown", instructions)
+        def fake_execute_graphql(user, operation_name, variables=None):
+            calls.append((user, operation_name, variables))
+            return graphql_response
 
+        with patch(
+            "hexa.mcp.tools.webapps.execute_graphql", side_effect=fake_execute_graphql
+        ):
+            run_agent(agent, "Update the web app")
+        return webapp, self.first_tool_invocation(agent.conversation), calls
 
-class EditWebappAgentToolCallTest(AgentTestCase):
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.webapp = GitWebapp.objects.create(
-            workspace=cls.workspace,
-            name="Tool Test App",
-            slug="tool-test-app",
-            subdomain="tool-test-app",
-            type=Webapp.WebappType.STATIC,
-            created_by=cls.user,
-            repository="ws-webapp-tool-test-app",
+    def test_update_static_webapp_runs_with_the_linked_webapp_bound(self):
+        webapp, invocation, calls = self._run_tool(
+            "update_static_webapp",
+            {
+                "files_json": '[{"path": "index.html", "content": "<h1>New</h1>"}]',
+                "commit_message": "feat: greet the user",
+            },
+            {"updateWebapp": {"success": True, "errors": [], "webapp": {}}},
         )
 
-    @patch("hexa.git.mixins.get_forgejo_client")
-    def test_propose_webapp_version_call_is_persisted(self, mock_get_client):
-        mock_client = mock_get_client.return_value
-        mock_client.get_repository_files.return_value = []
-
-        files_arg = [{"path": "index.html", "content": "<h1>New</h1>"}]
-        model = _make_tool_call_model(
-            "propose_webapp_version", {"modified_files": files_arg}
-        )
-        conversation = Conversation(
-            user=self.user,
-            workspace=self.workspace,
-            instruction_set=InstructionSet.EDIT_WEBAPP,
-        )
-        conversation.linked_object = self.webapp
-        conversation.save()
-        agent = EditWebappAgent(conversation, FakeModelBuilder(model))
-        run_agent(agent, "Update the web app")
-        invocation = self.first_tool_invocation(conversation)
-        self.assertEqual(invocation.tool_name, "propose_webapp_version")
-        self.assertTrue(invocation.success)
-        self.assertIn("files", invocation.tool_output)
-        self.assertEqual(invocation.tool_output["files"][0]["path"], "index.html")
-
-
-class EditWebappAgentProposalPendingTest(AgentTestCase):
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.webapp = GitWebapp.objects.create(
-            workspace=cls.workspace,
-            name="Pending Test App",
-            slug="pending-test-app",
-            subdomain="pending-test-app",
-            type=Webapp.WebappType.STATIC,
-            created_by=cls.user,
-            repository="ws-webapp-pending-test-app",
-        )
-
-    def setUp(self):
-        patcher = patch("hexa.git.mixins.get_forgejo_client")
-        self.mock_forgejo = patcher.start()
-        self.mock_forgejo.return_value.get_repository_files.return_value = []
-        self.addCleanup(patcher.stop)
-        self.conversation = Conversation(
-            user=self.user,
-            workspace=self.workspace,
-            instruction_set=InstructionSet.EDIT_WEBAPP,
-        )
-        self.conversation.linked_object = self.webapp
-        self.conversation.save()
-
-    def _run_proposal(self, tool_args, captured_requests=None):
-        if captured_requests is None:
-            model = _make_tool_call_model("propose_webapp_version", tool_args)
-        else:
-            model = _make_capturing_tool_call_model(
-                "propose_webapp_version", tool_args, captured_requests
-            )
-        agent = EditWebappAgent(self.conversation, FakeModelBuilder(model))
-        run_agent(agent, "Update the web app")
-
-    def test_successful_proposal_is_marked_pending(self):
-        self._run_proposal(
-            {"modified_files": [{"path": "index.html", "content": "<h1>New</h1>"}]}
-        )
-        invocation = self.first_tool_invocation(self.conversation)
-        self.assertTrue(invocation.success)
-        self.assertTrue(invocation.proposal_pending)
-
-    def test_new_proposal_supersedes_earlier_pending_one(self):
-        earlier_message = Message.objects.create(
-            conversation=self.conversation, role=Message.Role.ASSISTANT, content=[]
-        )
-        earlier = ToolInvocation.objects.create(
-            message=earlier_message,
-            tool_name="propose_webapp_version",
-            tool_call_id="call-earlier-001",
-            tool_input={},
-            success=True,
-            proposal_pending=True,
-            tool_output={"files": [{"path": "index.html", "content": "<h1>Old</h1>"}]},
-        )
-        self._run_proposal(
-            {"modified_files": [{"path": "index.html", "content": "<h1>New</h1>"}]}
-        )
-        earlier.refresh_from_db()
-        self.assertFalse(earlier.proposal_pending)
-        latest = ToolInvocation.objects.get(tool_call_id="call-test-001")
-        self.assertTrue(latest.proposal_pending)
-
-    def test_failed_proposal_is_not_marked_pending(self):
-        self._run_proposal({})
-        invocation = self.first_tool_invocation(self.conversation)
-        self.assertIn("error", invocation.tool_output)
-        self.assertFalse(invocation.success)
+        self.assertEqual(invocation.tool_name, "update_static_webapp")
+        self.assertTrue(invocation.success, invocation.tool_output)
         self.assertFalse(invocation.proposal_pending)
-
-    def test_model_requests_receive_stripped_proposal_output(self):
-        captured_requests = []
-        self._run_proposal(
-            {"modified_files": [{"path": "index.html", "content": "<h1>New</h1>"}]},
-            captured_requests=captured_requests,
+        # The id and the user come from the context, never from the model.
+        self.assertNotIn("webapp_id", invocation.tool_input)
+        user, operation_name, variables = calls[0]
+        self.assertEqual(user, self.user)
+        self.assertEqual(operation_name, "UpdateStaticWebapp")
+        self.assertEqual(
+            variables["input"],
+            {
+                "id": str(webapp.id),
+                "files": [{"path": "index.html", "content": "<h1>New</h1>"}],
+                "commitMessage": "feat: greet the user",
+            },
         )
-        # The request following the tool call must carry the summary, not the echo.
-        returns = [
-            part
-            for messages in captured_requests
-            for msg in messages
-            if isinstance(msg, ModelRequest)
-            for part in msg.parts
-            if isinstance(part, ToolReturnPart)
-            and part.tool_name == "propose_webapp_version"
-        ]
-        self.assertEqual(len(returns), 1)
-        self.assertEqual(returns[0].content, {"status": "ok", "files": ["index.html"]})
 
-    def test_persisted_history_keeps_full_proposal_output(self):
-        self._run_proposal(
-            {"modified_files": [{"path": "index.html", "content": "<h1>New</h1>"}]}
+    def test_edit_static_webapp_file_runs_with_the_linked_webapp_bound(self):
+        webapp, invocation, calls = self._run_tool(
+            "edit_static_webapp_file",
+            {
+                "path": "index.html",
+                "old_string": "Old",
+                "new_string": "New",
+                "commit_message": "fix: update the heading",
+            },
+            {"editWebappFile": {"success": True, "errors": [], "webapp": {}}},
         )
-        self.conversation.refresh_from_db()
-        self.assertIn("<h1>New</h1>", json.dumps(self.conversation.messages_history))
+
+        self.assertTrue(invocation.success, invocation.tool_output)
+        _, operation_name, variables = calls[0]
+        self.assertEqual(operation_name, "EditWebappFile")
+        self.assertEqual(variables["input"]["id"], str(webapp.id))
+        self.assertEqual(variables["input"]["commitMessage"], "fix: update the heading")
+
+    def test_a_failed_save_is_not_a_success(self):
+        _, invocation, _ = self._run_tool(
+            "update_static_webapp",
+            {"files_json": '[{"path": "index.html", "content": "<h1>New</h1>"}]'},
+            {
+                "updateWebapp": {
+                    "success": False,
+                    "errors": ["SAVE_FAILED"],
+                    "webapp": None,
+                }
+            },
+        )
+
+        self.assertFalse(invocation.success)
+        self.assertEqual(invocation.tool_output["errors"], ["SAVE_FAILED"])
+
+    def test_invalid_input_never_reaches_graphql(self):
+        _, invocation, calls = self._run_tool(
+            "update_static_webapp", {"files_json": "not json"}, {}
+        )
+
+        self.assertFalse(invocation.success)
+        self.assertIn("error", invocation.tool_output)
+        self.assertEqual(calls, [])
 
 
 class EditWebappAgentToolsTest(AgentTestCase):
+    def test_writes_through_the_mcp_tools(self):
+        names = {tool.__name__ for tool in EditWebappAgent.tools}
+        self.assertIn("update_static_webapp", names)
+        self.assertIn("edit_static_webapp_file", names)
+        self.assertNotIn("propose_webapp_version", names)
+        self.assertEqual(EditWebappAgent.history_strip_tools, set())
+
     def test_exposes_saved_query_and_schema_tools(self):
         # The webapp proxy only reaches the database through executeSavedQuery, so
         # the agent must be able to find, inspect and write the saved query it
@@ -365,3 +259,16 @@ class EditWebappAgentToolsTest(AgentTestCase):
         self.assertIn("executeSavedQuery", instructions)
         self.assertIn("create_saved_query", instructions)
         self.assertIn("WORKSPACE", instructions)
+
+    def test_instructions_describe_auto_save(self):
+        instructions = get_instructions(InstructionSet.EDIT_WEBAPP)
+        self.assertIn("update_static_webapp", instructions)
+        self.assertIn("NOT published", instructions)
+        self.assertIn("commit_message", instructions)
+        self.assertNotIn("propose", instructions)
+        self.assertNotIn("pending", instructions)
+
+    def test_pipeline_instructions_keep_the_pending_proposal_rule(self):
+        instructions = get_instructions(InstructionSet.EDIT_PIPELINE)
+        self.assertIn("pending proposal", instructions)
+        self.assertIn("Conventional Commits", instructions)

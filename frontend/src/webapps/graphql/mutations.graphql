@@ -17,6 +17,20 @@ mutation UpdateWebapp($input: UpdateWebappInput!) {
     }
   }
 }
+mutation RestoreWebappVersion($input: RestoreWebappVersionInput!) {
+  restoreWebappVersion(input: $input) {
+    success
+    errors
+    webapp {
+      id
+      source {
+        ... on GitSource {
+          publishedVersion
+        }
+      }
+    }
+  }
+}
 mutation CreateWebapp($input: CreateWebappInput!) {
   createWebapp(input: $input) {
     success

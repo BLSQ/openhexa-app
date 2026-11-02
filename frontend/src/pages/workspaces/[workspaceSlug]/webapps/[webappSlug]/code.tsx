@@ -1,11 +1,7 @@
 import { SparklesIcon } from "@heroicons/react/24/outline";
-import AssistantProposalBanner from "assistant/features/AssistantProposalBanner";
 import WebappEditChatPanel, {
   WebappConversation,
-  WebappProposedFile,
 } from "assistant/features/WebappEditChatPanel";
-import { useResolveAssistantProposalMutation } from "assistant/graphql/mutations.generated";
-import useProposalCommitMessage from "assistant/hooks/useProposalCommitMessage";
 import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
 import Page from "core/components/Page";
@@ -28,8 +24,12 @@ import WebappLayout from "workspaces/layouts/WebappLayout";
 import WebappFilesEditor from "webapps/features/WebappFilesEditor/WebappFilesEditor";
 import VersionPicker from "webapps/features/VersionPicker/VersionPicker";
 import GitClonePopover from "webapps/features/GitClonePopover/GitClonePopover";
+import RestoreWebappVersionDialog from "webapps/features/RestoreWebappVersionDialog/RestoreWebappVersionDialog";
 import useCacheKey from "core/hooks/useCacheKey";
-import { WebappVersion_VersionFragment } from "webapps/graphql/queries.generated";
+import {
+  useWebappVersionsQuery,
+  WebappVersion_VersionFragment,
+} from "webapps/graphql/queries.generated";
 import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
 
 type Props = {
@@ -51,75 +51,24 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
   const [selectedVersion, setSelectedVersion] =
     useState<WebappVersion_VersionFragment | null>(null);
   const [updateWebapp] = useUpdateWebappMutation();
-  const [resolveProposal] = useResolveAssistantProposalMutation();
   const [isPublishing, setIsPublishing] = useState(false);
+  const [restoreTarget, setRestoreTarget] = useState<string | null>(null);
   const [isEditorBusy, setIsEditorBusy] = useState(false);
+  const [versionPickerKey, setVersionPickerKey] = useState(0);
 
-  const [proposedFiles, setProposedFiles] = useState<
-    WebappProposedFile[] | null
-  >(null);
-  const [proposedToolInvocationId, setProposedToolInvocationId] = useState<
-    string | null
-  >(null);
-  // A proposal streamed by the agent is shown before its invocation is persisted
-  // (that only happens when the turn ends), so it cannot be resolved yet.
-  const proposalBlockedReason =
-    proposedFiles !== null && proposedToolInvocationId === null
-      ? t("Waiting for the assistant to finish…")
-      : undefined;
-  const [proposedDeletedPaths, setProposedDeletedPaths] = useState<
-    string[] | null
-  >(null);
-  const {
-    commitMessage: proposedCommitMessage,
-    setCommitMessage: setProposedCommitMessage,
-    receiveCommitMessage,
-    resetCommitMessage,
-  } = useProposalCommitMessage();
+  const { data: versionsData, refetch: refetchVersions } =
+    useWebappVersionsQuery({
+      variables: { workspaceSlug, webappSlug, page: 1, perPage: 1 },
+    });
+  const latestVersionId = versionsData?.webapp?.versions?.items?.[0]?.id;
 
-  const handleProposedFiles = useCallback(
-    (
-      files: WebappProposedFile[] | null,
-      toolInvocationId?: string,
-      deletedPaths?: string[],
-      commitMessage?: string,
-    ) => {
-      setProposedFiles(files);
-      setProposedDeletedPaths(deletedPaths ?? null);
-      receiveCommitMessage(commitMessage);
-      if (toolInvocationId !== undefined) {
-        setProposedToolInvocationId(toolInvocationId);
-      } else if (files !== null) {
-        setProposedToolInvocationId(null);
-      }
-    },
-    [receiveCommitMessage],
-  );
-
-  const handleDismiss = useCallback(async () => {
-    setProposedFiles(null);
-    setProposedDeletedPaths(null);
-    resetCommitMessage();
-    const idToDismiss = proposedToolInvocationId;
-    setProposedToolInvocationId(null);
-    if (idToDismiss) {
-      await resolveProposal({
-        variables: { toolInvocationId: idToDismiss },
-      });
-    }
-  }, [proposedToolInvocationId, resolveProposal, resetCommitMessage]);
-
-  const handleSaveSuccess = useCallback(() => {
+  // A new version was committed (editor save or assistant): show it.
+  const handleVersionSaved = useCallback(() => {
     refetch().then();
-    const idToResolve = proposedToolInvocationId;
-    setProposedFiles(null);
-    setProposedDeletedPaths(null);
-    resetCommitMessage();
-    setProposedToolInvocationId(null);
-    if (idToResolve) {
-      resolveProposal({ variables: { toolInvocationId: idToResolve } });
-    }
-  }, [proposedToolInvocationId, resolveProposal, refetch, resetCommitMessage]);
+    refetchVersions().then();
+    setSelectedVersion(null);
+    setVersionPickerKey((k) => k + 1);
+  }, [refetch, refetchVersions]);
 
   const showAssistant =
     data?.workspace?.organization?.aiSettings?.enabled ?? false;
@@ -179,16 +128,20 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
     source?.__typename === "GitSource" ? source.publishedVersion : null;
   const repositoryUrl =
     source?.__typename === "GitSource" ? source.repositoryUrl : null;
-  const isViewingPublished =
-    !selectedVersion || selectedVersion.id === publishedVersionId;
+  const selectedVersionId = selectedVersion?.id ?? latestVersionId ?? null;
+  const isViewingLatest =
+    !selectedVersionId || selectedVersionId === latestVersionId;
+  const isViewingPublished = selectedVersionId === publishedVersionId;
 
+  // Only the latest version can be published; an older one is brought back as
+  // a new latest version (and published) instead.
   const handlePublish = async () => {
-    if (!selectedVersion || isPublishing) return;
+    if (!latestVersionId || isPublishing) return;
     setIsPublishing(true);
     try {
       const { data: publishData } = await updateWebapp({
         variables: {
-          input: { id: webapp.id, publishedVersionId: selectedVersion.id },
+          input: { id: webapp.id, publishedVersionId: latestVersionId },
         },
         refetchQueries: ["WebappVersions"],
       });
@@ -205,29 +158,40 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
     }
   };
 
+  const extraAction =
+    !webapp.permissions.update || isEditorBusy ? undefined : isViewingLatest ? (
+      !isViewingPublished && (
+        <Button
+          variant="primary"
+          onClick={handlePublish}
+          disabled={isPublishing}
+          leadingIcon={isPublishing ? <Spinner size="xs" /> : undefined}
+        >
+          {isPublishing ? t("Publishing...") : t("Publish")}
+        </Button>
+      )
+    ) : (
+      <Button
+        variant="primary"
+        onClick={() => selectedVersionId && setRestoreTarget(selectedVersionId)}
+      >
+        {t("Roll back to this version")}
+      </Button>
+    );
+
   return (
     <Page title={webapp.name}>
       <WebappLayout
         workspace={workspace}
         webapp={webapp}
         currentTab="code"
-        extraActions={
-          webapp.permissions.update && !isViewingPublished && !isEditorBusy ? (
-            <Button
-              variant="primary"
-              onClick={handlePublish}
-              disabled={isPublishing}
-              leadingIcon={isPublishing ? <Spinner size="xs" /> : undefined}
-            >
-              {isPublishing ? t("Publishing...") : t("Publish")}
-            </Button>
-          ) : undefined
-        }
+        extraActions={extraAction || undefined}
       >
         <DataCard.FormSection>
           <div className="flex items-center gap-3">
             <div className="w-96">
               <VersionPicker
+                key={versionPickerKey}
                 workspaceSlug={workspaceSlug}
                 webappSlug={webappSlug}
                 initialVersionId={initialRef}
@@ -255,31 +219,16 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
               )}
             </div>
           </div>
-          {proposedFiles && (
-            <AssistantProposalBanner
-              label={t("Proposed changes from AI assistant")}
-              message={proposedCommitMessage ?? undefined}
-              messagePlaceholder={t("Commit message")}
-              onMessageChange={setProposedCommitMessage}
-              onDismiss={handleDismiss}
-              disabledReason={proposalBlockedReason}
-              className="-my-2"
-            />
-          )}
           <div className="flex gap-4 min-h-[60vh] max-h-[65vh] overflow-hidden">
             <div className="relative flex-1 min-h-0">
               <WebappFilesEditor
                 webappId={webapp.id}
                 workspaceSlug={workspaceSlug}
                 webappSlug={webappSlug}
-                isEditable={webapp.permissions.update}
+                isEditable={webapp.permissions.update && isViewingLatest}
                 versionRef={selectedVersion?.id}
-                proposedFiles={proposedFiles ?? undefined}
-                proposedDeletedPaths={proposedDeletedPaths ?? undefined}
-                proposedCommitMessage={proposedCommitMessage ?? undefined}
-                onSaveSuccess={handleSaveSuccess}
+                onSaveSuccess={handleVersionSaved}
                 onBusyChange={setIsEditorBusy}
-                saveDisabledReason={proposalBlockedReason}
               />
             </div>
             {chatOpen && showAssistant && (
@@ -287,7 +236,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
                 <WebappEditChatPanel
                   webappId={webapp.id}
                   workspaceSlug={workspaceSlug}
-                  onProposedFiles={handleProposedFiles}
+                  onVersionSaved={handleVersionSaved}
                   conversations={conversations}
                   activeConversationId={activeConversationId}
                   onConversationChange={setActiveConversationId}
@@ -299,6 +248,13 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
             )}
           </div>
         </DataCard.FormSection>
+        <RestoreWebappVersionDialog
+          open={restoreTarget !== null}
+          onClose={() => setRestoreTarget(null)}
+          webappId={webapp.id}
+          versionId={restoreTarget}
+          onRestored={handleVersionSaved}
+        />
       </WebappLayout>
     </Page>
   );

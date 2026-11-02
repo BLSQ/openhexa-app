@@ -102,10 +102,13 @@ def update_static_webapp(
     name: str = "",
     description: str = "",
     allowed_operations: list[Webapp.OperationScope] | None = None,
+    commit_message: str = "",
 ) -> dict:
     """Update an existing static web app.
 
     Provide the webapp UUID (from list_static_webapps) and any fields to change. Only provided non-empty fields are updated. Pass name to change the human-readable name, and description to change the description.
+
+    File changes are saved as a new version (a git commit on main) that is NOT published: the live web app keeps serving the previously published version until the user publishes the new one from the History view. Pass commit_message to describe the change in the Conventional Commits format (`type(scope): summary`).
 
     For small changes to a single existing file (editing a few lines, changing a string), prefer edit_static_webapp_file instead — it takes a find/replace snippet so you don't resend the whole file. Use this tool to add new files, delete files, rewrite a file wholesale, or update metadata/scopes.
 
@@ -142,6 +145,8 @@ def update_static_webapp(
         update_input["filesToDelete"] = files_to_delete
     if allowed_operations is not None:
         update_input["allowedOperations"] = allowed_operations
+    if commit_message:
+        update_input["commitMessage"] = commit_message
 
     data = execute_graphql(
         user,
@@ -161,6 +166,7 @@ def edit_static_webapp_file(
     old_string: str,
     new_string: str,
     replace_all: bool = False,
+    commit_message: str = "",
 ) -> dict:
     """Make a precise find/replace edit to a single file in a static web app.
 
@@ -168,6 +174,10 @@ def edit_static_webapp_file(
     changes, not the whole file. The backend reads the current file, replaces old_string with
     new_string, and commits. Prefer this over update_static_webapp when changing a few lines of
     a large file.
+
+    The edit is saved as a new version (a git commit on main) that is NOT published: the live
+    web app keeps the previously published version until the user publishes from the History
+    view. Pass commit_message to describe the change in the Conventional Commits format.
 
     Provide the webapp UUID (from list_static_webapps) and the file path (e.g. "index.html").
     old_string must match the current file content exactly (including whitespace and
@@ -184,6 +194,8 @@ def edit_static_webapp_file(
         "newString": new_string,
         "replaceAll": replace_all,
     }
+    if commit_message:
+        edit_input["commitMessage"] = commit_message
     data = execute_graphql(
         user,
         "EditWebappFile",

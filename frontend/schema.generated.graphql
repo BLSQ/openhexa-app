@@ -478,6 +478,7 @@ enum AssistantToolName {
   create_pipeline
   create_saved_query
   create_static_webapp
+  edit_static_webapp_file
   get_dataset
   get_db_schema
   get_db_table_schema
@@ -493,10 +494,10 @@ enum AssistantToolName {
   list_saved_queries
   preview_dataset_file
   propose_pipeline_version
-  propose_webapp_version
   read_file
   save_saved_query_version
   update_saved_query
+  update_static_webapp
 }
 
 type AssistantToolSegment {
@@ -2381,6 +2382,7 @@ Changes part of an existing TEXT file without resending its whole content. `oldS
 match exactly; unless `replaceAll` is true it must match exactly once.
 """
 input EditWebappFileInput {
+  commitMessage: String
   id: UUID!
   newString: String!
   oldString: String!
@@ -3401,6 +3403,7 @@ type Mutation {
   """Sends a password reset email to the user."""
   resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
   resolveAssistantProposal(toolInvocationId: UUID!): ResolveAssistantProposalResult!
+  restoreWebappVersion(input: RestoreWebappVersionInput!): RestoreWebappVersionResult!
   revokeMCPConnection(input: RevokeMCPConnectionInput!): RevokeMCPConnectionResult!
   runDAG(input: RunDAGInput!): RunDAGResult!
 
@@ -4730,6 +4733,32 @@ input ResourceCountsInput {
   workspaces: Int!
 }
 
+"""Represents the error message for a web app version restore."""
+enum RestoreWebappVersionError {
+  PERMISSION_DENIED
+  RESTORE_FAILED
+  TYPE_MISMATCH
+  VERSION_NOT_FOUND
+  WEBAPPS_NOT_CONFIGURED
+  WEBAPP_NOT_FOUND
+}
+
+"""Input for restoring an older version of a static web app."""
+input RestoreWebappVersionInput {
+  id: UUID!
+  versionId: String!
+}
+
+"""
+Represents the result of restoring a web app version. The restored content is
+committed as the new latest version on main and published.
+"""
+type RestoreWebappVersionResult {
+  errors: [RestoreWebappVersionError!]!
+  success: Boolean!
+  webapp: Webapp
+}
+
 enum RevokeMCPConnectionError {
   NOT_FOUND
 }
@@ -5969,6 +5998,7 @@ enum UpdateWebappError {
   SUPERSET_NOT_CONFIGURED
   TYPE_MISMATCH
   VERSION_NOT_FOUND
+  VERSION_NOT_LATEST
   WEBAPPS_NOT_CONFIGURED
   WEBAPP_NOT_FOUND
 }
@@ -6192,7 +6222,7 @@ type Webapp {
   name: String!
   permissions: WebappPermissions!
   pointsToOpenhexaWebapp: Boolean!
-  previewUrl: String!
+  previewUrl(ref: String): String!
   serveUrl: String!
   showPoweredBy: Boolean!
   slug: String!

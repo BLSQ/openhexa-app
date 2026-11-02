@@ -55,6 +55,17 @@ query WebappVersions(
   }
 }
 
+query WebappPreviewUrl(
+  $workspaceSlug: String!
+  $webappSlug: String!
+  $ref: String
+) {
+  webapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {
+    id
+    previewUrl(ref: $ref)
+  }
+}
+
 query WebappFiles($workspaceSlug: String!, $webappSlug: String!, $ref: String) {
   webapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {
     id

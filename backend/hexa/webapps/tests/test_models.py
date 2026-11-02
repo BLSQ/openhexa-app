@@ -1,9 +1,11 @@
+import base64
 from unittest.mock import MagicMock, patch
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError
 
 from hexa.core.test import TestCase
+from hexa.git.enums import FileEncoding
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.superset.models import SupersetDashboard, SupersetInstance
 from hexa.user_management.models import (
@@ -12,7 +14,12 @@ from hexa.user_management.models import (
     OrganizationMembershipRole,
     User,
 )
-from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
+from hexa.webapps.models import (
+    GitWebapp,
+    SupersetWebapp,
+    Webapp,
+    WebappVersionNotLatestError,
+)
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -827,6 +834,114 @@ class GitWebappModelTest(TestCase):
         )
 
         self.assertEqual(webapp.published_commit, self.INITIAL_SHA)
+
+    def _static_webapp(self):
+        return GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="Versioned App",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
+
+    def test_save_files_does_not_publish(self):
+        webapp = self._static_webapp()
+        self.mock_git_client.commit_files.return_value = "new-sha"
+
+        sha = webapp.save_files(
+            [{"path": "index.html", "content": "<h1>v2</h1>", "encoding": "TEXT"}],
+            "feat: v2",
+            self.user_admin,
+        )
+
+        self.assertEqual(sha, "new-sha")
+        webapp.refresh_from_db()
+        self.assertEqual(webapp.published_commit, self.INITIAL_SHA)
+
+    def test_publish_version_moves_the_pointer_to_head(self):
+        webapp = self._static_webapp()
+        self.mock_git_client.commit_exists.return_value = True
+        self.mock_git_client.get_commits.return_value = [{"id": "head-sha"}]
+
+        webapp.publish_version("head-sha")
+
+        webapp.refresh_from_db()
+        self.assertEqual(webapp.published_commit, "head-sha")
+
+    def test_publish_version_rejects_an_older_commit(self):
+        webapp = self._static_webapp()
+        self.mock_git_client.commit_exists.return_value = True
+        self.mock_git_client.get_commits.return_value = [{"id": "head-sha"}]
+
+        with self.assertRaises(WebappVersionNotLatestError):
+            webapp.publish_version("older-sha")
+
+        webapp.refresh_from_db()
+        self.assertEqual(webapp.published_commit, self.INITIAL_SHA)
+
+    def test_publish_version_rejects_an_unknown_commit(self):
+        webapp = self._static_webapp()
+        self.mock_git_client.commit_exists.return_value = False
+
+        with self.assertRaises(ValueError):
+            webapp.publish_version("missing-sha")
+
+    def test_restore_version_commits_the_old_tree_and_publishes_it(self):
+        webapp = self._static_webapp()
+        self.mock_git_client.commit_exists.return_value = True
+        self.mock_git_client.get_files_tree.side_effect = lambda repo, ref, **kw: {
+            "main": [
+                {"path": "index.html", "type": "blob", "sha": "idx-new"},
+                {"path": "style.css", "type": "blob", "sha": "css-same"},
+                {"path": "added-later.js", "type": "blob", "sha": "js-new"},
+                {"path": "assets", "type": "tree", "sha": "tree"},
+            ],
+            "old-sha": [
+                {"path": "index.html", "type": "blob", "sha": "idx-old"},
+                {"path": "style.css", "type": "blob", "sha": "css-same"},
+                {"path": "assets/logo.png", "type": "blob", "sha": "png-old"},
+                {"path": "assets", "type": "tree", "sha": "tree"},
+            ],
+        }[ref]
+        self.mock_git_client.get_file.side_effect = lambda repo, path, ref, **kw: {
+            "index.html": b"<h1>old</h1>",
+            "assets/logo.png": b"\x89PNG",
+        }[path]
+        self.mock_git_client.commit_files.return_value = "restore-sha"
+        self.mock_git_client.get_commits.return_value = [{"id": "restore-sha"}]
+
+        sha = webapp.restore_version("old-sha", self.user_admin)
+
+        self.assertEqual(sha, "restore-sha")
+        args, kwargs = self.mock_git_client.commit_files.call_args
+        self.assertEqual(
+            args[1],
+            [
+                {
+                    "path": "index.html",
+                    "content": base64.b64encode(b"<h1>old</h1>").decode(),
+                    "encoding": FileEncoding.BASE64,
+                },
+                {
+                    "path": "assets/logo.png",
+                    "content": base64.b64encode(b"\x89PNG").decode(),
+                    "encoding": FileEncoding.BASE64,
+                },
+            ],
+        )
+        self.assertEqual(args[2], "Restore version old-sha")
+        self.assertEqual(kwargs["delete_paths"], ["added-later.js"])
+        webapp.refresh_from_db()
+        self.assertEqual(webapp.published_commit, "restore-sha")
+
+    def test_restore_version_rejects_an_unknown_commit(self):
+        webapp = self._static_webapp()
+        self.mock_git_client.commit_exists.return_value = False
+
+        with self.assertRaises(ValueError):
+            webapp.restore_version("missing-sha", self.user_admin)
+
+        self.mock_git_client.commit_files.assert_not_called()
 
     def test_multi_table_inheritance(self):
         git_webapp = GitWebapp.create_if_has_perm(

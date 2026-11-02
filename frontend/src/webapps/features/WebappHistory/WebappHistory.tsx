@@ -5,7 +5,11 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { CodeBracketIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowUturnLeftIcon,
+  CodeBracketIcon,
+  EyeIcon,
+} from "@heroicons/react/24/outline";
 import { useTranslation } from "next-i18next";
 import { DateTime } from "luxon";
 import Link from "next/link";
@@ -26,13 +30,23 @@ type WebappHistoryProps = {
   webappSlug: string;
   onSelectCommit?: (commitId: string) => void;
   onBrowseCommit?: (commitId: string) => void;
+  onPreviewCommit?: (commitId: string) => void;
+  // Brings an older version back as the new latest one and publishes it.
+  onRollbackCommit?: (commitId: string) => void;
+  canEdit?: boolean;
 };
+
+const ICON_BUTTON_CLASS =
+  "rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50";
 
 const WebappHistory = ({
   workspaceSlug,
   webappSlug,
   onSelectCommit,
   onBrowseCommit,
+  onPreviewCommit,
+  onRollbackCommit,
+  canEdit = false,
 }: WebappHistoryProps) => {
   const { t } = useTranslation();
   const [extraVersions, setExtraVersions] = useState<
@@ -42,8 +56,9 @@ const WebappHistory = ({
   const [loadingMore, setLoadingMore] = useState(false);
   const pageRef = useRef(1);
 
-  const { data, loading, refetch } = useWebappVersionsQuery({
+  const { data, loading, fetchMore } = useWebappVersionsQuery({
     variables: { workspaceSlug, webappSlug, page: 1, perPage: PER_PAGE },
+    fetchPolicy: "cache-and-network",
   });
 
   const firstPageVersions = useMemo(
@@ -60,6 +75,7 @@ const WebappHistory = ({
   const source = data?.webapp?.source;
   const publishedVersionId =
     source?.__typename === "GitSource" ? source.publishedVersion : null;
+  const latestVersionId = firstPageVersions[0]?.id ?? null;
 
   const allVersions = useMemo(
     () => [...firstPageVersions, ...extraVersions],
@@ -92,20 +108,24 @@ const WebappHistory = ({
     setLoadingMore(true);
     const nextPage = pageRef.current + 1;
     pageRef.current = nextPage;
-    refetch({
-      workspaceSlug,
-      webappSlug,
-      page: nextPage,
-      perPage: PER_PAGE,
+    // fetchMore leaves the query on page 1, so a later refetch (after a save or
+    // a roll back) reloads the first page instead of the last one loaded.
+    fetchMore({
+      variables: {
+        workspaceSlug,
+        webappSlug,
+        page: nextPage,
+        perPage: PER_PAGE,
+      },
     }).then(({ data: d }) => {
       const items = d?.webapp?.versions?.items ?? [];
       setExtraVersions((prev) => [...prev, ...items]);
       setHasMore(items.length >= PER_PAGE);
       setLoadingMore(false);
     });
-  }, [hasMore, loadingMore, refetch, workspaceSlug, webappSlug]);
+  }, [hasMore, loadingMore, fetchMore, workspaceSlug, webappSlug]);
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <div className="flex items-center justify-center py-12">
         <Spinner size="sm" />
@@ -135,6 +155,7 @@ const WebappHistory = ({
           <div className="overflow-hidden rounded-md border border-gray-200">
             {versions.map((version, idx) => {
               const isPublished = version.id === publishedVersionId;
+              const isLatest = version.id === latestVersionId;
               const dt = DateTime.fromISO(version.date);
               const diffSeconds = -dt.diffNow("seconds").seconds;
               const relative =
@@ -143,6 +164,7 @@ const WebappHistory = ({
               return (
                 <div
                   key={version.id}
+                  data-testid={`webapp-version-${version.id}`}
                   className={`flex items-center justify-between gap-4 px-4 py-3 ${
                     idx < versions.length - 1 ? "border-b border-gray-200" : ""
                   }`}
@@ -164,6 +186,11 @@ const WebappHistory = ({
                           {version.message}
                         </Link>
                       )}
+                      {isLatest && (
+                        <Badge className="shrink-0 bg-blue-50 text-blue-700 ring-blue-600/20">
+                          {t("Latest")}
+                        </Badge>
+                      )}
                       {isPublished && (
                         <Badge className="shrink-0 bg-green-50 text-green-700 ring-green-600/20">
                           {t("Published")}
@@ -175,6 +202,21 @@ const WebappHistory = ({
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
+                    {onPreviewCommit && (
+                      <Tooltip
+                        label={t("Preview this version")}
+                        renderTrigger={(ref) => (
+                          <button
+                            ref={ref as React.Ref<HTMLButtonElement>}
+                            onClick={() => onPreviewCommit(version.id)}
+                            aria-label={t("Preview this version")}
+                            className={ICON_BUTTON_CLASS}
+                          >
+                            <EyeIcon className="h-4 w-4" />
+                          </button>
+                        )}
+                      />
+                    )}
                     <Tooltip
                       label={t("Browse at this point")}
                       renderTrigger={(ref) =>
@@ -182,7 +224,8 @@ const WebappHistory = ({
                           <button
                             ref={ref as React.Ref<HTMLButtonElement>}
                             onClick={() => onBrowseCommit(version.id)}
-                            className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                            aria-label={t("Browse at this point")}
+                            className={ICON_BUTTON_CLASS}
                           >
                             <CodeBracketIcon className="h-4 w-4" />
                           </button>
@@ -190,13 +233,29 @@ const WebappHistory = ({
                           <Link
                             ref={ref as React.Ref<HTMLAnchorElement>}
                             href={`/workspaces/${encodeURIComponent(workspaceSlug)}/webapps/${encodeURIComponent(webappSlug)}/code?ref=${version.id}`}
-                            className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                            aria-label={t("Browse at this point")}
+                            className={ICON_BUTTON_CLASS}
                           >
                             <CodeBracketIcon className="h-4 w-4" />
                           </Link>
                         )
                       }
                     />
+                    {onRollbackCommit && canEdit && !isLatest && (
+                      <Tooltip
+                        label={t("Roll back to this version")}
+                        renderTrigger={(ref) => (
+                          <button
+                            ref={ref as React.Ref<HTMLButtonElement>}
+                            onClick={() => onRollbackCommit(version.id)}
+                            aria-label={t("Roll back to this version")}
+                            className={ICON_BUTTON_CLASS}
+                          >
+                            <ArrowUturnLeftIcon className="h-4 w-4" />
+                          </button>
+                        )}
+                      />
+                    )}
                     <Clipboard value={version.id}>
                       <code className="rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-600">
                         {shortId}

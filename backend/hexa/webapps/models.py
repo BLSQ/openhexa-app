@@ -1,3 +1,4 @@
+import base64
 import os
 import secrets
 from typing import TYPE_CHECKING
@@ -55,6 +56,10 @@ class WebappFileStringNotUniqueError(WebappFileEditError):
 
 class WebappFileNoChangeError(WebappFileEditError):
     """old_string and new_string are identical; there is nothing to change."""
+
+
+class WebappVersionNotLatestError(ValueError):
+    """Only the latest commit on main can be published; older ones are restored first."""
 
 
 class WebappFileTooLargeError(WebappFileEditError):
@@ -346,16 +351,27 @@ class GitWebapp(Webapp, GitRepoMixin):
             )
         return nodes
 
+    def latest_version_id(self) -> str | None:
+        commits = self.client.get_commits(self.git_org.slug, self.repository, limit=1)
+        return commits[0]["id"] if commits else None
+
     def publish_version(self, version_id):
         if not self.client.commit_exists(
             self.git_org.slug, self.repository, version_id
         ):
             raise ValueError(f"Version {version_id} not found")
+        # Publishing an older commit would leave the editor and the live site on
+        # different content; older versions are brought back with restore_version.
+        if version_id != self.latest_version_id():
+            raise WebappVersionNotLatestError(
+                f"Version {version_id} is not the latest one"
+            )
         self.published_commit = version_id
         self.save()
 
     def save_files(self, files, message, user, delete_paths=None):
-        sha = self.client.commit_files(
+        """Commit a new version on main. Publishing is a separate, explicit step."""
+        return self.client.commit_files(
             self.repository,
             files,
             message,
@@ -364,8 +380,49 @@ class GitWebapp(Webapp, GitRepoMixin):
             org_slug=self.git_org.slug,
             delete_paths=delete_paths,
         )
-        self.published_commit = sha
-        self.save()
+
+    def _blob_tree(self, ref: str) -> dict[str, str]:
+        return {
+            entry["path"]: entry.get("sha", "")
+            for entry in self.client.get_files_tree(
+                self.repository, ref, org_slug=self.git_org.slug
+            )
+            if entry.get("type") == "blob"
+        }
+
+    def restore_version(self, ref: str, user) -> str:
+        """Bring an older version back as a new commit on main and publish it.
+
+        The commit carries the files whose blob differs from HEAD and deletes the
+        ones that did not exist at `ref`, so main ends up with exactly that tree
+        without rewriting history. Raw bytes are committed as base64 so binary
+        files round-trip untouched.
+        """
+        if not self.client.commit_exists(self.git_org.slug, self.repository, ref):
+            raise ValueError(f"Version {ref} not found")
+        head = self._blob_tree("main")
+        target = self._blob_tree(ref)
+        files = [
+            {
+                "path": path,
+                "content": base64.b64encode(
+                    self.client.get_file(
+                        self.repository, path, ref=ref, org_slug=self.git_org.slug
+                    )
+                ).decode(),
+                "encoding": FileEncoding.BASE64,
+            }
+            for path, blob_sha in target.items()
+            if head.get(path) != blob_sha
+        ]
+        delete_paths = [path for path in head if path not in target]
+        sha = self.save_files(
+            files,
+            f"Restore version {ref[:7]}",
+            user,
+            delete_paths=delete_paths or None,
+        )
+        self.publish_version(sha)
         return sha
 
     def get_file_content(self, path: str, ref: str = "main") -> str:
@@ -381,7 +438,9 @@ class GitWebapp(Webapp, GitRepoMixin):
         except UnicodeDecodeError:
             raise WebappFileBinaryError(path)
 
-    def edit_file(self, path, old_string, new_string, user, replace_all=False):
+    def edit_file(
+        self, path, old_string, new_string, user, replace_all=False, message=None
+    ):
         """Apply a string find/replace to a single file and commit the result.
 
         Lets a caller change part of a file without resending its whole content.
@@ -417,7 +476,7 @@ class GitWebapp(Webapp, GitRepoMixin):
 
         return self.save_files(
             [{"path": path, "content": new_content, "encoding": FileEncoding.TEXT}],
-            f"Edit {path}",
+            message or f"Edit {path}",
             user,
         )
 

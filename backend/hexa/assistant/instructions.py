@@ -55,13 +55,19 @@ You are tasked with creating a new pipeline for the user.
 
 
 # Closes both editing prompts; each one says on its own where the message ends up.
-_PROPOSAL_RULES = """
+_COMMIT_MESSAGE_RULES = """
 ## Commit message
 Always pass a `commit_message` in the Conventional Commits format:
 - A subject line `type(optional scope): summary`, where type is one of `feat`, `fix`, `refactor`, `perf`, `docs`, `style`, `test`, `build` or `chore`. Imperative mood, no trailing period, under 72 characters.
 - Optionally a blank line and a body of one or two short sentences, only when the subject alone does not explain *why* the change was made. Never restate the diff — the user can already see it.
-When you revise a pending proposal, restate the whole message so it still describes the entire change rather than only the latest revision.
+"""
 
+# Only the pipeline agent still stages proposals the user reviews before saving.
+_PENDING_PROPOSAL_RULE = """
+When you revise a pending proposal, restate the whole message so it still describes the entire change rather than only the latest revision.
+"""
+
+_TOOL_CALL_ETIQUETTE = """
 ## Before and after the call
 - Before using the tool, do not send any messages.
 - After using the tool, briefly explain what you changed and why:
@@ -106,20 +112,17 @@ When the web app should show data from the workspace database, it can only run a
 _EDIT_WEBAPP = """
 # Your task
 You are helping the user modify an existing OpenHEXA static web app (HTML/CSS/JavaScript files).
-- The web app metadata and current file list are pre-loaded in your context below.
-- File contents are NOT pre-loaded. Call `get_static_webapp_file` with the webapp slug and file path to read a specific file before modifying it. The workspace slug is injected automatically — do not pass it.
-- Only read files you intend to modify. Do not read large files (e.g. a shared stylesheet) unless you are actually changing them.
+- The web app metadata and current file list are pre-loaded in your context below. The workspace slug and the web app id are injected automatically — do not pass them.
+- File contents are NOT pre-loaded. Call `get_static_webapp_file` with the webapp slug and file path to read a specific file before modifying it.
+- Only read files you intend to modify. Do not read large files (e.g. a shared stylesheet) unless you are actually changing them. For large files, pass `start_line` and `end_line` to read only the section that needs to change.
 - When the user asks for changes:
-  1. Read only the files you will modify using `get_static_webapp_file`. For large files, pass `start_line` and `end_line` to read only the section that needs to change.
-  2. Analyze the existing content carefully.
-  3. Call the `propose_webapp_version` tool:
-     - For **new files or complete rewrites**: use `modified_files` with the full content.
-     - For **targeted edits to existing files** (a few lines in a large file): use `file_patches` with `{path, old_string, new_string}`. This avoids sending the whole file — only pass the lines that change. `old_string` must match the current file exactly.
-     - Use `deleted_files` to remove files. Pass a directory path to remove everything under it, and pass binary files (images, fonts) by path even though their content is never shown to you.
-     - You can mix `modified_files` and `file_patches` in the same call.
-  4. The `commit_message` you pass becomes the commit message if the user accepts the proposal.
-
-If a pending proposed version exists (shown under "Pending Proposed Version"), the user is reviewing it but has not yet accepted it. For any follow-up change, you MUST call `propose_webapp_version` again — build upon the pending proposed files, not the saved version. Read large pending files with `get_static_webapp_file` if their content is not shown inline.
+  1. Read the files you will modify and analyze them carefully.
+  2. Work out every change the request needs, then save them with ONE call to `update_static_webapp`: `files_json` holds the full new content of each file you created or rewrote, `files_to_delete_json` the paths to remove (binary files such as images by path, even though their content is never shown to you). Files you omit are kept unchanged.
+  3. Use `edit_static_webapp_file` only when the whole request is a single small find/replace in one existing file. Do not chain several tool calls for one request: each call is saved as a separate version in the history.
+  4. Each save is recorded as a new version that the user sees in the editor and the preview straight away. It is NOT published: the live web app keeps the previously published version until the user publishes the new one from the History view. Mention this briefly only when the user asks whether a change is live.
+  5. Do not pass `name`, `description` or `allowed_operations` unless the user explicitly asks to change them.
+- Always build on the latest version: the files in your context, or the version you saved earlier in this conversation. If a tool returns an error, fix the input and call it again.
+- A question about the web app that does not ask for a change gets a text answer only: do not save a version for it.
 
 # Database access
 A web app cannot send SQL of its own: through the proxy it can only run a saved query of the Data Studio, by slug, via `executeSavedQuery` (requires the `DATABASE_READ` scope on the web app). When the user wants the web app to show data from the workspace database:
@@ -177,12 +180,15 @@ _INSTRUCTION_SETS: dict[InstructionSet | tuple[str, str], str] = {
     InstructionSet.CREATE_PIPELINE: _BASE + _CREATE_PIPELINE + _PIPELINE_DOCS,
     InstructionSet.EDIT_PIPELINE: _BASE
     + _EDIT_PIPELINE
-    + _PROPOSAL_RULES
+    + _COMMIT_MESSAGE_RULES
+    + _PENDING_PROPOSAL_RULE
+    + _TOOL_CALL_ETIQUETTE
     + _PIPELINE_DOCS,
     InstructionSet.CREATE_WEBAPPS: _BASE + _CREATE_WEBAPP + _WEBAPP_FILES_DOC,
     InstructionSet.EDIT_WEBAPP: _BASE
     + _EDIT_WEBAPP
-    + _PROPOSAL_RULES
+    + _COMMIT_MESSAGE_RULES
+    + _TOOL_CALL_ETIQUETTE
     + _WEBAPP_FILES_DOC,
     InstructionSet.GENERATE_SQL: _BASE + _GENERATE_SQL + _SQL_CHARTS + _SQL_WIDGETS_DOC,
     InstructionSet.EDIT_SAVED_QUERY: _BASE

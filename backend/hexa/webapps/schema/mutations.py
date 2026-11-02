@@ -8,6 +8,7 @@ from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 
 from hexa.git.enums import FileEncoding
+from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.superset.models import SupersetInstance
 from hexa.utils.base64_image_encode_decode import decode_base64_image
@@ -21,6 +22,7 @@ from hexa.webapps.models import (
     WebappFileStringNotFoundError,
     WebappFileStringNotUniqueError,
     WebappFileTooLargeError,
+    WebappVersionNotLatestError,
     validate_subdomain,
 )
 from hexa.workspaces.models import Workspace
@@ -235,6 +237,12 @@ def resolve_update_webapp(_, info, **kwargs):
         if input.get("published_version_id") is not None:
             try:
                 git_webapp.publish_version(input["published_version_id"])
+            except WebappVersionNotLatestError:
+                return {
+                    "success": False,
+                    "errors": ["VERSION_NOT_LATEST"],
+                    "webapp": None,
+                }
             except ValueError:
                 return {
                     "success": False,
@@ -280,6 +288,7 @@ def resolve_edit_webapp_file(_, info, **kwargs):
             input["new_string"],
             user,
             replace_all=input.get("replace_all", False),
+            message=(input.get("commit_message") or "").strip() or None,
         )
     except WebappFileNoChangeError:
         return {"success": False, "errors": ["NO_CHANGE"], "webapp": None}
@@ -296,6 +305,39 @@ def resolve_edit_webapp_file(_, info, **kwargs):
     except ForgejoAPIError as e:
         logger.error("Failed to edit webapp file: %s", e)
         return {"success": False, "errors": ["SAVE_FAILED"], "webapp": None}
+
+    return {"success": True, "errors": [], "webapp": git_webapp}
+
+
+@webapps_mutations.field("restoreWebappVersion")
+def resolve_restore_webapp_version(_, info, **kwargs):
+    if not settings.WEBAPPS_DOMAIN:
+        return {"success": False, "errors": ["WEBAPPS_NOT_CONFIGURED"], "webapp": None}
+
+    request: HttpRequest = info.context["request"]
+    user = request.user
+    input = kwargs["input"]
+
+    try:
+        webapp = Webapp.objects.filter_for_user(user).get(id=input["id"])
+    except Webapp.DoesNotExist:
+        return {"success": False, "errors": ["WEBAPP_NOT_FOUND"], "webapp": None}
+
+    if not user.has_perm("webapps.update_webapp", webapp):
+        return {"success": False, "errors": ["PERMISSION_DENIED"], "webapp": None}
+
+    try:
+        git_webapp = GitWebapp.objects.get(pk=webapp.pk)
+    except GitWebapp.DoesNotExist:
+        return {"success": False, "errors": ["TYPE_MISMATCH"], "webapp": None}
+
+    try:
+        git_webapp.restore_version(input["version_id"], user)
+    except ValueError:
+        return {"success": False, "errors": ["VERSION_NOT_FOUND"], "webapp": None}
+    except (ForgejoAPIError, GitFileNotFound, GitFileTooLarge) as e:
+        logger.error("Failed to restore webapp version: %s", e)
+        return {"success": False, "errors": ["RESTORE_FAILED"], "webapp": None}
 
     return {"success": True, "errors": [], "webapp": git_webapp}
 

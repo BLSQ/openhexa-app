@@ -524,6 +524,7 @@ export enum AssistantToolName {
   CreatePipeline = 'create_pipeline',
   CreateSavedQuery = 'create_saved_query',
   CreateStaticWebapp = 'create_static_webapp',
+  EditStaticWebappFile = 'edit_static_webapp_file',
   GetDataset = 'get_dataset',
   GetDbSchema = 'get_db_schema',
   GetDbTableSchema = 'get_db_table_schema',
@@ -539,10 +540,10 @@ export enum AssistantToolName {
   ListSavedQueries = 'list_saved_queries',
   PreviewDatasetFile = 'preview_dataset_file',
   ProposePipelineVersion = 'propose_pipeline_version',
-  ProposeWebappVersion = 'propose_webapp_version',
   ReadFile = 'read_file',
   SaveSavedQueryVersion = 'save_saved_query_version',
-  UpdateSavedQuery = 'update_saved_query'
+  UpdateSavedQuery = 'update_saved_query',
+  UpdateStaticWebapp = 'update_static_webapp'
 }
 
 export type AssistantToolSegment = {
@@ -2404,6 +2405,7 @@ export enum EditWebappFileError {
  * match exactly; unless `replaceAll` is true it must match exactly once.
  */
 export type EditWebappFileInput = {
+  commitMessage?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
   newString: Scalars['String']['input'];
   oldString: Scalars['String']['input'];
@@ -3315,6 +3317,7 @@ export type Mutation = {
   /** Sends a password reset email to the user. */
   resetPassword: ResetPasswordResult;
   resolveAssistantProposal: ResolveAssistantProposalResult;
+  restoreWebappVersion: RestoreWebappVersionResult;
   revokeMCPConnection: RevokeMcpConnectionResult;
   runDAG: RunDagResult;
   /** Runs a pipeline. */
@@ -3845,6 +3848,11 @@ export type MutationResetPasswordArgs = {
 
 export type MutationResolveAssistantProposalArgs = {
   toolInvocationId: Scalars['UUID']['input'];
+};
+
+
+export type MutationRestoreWebappVersionArgs = {
+  input: RestoreWebappVersionInput;
 };
 
 
@@ -5664,6 +5672,33 @@ export type ResourceCountsInput = {
   workspaces: Scalars['Int']['input'];
 };
 
+/** Represents the error message for a web app version restore. */
+export enum RestoreWebappVersionError {
+  PermissionDenied = 'PERMISSION_DENIED',
+  RestoreFailed = 'RESTORE_FAILED',
+  TypeMismatch = 'TYPE_MISMATCH',
+  VersionNotFound = 'VERSION_NOT_FOUND',
+  WebappsNotConfigured = 'WEBAPPS_NOT_CONFIGURED',
+  WebappNotFound = 'WEBAPP_NOT_FOUND'
+}
+
+/** Input for restoring an older version of a static web app. */
+export type RestoreWebappVersionInput = {
+  id: Scalars['UUID']['input'];
+  versionId: Scalars['String']['input'];
+};
+
+/**
+ * Represents the result of restoring a web app version. The restored content is
+ * committed as the new latest version on main and published.
+ */
+export type RestoreWebappVersionResult = {
+  __typename?: 'RestoreWebappVersionResult';
+  errors: Array<RestoreWebappVersionError>;
+  success: Scalars['Boolean']['output'];
+  webapp?: Maybe<Webapp>;
+};
+
 export enum RevokeMcpConnectionError {
   NotFound = 'NOT_FOUND'
 }
@@ -6793,6 +6828,7 @@ export enum UpdateWebappError {
   SupersetNotConfigured = 'SUPERSET_NOT_CONFIGURED',
   TypeMismatch = 'TYPE_MISMATCH',
   VersionNotFound = 'VERSION_NOT_FOUND',
+  VersionNotLatest = 'VERSION_NOT_LATEST',
   WebappsNotConfigured = 'WEBAPPS_NOT_CONFIGURED',
   WebappNotFound = 'WEBAPP_NOT_FOUND'
 }
@@ -7024,6 +7060,12 @@ export type WebappCommitDiffArgs = {
 /** Represents a web app. */
 export type WebappFilesArgs = {
   includeBinaryContent?: InputMaybe<Scalars['Boolean']['input']>;
+  ref?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** Represents a web app. */
+export type WebappPreviewUrlArgs = {
   ref?: InputMaybe<Scalars['String']['input']>;
 };
 
