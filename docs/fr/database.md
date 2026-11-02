@@ -100,4 +100,4 @@ Un lien public (`/queries/<slug>`) affiche le nom, la description et le résulta
 
 Pour rendre une requête publique, ouvrez-la dans le Data Studio, cliquez sur sa visibilité dans la barre d'outils et choisissez **Public**. Copiez le lien depuis le bouton **Lien public** de la barre d'outils ou depuis la liste des requêtes enregistrées.
 
-Si une requête n'est plus publique, son lien cesse de fonctionner : les visiteurs non connectés sont redirigés vers la page de connexion, et les autres obtiennent une erreur « page introuvable ».
+Si une requête n'est plus publique, ou si son espace de travail est archivé, son lien cesse de fonctionner : les visiteurs non connectés sont redirigés vers la page de connexion, et les autres obtiennent une erreur « page introuvable ».

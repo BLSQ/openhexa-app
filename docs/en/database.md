@@ -100,4 +100,4 @@ A public link (`/queries/<slug>`) shows the query's name, description and result
 
 To make a query public, open it in the Data Studio, click its visibility in the toolbar and choose **Public**. Copy the link from the **Public link** button in the toolbar or from the saved queries list.
 
-If a query stops being public, its link stops working: visitors who are not logged in are sent to the login page, and everyone else gets a "page not found" error.
+If a query stops being public, or its workspace is archived, its link stops working: visitors who are not logged in are sent to the login page, and everyone else gets a "page not found" error.

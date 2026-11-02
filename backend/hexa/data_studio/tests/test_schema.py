@@ -18,6 +18,7 @@ from hexa.git.testutils import make_git_client_mock
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.user_management.models import User
+from hexa.workspaces.models import Workspace
 
 from .testutils import SavedQueryTestMixin
 
@@ -1778,6 +1779,21 @@ class PublicSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         result = self._execute(query.slug)
 
         self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
+        self.assertEqual(0, QueryLog.objects.count())
+
+    def test_public_query_of_an_archived_workspace_is_unreachable(self):
+        query = self.create_saved_query(visibility=SavedQueryVisibility.PUBLIC)
+        Workspace.objects.filter(pk=self.WORKSPACE.pk).update(archived=True)
+
+        for user in [None, self.USER_OUTSIDER, self.USER_EDITOR]:
+            with self.subTest(user=user):
+                self.client.logout()
+                if user:
+                    self.client.force_login(user)
+                self.assertIsNone(self._get_by_slug(query.slug))
+                self.assertEqual(
+                    ["SAVED_QUERY_NOT_FOUND"], self._execute(query.slug)["errors"]
+                )
         self.assertEqual(0, QueryLog.objects.count())
 
     def test_workspace_tells_who_may_publish_their_own_queries(self):

@@ -18,6 +18,7 @@ from hexa.databases.tests.helpers import (
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
+    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
@@ -483,6 +484,13 @@ class DownloadSavedQueryCsvViewTest(SavedQueryTestMixin, TestCase):
                 self.assertEqual(
                     404, self.client.post(self._url(query.slug)).status_code
                 )
+        self.assertEqual(0, QueryLog.objects.count())
+
+    def test_public_query_of_an_archived_workspace_is_not_served(self):
+        query = self.create_saved_query(visibility=SavedQueryVisibility.PUBLIC)
+        Workspace.objects.filter(pk=self.WORKSPACE.pk).update(archived=True)
+
+        self.assertEqual(404, self.client.post(self._url(query.slug)).status_code)
         self.assertEqual(0, QueryLog.objects.count())
 
     def test_visitors_have_a_slot_pool_of_their_own(self):

@@ -256,13 +256,13 @@ def download_saved_query_csv(request: HttpRequest, slug: str) -> HttpResponse:
     The permalink counterpart of :func:`download_query_csv`: the SQL is the stored
     one, so no login is needed (``ANONYMOUS_URLS`` in apps.py) and the public visibility
     is the whole authorization (see ``ensure_can_run_query``). Only public queries are
-    served, whoever asks: a member exports their other queries from the editor. The
-    entry on record names the query, which is what tells a permalink export apart from
-    an editor export in the audit log.
+    served, whoever asks: a member exports their other queries from the editor, and
+    none from an archived workspace. The entry on record names the query, which is
+    what tells a permalink export apart from an editor export in the audit log.
     """
     try:
         saved_query = SavedQuery.objects.select_related("workspace").get(
-            slug=slug, visibility=SavedQueryVisibility.PUBLIC
+            slug=slug, visibility=SavedQueryVisibility.PUBLIC, workspace__archived=False
         )
     except SavedQuery.DoesNotExist:
         raise Http404("Saved query not found")

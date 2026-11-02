@@ -268,7 +268,8 @@ def _visible_saved_queries(request: HttpRequest):
 
 def _saved_queries_reachable_by_permalink(request: HttpRequest):
     """What a permalink opens: the queries the user may see, plus the public queries of
-    every workspace, for anonymous users too.
+    every workspace, for anonymous users too. Archiving a workspace takes its public
+    links down, as it already takes the queries away from its members.
 
     Service principals (web apps, pipeline runs, MCP connections) stay confined to the
     workspaces they were issued for: opening other workspaces' public queries to them
@@ -280,7 +281,8 @@ def _saved_queries_reachable_by_permalink(request: HttpRequest):
     # `pk__in` rather than `|`: `filter_for_user` returns a distinct queryset, except
     # for superusers, and Django refuses to combine distinct and non-distinct ones.
     return SavedQuery.objects.filter(
-        Q(pk__in=visible) | Q(visibility=SavedQueryVisibility.PUBLIC)
+        Q(pk__in=visible)
+        | Q(visibility=SavedQueryVisibility.PUBLIC, workspace__archived=False)
     ).select_related("created_by", "workspace", "workspace__organization")
 
 
