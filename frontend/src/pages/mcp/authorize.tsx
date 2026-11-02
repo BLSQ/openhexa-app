@@ -45,6 +45,7 @@ type Props = {
   csrfToken: string;
   clientName: string;
   tools: AuthorizationRequest["tools"];
+  organizations: McpAuthorizationRequestQuery["organizations"];
   workspaces: McpAuthorizationRequestQuery["workspaces"]["items"];
   grant: MCPGrant;
 };
@@ -54,6 +55,7 @@ const AuthorizePage: NextPageWithLayout<Props> = ({
   csrfToken,
   clientName,
   tools,
+  organizations,
   workspaces,
   grant: initialGrant,
 }) => {
@@ -72,6 +74,7 @@ const AuthorizePage: NextPageWithLayout<Props> = ({
           clientId: params.client_id ?? "",
           tools: grant.tools,
           workspaceSlugs: grant.workspaceSlugs,
+          organizationIds: grant.organizationIds,
         },
       },
     }).catch(() => null);
@@ -110,6 +113,7 @@ const AuthorizePage: NextPageWithLayout<Props> = ({
           <MCPPermissionMatrix
             idPrefix="mcp-consent"
             grant={grant}
+            organizations={organizations}
             workspaces={workspaces}
             tools={tools}
             onChange={setGrant}
@@ -179,6 +183,7 @@ export const getServerSideProps = createGetServerSideProps({
         csrfToken: ctx.req.cookies["csrftoken"] ?? "",
         clientName: request.clientName,
         tools: request.tools,
+        organizations: data.organizations,
         workspaces,
         grant: request.connection
           ? {
@@ -186,13 +191,19 @@ export const getServerSideProps = createGetServerSideProps({
               workspaceSlugs: request.connection.workspaces.map(
                 (workspace) => workspace.slug,
               ),
+              organizationIds: request.connection.organizations.map(
+                (organization) => organization.id,
+              ),
             }
           : {
               // A first authorization starts read-only: writing is opted into.
               tools: request.tools
                 .filter((tool) => tool.resource && !tool.write)
                 .map((tool) => tool.name),
-              workspaceSlugs: workspaces.map((workspace) => workspace.slug),
+              workspaceSlugs: [],
+              organizationIds: data.organizations.map(
+                (organization) => organization.id,
+              ),
             },
       },
     };

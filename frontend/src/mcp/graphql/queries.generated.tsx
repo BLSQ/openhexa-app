@@ -3,7 +3,7 @@ import * as Types from '../../graphql/types';
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type McpConnection_ConnectionFragment = { __typename?: 'MCPConnection', id: string, name: string, createdAt: any, lastUsedAt?: any | null, tools: Array<string>, workspaces: Array<{ __typename?: 'Workspace', slug: string, name: string }> };
+export type McpConnection_ConnectionFragment = { __typename?: 'MCPConnection', id: string, name: string, createdAt: any, lastUsedAt?: any | null, tools: Array<string>, workspaces: Array<{ __typename?: 'Workspace', slug: string, name: string }>, organizations: Array<{ __typename?: 'Organization', id: string, name: string }> };
 
 export type AccountMcpConnectionsQueryVariables = Types.Exact<{
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
@@ -11,7 +11,7 @@ export type AccountMcpConnectionsQueryVariables = Types.Exact<{
 }>;
 
 
-export type AccountMcpConnectionsQuery = { __typename?: 'Query', mcpConnections: Array<{ __typename?: 'MCPConnection', id: string, name: string, createdAt: any, lastUsedAt?: any | null, tools: Array<string>, workspaces: Array<{ __typename?: 'Workspace', slug: string, name: string }> }>, mcpTools: Array<{ __typename?: 'MCPTool', name: string, description: string, resource?: Types.McpResource | null, write: boolean }>, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }>, currentMembership?: { __typename?: 'WorkspaceMembership', role: Types.WorkspaceMembershipRole } | null }> } };
+export type AccountMcpConnectionsQuery = { __typename?: 'Query', mcpConnections: Array<{ __typename?: 'MCPConnection', id: string, name: string, createdAt: any, lastUsedAt?: any | null, tools: Array<string>, workspaces: Array<{ __typename?: 'Workspace', slug: string, name: string }>, organizations: Array<{ __typename?: 'Organization', id: string, name: string }> }>, organizations: Array<{ __typename?: 'Organization', id: string, name: string }>, mcpTools: Array<{ __typename?: 'MCPTool', name: string, description: string, resource?: Types.McpResource | null, write: boolean }>, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }>, currentMembership?: { __typename?: 'WorkspaceMembership', role: Types.WorkspaceMembershipRole } | null, organization: { __typename?: 'Organization', id: string } }> } };
 
 export type McpAuthorizationRequestQueryVariables = Types.Exact<{
   clientId: Types.Scalars['String']['input'];
@@ -20,7 +20,7 @@ export type McpAuthorizationRequestQueryVariables = Types.Exact<{
 }>;
 
 
-export type McpAuthorizationRequestQuery = { __typename?: 'Query', mcpAuthorizationRequest?: { __typename?: 'MCPAuthorizationRequest', clientName: string, connection?: { __typename?: 'MCPConnection', id: string, name: string, createdAt: any, lastUsedAt?: any | null, tools: Array<string>, workspaces: Array<{ __typename?: 'Workspace', slug: string, name: string }> } | null, tools: Array<{ __typename?: 'MCPTool', name: string, description: string, resource?: Types.McpResource | null, write: boolean }> } | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }>, currentMembership?: { __typename?: 'WorkspaceMembership', role: Types.WorkspaceMembershipRole } | null }> } };
+export type McpAuthorizationRequestQuery = { __typename?: 'Query', organizations: Array<{ __typename?: 'Organization', id: string, name: string }>, mcpAuthorizationRequest?: { __typename?: 'MCPAuthorizationRequest', clientName: string, connection?: { __typename?: 'MCPConnection', id: string, name: string, createdAt: any, lastUsedAt?: any | null, tools: Array<string>, workspaces: Array<{ __typename?: 'Workspace', slug: string, name: string }>, organizations: Array<{ __typename?: 'Organization', id: string, name: string }> } | null, tools: Array<{ __typename?: 'MCPTool', name: string, description: string, resource?: Types.McpResource | null, write: boolean }> } | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }>, currentMembership?: { __typename?: 'WorkspaceMembership', role: Types.WorkspaceMembershipRole } | null, organization: { __typename?: 'Organization', id: string } }> } };
 
 export const McpConnection_ConnectionFragmentDoc = gql`
     fragment MCPConnection_connection on MCPConnection {
@@ -32,6 +32,10 @@ export const McpConnection_ConnectionFragmentDoc = gql`
     slug
     name
   }
+  organizations {
+    id
+    name
+  }
   tools
 }
     `;
@@ -39,6 +43,10 @@ export const AccountMcpConnectionsDocument = gql`
     query AccountMCPConnections($page: Int, $perPage: Int) {
   mcpConnections {
     ...MCPConnection_connection
+  }
+  organizations {
+    id
+    name
   }
   mcpTools {
     name
@@ -56,6 +64,9 @@ export const AccountMcpConnectionsDocument = gql`
       }
       currentMembership {
         role
+      }
+      organization {
+        id
       }
     }
   }
@@ -97,6 +108,10 @@ export type AccountMcpConnectionsSuspenseQueryHookResult = ReturnType<typeof use
 export type AccountMcpConnectionsQueryResult = Apollo.QueryResult<AccountMcpConnectionsQuery, AccountMcpConnectionsQueryVariables>;
 export const McpAuthorizationRequestDocument = gql`
     query MCPAuthorizationRequest($clientId: String!, $page: Int, $perPage: Int) {
+  organizations {
+    id
+    name
+  }
   mcpAuthorizationRequest(clientId: $clientId) {
     clientName
     connection {
@@ -119,6 +134,9 @@ export const McpAuthorizationRequestDocument = gql`
       }
       currentMembership {
         role
+      }
+      organization {
+        id
       }
     }
   }

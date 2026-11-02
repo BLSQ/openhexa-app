@@ -1,6 +1,7 @@
 from ariadne import EnumType, ObjectType
 
 from hexa.mcp.models import MCPConnection, MCPResource
+from hexa.user_management.models import Organization
 from hexa.workspaces.models import Workspace
 
 mcp_connection_object = ObjectType("MCPConnection")
@@ -16,6 +17,15 @@ def resolve_name(connection: MCPConnection, info):
 def resolve_workspaces(connection: MCPConnection, info):
     return (
         Workspace.objects.filter_for_user(connection.user)
+        .filter(mcp_connections=connection)
+        .order_by("name")
+    )
+
+
+@mcp_connection_object.field("organizations")
+def resolve_organizations(connection: MCPConnection, info):
+    return (
+        Organization.objects.filter_for_user(connection.user)
         .filter(mcp_connections=connection)
         .order_by("name")
     )
