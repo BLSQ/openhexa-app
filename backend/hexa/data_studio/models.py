@@ -289,14 +289,14 @@ class SavedQuery(Base, SoftDeletedModel, GitRepoMixin):
         return raw.decode("utf-8")
 
     def _visibility_change_permission(self, visibility: str) -> str:
-        """Publishing and taking back to the workspace are a wider circle's call than
-        sharing is (see `permissions.publish_saved_query`); going private stays the
-        author's alone, whatever the query's current visibility.
+        """Moving a query into or out of public is managing its public link, a wider
+        circle's call than sharing is (see `permissions.manage_public_saved_query`);
+        going private stays the author's alone, whatever the query's current visibility.
         """
         if visibility == SavedQueryVisibility.PUBLIC or (
             self.is_public and visibility == SavedQueryVisibility.WORKSPACE
         ):
-            return "data_studio.publish_saved_query"
+            return "data_studio.manage_public_saved_query"
         return "data_studio.update_saved_query_visibility"
 
     def update_if_has_perm(self, principal: User, **kwargs):
@@ -324,7 +324,9 @@ class SavedQuery(Base, SoftDeletedModel, GitRepoMixin):
             if (
                 content_changed
                 and self.is_public
-                and not principal.has_perm("data_studio.publish_saved_query", self)
+                and not principal.has_perm(
+                    "data_studio.manage_public_saved_query", self
+                )
             ):
                 raise PermissionDenied
 

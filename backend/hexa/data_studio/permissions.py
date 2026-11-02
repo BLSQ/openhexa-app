@@ -69,10 +69,10 @@ def create_public_saved_query(principal: User, workspace: Workspace):
     ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
 
 
-def publish_saved_query(principal: User, saved_query: SavedQuery):
+def manage_public_saved_query(principal: User, saved_query: SavedQuery):
     """The author (if they may publish in the workspace at all), a workspace admin or
-    an organization admin/owner can make a query public, take a public one back to
-    the workspace and change its SQL.
+    an organization admin/owner manage a query's public link: make the query public,
+    take it back to the workspace, and change its SQL or delete it while it is public.
 
     A private query stays the author's alone: nobody else may expose what only its
     author can see. Taking a public query back to private is not covered here either
@@ -90,5 +90,5 @@ def delete_saved_query(principal: User, saved_query: SavedQuery):
     # Deleting a public query breaks a link people may be using, so beyond its
     # author it is a publisher's call, as changing its SQL is.
     if saved_query.is_public and not _is_author(principal, saved_query):
-        return publish_saved_query(principal, saved_query)
+        return manage_public_saved_query(principal, saved_query)
     return update_saved_query(principal, saved_query)

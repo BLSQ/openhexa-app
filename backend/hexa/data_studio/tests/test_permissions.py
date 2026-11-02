@@ -4,7 +4,7 @@ from hexa.data_studio.permissions import (
     create_public_saved_query,
     create_saved_query,
     delete_saved_query,
-    publish_saved_query,
+    manage_public_saved_query,
     update_saved_query,
     update_saved_query_visibility,
 )
@@ -84,32 +84,32 @@ class SavedQueryPermissionsTest(SavedQueryTestMixin, TestCase):
         self.assertFalse(create_public_saved_query(self.USER_VIEWER, self.WORKSPACE))
         self.assertFalse(create_public_saved_query(self.USER_OUTSIDER, self.WORKSPACE))
 
-    def test_publish_saved_query(self):
+    def test_manage_public_saved_query(self):
         query = self._create(self.USER_EDITOR)
-        self.assertTrue(publish_saved_query(self.USER_EDITOR, query))
-        self.assertTrue(publish_saved_query(self.USER_ADMIN, query))
-        self.assertFalse(publish_saved_query(self.USER_VIEWER, query))
-        self.assertFalse(publish_saved_query(self.USER_OUTSIDER, query))
+        self.assertTrue(manage_public_saved_query(self.USER_EDITOR, query))
+        self.assertTrue(manage_public_saved_query(self.USER_ADMIN, query))
+        self.assertFalse(manage_public_saved_query(self.USER_VIEWER, query))
+        self.assertFalse(manage_public_saved_query(self.USER_OUTSIDER, query))
         # Editing rights are not publishing rights
         admin_query = self._create(self.USER_ADMIN)
-        self.assertFalse(publish_saved_query(self.USER_EDITOR, admin_query))
+        self.assertFalse(manage_public_saved_query(self.USER_EDITOR, admin_query))
 
     def test_viewer_cannot_publish_their_own_query(self):
         query = self._create(self.USER_VIEWER)
-        self.assertFalse(publish_saved_query(self.USER_VIEWER, query))
+        self.assertFalse(manage_public_saved_query(self.USER_VIEWER, query))
 
     def test_publish_private_saved_query(self):
         # Nobody but its author may expose what only its author can see.
         query = self._create(self.USER_EDITOR, visibility=SavedQueryVisibility.PRIVATE)
-        self.assertTrue(publish_saved_query(self.USER_EDITOR, query))
-        self.assertFalse(publish_saved_query(self.USER_ADMIN, query))
+        self.assertTrue(manage_public_saved_query(self.USER_EDITOR, query))
+        self.assertFalse(manage_public_saved_query(self.USER_ADMIN, query))
 
-    def test_publish_saved_query_without_author(self):
+    def test_manage_public_saved_query_without_author(self):
         query = self._create(self.USER_VIEWER)
         query.created_by = None
         query.save()
-        self.assertTrue(publish_saved_query(self.USER_ADMIN, query))
-        self.assertFalse(publish_saved_query(self.USER_VIEWER, query))
+        self.assertTrue(manage_public_saved_query(self.USER_ADMIN, query))
+        self.assertFalse(manage_public_saved_query(self.USER_VIEWER, query))
 
     def test_delete_saved_query(self):
         query = self._create(self.USER_EDITOR)
@@ -245,10 +245,18 @@ class SavedQueryOrganizationPermissionsTest(TestCase):
         self.assertNotIn(self.PRIVATE_SAVED_QUERY, visible)
 
     def test_publish_via_organization_role(self):
-        self.assertTrue(publish_saved_query(self.USER_ORG_OWNER, self.SAVED_QUERY))
-        self.assertTrue(publish_saved_query(self.USER_ORG_ADMIN, self.SAVED_QUERY))
-        self.assertFalse(publish_saved_query(self.USER_ORG_MEMBER, self.SAVED_QUERY))
-        self.assertFalse(publish_saved_query(self.USER_NON_MEMBER, self.SAVED_QUERY))
+        self.assertTrue(
+            manage_public_saved_query(self.USER_ORG_OWNER, self.SAVED_QUERY)
+        )
+        self.assertTrue(
+            manage_public_saved_query(self.USER_ORG_ADMIN, self.SAVED_QUERY)
+        )
         self.assertFalse(
-            publish_saved_query(self.USER_ORG_ADMIN, self.PRIVATE_SAVED_QUERY)
+            manage_public_saved_query(self.USER_ORG_MEMBER, self.SAVED_QUERY)
+        )
+        self.assertFalse(
+            manage_public_saved_query(self.USER_NON_MEMBER, self.SAVED_QUERY)
+        )
+        self.assertFalse(
+            manage_public_saved_query(self.USER_ORG_ADMIN, self.PRIVATE_SAVED_QUERY)
         )
