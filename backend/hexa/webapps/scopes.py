@@ -79,6 +79,7 @@ _DATASET = {
     "Dataset": {
         "id",
         "slug",
+        "publicSlug",
         "name",
         "description",
         "createdAt",

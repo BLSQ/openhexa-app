@@ -579,16 +579,18 @@ class GraphQLProxyMiddlewareTest(TestCase):
         webapp = self._create_scoped_webapp(
             "datasets-read-app", [Webapp.OperationScope.DATASETS_READ]
         )
+        dataset.ensure_public_slug()
         session = self._create_webapp_session(webapp, self.USER)
         response = self._graphql_post(
             "datasets-read-app",
-            f'query {{ dataset(id: "{dataset.id}") {{ id name slug }} }}',
+            f'query {{ dataset(id: "{dataset.id}") {{ id name slug publicSlug }} }}',
             session_key=session.session_key,
         )
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         self.assertEqual(data["data"]["dataset"]["id"], str(dataset.id))
         self.assertEqual(data["data"]["dataset"]["name"], "Webapp Read")
+        self.assertEqual(data["data"]["dataset"]["publicSlug"], "webapp-read")
 
     def test_dataset_shortcuts_return_data(self):
         dataset = Dataset.objects.create_if_has_perm(
