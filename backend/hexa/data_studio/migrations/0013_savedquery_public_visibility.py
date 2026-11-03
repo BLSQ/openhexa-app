@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("data_studio", "0010_savedquery_git_versioning"),
+        ("data_studio", "0012_savedquery_parameters"),
     ]
 
     operations = [
