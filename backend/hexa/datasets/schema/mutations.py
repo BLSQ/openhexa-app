@@ -70,6 +70,8 @@ def resolve_update_dataset(_, info, **kwargs):
         return {"success": False, "errors": ["DATASET_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except ValidationError as e:
+        return {"success": False, "errors": [e.code]}
 
 
 @mutations.field("deleteDataset")

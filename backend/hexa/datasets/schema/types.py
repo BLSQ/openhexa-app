@@ -162,6 +162,16 @@ def resolve_dataset_permissions_update(obj: Dataset, info, **kwargs):
     )
 
 
+@dataset_permissions.field("publish")
+def resolve_dataset_permissions_publish(obj: Dataset, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("datasets.publish_dataset", obj)
+        if request.user.is_authenticated
+        else False
+    )
+
+
 @dataset_permissions.field("delete")
 def resolve_dataset_permissions_delete(obj: Dataset, info, **kwargs):
     request: HttpRequest = info.context["request"]

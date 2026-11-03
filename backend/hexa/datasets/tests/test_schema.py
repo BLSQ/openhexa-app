@@ -28,6 +28,7 @@ from ..models import (
     DatasetLink,
     DatasetVersion,
     DatasetVersionFile,
+    DatasetVisibility,
 )
 from .testutils import DatasetTestMixin
 
@@ -1341,10 +1342,60 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
             r["data"]["updateDataset"],
         )
 
+    def test_publish_dataset_with_chosen_slug(self):
+        self.client.force_login(self.org_admin)
+        mutation = """
+            mutation UpdateDataset ($input: UpdateDatasetInput!) {
+                updateDataset(input: $input) {
+                    dataset {
+                        visibility
+                        publicSlug
+                        sharedWithOrganization
+                        permissions { publish }
+                    }
+                    success
+                    errors
+                }
+            }
+        """
+
+        r = self.run_query(
+            mutation,
+            {
+                "input": {
+                    "datasetId": str(self.dataset.id),
+                    "visibility": "PUBLIC",
+                    "publicSlug": "test-public-dataset",
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "dataset": {
+                    "visibility": "PUBLIC",
+                    "publicSlug": "test-public-dataset",
+                    "sharedWithOrganization": True,
+                    "permissions": {"publish": True},
+                },
+            },
+            r["data"]["updateDataset"],
+        )
+
+        r = self.run_query(
+            mutation,
+            {"input": {"datasetId": str(self.dataset.id), "publicSlug": "renamed"}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PUBLIC_SLUG_LOCKED"], "dataset": None},
+            r["data"]["updateDataset"],
+        )
+
     def test_query_dataset_shared_with_organization_field(self):
         self.client.force_login(self.org_admin)
 
-        self.dataset.shared_with_organization = True
+        self.dataset.visibility = DatasetVisibility.ORGANIZATION
         self.dataset.save()
 
         r = self.run_query(
@@ -1370,7 +1421,7 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
         )
 
     def test_organization_member_can_access_shared_dataset_via_graphql(self):
-        self.dataset.shared_with_organization = True
+        self.dataset.visibility = DatasetVisibility.ORGANIZATION
         self.dataset.save()
 
         self.client.force_login(self.org_member_from_different_workspace)
@@ -1556,7 +1607,7 @@ class DatasetLinkBySlugTest(GraphQLTestCase, DatasetTestMixin):
         )
 
     def test_dataset_link_by_slug_organization_shared(self):
-        self.dataset.shared_with_organization = True
+        self.dataset.visibility = DatasetVisibility.ORGANIZATION
         self.dataset.save()
 
         self.client.force_login(self.org_member)
@@ -1598,7 +1649,7 @@ class DatasetLinkBySlugTest(GraphQLTestCase, DatasetTestMixin):
         )
 
     def test_dataset_link_by_slug_unrelated_organization_not_shared(self):
-        self.dataset.shared_with_organization = True
+        self.dataset.visibility = DatasetVisibility.ORGANIZATION
         self.dataset.workspace.organization = self.unrelated_organization
 
         self.dataset.workspace.save()
@@ -1653,7 +1704,7 @@ class DatasetLinkBySlugTest(GraphQLTestCase, DatasetTestMixin):
 
         self.dataset.link(principal=self.org_admin, workspace=self.target_workspace)
 
-        self.dataset.shared_with_organization = True
+        self.dataset.visibility = DatasetVisibility.ORGANIZATION
         self.dataset.save()
 
         self.client.force_login(self.org_member)
