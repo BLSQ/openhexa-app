@@ -50,13 +50,14 @@ workspace are not shown there: like a web app, the visitor gets the result, not 
   a link already handed out serves. Editors keep renaming and describing it. Deleting a public
   query breaks its link, so it is likewise the author's or a publisher's call.
 - **What a visitor reads.** `filter_for_user` keeps public queries to their workspace, like
-  any other query. Only the permalink lookups (`savedQueryBySlug`, `executeSavedQuery`) add
-  the public queries of every workspace on top (`schema._saved_queries_reachable_by_permalink`),
-  for anonymous users too, so listings and every other lookup stay within what membership grants.
-  Service principals (web apps, pipeline runs, MCP) never get it: they stay confined to their
-  workspaces until HEXA-1847 decides otherwise. A caller who reaches a query only because it
-  is public gets `null` for `content`, `createdBy` and `workspace`, and no `errorMessage`
-  when the run fails, since PostgreSQL quotes the failing SQL in it.
+  any other query, and so does `savedQueryBySlug`. A visitor reads a public query through
+  `publicSavedQuery`, whose `PublicSavedQuery` type has no field for the SQL, the author or
+  the workspace, and runs it through `executeSavedQuery`, which adds the public queries of
+  every workspace on top (`schema._saved_queries_reachable_by_permalink`), for anonymous
+  users too. Listings and every other lookup stay within what membership grants. Service
+  principals (web apps, pipeline runs, MCP) get neither: they stay confined to their
+  workspaces until HEXA-1847 decides otherwise. A caller who runs a query only because it is
+  public gets no `errorMessage` when the run fails, since PostgreSQL quotes the failing SQL in it.
 - **The audit log tells a permalink run apart.** An interactive run is recorded with origin
   `PUBLIC` when the caller could not have queried the database on their own (a visitor, a
   member of another organization); a member opening the permalink keeps their usual origin. A

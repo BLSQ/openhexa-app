@@ -1,5 +1,4 @@
 import { getApolloClient } from "core/helpers/apollo";
-import { SavedQueryVisibility } from "graphql/types";
 import { getMe } from "identity/helpers/auth";
 import { getServerSideProps } from "pages/queries/[querySlug]";
 
@@ -28,20 +27,30 @@ const buildCtx = (querySlug: string) =>
     resolvedUrl: `/queries/${querySlug}`,
   }) as any;
 
-const savedQuery = (visibility: SavedQueryVisibility) => ({
-  id: "q1",
+const publicSavedQuery = {
   slug: "my-query",
   name: "My query",
   description: "",
-  visibility,
-  // What the API returns: the workspace only to its members.
-  workspace:
-    visibility === SavedQueryVisibility.Public ? null : { slug: "ws-1" },
-});
+};
 
-const mockClient = (savedQueryBySlug: any) => {
+// What a member gets: `savedQueryBySlug` only answers them.
+const memberSavedQuery = {
+  id: "q1",
+  slug: "my-query",
+  workspace: { slug: "ws-1" },
+};
+
+const mockClient = ({
+  publicSavedQuery = null,
+  savedQueryBySlug = null,
+}: {
+  publicSavedQuery?: any;
+  savedQueryBySlug?: any;
+}) => {
   const client = {
-    query: jest.fn(() => Promise.resolve({ data: { savedQueryBySlug } })),
+    query: jest.fn(() =>
+      Promise.resolve({ data: { publicSavedQuery, savedQueryBySlug } }),
+    ),
   };
   (getApolloClient as jest.Mock).mockReturnValue(client);
   return client;
@@ -57,7 +66,7 @@ describe("PublicSavedQueryPage getServerSideProps", () => {
 
   it("renders a public query for an anonymous visitor", async () => {
     anonymous();
-    mockClient(savedQuery(SavedQueryVisibility.Public));
+    mockClient({ publicSavedQuery });
 
     const result: any = await getServerSideProps(buildCtx("my-query"));
 
@@ -68,7 +77,7 @@ describe("PublicSavedQueryPage getServerSideProps", () => {
   // The query may exist but not be public: a login may be what is missing.
   it("sends an anonymous visitor of an unknown query to the login page", async () => {
     anonymous();
-    mockClient(null);
+    mockClient({});
 
     const result: any = await getServerSideProps(buildCtx("my-query"));
 
@@ -80,7 +89,7 @@ describe("PublicSavedQueryPage getServerSideProps", () => {
 
   it("returns notFound to a logged-in user for an unknown query", async () => {
     loggedIn();
-    mockClient(null);
+    mockClient({});
 
     const result: any = await getServerSideProps(buildCtx("my-query"));
 
@@ -91,7 +100,7 @@ describe("PublicSavedQueryPage getServerSideProps", () => {
   // member, and the Data Studio is where they work with it.
   it("sends a member to the Data Studio for a query that is not public", async () => {
     loggedIn();
-    mockClient(savedQuery(SavedQueryVisibility.Workspace));
+    mockClient({ savedQueryBySlug: memberSavedQuery });
 
     const result: any = await getServerSideProps(buildCtx("my-query"));
 
@@ -99,5 +108,16 @@ describe("PublicSavedQueryPage getServerSideProps", () => {
       permanent: false,
       destination: "/workspaces/ws-1/data-studio/queries/my-query",
     });
+  });
+
+  // A public query is shown on its permalink even to members.
+  it("renders a public query for a member", async () => {
+    loggedIn();
+    mockClient({ publicSavedQuery, savedQueryBySlug: memberSavedQuery });
+
+    const result: any = await getServerSideProps(buildCtx("my-query"));
+
+    expect(result.redirect).toBeUndefined();
+    expect(result.props).toMatchObject({ querySlug: "my-query" });
   });
 });

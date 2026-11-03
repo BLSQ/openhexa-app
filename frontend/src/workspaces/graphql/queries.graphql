@@ -147,16 +147,18 @@ query WorkspaceSavedQuerySlugById($workspaceSlug: String!, $id: ID!) {
   }
 }
 
-# The permalink page of a public saved query. Deliberately without `content`:
-# visitors get the result, not the SQL. `workspace` is null for them too; it
-# is only asked for to send members of a non-public query to the Data Studio.
+# The permalink page of a public saved query. `publicSavedQuery` is what anyone
+# may read of it, the SQL aside. `savedQueryBySlug` only answers members: it is
+# asked for to send them to the Data Studio when the query is not public.
 query PublicSavedQueryPage($slug: String!) {
-  savedQueryBySlug(slug: $slug) {
-    id
+  publicSavedQuery(slug: $slug) {
     slug
     name
     description
-    visibility
+  }
+  savedQueryBySlug(slug: $slug) {
+    id
+    slug
     workspace {
       slug
     }

@@ -8,7 +8,10 @@ from django.test.utils import CaptureQueriesContext
 from hexa.core.test import GraphQLTestCase
 from hexa.data_studio.models import QueryLog, SavedQuery, SavedQueryVisibility
 from hexa.data_studio.query_runner import run_saved_query
-from hexa.data_studio.schema import _saved_queries_reachable_by_permalink
+from hexa.data_studio.schema import (
+    _saved_queries_reachable_by_permalink,
+    resolve_public_saved_query,
+)
 from hexa.databases.tests.helpers import (
     provision_workspace_database,
     seed_demo_table,
@@ -1601,13 +1604,18 @@ class SavedQueryParametersSchemaTest(SavedQueryTestMixin, GraphQLTestCase):
 class PublicSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
     """The permalink: anyone may read and run a public query, but not its SQL."""
 
+    PUBLIC_QUERY = """
+        query ($slug: String!) {
+            publicSavedQuery(slug: $slug) { slug name description }
+        }
+    """
     BY_SLUG_QUERY = """
         query ($slug: String!) {
             savedQueryBySlug(slug: $slug) {
-                name description content visibility
+                content
                 createdBy { id }
                 workspace { slug }
-                permissions { update publish }
+                permissions { publish }
             }
         }
     """
@@ -1622,6 +1630,11 @@ class PublicSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         super().setUpTestData()
         provision_workspace_database(cls, cls.WORKSPACE)
 
+    def _get_public(self, slug):
+        return self.run_query(self.PUBLIC_QUERY, {"slug": slug})["data"][
+            "publicSavedQuery"
+        ]
+
     def _get_by_slug(self, slug):
         return self.run_query(self.BY_SLUG_QUERY, {"slug": slug})["data"][
             "savedQueryBySlug"
@@ -1632,7 +1645,20 @@ class PublicSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
             "executeSavedQuery"
         ]
 
-    def test_visitor_reads_a_public_query_without_its_sql(self):
+    def test_anyone_reads_a_public_query(self):
+        query = self.create_saved_query(visibility=SavedQueryVisibility.PUBLIC)
+
+        for user in [None, self.USER_OUTSIDER, self.USER_VIEWER]:
+            with self.subTest(user=user):
+                self.client.logout()
+                if user:
+                    self.client.force_login(user)
+                self.assertEqual(
+                    {"slug": query.slug, "name": "My query", "description": "a query"},
+                    self._get_public(query.slug),
+                )
+
+    def test_visitor_cannot_read_a_public_query_in_full(self):
         query = self.create_saved_query(visibility=SavedQueryVisibility.PUBLIC)
 
         for user in [None, self.USER_OUTSIDER]:
@@ -1640,18 +1666,7 @@ class PublicSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
                 self.client.logout()
                 if user:
                     self.client.force_login(user)
-                self.assertEqual(
-                    {
-                        "name": "My query",
-                        "description": "a query",
-                        "content": None,
-                        "visibility": "PUBLIC",
-                        "createdBy": None,
-                        "workspace": None,
-                        "permissions": {"update": False, "publish": False},
-                    },
-                    self._get_by_slug(query.slug),
-                )
+                self.assertIsNone(self._get_by_slug(query.slug))
 
     def test_member_reads_a_public_query_in_full(self):
         query = self.create_saved_query(visibility=SavedQueryVisibility.PUBLIC)
@@ -1664,9 +1679,11 @@ class PublicSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         self.assertEqual(str(self.USER_EDITOR.id), result["createdBy"]["id"])
         self.assertTrue(result["permissions"]["publish"])
 
-    def test_visitor_cannot_read_a_shared_query(self):
+    def test_only_public_queries_are_read_as_public(self):
         query = self.create_saved_query()
-        self.assertIsNone(self._get_by_slug(query.slug))
+        # Not even to a member: they read it in full through savedQueryBySlug.
+        self.client.force_login(self.USER_EDITOR)
+        self.assertIsNone(self._get_public(query.slug))
 
     def test_visitor_cannot_look_up_a_public_query_by_id(self):
         # Only the permalink, keyed on the slug, opens a query to visitors.
@@ -1676,14 +1693,14 @@ class PublicSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         )
         self.assertIsNone(r["data"]["savedQuery"])
 
-    def test_superuser_reads_a_public_query(self):
+    def test_superuser_runs_a_public_query(self):
         query = self.create_saved_query(visibility=SavedQueryVisibility.PUBLIC)
         superuser = User.objects.create_user(
             "root@bluesquarehub.com", "rootpassword", is_superuser=True
         )
         self.client.force_login(superuser)
 
-        self.assertEqual("SELECT 1", self._get_by_slug(query.slug)["content"])
+        self.assertTrue(self._execute(query.slug)["success"])
 
     def test_service_principals_never_reach_other_workspaces_public_queries(self):
         own = self.create_saved_query(name="own")
@@ -1705,6 +1722,11 @@ class PublicSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
 
         self.assertEqual({own}, visible)
         self.assertNotIn(elsewhere, visible)
+        self.assertIsNone(
+            resolve_public_saved_query(
+                None, mock.Mock(context={"request": request}), slug=elsewhere.slug
+            )
+        )
 
     def test_visitor_runs_a_public_query(self):
         seed_demo_table(self.WORKSPACE, [(1, "a")])
@@ -1790,7 +1812,7 @@ class PublicSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
                 self.client.logout()
                 if user:
                     self.client.force_login(user)
-                self.assertIsNone(self._get_by_slug(query.slug))
+                self.assertIsNone(self._get_public(query.slug))
                 self.assertEqual(
                     ["SAVED_QUERY_NOT_FOUND"], self._execute(query.slug)["errors"]
                 )

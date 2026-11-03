@@ -108,7 +108,7 @@ export type WorkspaceSavedQueryPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceSavedQueryPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, webappsEnabled: boolean, name: string, permissions: { __typename?: 'WorkspacePermissions', createSavedQuery: boolean, publishSavedQuery: boolean, manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, savedQueryBySlug?: { __typename?: 'SavedQuery', id: string, slug: string, name: string, description?: string | null, content?: string | null, updatedAt: any, visibility: Types.SavedQueryVisibility, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean, updateVisibility: boolean, publish: boolean } } | null };
+export type WorkspaceSavedQueryPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, webappsEnabled: boolean, name: string, permissions: { __typename?: 'WorkspacePermissions', createSavedQuery: boolean, publishSavedQuery: boolean, manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, savedQueryBySlug?: { __typename?: 'SavedQuery', id: string, slug: string, name: string, description?: string | null, content: string, updatedAt: any, visibility: Types.SavedQueryVisibility, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean, updateVisibility: boolean, publish: boolean } } | null };
 
 export type WorkspaceSavedQuerySlugByIdQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -123,7 +123,7 @@ export type PublicSavedQueryPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type PublicSavedQueryPageQuery = { __typename?: 'Query', savedQueryBySlug?: { __typename?: 'SavedQuery', id: string, slug: string, name: string, description?: string | null, visibility: Types.SavedQueryVisibility, workspace?: { __typename?: 'Workspace', slug: string } | null } | null };
+export type PublicSavedQueryPageQuery = { __typename?: 'Query', publicSavedQuery?: { __typename?: 'PublicSavedQuery', slug: string, name: string, description?: string | null } | null, savedQueryBySlug?: { __typename?: 'SavedQuery', id: string, slug: string, workspace: { __typename?: 'Workspace', slug: string } } | null };
 
 export type ExecuteSavedQueryQueryVariables = Types.Exact<{
   slug: Types.Scalars['String']['input'];
@@ -790,12 +790,14 @@ export type WorkspaceSavedQuerySlugByIdSuspenseQueryHookResult = ReturnType<type
 export type WorkspaceSavedQuerySlugByIdQueryResult = Apollo.QueryResult<WorkspaceSavedQuerySlugByIdQuery, WorkspaceSavedQuerySlugByIdQueryVariables>;
 export const PublicSavedQueryPageDocument = gql`
     query PublicSavedQueryPage($slug: String!) {
-  savedQueryBySlug(slug: $slug) {
-    id
+  publicSavedQuery(slug: $slug) {
     slug
     name
     description
-    visibility
+  }
+  savedQueryBySlug(slug: $slug) {
+    id
+    slug
     workspace {
       slug
     }

@@ -127,44 +127,18 @@ def resolve_saved_query_permissions(saved_query: SavedQuery, info, **kwargs):
 
 
 def _reached_through_permalink(request: HttpRequest, saved_query: SavedQuery) -> bool:
-    """Whether the caller sees this query only because it is public.
-
-    Such a caller gets what the permalink page shows (name, description, result) and
-    nothing that would let them read the SQL or tell who and where it comes from.
-    Memoized on the instance, as several fields of one query ask.
+    """Whether the caller runs this query only because it is public, so must not read
+    anything that would reveal its SQL.
     """
     if not saved_query.is_public:
         return False
     if not request.user.is_authenticated:
         return True
-    if not hasattr(saved_query, "_reached_through_permalink"):
-        saved_query._reached_through_permalink = (
-            not SavedQuery.objects.filter_for_user(request.user)
-            .filter(pk=saved_query.pk)
-            .exists()
-        )
-    return saved_query._reached_through_permalink
-
-
-@saved_query_object.field("content")
-def resolve_saved_query_content(saved_query: SavedQuery, info, **kwargs):
-    if _reached_through_permalink(info.context["request"], saved_query):
-        return None
-    return saved_query.content
-
-
-@saved_query_object.field("createdBy")
-def resolve_saved_query_created_by(saved_query: SavedQuery, info, **kwargs):
-    if _reached_through_permalink(info.context["request"], saved_query):
-        return None
-    return saved_query.created_by
-
-
-@saved_query_object.field("workspace")
-def resolve_saved_query_workspace(saved_query: SavedQuery, info, **kwargs):
-    if _reached_through_permalink(info.context["request"], saved_query):
-        return None
-    return saved_query.workspace
+    return (
+        not SavedQuery.objects.filter_for_user(request.user)
+        .filter(pk=saved_query.pk)
+        .exists()
+    )
 
 
 @saved_query_permissions.field("update")
@@ -306,10 +280,22 @@ def resolve_saved_query(_, info, **kwargs):
 def resolve_saved_query_by_slug(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     try:
-        # The permalink lookup: public queries are open to anyone who has the slug.
-        return _saved_queries_reachable_by_permalink(request).get(slug=kwargs["slug"])
+        return _visible_saved_queries(request).get(slug=kwargs["slug"])
     except SavedQuery.DoesNotExist:
         return None
+
+
+@data_studio_queries.field("publicSavedQuery")
+def resolve_public_saved_query(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    # Kept from service principals, as in `_saved_queries_reachable_by_permalink`.
+    if isinstance(request.user, ServicePrincipal):
+        return None
+    return SavedQuery.objects.filter(
+        slug=kwargs["slug"],
+        visibility=SavedQueryVisibility.PUBLIC,
+        workspace__archived=False,
+    ).first()
 
 
 # What PostgreSQL raises when the wrapper's ORDER BY names a column that:

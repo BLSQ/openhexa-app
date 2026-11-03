@@ -5021,6 +5021,17 @@ export type PrepareVersionFileDownloadResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/**
+ * What anyone with its permalink may read of a public saved query: neither its SQL,
+ * nor who wrote it, nor the workspace it belongs to.
+ */
+export type PublicSavedQuery = {
+  __typename?: 'PublicSavedQuery';
+  description?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  slug: Scalars['String']['output'];
+};
+
 export type Query = {
   __typename?: 'Query';
   accessmodAccessRequests: AccessmodAccessRequestPage;
@@ -5113,6 +5124,8 @@ export type Query = {
   pipelineVersion?: Maybe<PipelineVersion>;
   /** Retrieves a page of pipelines ordered by relevant name. */
   pipelines: PipelinesPage;
+  /** Retrieves a public saved query by its slug, for anyone, anonymous included. */
+  publicSavedQuery?: Maybe<PublicSavedQuery>;
   /**
    * Read the text content of a file from a workspace's bucket. startLine and endLine
    * (1-indexed, inclusive) select a window. lineNumbers prefixes each line with its number
@@ -5124,7 +5137,7 @@ export type Query = {
   readWebappFile: ReadWebappFileResult;
   /** Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace. */
   savedQuery?: Maybe<SavedQuery>;
-  /** Retrieves a saved query by its slug, which is unique across workspaces. Public queries are returned to anyone, anonymous included. */
+  /** Retrieves a saved query by its slug, which is unique across workspaces. */
   savedQueryBySlug?: Maybe<SavedQuery>;
   searchDatabaseTables: DatabaseTableResultPage;
   searchDatasets: DatasetResultPage;
@@ -5391,6 +5404,11 @@ export type QueryPipelinesArgs = {
   search?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryPublicSavedQueryArgs = {
+  slug: Scalars['String']['input'];
 };
 
 
@@ -5884,10 +5902,8 @@ export type S3ObjectPage = {
  */
 export type SavedQuery = {
   __typename?: 'SavedQuery';
-  /** The SQL. Null for a caller who only reaches the query through its public permalink. */
-  content?: Maybe<Scalars['String']['output']>;
+  content: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
-  /** Null for a caller who only reaches the query through its public permalink. */
   createdBy?: Maybe<User>;
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
@@ -5898,8 +5914,7 @@ export type SavedQuery = {
   slug: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
   visibility: SavedQueryVisibility;
-  /** Null for a caller who only reaches the query through its public permalink. */
-  workspace?: Maybe<Workspace>;
+  workspace: Workspace;
 };
 
 /** Enum representing the possible orderings for saved queries. */

@@ -4398,6 +4398,16 @@ type PrepareVersionFileDownloadResult {
   success: Boolean!
 }
 
+"""
+What anyone with its permalink may read of a public saved query: neither its SQL,
+nor who wrote it, nor the workspace it belongs to.
+"""
+type PublicSavedQuery {
+  description: String
+  name: String!
+  slug: String!
+}
+
 type Query {
   accessmodAccessRequests(page: Int, perPage: Int): AccessmodAccessRequestPage!
   accessmodAnalyses(page: Int, perPage: Int, projectId: String!): AccessmodAnalysisPage!
@@ -4517,6 +4527,11 @@ type Query {
   pipelines(functionalType: PipelineFunctionalType, lastRunStates: [PipelineRunStatus!], name: String, orderBy: PipelineOrderBy, page: Int, perPage: Int, search: String, tags: [String!], workspaceSlug: String): PipelinesPage!
 
   """
+  Retrieves a public saved query by its slug, for anyone, anonymous included.
+  """
+  publicSavedQuery(slug: String!): PublicSavedQuery
+
+  """
   Read the text content of a file from a workspace's bucket. startLine and endLine
   (1-indexed, inclusive) select a window. lineNumbers prefixes each line with its number
   and returns at most 2000 lines, clipping lines over 2000 characters. A full read is
@@ -4532,7 +4547,7 @@ type Query {
   savedQuery(id: ID!, workspaceSlug: String): SavedQuery
 
   """
-  Retrieves a saved query by its slug, which is unique across workspaces. Public queries are returned to anyone, anonymous included.
+  Retrieves a saved query by its slug, which is unique across workspaces.
   """
   savedQueryBySlug(slug: String!): SavedQuery
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
@@ -4937,15 +4952,8 @@ A SQL query saved by a user in the Data Studio. Saved queries belong to a
 workspace; their visibility decides which of its members can reach them.
 """
 type SavedQuery {
-  """
-  The SQL. Null for a caller who only reaches the query through its public permalink.
-  """
-  content: String
+  content: String!
   createdAt: DateTime!
-
-  """
-  Null for a caller who only reaches the query through its public permalink.
-  """
   createdBy: User
   description: String
   id: ID!
@@ -4959,11 +4967,7 @@ type SavedQuery {
   slug: String!
   updatedAt: DateTime!
   visibility: SavedQueryVisibility!
-
-  """
-  Null for a caller who only reaches the query through its public permalink.
-  """
-  workspace: Workspace
+  workspace: Workspace!
 }
 
 """Enum representing the possible orderings for saved queries."""

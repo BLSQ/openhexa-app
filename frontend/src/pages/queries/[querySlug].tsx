@@ -83,10 +83,10 @@ const PublicSavedQueryPage: NextPageWithLayout = ({
     }
   };
 
-  if (!data?.savedQueryBySlug) {
+  if (!data?.publicSavedQuery) {
     return null;
   }
-  const savedQuery = data.savedQueryBySlug;
+  const savedQuery = data.publicSavedQuery;
 
   return (
     <Page title={savedQuery.name}>
@@ -126,7 +126,7 @@ const PublicSavedQueryPage: NextPageWithLayout = ({
                 {savedQuery.name}
               </h1>
               <SavedQueryVisibilityBadge
-                visibility={savedQuery.visibility}
+                visibility={SavedQueryVisibility.Public}
                 size="sm"
               />
             </div>
@@ -222,38 +222,35 @@ export const getServerSideProps = createGetServerSideProps({
       getMe(ctx),
     ]);
 
-    const savedQuery = data.savedQueryBySlug;
-    if (!savedQuery) {
-      // The query may exist but not be public: give anonymous visitors a chance
-      // to log in before concluding it is not there.
-      if (!me?.user) {
-        return {
-          redirect: {
-            permanent: false,
-            destination: `/login?next=${encodeURIComponent(ctx.resolvedUrl)}`,
-          },
-        };
-      }
-      return { notFound: true };
+    if (data.publicSavedQuery) {
+      return { props: { querySlug: data.publicSavedQuery.slug } };
     }
 
     // Only public queries have a permalink. Anyone who can see another one is a
     // member of its workspace, and the Data Studio is where they work with it.
-    if (savedQuery.visibility !== SavedQueryVisibility.Public) {
-      if (!savedQuery.workspace) {
-        return { notFound: true };
-      }
+    const memberQuery = data.savedQueryBySlug;
+    if (memberQuery) {
       return {
         redirect: {
           permanent: false,
-          destination: dataStudioRoutes(savedQuery.workspace.slug).query(
-            savedQuery.slug,
+          destination: dataStudioRoutes(memberQuery.workspace.slug).query(
+            memberQuery.slug,
           ),
         },
       };
     }
 
-    return { props: { querySlug: savedQuery.slug } };
+    // The query may exist but not be public: give anonymous visitors a chance
+    // to log in before concluding it is not there.
+    if (!me?.user) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: `/login?next=${encodeURIComponent(ctx.resolvedUrl)}`,
+        },
+      };
+    }
+    return { notFound: true };
   },
 });
 
