@@ -39,7 +39,7 @@ FILE_TRANSFER_TIMEOUT = 300
 SPOOL_MAX_SIZE = 32 * 1024 * 1024
 """Bytes a file transfer may hold in memory before spilling to a temp file."""
 
-AZURE_MAX_SINGLE_PUT_SIZE = 5000 * 1024 * 1024  # 5 GiB
+AZURE_MAX_SINGLE_PUT_SIZE = 5000 * 1024 * 1024  # 5000 MiB
 AZURE_BLOCK_SIZE = 64 * 1024 * 1024  # 64 MiB to keep memory low
 
 

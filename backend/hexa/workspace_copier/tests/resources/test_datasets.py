@@ -11,12 +11,12 @@ from hexa.workspace_copier.progress import NullReporter
 from hexa.workspace_copier.resources.datasets import (
     DatasetsCopier,
     _assign_target_names,
+    _azure_upload_by_blocks,
     _copy_versions,
     _list_source_datasets,
     _relative_uri,
     _select_versions,
     _transfer_file,
-    _upload_by_blocks,
 )
 from hexa.workspace_copier.results import CopyResult, DatasetsResult
 from hexa.workspace_copier.transport import GraphQLError
@@ -418,7 +418,7 @@ class UploadByBlocksTest(SimpleTestCase):
         self.http_client.put.return_value = _response()
 
     def _upload(self, payload):
-        _upload_by_blocks(
+        _azure_upload_by_blocks(
             self.target,
             "tv-1",
             "data.csv",
@@ -510,7 +510,7 @@ class TransferFileTest(SimpleTestCase):
         )
 
     @patch("hexa.workspace_copier.resources.datasets._register_uploaded_file")
-    @patch("hexa.workspace_copier.resources.datasets._upload_by_blocks")
+    @patch("hexa.workspace_copier.resources.datasets._azure_upload_by_blocks")
     @patch("hexa.workspace_copier.resources.datasets._prepare_upload")
     @patch("hexa.workspace_copier.resources.datasets.AZURE_MAX_SINGLE_PUT_SIZE", 4)
     def test_a_file_too_large_for_a_single_put_is_uploaded_by_blocks(
@@ -525,7 +525,7 @@ class TransferFileTest(SimpleTestCase):
         mock_register.assert_called_once()
 
     @patch("hexa.workspace_copier.resources.datasets._register_uploaded_file")
-    @patch("hexa.workspace_copier.resources.datasets._upload_by_blocks")
+    @patch("hexa.workspace_copier.resources.datasets._azure_upload_by_blocks")
     @patch("hexa.workspace_copier.resources.datasets._prepare_upload")
     def test_a_file_that_fits_uses_a_single_put(
         self, mock_prepare, mock_blocks, mock_register
@@ -541,7 +541,7 @@ class TransferFileTest(SimpleTestCase):
         )
 
     @patch("hexa.workspace_copier.resources.datasets._register_uploaded_file")
-    @patch("hexa.workspace_copier.resources.datasets._upload_by_blocks")
+    @patch("hexa.workspace_copier.resources.datasets._azure_upload_by_blocks")
     @patch("hexa.workspace_copier.resources.datasets._prepare_upload")
     @patch("hexa.workspace_copier.resources.datasets.AZURE_MAX_SINGLE_PUT_SIZE", 4)
     def test_a_large_file_on_a_non_azure_backend_still_uses_a_single_put(
