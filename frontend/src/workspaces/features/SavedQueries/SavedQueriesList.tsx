@@ -1,6 +1,8 @@
-import { TrashIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowTopRightOnSquareIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
-import Clipboard from "core/components/Clipboard";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import UserColumn from "core/components/DataGrid/UserColumn";
@@ -148,10 +150,16 @@ const SavedQueriesList = ({
                     {/* The permalink is what a public query is for, so it is
                         one click away from the list, not only from the editor. */}
                     {item.visibility === SavedQueryVisibility.Public && (
-                      <Clipboard
-                        value={getPublicSavedQueryUrl(item.slug)}
-                        iconClassName="h-4 w-4 text-gray-400 hover:text-gray-600"
-                      />
+                      <a
+                        href={getPublicSavedQueryUrl(item.slug)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={t("Open public link")}
+                        aria-label={t("Open public link")}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                      </a>
                     )}
                   </div>
                 )}

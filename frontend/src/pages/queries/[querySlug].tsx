@@ -1,10 +1,15 @@
-import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowDownTrayIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
+import Button from "core/components/Button";
 import Page from "core/components/Page";
+import PoweredByOpenHexa from "core/components/PoweredByOpenHexa";
 import Spinner from "core/components/Spinner";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
-import { SavedQueryVisibility } from "graphql/types";
+import { OPENHEXA_WEBSITE_URL } from "core/hooks/useOpenhexaWebsiteUrl";
 import { getMe } from "identity/helpers/auth";
 import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
@@ -12,13 +17,12 @@ import Head from "next/head";
 import Image from "next/legacy/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import logo from "public/images/logo.svg";
+import logoWithTextBlack from "public/images/logo_with_text_black.svg";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import DataStudioResults from "workspaces/features/DataStudioEditor/DataStudioResults";
 import { downloadSavedQueryCsv } from "workspaces/features/DataStudioEditor/downloadQueryCsv";
 import { GHOST } from "workspaces/features/DataStudioEditor/toolbarStyles";
-import SavedQueryVisibilityBadge from "workspaces/features/SavedQueries/SavedQueryVisibilityBadge";
 import {
   PublicSavedQueryPageDocument,
   PublicSavedQueryPageQuery,
@@ -87,6 +91,17 @@ const PublicSavedQueryPage: NextPageWithLayout = ({
     return null;
   }
   const savedQuery = data.publicSavedQuery;
+  const logoImage = (
+    <Image
+      src={logoWithTextBlack}
+      layout="fill"
+      objectFit="contain"
+      objectPosition="left"
+      alt="OpenHEXA"
+    />
+  );
+  // Only members get an answer from savedQueryBySlug.
+  const memberQuery = data.savedQueryBySlug;
 
   return (
     <Page title={savedQuery.name}>
@@ -95,12 +110,25 @@ const PublicSavedQueryPage: NextPageWithLayout = ({
       <Head>
         <meta name="robots" content="noindex, nofollow" />
       </Head>
-      <div className="min-h-screen bg-gray-50">
+      <div className="flex min-h-screen flex-col bg-gray-50">
         <header className="border-b border-gray-200 bg-white">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-            <Link href="/" className="relative block h-8 w-24">
-              <Image src={logo} layout="fill" alt="OpenHEXA" />
-            </Link>
+            {/* Without an account, the app's home is a login page: the
+                website is where a visitor can learn what OpenHEXA is. */}
+            {me?.user ? (
+              <Link href="/" className="relative block h-8 w-28">
+                {logoImage}
+              </Link>
+            ) : (
+              <a
+                href={OPENHEXA_WEBSITE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative block h-8 w-28"
+              >
+                {logoImage}
+              </a>
+            )}
             {me?.user ? (
               <Link
                 href="/workspaces"
@@ -109,27 +137,45 @@ const PublicSavedQueryPage: NextPageWithLayout = ({
                 {t("Go to my workspaces")}
               </Link>
             ) : (
-              <Link
-                href={`/login?next=${encodeURIComponent(router.asPath)}`}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                {t("Log in")}
-              </Link>
+              <div className="flex items-center gap-4">
+                <a
+                  href={OPENHEXA_WEBSITE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button size="sm">{t("Start a free trial")}</Button>
+                </a>
+                <Link
+                  href={`/login?next=${encodeURIComponent(router.asPath)}`}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  {t("Log in")}
+                </Link>
+              </div>
             )}
           </div>
         </header>
 
-        <main className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
-          <div>
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl font-semibold text-gray-900">
-                {savedQuery.name}
-              </h1>
-              <SavedQueryVisibilityBadge
-                visibility={SavedQueryVisibility.Public}
-                size="sm"
-              />
-            </div>
+        <main className="mx-auto w-full max-w-7xl flex-1 space-y-6 px-4 py-8 sm:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h1 className="text-2xl font-semibold text-gray-900">
+              {savedQuery.name}
+            </h1>
+            {memberQuery && (
+              <Link
+                href={dataStudioRoutes(memberQuery.workspace.slug).query(
+                  memberQuery.slug,
+                )}
+              >
+                <Button
+                  variant="white"
+                  size="sm"
+                  leadingIcon={<PencilSquareIcon className="h-4 w-4" />}
+                >
+                  {t("Open in Data Studio")}
+                </Button>
+              </Link>
+            )}
           </div>
 
           <Block>
@@ -200,6 +246,8 @@ const PublicSavedQueryPage: NextPageWithLayout = ({
             </div>
           </div>
         </main>
+
+        <PoweredByOpenHexa />
       </div>
     </Page>
   );

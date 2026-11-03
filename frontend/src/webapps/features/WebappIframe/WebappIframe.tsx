@@ -2,11 +2,8 @@ import clsx from "clsx";
 import React, { useEffect, useMemo, useState } from "react";
 import Spinner from "core/components/Spinner";
 import { useTranslation } from "next-i18next";
-import Image from "next/image";
-import logo from "public/images/logo.svg";
+import PoweredByOpenHexa from "core/components/PoweredByOpenHexa";
 import { WebappType } from "graphql/types";
-
-const POWERED_BY_TARGET_URL = "https://www.openhexa.com/";
 
 type WebappIframeProps = {
   url: string;
@@ -26,24 +23,6 @@ const WebappIframe = ({
   const { t } = useTranslation();
   const [iframeLoading, setIframeLoading] = useState(true);
   const [safeUrl, setSafeUrl] = useState<string | null | undefined>(undefined);
-  const [poweredByUrl, setPoweredByUrl] = useState(POWERED_BY_TARGET_URL);
-
-  // Mirrors the backend hexa.webapps.utils.powered_by_url so the marketing-site
-  // link carries the same UTM parameters GA on openhexa.com reads. Built on the
-  // client because it needs the current host. Uses the "iframe" surface: the
-  // in-app /play viewer is how iframe webapps are published, so it is tracked
-  // the same as the direct-subdomain iframe banner.
-  useEffect(() => {
-    const params = new URLSearchParams({
-      utm_source: "openhexa-webapps",
-      utm_medium: "referral",
-      utm_campaign: "powered-by-openhexa-banner",
-      utm_content: "iframe",
-      utm_term: window.location.host,
-    });
-    setPoweredByUrl(`${POWERED_BY_TARGET_URL}?${params.toString()}`);
-  }, []);
-
   useEffect(() => {
     if (!url) {
       setSafeUrl(null);
@@ -150,25 +129,11 @@ const WebappIframe = ({
           data-testid="webapp-iframe"
         />
       </div>
+      {/* The "iframe" surface: the in-app /play viewer is how iframe webapps
+          are published, so it is tracked the same as the direct-subdomain
+          iframe banner. */}
       {showPoweredBy && (
-        <div className="flex items-center justify-center border-t bg-gray-50 py-2 text-xs text-gray-500">
-          {t("Powered by")}{" "}
-          <a
-            href={poweredByUrl}
-            target="_blank"
-            rel="nofollow noopener noreferrer"
-            className="ml-1 flex items-center gap-1 font-medium text-blue-600 hover:text-blue-500"
-          >
-            <Image
-              src={logo}
-              alt="OpenHEXA"
-              className="h-4 w-4"
-              width={16}
-              height={16}
-            />
-            OpenHEXA
-          </a>
-        </div>
+        <PoweredByOpenHexa utmSource="openhexa-webapps" utmContent="iframe" />
       )}
     </div>
   );

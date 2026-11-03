@@ -98,6 +98,6 @@ A public link (`/queries/<slug>`) shows the query's name, description and result
 
     Only these people can change the SQL of a public query, because visitors run whatever it contains. Workspace editors can still rename it, change its description or save a copy. Deleting a public query breaks its link, so only its author and the people above can delete it.
 
-To make a query public, open it in the Data Studio, click its visibility in the toolbar and choose **Public**. Copy the link from the **Public link** button in the toolbar or from the saved queries list.
+To make a query public, open it in the Data Studio, click its visibility in the toolbar and choose **Public**. Copy the link from the **Public link** button in the toolbar, or open it from the saved queries list. Workspace members who open the link get an **Open in Data Studio** button to go back to the query.
 
 If a query stops being public, or its workspace is archived, its link stops working: visitors who are not logged in are sent to the login page, and everyone else gets a "page not found" error.

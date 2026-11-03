@@ -94,9 +94,7 @@ describe("SavedQueriesList", () => {
   });
 
   // The permalink is one click away from the list, for public queries only.
-  it("offers to copy the permalink of a public query", async () => {
-    const writeText = jest.fn().mockResolvedValue(undefined);
-    Object.assign(navigator, { clipboard: { writeText } });
+  it("links to the permalink of a public query, in a new tab", () => {
     renderList({
       workspace: {
         savedQueries: {
@@ -111,16 +109,13 @@ describe("SavedQueriesList", () => {
       },
     });
 
-    const copyButtons = screen.getAllByRole("button", { name: "Copy" });
-    expect(copyButtons).toHaveLength(1);
-
-    fireEvent.click(copyButtons[0]);
-
-    await waitFor(() =>
-      expect(writeText).toHaveBeenCalledWith(
-        `${window.location.origin}/queries/q1-slug`,
-      ),
+    const links = screen.getAllByRole("link", { name: "Open public link" });
+    expect(links).toHaveLength(1);
+    expect(links[0]).toHaveAttribute(
+      "href",
+      `${window.location.origin}/queries/q1-slug`,
     );
+    expect(links[0]).toHaveAttribute("target", "_blank");
   });
 
   it("shows an empty state when there are no queries", () => {
