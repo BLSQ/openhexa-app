@@ -96,8 +96,6 @@ Un lien public (`/queries/<slug>`) affiche le nom, la description et le résulta
 
     Les mêmes personnes peuvent repasser une requête publique en **Workspace**. Rendre une requête **Privé** reste la décision de son seul auteur. Une requête privée ne peut être rendue publique que par son auteur.
 
-    Seules ces personnes peuvent modifier le SQL d'une requête publique, car les visiteurs exécutent ce qu'elle contient. Les éditeurs de l'espace de travail peuvent toujours la renommer, modifier sa description ou en enregistrer une copie. Supprimer une requête publique casse son lien : seuls son auteur et les personnes ci-dessus peuvent la supprimer.
-
 Pour rendre une requête publique, ouvrez-la dans le Data Studio, cliquez sur sa visibilité dans la barre d'outils et choisissez **Public**. Copiez le lien depuis le bouton **Lien public** de la barre d'outils, ou ouvrez-le depuis la liste des requêtes enregistrées. Les membres de l'espace de travail qui ouvrent le lien disposent d'un bouton **Ouvrir dans le Data Studio** pour revenir à la requête.
 
 Si une requête n'est plus publique, ou si son espace de travail est archivé, son lien cesse de fonctionner : les visiteurs non connectés sont redirigés vers la page de connexion, et les autres obtiennent une erreur « page introuvable ».

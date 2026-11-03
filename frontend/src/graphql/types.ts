@@ -5970,7 +5970,7 @@ export type SavedQueryPermissions = {
   __typename?: 'SavedQueryPermissions';
   /** Permission to delete the saved query. */
   delete: Scalars['Boolean']['output'];
-  /** Permission to make the saved query public, take it back to the workspace, and change its SQL while it is public. Held by its author if they may publish in the workspace, workspace admins and organization admins/owners. */
+  /** Permission to make the saved query public, and take it back to the workspace. Held by its author if they may publish in the workspace, workspace admins and organization admins/owners. */
   publish: Scalars['Boolean']['output'];
   /** Permission to edit the saved query. */
   update: Scalars['Boolean']['output'];

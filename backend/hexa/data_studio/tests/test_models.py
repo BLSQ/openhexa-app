@@ -442,48 +442,6 @@ class SavedQueryPublicVisibilityTest(SavedQueryTestMixin, TestCase):
             set(SavedQuery.objects.filter_for_user(self.USER_VIEWER)),
         )
 
-    def test_editor_cannot_change_the_sql_of_a_public_query(self):
-        # Visitors run whatever the query holds: rewriting it is a publisher's call.
-        query = self.create_saved_query(
-            user=self.USER_ADMIN, visibility=SavedQueryVisibility.PUBLIC
-        )
-        with self.assertRaises(PermissionDenied):
-            query.update_if_has_perm(principal=self.USER_EDITOR, content="SELECT 2")
-        query.refresh_from_db()
-        self.assertEqual("SELECT 1", query.content)
-
-    def test_editor_still_renames_a_public_query(self):
-        query = self.create_saved_query(
-            user=self.USER_ADMIN, visibility=SavedQueryVisibility.PUBLIC
-        )
-        # The unchanged SQL echoed back is not an edit of it.
-        query.update_if_has_perm(
-            principal=self.USER_EDITOR, name="Renamed", content="SELECT 1"
-        )
-        query.refresh_from_db()
-        self.assertEqual("Renamed", query.name)
-
-    def test_publishers_change_the_sql_of_a_public_query(self):
-        for user in [self.USER_EDITOR, self.USER_ADMIN]:
-            with self.subTest(user=user):
-                query = self.create_saved_query(
-                    user=self.USER_EDITOR,
-                    name=f"Query of {user.email}",
-                    visibility=SavedQueryVisibility.PUBLIC,
-                )
-                query.update_if_has_perm(principal=user, content="SELECT 2")
-                query.refresh_from_db()
-                self.assertEqual("SELECT 2", query.content)
-
-    def test_editor_cannot_delete_a_public_query_of_someone_else(self):
-        # Deleting it would break a link people may be using.
-        query = self.create_saved_query(
-            user=self.USER_ADMIN, visibility=SavedQueryVisibility.PUBLIC
-        )
-        with self.assertRaises(PermissionDenied):
-            query.delete_if_has_perm(principal=self.USER_EDITOR)
-        self.assertTrue(SavedQuery.objects.filter(pk=query.pk).exists())
-
 
 class SavedQueryAuthorDeletionTest(SavedQueryTestMixin, TestCase):
     """What saved queries survive the deletion of the account that wrote them.

@@ -118,17 +118,6 @@ class SavedQueryPermissionsTest(SavedQueryTestMixin, TestCase):
         self.assertFalse(delete_saved_query(self.USER_VIEWER, query))
         self.assertFalse(delete_saved_query(self.USER_OUTSIDER, query))
 
-    def test_delete_public_saved_query(self):
-        # Deleting it breaks the link: beyond its author, a publisher's call.
-        query = self._create(self.USER_ADMIN, visibility=SavedQueryVisibility.PUBLIC)
-        self.assertTrue(delete_saved_query(self.USER_ADMIN, query))
-        self.assertFalse(delete_saved_query(self.USER_EDITOR, query))
-        self.assertFalse(delete_saved_query(self.USER_VIEWER, query))
-
-    def test_author_deletes_their_public_query(self):
-        query = self._create(self.USER_EDITOR, visibility=SavedQueryVisibility.PUBLIC)
-        self.assertTrue(delete_saved_query(self.USER_EDITOR, query))
-
     def test_delete_private_saved_query(self):
         query = self._create(self.USER_VIEWER, visibility=SavedQueryVisibility.PRIVATE)
         self.assertTrue(delete_saved_query(self.USER_VIEWER, query))

@@ -233,7 +233,7 @@ type SavedQueryPermissions {
   delete: Boolean!
   "Permission to move the saved query between private and workspace, and to take a public one straight to private. Held by its author only."
   updateVisibility: Boolean!
-  "Permission to make the saved query public, take it back to the workspace, and change its SQL while it is public. Held by its author if they may publish in the workspace, workspace admins and organization admins/owners."
+  "Permission to make the saved query public, and take it back to the workspace. Held by its author if they may publish in the workspace, workspace admins and organization admins/owners."
   publish: Boolean!
 }
 

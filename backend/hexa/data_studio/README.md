@@ -45,10 +45,6 @@ workspace are not shown there: like a web app, the visitor gets the result, not 
   to hand what they read to anyone on the internet. The same
   people can take a public query back to `WORKSPACE`; making it `PRIVATE` stays the author's
   call alone, as for any other query.
-- **Who changes the SQL of a public query**: only those who may publish it. Visitors run
-  whatever SQL the query holds, so a workspace editor who could rewrite it would decide what
-  a link already handed out serves. Editors keep renaming and describing it. Deleting a public
-  query breaks its link, so it is likewise the author's or a publisher's call.
 - **What a visitor reads.** `filter_for_user` keeps public queries to their workspace, like
   any other query, and so does `savedQueryBySlug`. A visitor reads a public query through
   `publicSavedQuery`, whose `PublicSavedQuery` type has no field for the SQL, the author or

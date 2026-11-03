@@ -318,18 +318,6 @@ class SavedQuery(Base, SoftDeletedModel, GitRepoMixin):
 
             content_changed = new_content is not None and new_content != self.content
 
-            # Visitors run whatever SQL a public query holds, so changing it is a
-            # publisher's call: otherwise any editor could swap what is served
-            # behind a link that is already out there.
-            if (
-                content_changed
-                and self.is_public
-                and not principal.has_perm(
-                    "data_studio.manage_public_saved_query", self
-                )
-            ):
-                raise PermissionDenied
-
             # Gating visibility only when it changes: a client echoing
             # back the current visibility does not need strict permission.
             visibility = kwargs.get("visibility")
