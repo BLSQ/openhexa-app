@@ -413,7 +413,7 @@ def _response(status_code=201, text=""):
 
 class UploadByBlocksTest(SimpleTestCase):
     def setUp(self):
-        self.target = Endpoint.remote(MagicMock(), "tgt")
+        self.target = Endpoint(MagicMock(), "tgt")
         self.http_client = MagicMock()
         self.http_client.put.return_value = _response()
 
@@ -492,7 +492,7 @@ class UploadByBlocksTest(SimpleTestCase):
 
 class TransferFileTest(SimpleTestCase):
     def setUp(self):
-        self.target = Endpoint.remote(MagicMock(), "tgt")
+        self.target = Endpoint(MagicMock(), "tgt")
         self.http_client = MagicMock()
         download = MagicMock(is_success=True)
         download.iter_bytes.return_value = [b"0123456789"]
