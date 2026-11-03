@@ -1097,3 +1097,70 @@ class GitWebappModelTest(TestCase):
 
         webapps = Webapp.objects.filter_for_user(self.user_viewer)
         self.assertIn(git_webapp.webapp_ptr, webapps)
+
+    def _source_and_copy(self):
+        source = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="Source App",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
+        target_ws = create_workspace(
+            name="Target Workspace", slug="target-workspace", db_name="target_db"
+        )
+        copy = GitWebapp(workspace=target_ws, repository="target-workspace-webapp-x")
+        return source, copy
+
+    def test_copy_repo_from_migrates_with_the_source_visibility(self):
+        source, copy = self._source_and_copy()
+        self.mock_git_client.get_repository.return_value = {"private": True}
+        self.mock_git_client.protect_branch.reset_mock()
+        self.mock_git_client.add_collaborator.reset_mock()
+
+        copy.copy_repo_from(source)
+
+        self.mock_git_client.get_repository.assert_called_once_with(
+            self.workspace.organization.slug, source.repository
+        )
+        self.mock_git_client.migrate_repository.assert_called_once_with(
+            source_org_slug=self.workspace.organization.slug,
+            source_repo_name=source.repository,
+            target_org_slug=copy.workspace.organization.slug,
+            target_repo_name="target-workspace-webapp-x",
+            private=True,
+        )
+        self.mock_git_client.protect_branch.assert_called_once_with(
+            copy.workspace.organization.slug, "target-workspace-webapp-x"
+        )
+        self.mock_git_client.add_collaborator.assert_called_once_with(
+            copy.workspace.organization.slug,
+            "target-workspace-webapp-x",
+            "openhexa-proxy",
+        )
+
+    def test_copy_repo_from_deletes_the_copy_when_protection_fails(self):
+        source, copy = self._source_and_copy()
+        self.mock_git_client.get_repository.return_value = {"private": False}
+        self.mock_git_client.protect_branch.side_effect = ForgejoAPIError(
+            "POST", "/branch_protections", 500, "server error"
+        )
+
+        with self.assertRaises(ForgejoAPIError):
+            copy.copy_repo_from(source)
+
+        self.mock_git_client.delete_repository.assert_called_once_with(
+            copy.workspace.organization.slug, "target-workspace-webapp-x"
+        )
+
+    def test_copy_repo_from_leaves_nothing_to_delete_when_migration_fails(self):
+        source, copy = self._source_and_copy()
+        self.mock_git_client.get_repository.return_value = {"private": False}
+        self.mock_git_client.migrate_repository.side_effect = ForgejoAPIError(
+            "POST", "/repos/migrate", 422, "Migration failed"
+        )
+
+        with self.assertRaises(ForgejoAPIError):
+            copy.copy_repo_from(source)
+
+        self.mock_git_client.delete_repository.assert_not_called()

@@ -194,6 +194,8 @@ services:
       - FORGEJO__server__LANDING_PAGE=explore
       - FORGEJO__service__DISABLE_REGISTRATION=true
       - FORGEJO__service__REQUIRE_SIGNIN_VIEW=true
+      # Lets the workspace copier clone web app repositories within this server.
+      - FORGEJO__migrations__ALLOWED_DOMAINS=forgejo
     volumes:
       - forgejo_data:/data
       - ./forgejo/entrypoint.sh:/custom-entrypoint.sh:ro

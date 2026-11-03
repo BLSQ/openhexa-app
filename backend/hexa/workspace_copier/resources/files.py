@@ -1,9 +1,8 @@
 """Workspace file transfer: list / download / upload, plus full bucket copy.
 
-Both mediums currently go over GraphQL (presigned download/upload URLs), so a
-LOCAL endpoint must still carry a GraphQL ``client`` pointing at its own server.
+Files go over GraphQL (presigned download/upload URLs), this server included.
 Native same-server file copy is a deferred follow-up (see the implementation
-plan); until then both LOCAL and REMOTE endpoints use the client here.
+plan).
 """
 
 import tempfile
