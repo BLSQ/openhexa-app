@@ -98,7 +98,7 @@ async def gateway_chat_completions(request: HttpRequest) -> HttpResponse:
         # Jupyter AI, the only client, sends what we run: this is a change on
         # its side or ours, for us to see.
         logger.error("gateway: refused a request of %s: %s", user.email, e)
-        return _gateway_error(400, str(e), "invalid_request_error")
+        return _gateway_error(400, "Invalid request payload", "invalid_request_error")
 
     try:
         built_model = await sync_to_async(notebooks_model)(ai_settings)
