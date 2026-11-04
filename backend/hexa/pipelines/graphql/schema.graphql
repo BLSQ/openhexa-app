@@ -269,6 +269,8 @@ type PipelineRun {
   code: String!  # The code of the pipeline run.
   sendMailNotifications: Boolean!  # Indicates if email notifications should be sent for the pipeline run.
   enableDebugLogs: Boolean!  # Indicates if debug logs should be stored for the pipeline run.
+  enableProfiling: Boolean!  # Indicates if the pipeline run is profiled with py-spy.
+  profile: JSON  # The py-spy profile of the run's pipeline code, if the run was profiled. See `hexa.pipelines.profiling` for its format.
   timeout: Int  # The timeout value for the pipeline run.
   datasetVersions: [DatasetVersion!]!  # The dataset versions associated with the pipeline run.
   stoppedBy: User  # The user who stopped the pipeline run.
@@ -446,6 +448,7 @@ enum PipelineError {
   CANNOT_UPDATE_NOTEBOOK_PIPELINE
   DUPLICATE_PIPELINE_VERSION_NAME
   PIPELINE_RUNS_LIMIT_REACHED
+  INVALID_PROFILE
 }
 
 """
@@ -635,6 +638,7 @@ input RunPipelineInput {
   config: JSON!  # The configuration for the pipeline run.
   sendMailNotifications: Boolean  # Indicates if email notifications should be sent for the pipeline run.
   enableDebugLogs: Boolean  # Indicates if debug logs should be stored for the pipeline run.
+  enableProfiling: Boolean  # Indicates if the pipeline run should be profiled with py-spy.
 }
 
 """
@@ -762,6 +766,18 @@ input AddPipelineOutputInput {
   uri: String!  # The URI of the output.
   type: String!  # The type of the output.
   name: String  # The name of the output.
+}
+
+input UploadPipelineRunProfileInput {
+  profile: String!  # The py-spy Chrome trace of the run, gzip compressed and base64 encoded.
+}
+
+"""
+Represents the result of uploading the profile of a pipeline run.
+"""
+type UploadPipelineRunProfileResult {
+  success: Boolean!
+  errors: [PipelineError!]!
 }
 
 """
@@ -934,6 +950,12 @@ extend type Mutation {
   Adds an output to a pipeline.
   """
   addPipelineOutput(input: AddPipelineOutputInput!): AddPipelineOutputResult!
+
+  """
+  Saves the py-spy profile of the current pipeline run.
+  Must be called by an authenticated pipeline run that has profiling enabled.
+  """
+  uploadPipelineRunProfile(input: UploadPipelineRunProfileInput!): UploadPipelineRunProfileResult!
 
   """
   Updates the heartbeat timestamp for the current pipeline run.
