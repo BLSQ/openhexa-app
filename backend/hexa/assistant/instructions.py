@@ -137,6 +137,29 @@ _WEBAPP_FILES_DOC = """
 Static web apps consist of HTML, CSS, and JavaScript files served as-is. An `index.html` file at the root is required.
 The web app may also call OpenHEXA's GraphQL API via a same-origin proxy at POST /graphql/ — no auth token needed, the user's session handles it.
 If you need the full API reference (available scopes, GraphQL schema, example queries), call `get_help_or_doc(topic="static-webapps")`.
+
+# Maps
+When the web app shows a map and the user has no stated preference, use MapLibre GL JS with the OpenHEXA tile server at `https://martin.bluesquare.org`.
+- The server is a Martin instance exposing a single vector source, `osm` (Protomaps basemap built from OpenStreetMap). It serves no raster tiles, styles, fonts or sprites, so build the style client-side with the `@protomaps/basemaps` package: load `https://unpkg.com/@protomaps/basemaps@5.0.0/dist/basemaps.js` after MapLibre; it exposes a global `basemaps`.
+- Load MapLibre from a pinned CDN URL, e.g. `https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js` and its `maplibre-gl.css`.
+- Never point a raster source at the server root or at `/{z}/{x}/{y}`: those return 404 and leave the map blank.
+- Add the web app's own data (GeoJSON, circles, fills) as extra layers in the map's `load` handler, on top of the basemap layers.
+- Flavors: `light` (default), `dark`, `white`, `grayscale`, `black`. The sprite URL must use the same flavor.
+
+```js
+const map = new maplibregl.Map({
+  container: "map",
+  style: {
+    version: 8,
+    glyphs: "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
+    sprite: "https://protomaps.github.io/basemaps-assets/sprites/v4/light",
+    sources: {
+      osm: { type: "vector", url: "https://martin.bluesquare.org/osm" }
+    },
+    layers: basemaps.layers("osm", basemaps.namedFlavor("light"), { lang: "en" })
+  }
+});
+```
 """
 
 _GENERATE_SQL = """

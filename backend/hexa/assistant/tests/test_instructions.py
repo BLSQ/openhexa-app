@@ -52,3 +52,23 @@ class SqlWidgetsInstructionsTest(TestCase):
 
     def test_only_generate_sql_carries_the_conventions(self):
         self.assertNotIn("bar_label", get_instructions(InstructionSet.GENERAL))
+
+
+class WebappMapsInstructionsTest(TestCase):
+    def test_webapp_instructions_point_at_the_tile_server(self):
+        for instruction_set in (
+            InstructionSet.CREATE_WEBAPPS,
+            InstructionSet.EDIT_WEBAPP,
+        ):
+            instructions = get_instructions(instruction_set)
+            self.assertIn("MapLibre", instructions)
+            self.assertIn("https://martin.bluesquare.org/osm", instructions)
+            self.assertIn("@protomaps/basemaps", instructions)
+
+    def test_only_webapp_instruction_sets_carry_the_map_guidance(self):
+        for instruction_set in (
+            InstructionSet.GENERAL,
+            InstructionSet.CREATE_PIPELINE,
+            InstructionSet.GENERATE_SQL,
+        ):
+            self.assertNotIn("martin.bluesquare.org", get_instructions(instruction_set))
