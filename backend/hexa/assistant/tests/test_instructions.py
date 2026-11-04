@@ -64,6 +64,7 @@ class WebappMapsInstructionsTest(TestCase):
             self.assertIn("MapLibre", instructions)
             self.assertIn("https://martin.bluesquare.org/osm", instructions)
             self.assertIn("@protomaps/basemaps", instructions)
+            self.assertIn('cache: "force-cache"', instructions)
 
     def test_only_webapp_instruction_sets_carry_the_map_guidance(self):
         for instruction_set in (

@@ -145,6 +145,7 @@ When the web app shows a map and the user has no stated preference, use MapLibre
 - Never point a raster source at the server root or at `/{z}/{x}/{y}`: those return 404 and leave the map blank.
 - Add the web app's own data (GeoJSON, circles, fills) as extra layers in the map's `load` handler, on top of the basemap layers.
 - Flavors: `light` (default), `dark`, `white`, `grayscale`, `black`. The sprite URL must use the same flavor.
+- The server sends ETags but no `Cache-Control`, so the browser would re-validate every tile MapLibre needs again, which shows up as duplicate tile requests. Pass a `transformRequest` that returns `cache: "force-cache"` for tile requests to the server, as in the snippet.
 
 ```js
 const map = new maplibregl.Map({
@@ -157,7 +158,11 @@ const map = new maplibregl.Map({
       osm: { type: "vector", url: "https://martin.bluesquare.org/osm" }
     },
     layers: basemaps.layers("osm", basemaps.namedFlavor("light"), { lang: "en" })
-  }
+  },
+  transformRequest: (url, type) =>
+    type === "Tile" && url.startsWith("https://martin.bluesquare.org/")
+      ? { url, cache: "force-cache" }
+      : { url }
 });
 ```
 """
