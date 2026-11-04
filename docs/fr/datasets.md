@@ -123,14 +123,12 @@ La visibilité d'un jeu de données détermine qui peut y accéder au-delà des 
 
 - **Espace de travail** (par défaut) : uniquement les espaces de travail avec lesquels le jeu de données est partagé.
 - **Organisation** : tous les espaces de travail au sein de votre organisation. Activez le bouton **Partager avec toute l'organisation** pour la choisir.
-- **Public** : tout ce qu'accorde la visibilité organisation, ainsi que toute personne disposant du lien permanent du jeu de données, avec ou sans compte OpenHEXA.
+- **Public** : pour l'instant, la même portée que la visibilité organisation.
 
 ⚠️ Les visibilités organisation et publique remplacent toutes les permissions d'espace de travail spécifiques.
 
 #### Rendre un jeu de données public
 - Seuls l'auteur du jeu de données (s'il est encore éditeur ou administrateur de son espace de travail), les administrateurs de l'espace de travail et les administrateurs et propriétaires de l'organisation peuvent rendre un jeu de données public, ou ramener un jeu de données public à l'organisation ou à l'espace de travail.
-- Lorsque vous rendez un jeu de données public, vous choisissez son **slug public**, la dernière partie de son lien permanent. Il correspond par défaut au slug du jeu de données, doit être unique dans OpenHEXA et ne peut contenir que des lettres minuscules, des chiffres et des tirets simples.
-- ⚠️ Le slug public ne peut plus être modifié par la suite, afin que les liens déjà partagés continuent de pointer vers le même jeu de données, même s'il est rendu privé puis à nouveau public.
 
 ### Permissions de partage
 

@@ -1300,6 +1300,24 @@ class DatasetVisibilityTest(BaseTestMixin, TestCase):
                 visibility=DatasetVisibility.ORGANIZATION,
             )
 
+    def test_null_shared_with_organization_is_ignored(self):
+        self.dataset.update_if_has_perm(
+            principal=self.USER_EDITOR, visibility=DatasetVisibility.ORGANIZATION
+        )
+        self.dataset.update_if_has_perm(
+            principal=self.USER_EDITOR, shared_with_organization=None
+        )
+        self.dataset.refresh_from_db()
+        self.assertEqual(DatasetVisibility.ORGANIZATION, self.dataset.visibility)
+
+    def test_empty_slug_on_locked_dataset_is_refused(self):
+        self.dataset.update_if_has_perm(
+            principal=self.USER_EDITOR, visibility=DatasetVisibility.PUBLIC
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            self.dataset.update_if_has_perm(principal=self.USER_EDITOR, public_slug="")
+        self.assertEqual("PUBLIC_SLUG_LOCKED", ctx.exception.code)
+
     def test_deprecated_shared_with_organization_keeps_public(self):
         self.dataset.update_if_has_perm(
             principal=self.USER_EDITOR, visibility=DatasetVisibility.PUBLIC

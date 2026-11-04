@@ -207,6 +207,15 @@ class WorkspaceScopeAuditTest(GraphQLTestCase):
             TokenScopeVerdict.CROSS_REACHABLE, {str(self.OTHER.id): "org_shared"}
         )
 
+    def test_public_dataset_is_cross_reachable(self):
+        Dataset.objects.filter(pk=self.SHARED_DATASET.pk).update(
+            visibility=DatasetVisibility.PUBLIC
+        )
+        self.query_with_token(DATASET_QUERY, {"id": str(self.SHARED_DATASET.id)})
+        self.assertRecorded(
+            TokenScopeVerdict.CROSS_REACHABLE, {str(self.OTHER.id): "org_shared"}
+        )
+
     def test_linked_dataset_is_cross_reachable(self):
         self.query_with_token(DATASET_QUERY, {"id": str(self.LINKED_DATASET.id)})
         self.assertRecorded(

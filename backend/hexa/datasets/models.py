@@ -240,10 +240,12 @@ class Dataset(MetadataMixin, Base):
             try:
                 with transaction.atomic():
                     Dataset.objects.filter(pk=self.pk, public_slug__isnull=True).update(
-                        public_slug=slug or create_dataset_public_slug(self.slug)
+                        public_slug=slug
+                        if slug is not None
+                        else create_dataset_public_slug(self.slug)
                     )
             except IntegrityError:
-                if slug:
+                if slug is not None:
                     raise ValidationError(
                         "This public slug is already taken.", code="PUBLIC_SLUG_TAKEN"
                     )
@@ -251,7 +253,7 @@ class Dataset(MetadataMixin, Base):
             self.refresh_from_db(fields=["public_slug"])
         self._persisted_public_slug = self.public_slug
         # Also catches a concurrent caller having claimed another slug first.
-        if slug and slug != self.public_slug:
+        if slug is not None and slug != self.public_slug:
             raise public_slug_locked_error()
         return self.public_slug
 
@@ -273,7 +275,10 @@ class Dataset(MetadataMixin, Base):
             self._persisted_public_slug = self.public_slug
 
             visibility = kwargs.get("visibility")
-            if visibility is None and "shared_with_organization" in kwargs:
+            if (
+                visibility is None
+                and kwargs.get("shared_with_organization") is not None
+            ):
                 visibility = self._visibility_from_shared_with_organization(
                     kwargs["shared_with_organization"]
                 )

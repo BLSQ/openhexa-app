@@ -1855,7 +1855,7 @@ export type DatasetVersionPermissions = {
 export enum DatasetVisibility {
   /** Every member of the organization. */
   Organization = 'ORGANIZATION',
-  /** Every member of the organization, plus anyone with the dataset's permalink. */
+  /** For now, every member of the organization. */
   Public = 'PUBLIC',
   /** The members of the workspaces the dataset is shared with. */
   Workspace = 'WORKSPACE'

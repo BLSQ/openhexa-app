@@ -1784,7 +1784,7 @@ enum DatasetVisibility {
   ORGANIZATION
 
   """
-  Every member of the organization, plus anyone with the dataset's permalink.
+  For now, every member of the organization.
   """
   PUBLIC
 
