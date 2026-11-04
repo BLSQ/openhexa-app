@@ -5752,7 +5752,7 @@ export type ResolveAssistantProposalResult = {
 /** Resource counts */
 export type ResourceCounts = {
   __typename?: 'ResourceCounts';
-  /** AI budget / usage in USD. As usage: AI spend for the current month. As a limit: the monthly AI budget. */
+  /** AI spend in USD for the current month. */
   aiBudget: Scalars['Float']['output'];
   /** Number of pipeline runs. */
   pipelineRuns: Scalars['Int']['output'];
@@ -5762,7 +5762,7 @@ export type ResourceCounts = {
   workspaces: Scalars['Int']['output'];
 };
 
-/** Input type for resource counts (used for subscription limits). */
+/** Input type for subscription limits. Omitting a limit (or passing null) means the resource is unlimited. */
 export type ResourceCountsInput = {
   /** Maximum pipeline timeout in seconds. */
   maxPipelineTimeout?: InputMaybe<Scalars['Int']['input']>;
@@ -5774,12 +5774,25 @@ export type ResourceCountsInput = {
   pipelineCpuLimit?: InputMaybe<Scalars['String']['input']>;
   /** Memory limit for pipeline pods (e.g., "1G"). */
   pipelineMemoryLimit?: InputMaybe<Scalars['String']['input']>;
-  /** Number of pipeline runs. */
-  pipelineRuns: Scalars['Int']['input'];
-  /** Number of users. */
-  users: Scalars['Int']['input'];
-  /** Number of workspaces. */
-  workspaces: Scalars['Int']['input'];
+  /** Maximum number of pipeline runs per month, or null if unlimited. */
+  pipelineRuns?: InputMaybe<Scalars['Int']['input']>;
+  /** Maximum number of users, or null if unlimited. */
+  users?: InputMaybe<Scalars['Int']['input']>;
+  /** Maximum number of workspaces, or null if unlimited. */
+  workspaces?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** Resource limits of a subscription. A null limit means the resource is unlimited. */
+export type ResourceLimits = {
+  __typename?: 'ResourceLimits';
+  /** Monthly AI budget in USD. */
+  aiBudget: Scalars['Float']['output'];
+  /** Maximum number of pipeline runs per month, or null if unlimited. */
+  pipelineRuns?: Maybe<Scalars['Int']['output']>;
+  /** Maximum number of users, or null if unlimited. */
+  users?: Maybe<Scalars['Int']['output']>;
+  /** Maximum number of workspaces, or null if unlimited. */
+  workspaces?: Maybe<Scalars['Int']['output']>;
 };
 
 export enum RevokeMcpConnectionError {
@@ -6098,7 +6111,7 @@ export type Subscription = {
    */
   isInGracePeriod: Scalars['Boolean']['output'];
   /** Resource limits for this subscription. */
-  limits: ResourceCounts;
+  limits: ResourceLimits;
   /** The subscription plan code (e.g., "openhexa_starter"). */
   planCode: Scalars['String']['output'];
   /** The date when the subscription starts. */

@@ -1198,7 +1198,32 @@ type ResourceCounts {
     pipelineRuns: Int!
 
     """
-    AI budget / usage in USD. As usage: AI spend for the current month. As a limit: the monthly AI budget.
+    AI spend in USD for the current month.
+    """
+    aiBudget: Float!
+}
+
+"""
+Resource limits of a subscription. A null limit means the resource is unlimited.
+"""
+type ResourceLimits {
+    """
+    Maximum number of users, or null if unlimited.
+    """
+    users: Int
+
+    """
+    Maximum number of workspaces, or null if unlimited.
+    """
+    workspaces: Int
+
+    """
+    Maximum number of pipeline runs per month, or null if unlimited.
+    """
+    pipelineRuns: Int
+
+    """
+    Monthly AI budget in USD.
     """
     aiBudget: Float!
 }
@@ -1241,7 +1266,7 @@ type Subscription {
     """
     Resource limits for this subscription.
     """
-    limits: ResourceCounts!
+    limits: ResourceLimits!
 }
 
 """
@@ -2180,23 +2205,23 @@ enum DeleteOrganizationError {
 }
 
 """
-Input type for resource counts (used for subscription limits).
+Input type for subscription limits. Omitting a limit (or passing null) means the resource is unlimited.
 """
 input ResourceCountsInput {
     """
-    Number of users.
+    Maximum number of users, or null if unlimited.
     """
-    users: Int!
+    users: Int
 
     """
-    Number of workspaces.
+    Maximum number of workspaces, or null if unlimited.
     """
-    workspaces: Int!
+    workspaces: Int
 
     """
-    Number of pipeline runs.
+    Maximum number of pipeline runs per month, or null if unlimited.
     """
-    pipelineRuns: Int!
+    pipelineRuns: Int
 
     """
     Maximum pipeline timeout in seconds.
