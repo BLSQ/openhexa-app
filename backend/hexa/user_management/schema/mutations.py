@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from urllib.parse import urlparse
 
 import django_otp
+import sentry_sdk
 from ariadne import MutationType
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout, password_validation
@@ -952,6 +953,62 @@ def is_valid_short_name(short_name: str) -> bool:
     return short_name.isupper() and short_name.isalpha() and len(short_name) <= 5
 
 
+def subscription_fields_from_limits(limits: dict) -> dict:
+    """Map the Console's limits input onto OrganizationSubscription fields.
+
+    A missing or null users/workspaces/pipeline runs limit means unlimited. The AI
+    budget can never be unlimited: missing, null or 0 falls back to the trial amount.
+    """
+    return {
+        "users_limit": limits.get("users"),
+        "workspaces_limit": limits.get("workspaces"),
+        "pipeline_runs_limit": limits.get("pipeline_runs"),
+        "monthly_ai_budget": limits.get("monthly_ai_budget")
+        or OrganizationSubscription.DEFAULT_MONTHLY_AI_BUDGET,
+        "max_pipeline_timeout": limits.get("max_pipeline_timeout"),
+        "pipeline_cpu_limit": limits.get("pipeline_cpu_limit"),
+        "pipeline_memory_limit": limits.get("pipeline_memory_limit"),
+        "notebook_profile": limits.get("notebook_profile"),
+    }
+
+
+def report_suspicious_subscription(
+    organization: Organization, plan_code: str, limits: dict
+) -> None:
+    """Report a plan that looks misconfigured in the Console without blocking the signup (HEXA-1879)."""
+    missing_limits = [
+        name
+        for name in ("users", "workspaces", "pipeline_runs", "monthly_ai_budget")
+        if not limits.get(name)
+    ]
+    unknown_plan_code = plan_code not in OrganizationSubscription.KNOWN_PLAN_CODES
+    if not missing_limits and not unknown_plan_code:
+        return
+
+    problems = []
+    if unknown_plan_code:
+        problems.append("unknown plan code")
+    if missing_limits:
+        problems.append(f"missing limits {', '.join(missing_limits)}")
+    with sentry_sdk.new_scope() as scope:
+        scope.set_tag("organization_id", str(organization.id))
+        scope.set_tag("plan_code", plan_code)
+        scope.set_context(
+            "subscription_plan",
+            {
+                "organization": organization.name,
+                "missing_limits": missing_limits,
+                "unknown_plan_code": unknown_plan_code,
+                "limits": limits,
+            },
+        )
+        scope.fingerprint = ["subscription-plan-suspicious", plan_code, *missing_limits]
+        sentry_sdk.capture_message(
+            f"Subscription plan '{plan_code}' looks misconfigured: {'; '.join(problems)}",
+            level="warning",
+        )
+
+
 @identity_mutations.field("createOrganization")
 @transaction.atomic
 def resolve_create_organization(_, info, **kwargs):
@@ -1008,16 +1065,9 @@ def resolve_create_organization(_, info, **kwargs):
         plan_code=plan_code,
         start_date=subscription_start_date,
         end_date=subscription_end_date,
-        users_limit=limits.get("users"),
-        workspaces_limit=limits.get("workspaces"),
-        pipeline_runs_limit=limits.get("pipeline_runs"),
-        monthly_ai_budget=limits.get("monthly_ai_budget")
-        or OrganizationSubscription.DEFAULT_MONTHLY_AI_BUDGET,
-        max_pipeline_timeout=limits.get("max_pipeline_timeout"),
-        pipeline_cpu_limit=limits.get("pipeline_cpu_limit"),
-        pipeline_memory_limit=limits.get("pipeline_memory_limit"),
-        notebook_profile=limits.get("notebook_profile"),
+        **subscription_fields_from_limits(limits),
     )
+    report_suspicious_subscription(organization, plan_code, limits)
 
     try:
         user = User.objects.get(email__iexact=owner_email)
@@ -1157,17 +1207,10 @@ def resolve_update_organization_subscription(_, info, **kwargs):
             "plan_code": plan_code,
             "start_date": subscription_start_date,
             "end_date": subscription_end_date,
-            "users_limit": limits.get("users"),
-            "workspaces_limit": limits.get("workspaces"),
-            "pipeline_runs_limit": limits.get("pipeline_runs"),
-            "monthly_ai_budget": limits.get("monthly_ai_budget")
-            or OrganizationSubscription.DEFAULT_MONTHLY_AI_BUDGET,
-            "max_pipeline_timeout": limits.get("max_pipeline_timeout"),
-            "pipeline_cpu_limit": limits.get("pipeline_cpu_limit"),
-            "pipeline_memory_limit": limits.get("pipeline_memory_limit"),
-            "notebook_profile": limits.get("notebook_profile"),
+            **subscription_fields_from_limits(limits),
         },
     )
+    report_suspicious_subscription(organization, plan_code, limits)
 
     return {
         "success": True,

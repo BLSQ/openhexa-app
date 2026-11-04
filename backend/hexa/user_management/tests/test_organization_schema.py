@@ -1288,6 +1288,79 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertFalse(subscription.is_users_limit_reached())
         self.assertFalse(subscription.is_pipeline_runs_limit_reached())
 
+    def _create_organization(self, plan_code, limits):
+        return self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) { success errors }
+            }
+            """,
+            {
+                "input": {
+                    "ownerEmail": "newowner@example.org",
+                    "name": "Reported Org",
+                    "subscriptionId": "12345678-1234-1234-1234-123456789015",
+                    "planCode": plan_code,
+                    "subscriptionStartDate": "2026-01-01",
+                    "subscriptionEndDate": "2026-12-31",
+                    "limits": limits,
+                }
+            },
+        )
+
+    @patch("hexa.user_management.schema.mutations.sentry_sdk")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_create_organization_with_missing_limits_is_reported(
+        self, mock_send_invite, mock_sentry
+    ):
+        """A missing limit is accepted but reported so a Console mistake gets noticed."""
+        self.client.force_login(self.superuser)
+        r = self._create_organization("oh_trial", {"workspaces": 5})
+
+        self.assertTrue(r["data"]["createOrganization"]["success"])
+        scope = mock_sentry.new_scope.return_value.__enter__.return_value
+        scope.set_tag.assert_any_call("plan_code", "oh_trial")
+        self.assertEqual(
+            scope.set_context.call_args.args[1]["missing_limits"],
+            ["users", "pipeline_runs", "monthly_ai_budget"],
+        )
+        mock_sentry.capture_message.assert_called_once_with(
+            "Subscription plan 'oh_trial' looks misconfigured: "
+            "missing limits users, pipeline_runs, monthly_ai_budget",
+            level="warning",
+        )
+
+    @patch("hexa.user_management.schema.mutations.sentry_sdk")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_create_organization_with_unknown_plan_code_is_reported(
+        self, mock_send_invite, mock_sentry
+    ):
+        self.client.force_login(self.superuser)
+        r = self._create_organization(
+            "oh_platinum",
+            {"users": 10, "workspaces": 5, "pipelineRuns": 100, "monthlyAiBudget": 50},
+        )
+
+        self.assertTrue(r["data"]["createOrganization"]["success"])
+        mock_sentry.capture_message.assert_called_once_with(
+            "Subscription plan 'oh_platinum' looks misconfigured: unknown plan code",
+            level="warning",
+        )
+
+    @patch("hexa.user_management.schema.mutations.sentry_sdk")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_create_organization_with_complete_plan_is_not_reported(
+        self, mock_send_invite, mock_sentry
+    ):
+        self.client.force_login(self.superuser)
+        r = self._create_organization(
+            "oh_starter",
+            {"users": 10, "workspaces": 5, "pipelineRuns": 100, "monthlyAiBudget": 50},
+        )
+
+        self.assertTrue(r["data"]["createOrganization"]["success"])
+        mock_sentry.capture_message.assert_not_called()
+
     @patch("hexa.user_management.schema.mutations.send_organization_add_user_email")
     def test_create_organization_with_existing_user(self, mock_send_email):
         """Test creating organization with an existing user as owner."""
@@ -1619,8 +1692,9 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
         self.assertEqual(self.subscription.monthly_ai_budget, 200)
         self.assertEqual(self.subscription.end_date, date(2026, 12, 31))
 
-    def test_update_subscription_clears_limits(self):
-        """Sending null limits lifts the caps on an existing subscription."""
+    @patch("hexa.user_management.schema.mutations.sentry_sdk")
+    def test_update_subscription_clears_limits(self, mock_sentry):
+        """Sending null limits lifts the caps on an existing subscription, and is reported."""
         self.client.force_login(self.superuser)
         r = self.run_query(
             """
@@ -1648,6 +1722,12 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
         self.assertIsNone(self.subscription.users_limit)
         self.assertIsNone(self.subscription.workspaces_limit)
         self.assertIsNone(self.subscription.pipeline_runs_limit)
+        mock_sentry.capture_message.assert_called_once_with(
+            "Subscription plan 'openhexa_enterprise' looks misconfigured: "
+            "unknown plan code; missing limits users, workspaces, pipeline_runs, "
+            "monthly_ai_budget",
+            level="warning",
+        )
 
     def test_update_subscription_without_monthly_ai_budget(self):
         """Omitting monthlyAiBudget defaults it to OrganizationSubscription.DEFAULT_MONTHLY_AI_BUDGET (fallback in case the Console doesn't send it)."""
