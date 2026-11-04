@@ -317,6 +317,26 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
 
         self.assertEqual(search("revenue"), ["revenue report"])
 
+    def test_saved_queries_search_matches_slug(self):
+        self._create_query(self.USER_EDITOR, name="Revenue Report")
+        self._create_query(self.USER_EDITOR, name="patients count")
+
+        def search(term):
+            self.client.force_login(self.USER_EDITOR)
+            r = self.run_query(
+                """
+                query ($slug: String!, $query: String) {
+                    workspace(slug: $slug) {
+                        savedQueries(query: $query) { items { slug } }
+                    }
+                }
+                """,
+                {"slug": str(self.WORKSPACE.slug), "query": term},
+            )
+            return [i["slug"] for i in r["data"]["workspace"]["savedQueries"]["items"]]
+
+        self.assertEqual(search("revenue-report"), ["revenue-report"])
+
     def test_saved_queries_search_matches_description_not_content(self):
         self._create_query(
             self.USER_EDITOR, name="alpha", content="SELECT * FROM patients"
