@@ -1783,9 +1783,7 @@ enum DatasetVisibility {
   """Every member of the organization."""
   ORGANIZATION
 
-  """
-  For now, every member of the organization.
-  """
+  """For now, every member of the organization."""
   PUBLIC
 
   """The members of the workspaces the dataset is shared with."""
