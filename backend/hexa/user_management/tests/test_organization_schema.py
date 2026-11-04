@@ -1325,25 +1325,8 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
             ["users", "pipeline_runs", "monthly_ai_budget"],
         )
         mock_sentry.capture_message.assert_called_once_with(
-            "Subscription plan 'oh_trial' looks misconfigured: "
-            "missing limits users, pipeline_runs, monthly_ai_budget",
-            level="warning",
-        )
-
-    @patch("hexa.user_management.schema.mutations.sentry_sdk")
-    @patch("hexa.user_management.schema.mutations.send_organization_invite")
-    def test_create_organization_with_unknown_plan_code_is_reported(
-        self, mock_send_invite, mock_sentry
-    ):
-        self.client.force_login(self.superuser)
-        r = self._create_organization(
-            "oh_platinum",
-            {"users": 10, "workspaces": 5, "pipelineRuns": 100, "monthlyAiBudget": 50},
-        )
-
-        self.assertTrue(r["data"]["createOrganization"]["success"])
-        mock_sentry.capture_message.assert_called_once_with(
-            "Subscription plan 'oh_platinum' looks misconfigured: unknown plan code",
+            "Subscription plan 'oh_trial' is missing limits: "
+            "users, pipeline_runs, monthly_ai_budget",
             level="warning",
         )
 
@@ -1723,9 +1706,8 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
         self.assertIsNone(self.subscription.workspaces_limit)
         self.assertIsNone(self.subscription.pipeline_runs_limit)
         mock_sentry.capture_message.assert_called_once_with(
-            "Subscription plan 'openhexa_enterprise' looks misconfigured: "
-            "unknown plan code; missing limits users, workspaces, pipeline_runs, "
-            "monthly_ai_budget",
+            "Subscription plan 'openhexa_enterprise' is missing limits: "
+            "users, workspaces, pipeline_runs, monthly_ai_budget",
             level="warning",
         )
 

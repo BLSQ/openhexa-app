@@ -975,21 +975,15 @@ def subscription_fields_from_limits(limits: dict) -> dict:
 def report_suspicious_subscription(
     organization: Organization, plan_code: str, limits: dict
 ) -> None:
-    """Report a plan that looks misconfigured in the Console without blocking the signup (HEXA-1879)."""
+    """Report a plan with missing limits in the Console without blocking the signup (HEXA-1879)."""
     missing_limits = [
         name
         for name in ("users", "workspaces", "pipeline_runs", "monthly_ai_budget")
         if not limits.get(name)
     ]
-    unknown_plan_code = plan_code not in OrganizationSubscription.KNOWN_PLAN_CODES
-    if not missing_limits and not unknown_plan_code:
+    if not missing_limits:
         return
 
-    problems = []
-    if unknown_plan_code:
-        problems.append("unknown plan code")
-    if missing_limits:
-        problems.append(f"missing limits {', '.join(missing_limits)}")
     with sentry_sdk.new_scope() as scope:
         scope.set_tag("organization_id", str(organization.id))
         scope.set_tag("plan_code", plan_code)
@@ -998,13 +992,12 @@ def report_suspicious_subscription(
             {
                 "organization": organization.name,
                 "missing_limits": missing_limits,
-                "unknown_plan_code": unknown_plan_code,
                 "limits": limits,
             },
         )
         scope.fingerprint = ["subscription-plan-suspicious", plan_code, *missing_limits]
         sentry_sdk.capture_message(
-            f"Subscription plan '{plan_code}' looks misconfigured: {'; '.join(problems)}",
+            f"Subscription plan '{plan_code}' is missing limits: {', '.join(missing_limits)}",
             level="warning",
         )
 

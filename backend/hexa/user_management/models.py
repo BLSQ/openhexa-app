@@ -544,10 +544,6 @@ class OrganizationSubscription(Base):
     # Used as a fallback when no budget is provided by the Bluesquare Console.
     DEFAULT_MONTHLY_AI_BUDGET = 10
 
-    # Plan codes defined in the Bluesquare Console. Any other code is still
-    # accepted, but reported so a new or misspelled plan gets noticed (HEXA-1879).
-    KNOWN_PLAN_CODES = ("oh_trial", "oh_starter", "oh_growth", "oh_scale")
-
     class Meta:
         db_table = "identity_organization_subscription"
         ordering = ["-start_date"]
