@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Malaria surveillance</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <header class="header">
+      <h1>Malaria surveillance</h1>
+      <span id="period-range"></span>
+      <span id="last-updated"></span>
+      <button id="language-toggle" class="button">FR / EN</button>
+    </header>
+    <div id="error-banner" class="error-banner" hidden></div>
+    <div id="spinner" class="spinner" hidden></div>
+    <section class="toolbar">
+      <select id="district-filter" class="filter"></select>
+      <select id="indicator-filter" class="filter"></select>
+      <button id="export-csv" class="button"></button>
+    </section>
+    <section id="kpis" class="kpis"></section>
+    <section class="chart-panel">
+      <canvas id="trend-chart"></canvas>
+    </section>
+    <section class="chart-panel">
+      <canvas id="district-chart"></canvas>
+    </section>
+    <section class="table-panel">
+      <table id="data-table" class="data-table">
+        <thead>
+          <tr>
+            <th data-key="district">District</th>
+            <th data-key="suspected">Suspected</th>
+            <th data-key="tested">Tested</th>
+            <th data-key="confirmed">Confirmed</th>
+            <th data-key="positivity">Positivity</th>
+            <th data-key="reporting_rate">Reporting rate</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+    <section class="alerts-panel">
+      <ul id="alerts"></ul>
+    </section>
+    <script src="js/config.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

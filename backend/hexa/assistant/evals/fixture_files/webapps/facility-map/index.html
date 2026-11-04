@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Carte des formations sanitaires</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="css/map.css" />
+  </head>
+  <body>
+    <header class="header">
+      <h1>Formations sanitaires</h1>
+      <select id="filter-region"></select>
+      <select id="filter-type"></select>
+      <select id="filter-status"></select>
+    </header>
+    <main class="layout">
+      <div id="map" class="map"></div>
+      <aside class="sidebar">
+        <table id="summary">
+          <thead>
+            <tr><th>Region</th><th>Open</th><th>Closed</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </aside>
+    </main>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+      const REGIONS_ORDER = ['Agadez', 'Diffa', 'Dosso', 'Maradi', 'Niamey', 'Tahoua', 'Tillaberi', 'Zinder'];
+    </script>
+    <script src="js/data.js"></script>
+    <script src="js/map.js"></script>
+  </body>
+</html>
