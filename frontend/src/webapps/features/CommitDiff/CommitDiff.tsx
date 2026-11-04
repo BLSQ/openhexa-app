@@ -63,7 +63,7 @@ const CommitDiff = ({
                 </span>
                 {isPublished && (
                   <Badge className="shrink-0 bg-green-50 text-green-700 ring-green-600/20">
-                    {t("Published")}
+                    {t("Live")}
                   </Badge>
                 )}
               </div>

@@ -62,15 +62,15 @@ const renderHistory = (
   );
 
 describe("WebappHistory", () => {
-  it("marks the latest and the published versions", async () => {
+  it("marks the latest and the live versions", async () => {
     renderHistory({});
 
     const latestRow = await screen.findByTestId(`webapp-version-${LATEST}`);
     expect(latestRow).toHaveTextContent("Latest");
-    expect(latestRow).not.toHaveTextContent("Published");
+    expect(latestRow).not.toHaveTextContent("Live");
 
     const publishedRow = screen.getByTestId(`webapp-version-${PUBLISHED}`);
-    expect(publishedRow).toHaveTextContent("Published");
+    expect(publishedRow).toHaveTextContent("Live");
     expect(publishedRow).not.toHaveTextContent("Latest");
   });
 
@@ -92,9 +92,7 @@ describe("WebappHistory", () => {
     fireEvent.click(
       screen.getAllByRole("button", { name: "Browse at this point" })[2],
     );
-    fireEvent.click(
-      row.querySelector('[aria-label="Roll back to this version"]')!,
-    );
+    fireEvent.click(row.querySelector('[aria-label="Restore this version"]')!);
 
     await waitFor(() => {
       expect(onPreviewCommit).toHaveBeenCalledWith(OLDEST);
@@ -103,15 +101,15 @@ describe("WebappHistory", () => {
     });
   });
 
-  it("never offers to roll back to the latest version", async () => {
+  it("never offers to restore the latest version", async () => {
     renderHistory({ onRollbackCommit: jest.fn(), canEdit: true });
 
     const latestRow = await screen.findByTestId(`webapp-version-${LATEST}`);
     expect(
-      latestRow.querySelector('[aria-label="Roll back to this version"]'),
+      latestRow.querySelector('[aria-label="Restore this version"]'),
     ).toBeNull();
     expect(
-      screen.getAllByRole("button", { name: "Roll back to this version" }),
+      screen.getAllByRole("button", { name: "Restore this version" }),
     ).toHaveLength(2);
   });
 
@@ -120,7 +118,7 @@ describe("WebappHistory", () => {
 
     await screen.findByTestId(`webapp-version-${LATEST}`);
     expect(
-      screen.queryByRole("button", { name: "Roll back to this version" }),
+      screen.queryByRole("button", { name: "Restore this version" }),
     ).toBeNull();
   });
 });

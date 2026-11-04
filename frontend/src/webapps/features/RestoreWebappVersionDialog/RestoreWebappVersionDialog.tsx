@@ -38,7 +38,7 @@ const RestoreWebappVersionDialog = ({
         awaitRefetchQueries: true,
       });
       if (data?.restoreWebappVersion?.success) {
-        toast.success(t("Version restored and published"));
+        toast.success(t("Version restored and live"));
         onRestored?.();
         onClose();
       } else {
@@ -53,12 +53,12 @@ const RestoreWebappVersionDialog = ({
 
   return (
     <Dialog open={open} onClose={onClose} persistent={isRestoring}>
-      <Dialog.Title>{t("Roll back to this version")}</Dialog.Title>
+      <Dialog.Title>{t("Restore this version")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
         <p>
           <Trans>
             A new version with the content of <b>{shortId}</b> will be created
-            and published. The current latest version stays in the history.
+            and go live. The current latest version stays in the history.
           </Trans>
         </p>
       </Dialog.Content>
@@ -72,7 +72,7 @@ const RestoreWebappVersionDialog = ({
           data-testid="confirm-restore"
         >
           {isRestoring && <Spinner size="xs" className="mr-1" />}
-          {isRestoring ? t("Restoring...") : t("Roll back")}
+          {isRestoring ? t("Restoring...") : t("Restore")}
         </Button>
       </Dialog.Actions>
     </Dialog>

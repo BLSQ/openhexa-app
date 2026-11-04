@@ -193,7 +193,7 @@ const WebappHistory = ({
                       )}
                       {isPublished && (
                         <Badge className="shrink-0 bg-green-50 text-green-700 ring-green-600/20">
-                          {t("Published")}
+                          {t("Live")}
                         </Badge>
                       )}
                     </div>
@@ -243,12 +243,12 @@ const WebappHistory = ({
                     />
                     {onRollbackCommit && canEdit && !isLatest && (
                       <Tooltip
-                        label={t("Roll back to this version")}
+                        label={t("Restore this version")}
                         renderTrigger={(ref) => (
                           <button
                             ref={ref as React.Ref<HTMLButtonElement>}
                             onClick={() => onRollbackCommit(version.id)}
-                            aria-label={t("Roll back to this version")}
+                            aria-label={t("Restore this version")}
                             className={ICON_BUTTON_CLASS}
                           >
                             <ArrowUturnLeftIcon className="h-4 w-4" />

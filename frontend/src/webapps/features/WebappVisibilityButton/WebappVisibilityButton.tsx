@@ -1,12 +1,11 @@
 import { gql } from "@apollo/client";
-import { GlobeAltIcon, LockClosedIcon } from "@heroicons/react/24/outline";
+import { ShareIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useTranslation } from "next-i18next";
 import { useState } from "react";
 import { toast } from "react-toastify";
-import MakeWebappPrivateDialog from "webapps/features/MakeWebappPrivateDialog";
-import MakeWebappPublicDialog from "webapps/features/MakeWebappPublicDialog";
+import ShareWebappDialog from "webapps/features/ShareWebappDialog";
 import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
 import { WebappVisibilityButton_WebappFragment } from "./WebappVisibilityButton.generated";
 
@@ -41,31 +40,16 @@ const WebappVisibilityButton = ({ webapp }: WebappVisibilityButtonProps) => {
       <Button
         variant="white"
         onClick={() => setIsDialogOpen(true)}
-        leadingIcon={
-          webapp.isPublic ? (
-            <LockClosedIcon className="h-4 w-4" />
-          ) : (
-            <GlobeAltIcon className="h-4 w-4" />
-          )
-        }
+        leadingIcon={<ShareIcon className="h-4 w-4" />}
       >
-        {webapp.isPublic ? t("Make private") : t("Make public")}
+        {t("Share")}
       </Button>
-      {webapp.isPublic ? (
-        <MakeWebappPrivateDialog
-          open={isDialogOpen}
-          onClose={() => setIsDialogOpen(false)}
-          onConfirm={() => setVisibility(false)}
-          webapp={webapp}
-        />
-      ) : (
-        <MakeWebappPublicDialog
-          open={isDialogOpen}
-          onClose={() => setIsDialogOpen(false)}
-          onConfirm={() => setVisibility(true)}
-          webapp={webapp}
-        />
-      )}
+      <ShareWebappDialog
+        open={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        onSave={setVisibility}
+        webapp={webapp}
+      />
     </>
   );
 };

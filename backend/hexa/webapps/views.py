@@ -141,7 +141,7 @@ def serve_webapp(request, git_webapp, path="index.html", ref=None):
 
     ref = ref or git_webapp.published_commit
     if not ref:
-        return HttpResponseNotFound("No published version")
+        return HttpResponseNotFound("This web app has no live version yet")
 
     content_type = _guess_content_type(path)
     client = get_forgejo_client()

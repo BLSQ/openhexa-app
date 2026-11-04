@@ -65,9 +65,7 @@ describe("RestoreWebappVersionDialog", () => {
 
     await waitFor(() => expect(onRestored).toHaveBeenCalledTimes(1));
     expect(onClose).toHaveBeenCalled();
-    expect(toast.success).toHaveBeenCalledWith(
-      "Version restored and published",
-    );
+    expect(toast.success).toHaveBeenCalledWith("Version restored and live");
   });
 
   it("cancels without restoring", () => {

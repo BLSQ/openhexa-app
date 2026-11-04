@@ -307,7 +307,7 @@ const WebappForm = ({
           <LinkProperty
             id="serveUrl"
             accessor="serveUrl"
-            label={t("Published URL")}
+            label={t("Web app link")}
             help={t("The URL where this web app can be accessed")}
           />
         )}
@@ -315,7 +315,7 @@ const WebappForm = ({
           <SubdomainProperty
             id="subdomain"
             accessor="subdomain"
-            label={t("Published URL")}
+            label={t("Web app link")}
             help={t("The URL where this web app can be accessed")}
             currentSubdomain={webapp.subdomain}
             serveUrl={webapp.serveUrl}
@@ -326,7 +326,7 @@ const WebappForm = ({
           accessor="isPublic"
           label={t("Public access")}
           help={t(
-            "When enabled, the play link can be accessed without authentication",
+            "When enabled, anyone with the link can open the web app without signing in",
           )}
         />
       </DataCard.FormSection>

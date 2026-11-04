@@ -31,7 +31,7 @@ style.css
 assets/logo.svg
 ```
 
-Référencez les ressources avec des chemins relatifs (`<script src="app.js">`, `<link href="style.css">`) pour qu'elles fonctionnent aussi bien en aperçu qu'une fois publiées.
+Référencez les ressources avec des chemins relatifs (`<script src="app.js">`, `<link href="style.css">`) pour qu'elles fonctionnent aussi bien en aperçu qu'une fois en ligne.
 
 ## URL et sous-domaine
 

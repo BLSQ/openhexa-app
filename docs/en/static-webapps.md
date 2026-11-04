@@ -31,7 +31,7 @@ style.css
 assets/logo.svg
 ```
 
-Reference assets with relative paths (`<script src="app.js">`, `<link href="style.css">`) so they work both in preview and once published.
+Reference assets with relative paths (`<script src="app.js">`, `<link href="style.css">`) so they work both in preview and once live.
 
 ## URL and subdomain
 

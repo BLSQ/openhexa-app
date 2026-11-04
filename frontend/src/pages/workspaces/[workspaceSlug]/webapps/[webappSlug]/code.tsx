@@ -146,13 +146,13 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
         refetchQueries: ["WebappVersions"],
       });
       if (publishData?.updateWebapp?.success) {
-        toast.success(t("Version published successfully"));
+        toast.success(t("Version is now live"));
         refetch().then();
       } else {
-        toast.error(t("Failed to publish version"));
+        toast.error(t("Failed to put the version live"));
       }
     } catch {
-      toast.error(t("Failed to publish version"));
+      toast.error(t("Failed to put the version live"));
     } finally {
       setIsPublishing(false);
     }
@@ -167,7 +167,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
           disabled={isPublishing}
           leadingIcon={isPublishing ? <Spinner size="xs" /> : undefined}
         >
-          {isPublishing ? t("Publishing...") : t("Publish")}
+          {isPublishing ? t("Publishing...") : t("Publish draft")}
         </Button>
       )
     ) : (
@@ -175,7 +175,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
         variant="primary"
         onClick={() => selectedVersionId && setRestoreTarget(selectedVersionId)}
       >
-        {t("Roll back to this version")}
+        {t("Restore this version")}
       </Button>
     );
 

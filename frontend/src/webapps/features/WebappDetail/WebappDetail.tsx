@@ -6,6 +6,7 @@ import {
   Cog6ToothIcon,
   EyeIcon,
   GlobeAltIcon,
+  LockClosedIcon,
   SparklesIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
@@ -29,8 +30,7 @@ import { resizeImage } from "core/helpers/image";
 import { isRequestTooLargeError } from "core/helpers/errors";
 import useCacheKey from "core/hooks/useCacheKey";
 import { WebappType } from "graphql/types";
-import { DateTime } from "luxon";
-import { useTranslation } from "next-i18next";
+import { Trans, useTranslation } from "next-i18next";
 import {
   ChangeEvent,
   useCallback,
@@ -176,13 +176,13 @@ const WebappDetail = ({
         },
       });
       if (data?.updateWebapp?.success) {
-        toast.success(t("Version published successfully"));
+        toast.success(t("Version is now live"));
         refreshVersions();
       } else {
-        toast.error(t("Failed to publish version"));
+        toast.error(t("Failed to put the version live"));
       }
     } catch {
-      toast.error(t("Failed to publish version"));
+      toast.error(t("Failed to put the version live"));
     } finally {
       setIsPublishing(false);
     }
@@ -313,10 +313,37 @@ const WebappDetail = ({
 
   const shortRef = (ref: string) => ref.substring(0, 7);
 
+  // Both axes in one line: the public/private state visitors already know
+  // from the other pages, followed by which version they get.
+  const liveSha = publishedVersionId ? shortRef(publishedVersionId) : null;
+  const accessWord = webapp.isPublic ? t("Public") : t("Private");
+  const accessSentence = !isStatic ? (
+    accessWord
+  ) : liveSha ? (
+    <>
+      {accessWord} &middot;{" "}
+      {webapp.isPublic ? (
+        <Trans>
+          anyone with the link sees version{" "}
+          <code className="font-mono text-gray-700">{liveSha}</code>
+        </Trans>
+      ) : (
+        <Trans>
+          workspace members see version{" "}
+          <code className="font-mono text-gray-700">{liveSha}</code>
+        </Trans>
+      )}
+    </>
+  ) : (
+    <>
+      {accessWord} &middot; {t("no version is live yet")}
+    </>
+  );
+
   const versionPill = !isStatic ? (
     <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
       <span className="h-[7px] w-[7px] rounded-full bg-emerald-500" />
-      {t("Live")}
+      {t("Live version")}
     </span>
   ) : versionRef ? (
     <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gray-600">
@@ -327,12 +354,12 @@ const WebappDetail = ({
   ) : isLiveLatest ? (
     <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
       <span className="h-[7px] w-[7px] rounded-full bg-emerald-500" />
-      {t("Live")}
+      {t("Live version")}
     </span>
   ) : latestVersionId ? (
     <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-700">
       <span className="h-[7px] w-[7px] rounded-full bg-amber-500" />
-      {t("Unpublished changes")}
+      {t("Draft changes, not live")}
     </span>
   ) : null;
 
@@ -343,7 +370,7 @@ const WebappDetail = ({
       className="inline-flex items-center gap-1.5 rounded border border-amber-300 bg-white px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-50 disabled:opacity-60"
     >
       {isPublishing && <Spinner size="xs" />}
-      {isPublishing ? t("Publishing...") : t("Publish")}
+      {isPublishing ? t("Publishing...") : t("Publish draft")}
     </button>
   );
 
@@ -354,7 +381,7 @@ const WebappDetail = ({
         onClick={() => setRestoreTarget(ref)}
         className="inline-flex items-center gap-1.5 rounded border border-amber-300 bg-white px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-50"
       >
-        {t("Roll back to this version")}
+        {t("Restore this version")}
       </button>
     );
 
@@ -372,7 +399,7 @@ const WebappDetail = ({
           {publishedVersionId && versionRef !== publishedVersionId && (
             <>
               {" "}
-              &middot; {t("live is")}{" "}
+              &middot; {t("visitors see")}{" "}
               <code className="font-mono text-amber-900">
                 {shortRef(publishedVersionId)}
               </code>
@@ -386,21 +413,22 @@ const WebappDetail = ({
   ) : latestVersionId && !isLiveLatest ? (
     <div className="flex flex-none items-center gap-3 border-b border-amber-100 bg-amber-50 px-5 py-2 text-[13px]">
       <span className="text-amber-800">
-        {t("Latest version")}{" "}
-        <code className="font-mono text-amber-900">
-          {shortRef(latestVersionId)}
-        </code>{" "}
-        {t("is not live")}
         {publishedVersionId ? (
           <>
-            {" "}
-            &middot; {t("live is")}{" "}
+            {t("Visitors see version")}{" "}
             <code className="font-mono text-amber-900">
               {shortRef(publishedVersionId)}
+            </code>{" "}
+            &middot;{" "}
+            {view === "code"
+              ? t("you are editing the newer draft")
+              : t("you are previewing the newer draft")}{" "}
+            <code className="font-mono text-amber-900">
+              {shortRef(latestVersionId)}
             </code>
           </>
         ) : (
-          <> &middot; {t("no version is published yet")}</>
+          t("No version is live yet")
         )}
       </span>
       <div className="ml-auto flex items-center gap-3">{publishButton}</div>
@@ -423,14 +451,6 @@ const WebappDetail = ({
             <DetailBadge color="indigo">
               {t("{{type}} app", { type: getWebappTypeLabel(webapp.type) })}
             </DetailBadge>
-            {webapp.isPublic && (
-              <DetailBadge
-                color="emerald"
-                icon={<GlobeAltIcon className="h-3 w-3" />}
-              >
-                {t("Public")}
-              </DetailBadge>
-            )}
           </>
         }
         meta={[
@@ -447,15 +467,17 @@ const WebappDetail = ({
               </a>
             </span>
           ),
-          latestVersion && (
-            <span className="text-gray-500">
-              {t("Latest")}{" "}
-              <code className="font-mono text-gray-700">
-                {latestVersion.id.substring(0, 7)}
-              </code>{" "}
-              &middot; {DateTime.fromISO(latestVersion.date).toRelative()}
-            </span>
-          ),
+          <span
+            key="access"
+            className="inline-flex items-center gap-1.5 text-gray-500"
+          >
+            {webapp.isPublic ? (
+              <GlobeAltIcon className="h-3.5 w-3.5" />
+            ) : (
+              <LockClosedIcon className="h-3.5 w-3.5" />
+            )}
+            {accessSentence}
+          </span>,
         ]}
       />
 
@@ -625,7 +647,7 @@ const WebappDetail = ({
                       {isStatic ? (
                         <div className="flex flex-col gap-1.5">
                           <label className="text-xs font-medium text-gray-700">
-                            {t("Published URL")}
+                            {t("Web app link")}
                           </label>
                           <div className="flex items-center overflow-hidden rounded-md border border-gray-300 text-[13px] focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600">
                             <span className="py-2 pl-2.5 text-gray-400">

@@ -65,8 +65,7 @@ const VersionPicker = ({
   useEffect(() => {
     if (allVersions.length === 0) return;
 
-    const publishedChanged =
-      publishedVersionId !== prevPublishedRef.current;
+    const publishedChanged = publishedVersionId !== prevPublishedRef.current;
     const needsInitialSelection = !selectedVersion;
 
     if (!needsInitialSelection && !publishedChanged) return;
@@ -79,7 +78,13 @@ const VersionPicker = ({
     const version = initial ?? published ?? allVersions[0];
     setSelectedVersion(version);
     onChange?.(version);
-  }, [allVersions, publishedVersionId, selectedVersion, onChange, initialVersionId]);
+  }, [
+    allVersions,
+    publishedVersionId,
+    selectedVersion,
+    onChange,
+    initialVersionId,
+  ]);
 
   const relativeDates = useMemo(
     () =>
@@ -99,7 +104,12 @@ const VersionPicker = ({
     const nextPage = pageRef.current + 1;
     pageRef.current = nextPage;
     fetchPage({
-      variables: { workspaceSlug, webappSlug, page: nextPage, perPage: PER_PAGE },
+      variables: {
+        workspaceSlug,
+        webappSlug,
+        page: nextPage,
+        perPage: PER_PAGE,
+      },
       fetchPolicy: "no-cache",
     }).then(({ data: d }) => {
       const items = d?.webapp?.versions?.items ?? [];
@@ -163,7 +173,7 @@ const VersionPicker = ({
                 </span>
                 {isPublished && (
                   <span className="inline-flex shrink-0 items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-                    {t("Published")}
+                    {t("Live")}
                   </span>
                 )}
               </div>
