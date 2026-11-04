@@ -266,28 +266,33 @@ class Dataset(MetadataMixin, Base):
         if not principal.has_perm("datasets.update_dataset", self):
             raise PermissionDenied
 
-        visibility = kwargs.get("visibility")
-        if visibility is None and "shared_with_organization" in kwargs:
-            visibility = self._visibility_from_shared_with_organization(
-                kwargs["shared_with_organization"]
-            )
-
-        # Gating only on change: a client echoing back the current values does not
-        # need the stricter permission. Claiming the permalink is a publisher's call,
-        # even ahead of publishing.
-        toggles_public = (
-            visibility is not None
-            and visibility != self.visibility
-            and DatasetVisibility.PUBLIC in (visibility, self.visibility)
-        )
-        public_slug = kwargs.get("public_slug")
-        claims_slug = public_slug is not None and public_slug != self.public_slug
-        if (toggles_public or claims_slug) and not principal.has_perm(
-            "datasets.publish_dataset", self
-        ):
-            raise PermissionDenied
-
         with transaction.atomic():
+            # Locked and re-read: the checks below must use the stored visibility and
+            # slug, or a stale save could revert a concurrent publish or unpublish.
+            self.refresh_from_db(from_queryset=Dataset.objects.select_for_update())
+            self._persisted_public_slug = self.public_slug
+
+            visibility = kwargs.get("visibility")
+            if visibility is None and "shared_with_organization" in kwargs:
+                visibility = self._visibility_from_shared_with_organization(
+                    kwargs["shared_with_organization"]
+                )
+
+            # Gating only on change: a client echoing back the current values does
+            # not need the stricter permission. Claiming the permalink is a
+            # publisher's call, even ahead of publishing.
+            toggles_public = (
+                visibility is not None
+                and visibility != self.visibility
+                and DatasetVisibility.PUBLIC in (visibility, self.visibility)
+            )
+            public_slug = kwargs.get("public_slug")
+            claims_slug = public_slug is not None and public_slug != self.public_slug
+            if (toggles_public or claims_slug) and not principal.has_perm(
+                "datasets.publish_dataset", self
+            ):
+                raise PermissionDenied
+
             if claims_slug or (
                 toggles_public and visibility == DatasetVisibility.PUBLIC
             ):

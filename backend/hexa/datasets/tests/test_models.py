@@ -1277,6 +1277,29 @@ class DatasetVisibilityTest(BaseTestMixin, TestCase):
         self.assertEqual(DatasetVisibility.ORGANIZATION, self.dataset.visibility)
         self.assertIsNone(self.dataset.public_slug)
 
+    def test_stale_instance_does_not_revert_concurrent_publish(self):
+        Dataset.objects.filter(pk=self.dataset.pk).update(
+            visibility=DatasetVisibility.PUBLIC, public_slug="malaria-cases"
+        )
+
+        self.dataset.update_if_has_perm(principal=self.USER_OTHER_EDITOR, name="New")
+        self.dataset.refresh_from_db()
+        self.assertEqual("New", self.dataset.name)
+        self.assertEqual(DatasetVisibility.PUBLIC, self.dataset.visibility)
+        self.assertEqual("malaria-cases", self.dataset.public_slug)
+
+    def test_stale_instance_cannot_unpublish_without_permission(self):
+        stale = Dataset.objects.get(pk=self.dataset.pk)
+        Dataset.objects.filter(pk=self.dataset.pk).update(
+            visibility=DatasetVisibility.PUBLIC, public_slug="malaria-cases"
+        )
+
+        with self.assertRaises(PermissionDenied):
+            stale.update_if_has_perm(
+                principal=self.USER_OTHER_EDITOR,
+                visibility=DatasetVisibility.ORGANIZATION,
+            )
+
     def test_deprecated_shared_with_organization_keeps_public(self):
         self.dataset.update_if_has_perm(
             principal=self.USER_EDITOR, visibility=DatasetVisibility.PUBLIC
