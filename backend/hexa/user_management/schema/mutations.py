@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 from urllib.parse import urlparse
 
 import django_otp
-import sentry_sdk
 from ariadne import MutationType
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout, password_validation
@@ -972,36 +971,6 @@ def subscription_fields_from_limits(limits: dict) -> dict:
     }
 
 
-def report_suspicious_subscription(
-    organization: Organization, plan_code: str, limits: dict
-) -> None:
-    """Report a plan with missing limits in the Console without blocking the signup (HEXA-1879)."""
-    missing_limits = [
-        name
-        for name in ("users", "workspaces", "pipeline_runs", "monthly_ai_budget")
-        if not limits.get(name)
-    ]
-    if not missing_limits:
-        return
-
-    with sentry_sdk.new_scope() as scope:
-        scope.set_tag("organization_id", str(organization.id))
-        scope.set_tag("plan_code", plan_code)
-        scope.set_context(
-            "subscription_plan",
-            {
-                "organization": organization.name,
-                "missing_limits": missing_limits,
-                "limits": limits,
-            },
-        )
-        scope.fingerprint = ["subscription-plan-suspicious", plan_code, *missing_limits]
-        sentry_sdk.capture_message(
-            f"Subscription plan '{plan_code}' is missing limits: {', '.join(missing_limits)}",
-            level="warning",
-        )
-
-
 @identity_mutations.field("createOrganization")
 @transaction.atomic
 def resolve_create_organization(_, info, **kwargs):
@@ -1060,7 +1029,6 @@ def resolve_create_organization(_, info, **kwargs):
         end_date=subscription_end_date,
         **subscription_fields_from_limits(limits),
     )
-    report_suspicious_subscription(organization, plan_code, limits)
 
     try:
         user = User.objects.get(email__iexact=owner_email)
@@ -1203,7 +1171,6 @@ def resolve_update_organization_subscription(_, info, **kwargs):
             **subscription_fields_from_limits(limits),
         },
     )
-    report_suspicious_subscription(organization, plan_code, limits)
 
     return {
         "success": True,
