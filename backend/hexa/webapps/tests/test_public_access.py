@@ -370,6 +370,36 @@ class GitWebappServeViewTest(TestCase):
         self.client.cookies["hexa_webapp_session"] = session.session_key
 
     @patch("hexa.webapps.views.get_forgejo_client")
+    def test_public_webapp_can_be_framed_by_any_site(self, mock_get_client):
+        mock_get_client.return_value.get_file.return_value = b"<html></html>"
+
+        response = self._get(self.PUBLIC_WEBAPP)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Security-Policy"], "frame-ancestors *")
+        self.assertNotIn("X-Frame-Options", response)
+
+    @override_settings(
+        BASE_URL="http://localhost:8000",
+        NEW_FRONTEND_DOMAIN="http://localhost:3000",
+        WEBAPPS_ADDITIONAL_FRAME_ANCESTORS=["http://localhost:3020"],
+    )
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_private_webapp_can_only_be_framed_by_openhexa(self, mock_get_client):
+        mock_get_client.return_value.get_file.return_value = b"<html></html>"
+        self._create_webapp_session(self.PRIVATE_WEBAPP, self.USER_MEMBER)
+
+        response = self._get(self.PRIVATE_WEBAPP)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["Content-Security-Policy"],
+            "frame-ancestors 'self' http://localhost:8000 http://localhost:3000 "
+            "http://localhost:3020",
+        )
+        self.assertNotIn("X-Frame-Options", response)
+
+    @patch("hexa.webapps.views.get_forgejo_client")
     def test_serve_index_html(self, mock_get_client):
         mock_client = MagicMock()
         mock_client.get_file.return_value = b"<h1>Hello World</h1>"
@@ -1296,27 +1326,13 @@ class CustomDomainMiddlewareTest(TestCase):
         self.assertEqual(response.status_code, 404)
 
     @patch("hexa.webapps.views.get_forgejo_client")
-    def test_csp_header_set_on_custom_domain(self, mock_get_client):
-        mock_client = MagicMock()
-        mock_client.get_file.return_value = b"<html>custom</html>"
-        mock_get_client.return_value = mock_client
+    def test_public_webapp_on_custom_domain_can_be_framed_by_any_site(
+        self, mock_get_client
+    ):
+        mock_get_client.return_value.get_file.return_value = b"<html>custom</html>"
 
         response = self.client.get("/", HTTP_HOST="mycustomdomain.com")
-        self.assertIn("frame-ancestors", response.get("Content-Security-Policy", ""))
-
-    @override_settings(
-        WEBAPPS_ADDITIONAL_FRAME_ANCESTORS=["http://localhost:3020"],
-    )
-    @patch("hexa.webapps.views.get_forgejo_client")
-    def test_csp_header_includes_additional_frame_ancestors(self, mock_get_client):
-        mock_client = MagicMock()
-        mock_client.get_file.return_value = b"<html>custom</html>"
-        mock_get_client.return_value = mock_client
-
-        response = self.client.get("/", HTTP_HOST="mycustomdomain.com")
-        self.assertIn(
-            "http://localhost:3020", response.get("Content-Security-Policy", "")
-        )
+        self.assertEqual(response["Content-Security-Policy"], "frame-ancestors *")
 
     @patch("hexa.webapps.views.get_forgejo_client")
     def test_main_hostname_not_intercepted(self, mock_get_client):
