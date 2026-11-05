@@ -1,5 +1,10 @@
 import { gql } from "@apollo/client";
-import { ArrowDownTrayIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowDownTrayIcon,
+  LinkIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
+import Badge from "core/components/Badge";
 import Button from "core/components/Button";
 import Spinner from "core/components/Spinner";
 import { BucketObject, BucketObjectType } from "graphql/types";
@@ -12,6 +17,18 @@ import {
 } from "./BucketExplorer.generated";
 import FileSystemDataGrid from "workspaces/components/FileSystemDataGrid";
 import { useUploadFiles } from "workspaces/hooks/useUploadFiles";
+import { toast } from "react-toastify";
+
+const PUBLIC_FOLDER = "public/";
+
+const isPublicFolder = (item: BucketObject) =>
+  item.type === BucketObjectType.Directory &&
+  item.key.replace(/\/$/, "") === PUBLIC_FOLDER.slice(0, -1);
+
+// The workspace slug is part of the public URL, the path is relative to the public folder.
+export const getPublicFileUrl = (publicFilesUrl: string, key: string) =>
+  publicFilesUrl +
+  key.slice(PUBLIC_FOLDER.length).split("/").map(encodeURIComponent).join("/");
 
 type BucketExplorerProps = {
   workspace: BucketExplorer_WorkspaceFragment;
@@ -29,8 +46,41 @@ const BucketExplorer = (props: BucketExplorerProps) => {
   const directoryLinkGenerator = (item: BucketObject) =>
     `/workspaces/${encodeURIComponent(workspace.slug)}/files/${item.key}`;
 
+  const { publicFilesUrl } = workspace;
+
+  const copyPublicLink = async (item: BucketObject) => {
+    try {
+      await navigator.clipboard.writeText(
+        getPublicFileUrl(publicFilesUrl!, item.key),
+      );
+      toast.success(t("Public link copied to the clipboard"));
+    } catch {
+      // The clipboard API is unavailable outside secure contexts (plain http) or when denied
+      toast.error(t("The public link could not be copied to the clipboard"));
+    }
+  };
+
+  const nameSuffixRenderer = (item: BucketObject) =>
+    publicFilesUrl && isPublicFolder(item) ? (
+      <Badge className="ml-1 bg-green-50 text-green-700 ring-green-600/20">
+        {t("Public")}
+      </Badge>
+    ) : null;
+
   const actionsRenderer = (item: BucketObject) => (
     <div className="flex flex-1 justify-end gap-2">
+      {publicFilesUrl &&
+        item.type === BucketObjectType.File &&
+        item.key.startsWith(PUBLIC_FOLDER) && (
+          <Button
+            onClick={() => copyPublicLink(item)}
+            variant="secondary"
+            size="sm"
+            title={t("Copy public link")}
+          >
+            <LinkIcon className="h-4 w-4" />
+          </Button>
+        )}
       <DeleteBucketObject workspace={workspace} object={item}>
         {({ onClick }) => (
           <Button
@@ -76,6 +126,7 @@ const BucketExplorer = (props: BucketExplorerProps) => {
       perPage={perPage}
       actionsRenderer={actionsRenderer}
       directoryLinkGenerator={directoryLinkGenerator}
+      nameSuffixRenderer={nameSuffixRenderer}
       onDroppingFiles={uploadFiles}
       onChangePage={onChangePage}
     />
@@ -86,6 +137,7 @@ BucketExplorer.fragments = {
   workspace: gql`
     fragment BucketExplorer_workspace on Workspace {
       slug
+      publicFilesUrl
       ...DownloadBucketObject_workspace
       ...DeleteBucketObject_workspace
     }

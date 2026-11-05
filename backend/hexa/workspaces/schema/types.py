@@ -4,6 +4,7 @@ from ariadne import EnumType, InterfaceType, ObjectType
 from django.conf import settings
 from django.db.models import OuterRef, Subquery
 from django.http import HttpRequest
+from django.urls import reverse
 from openhexa.toolbox.dhis2.api import DHIS2ToolboxError
 from openhexa.toolbox.iaso.api_client import IASOError
 
@@ -123,6 +124,16 @@ def resolve_workspace_permission_manage_tags(workspace: Workspace, info):
     )
 
 
+@workspace_permissions.field("managePublicFiles")
+def resolve_workspace_permission_manage_public_files(workspace: Workspace, info):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("workspaces.manage_public_files", workspace)
+        if request.user.is_authenticated
+        else False
+    )
+
+
 @workspace_permissions.field("launchNotebookServer")
 def resolve_workspace_permission_launch_notebooks(workspace: Workspace, info):
     request: HttpRequest = info.context["request"]
@@ -136,6 +147,20 @@ def resolve_workspace_permission_launch_notebooks(workspace: Workspace, info):
 @workspace_object.field("webappsEnabled")
 def resolve_webapps_enabled(workspace: Workspace, info):
     return bool(settings.WEBAPPS_DOMAIN)
+
+
+@workspace_object.field("publicFilesAvailable")
+def resolve_public_files_available(workspace: Workspace, info):
+    return settings.PUBLIC_FILES_ENABLED
+
+
+@workspace_object.field("publicFilesUrl")
+def resolve_public_files_url(workspace: Workspace, info):
+    if not (settings.PUBLIC_FILES_ENABLED and workspace.public_files_enabled):
+        return None
+    return (
+        f"{settings.BASE_URL}{reverse('files:public_file', args=[workspace.slug, ''])}"
+    )
 
 
 @workspace_object.field("permissions")

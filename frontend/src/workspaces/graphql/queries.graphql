@@ -13,6 +13,8 @@ query WorkspacePage($slug: String!) {
     description
     dockerImage
     configuration
+    publicFilesAvailable
+    publicFilesEnabled
     countries {
       code
       flag
@@ -22,6 +24,7 @@ query WorkspacePage($slug: String!) {
       delete
       update
       manageMembers
+      managePublicFiles
     }
     ...ArchiveWorkspace_workspace
     ...InviteMemberWorkspace_workspace
@@ -709,8 +712,11 @@ query WorkspaceFilesPage(
         ...BucketExplorer_objects
       }
     }
+    publicFilesAvailable
+    publicFilesEnabled
     permissions {
       createObject
+      managePublicFiles
     }
   }
 }

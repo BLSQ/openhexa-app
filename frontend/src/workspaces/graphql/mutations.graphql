@@ -23,6 +23,7 @@ mutation updateWorkspace($input: UpdateWorkspaceInput!) {
       name
       description
       configuration
+      publicFilesEnabled
       countries {
         code
         alpha3
