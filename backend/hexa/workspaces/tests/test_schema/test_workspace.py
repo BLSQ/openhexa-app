@@ -9,6 +9,7 @@ from django.conf import settings
 from django.core import mail
 from django.core.signing import Signer
 from django.db import connection
+from django.test import override_settings
 from django.test.utils import CaptureQueriesContext
 
 from hexa.core.test import GraphQLTestCase
@@ -692,6 +693,111 @@ class WorkspaceTest(GraphQLTestCase):
             },
             r["data"]["updateWorkspace"],
         )
+
+    UPDATE_PUBLIC_FILES_MUTATION = """
+        mutation updateWorkspace($input:UpdateWorkspaceInput!) {
+            updateWorkspace(input: $input) {
+                success
+                workspace {
+                    publicFilesEnabled
+                    publicFilesUrl
+                }
+                errors
+            }
+        }
+    """
+
+    @override_settings(PUBLIC_FILES_ENABLED=True)
+    def test_update_workspace_public_files_as_workspace_admin(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
+        r = self.run_query(
+            self.UPDATE_PUBLIC_FILES_MUTATION,
+            {"input": {"slug": self.WORKSPACE.slug, "publicFilesEnabled": True}},
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "workspace": {
+                    "publicFilesEnabled": True,
+                    "publicFilesUrl": f"{settings.BASE_URL}/files/public/{self.WORKSPACE.slug}/",
+                },
+            },
+            r["data"]["updateWorkspace"],
+        )
+        self.WORKSPACE.refresh_from_db()
+        self.assertTrue(self.WORKSPACE.public_files_enabled)
+
+    def test_update_workspace_public_files_as_editor_is_denied(self):
+        self.client.force_login(self.USER_WORKSPACE_EDITOR_ONLY)
+        r = self.run_query(
+            self.UPDATE_PUBLIC_FILES_MUTATION,
+            {
+                "input": {
+                    "slug": self.WORKSPACE.slug,
+                    "name": "Renamed",
+                    "publicFilesEnabled": True,
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"], "workspace": None},
+            r["data"]["updateWorkspace"],
+        )
+        self.WORKSPACE.refresh_from_db()
+        self.assertFalse(self.WORKSPACE.public_files_enabled)
+        self.assertEqual(self.WORKSPACE.name, "Senegal Workspace")
+
+    def test_public_files_fields(self):
+        self.WORKSPACE.public_files_enabled = True
+        self.WORKSPACE.save()
+        query = """
+            query workspace($slug: String!) {
+                workspace(slug: $slug) {
+                    publicFilesAvailable
+                    publicFilesEnabled
+                    publicFilesUrl
+                    permissions { managePublicFiles }
+                }
+            }
+        """
+        for user, available, can_manage in [
+            (self.USER_WORKSPACE_ADMIN_ONLY, True, True),
+            (self.USER_WORKSPACE_EDITOR_ONLY, False, False),
+        ]:
+            with (
+                self.subTest(user=user.email, available=available),
+                override_settings(PUBLIC_FILES_ENABLED=available),
+            ):
+                self.client.force_login(user)
+                r = self.run_query(query, {"slug": self.WORKSPACE.slug})
+                self.assertEqual(
+                    {
+                        "publicFilesAvailable": available,
+                        "publicFilesEnabled": True,
+                        "publicFilesUrl": (
+                            f"{settings.BASE_URL}/files/public/{self.WORKSPACE.slug}/"
+                            if available
+                            else None
+                        ),
+                        "permissions": {"managePublicFiles": can_manage},
+                    },
+                    r["data"]["workspace"],
+                )
+
+    @override_settings(PUBLIC_FILES_ENABLED=False)
+    def test_update_workspace_public_files_refused_when_instance_flag_is_off(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
+        r = self.run_query(
+            self.UPDATE_PUBLIC_FILES_MUTATION,
+            {"input": {"slug": self.WORKSPACE.slug, "publicFilesEnabled": True}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"], "workspace": None},
+            r["data"]["updateWorkspace"],
+        )
+        self.WORKSPACE.refresh_from_db()
+        self.assertFalse(self.WORKSPACE.public_files_enabled)
 
     def test_delete_workspace_not_found(self):
         self.client.force_login(self.USER_SABRINA)

@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from hexa.user_management.models import User
 
 from .models import Connection, Workspace, WorkspaceMembershipRole
@@ -80,6 +82,20 @@ def manage_tags(principal: User, workspace: Workspace):
 
 def manage_members(principal: User, workspace: Workspace):
     """Only admin users of a workspace can manage members"""
+    return workspace.workspacemembership_set.filter(
+        user=principal, role=WorkspaceMembershipRole.ADMIN
+    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
+
+
+def manage_public_files(principal: User, workspace: Workspace):
+    """Only admin users of a workspace can expose its public folder, editors are excluded
+    because enabling it makes files reachable by anyone on the internet.
+
+    Refused while the instance flag is off, so that no workspace sits in an enabled state
+    that would silently go live the day the flag is turned on.
+    """
+    if not settings.PUBLIC_FILES_ENABLED:
+        return False
     return workspace.workspacemembership_set.filter(
         user=principal, role=WorkspaceMembershipRole.ADMIN
     ).exists() or principal.is_organization_admin_or_owner(workspace.organization)

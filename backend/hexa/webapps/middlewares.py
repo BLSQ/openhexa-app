@@ -32,6 +32,7 @@ from hexa.webapps.utils import (
     PREVIEW_KEY_RE,
     extract_webapp_subdomain,
     is_file_transfer_path,
+    is_public_file_path,
     is_webapp_origin,
     powered_by_url,
     webapp_host_url,
@@ -396,7 +397,8 @@ def webapp_origin_middleware(
     instead carry the viewer's session cookie without scope checking:
     CORS keeps the page from reading the response, but not from sending a write.
     The token-authenticated file transfer URLs are the exception; we let them go
-    through as they might need access for filesystem-storage backends.
+    through as they might need access for filesystem-storage backends. Public file
+    URLs are an exception too, they serve files to anyone without a session.
     """
 
     def middleware(request: HttpRequest):
@@ -405,6 +407,7 @@ def webapp_origin_middleware(
             not is_webapp_origin(origin)
             or extract_webapp_subdomain(request.get_host())
             or is_file_transfer_path(request.path)
+            or is_public_file_path(request.path)
         ):
             return get_response(request)
 

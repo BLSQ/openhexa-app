@@ -32,6 +32,15 @@ type Workspace {
     # Whether the webapps feature is enabled on this instance.
     webappsEnabled: Boolean!
 
+    # Whether the public files feature is enabled on this instance.
+    publicFilesAvailable: Boolean!
+
+    # Whether the files of the "public" root folder of the bucket are publicly accessible.
+    publicFilesEnabled: Boolean!
+
+    # The base URL under which the files of the "public" root folder are served, null when disabled.
+    publicFilesUrl: String
+
     # The date and time when the workspace was created.
     createdAt: DateTime!
 
@@ -136,6 +145,9 @@ type WorkspacePermissions {
 
     # Indicates whether the tags of the workspace can be managed.
     manageTags: Boolean!
+
+    # Indicates whether the public files setting of the workspace can be managed.
+    managePublicFiles: Boolean!
 
     # Indicates whether a connection can be created in the workspace.
     createConnection: Boolean!
@@ -427,6 +439,10 @@ input UpdateWorkspaceInput {
     # The tag names to assign, replacing the current ones. Names are slugified.
     # Restricted to organization admins and owners.
     tags: [String!]
+
+    # Whether the files of the "public" root folder are publicly accessible.
+    # Restricted to workspace admins and organization admins and owners.
+    publicFilesEnabled: Boolean
 }
 
 """

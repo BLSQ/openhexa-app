@@ -48,6 +48,10 @@ NEVER_GRANTED = {
         "shortcuts",
         "assistantConversations",
         "pipelineTemplateTags",
+        # Web apps fetch public files by URL, they never need the setting itself.
+        "publicFilesAvailable",
+        "publicFilesEnabled",
+        "publicFilesUrl",
     },
     "Pipeline": {
         "workspace",
@@ -68,7 +72,7 @@ NEVER_GRANTED = {
     "User": {"lastLogin", "dateJoined", "analyticsEnabled"},
     "Me": {"hasTwoFactorEnabled"},
     # Whether web apps get any part in public resources is HEXA-1847's call.
-    "WorkspacePermissions": {"shareSavedQuery"},
+    "WorkspacePermissions": {"shareSavedQuery", "managePublicFiles"},
 }
 
 

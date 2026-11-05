@@ -276,6 +276,7 @@ class Workspace(Base):
         help_text="Custom configuration properties for the workspace as key-value pairs",
     )
     tags = models.ManyToManyField("tags.Tag", blank=True, related_name="workspaces")
+    public_files_enabled = models.BooleanField(default=False)
 
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 
@@ -377,6 +378,11 @@ class Workspace(Base):
             if not principal.has_perm("workspaces.manage_tags", self):
                 raise PermissionDenied
             self.tags.set(kwargs["tags"])
+
+        if "public_files_enabled" in kwargs:
+            if not principal.has_perm("workspaces.manage_public_files", self):
+                raise PermissionDenied
+            self.public_files_enabled = kwargs["public_files_enabled"]
 
         return self.save()
 

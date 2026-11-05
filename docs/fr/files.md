@@ -33,6 +33,34 @@ Vous pouvez effectuer des opérations courantes sur les fichiers :
     - **Viewers** : Peuvent parcourir, rechercher et télécharger des fichiers
     - **Editors et Admins** : Peuvent parcourir, rechercher, télécharger, téléverser, créer des dossiers et supprimer des fichiers
 
+## Fichiers publics
+
+Un espace de travail peut rendre certains de ses fichiers accessibles à tous, sans connexion. C'est utile pour alimenter une web app publique, une carte (par exemple des tuiles `.pmtiles`) ou un outil externe.
+
+Seuls les fichiers d'un dossier nommé `public` à la racine du système de fichiers sont concernés. Chacun d'eux est accessible à une URL stable :
+
+```
+https://<votre-instance-openhexa>/files/public/<slug_du_workspace>/<chemin_dans_le_dossier_public>
+```
+
+Par exemple, `public/maps/regions.pmtiles` est servi à `/files/public/<slug_du_workspace>/maps/regions.pmtiles`.
+
+- L'URL redirige vers un lien de téléchargement temporaire du stockage. Sur un stockage cloud (Google Cloud Storage, S3, Azure), les requêtes partielles (range) sont prises en charge. Le stockage sur système de fichiers local renvoie toujours le fichier entier.
+- Les fichiers sont toujours envoyés en téléchargement : ouvrir un lien dans un onglet télécharge le fichier au lieu de l'afficher. La lecture depuis du code (`fetch()`, `<img>`, bibliothèques cartographiques) n'est pas affectée.
+- N'importe quel site web peut récupérer ces fichiers (CORS ouvert à toutes les origines). Sur Azure, l'accès depuis d'autres origines nécessite aussi de configurer CORS sur le compte de stockage, OpenHEXA ne le faisant pas.
+- Le contenu des dossiers n'est jamais listé, et les fichiers en dehors du dossier `public`, ou dont le nom commence par un ".", ne sont jamais servis.
+- La redirection peut être mise en cache jusqu'à 5 minutes : un fichier peut donc rester accessible quelques minutes après la désactivation du paramètre.
+
+Les fichiers publics sont désactivés par défaut. Pour les activer :
+
+1. L'instance doit avoir la variable d'environnement `PUBLIC_FILES_ENABLED=true`.
+2. Un administrateur du workspace (ou un administrateur ou propriétaire de l'organisation) active **Fichiers publics** dans les paramètres du workspace.
+
+Une fois activé, le dossier `public` affiche un badge **Public** et chaque fichier qu'il contient dispose d'un bouton pour copier son lien public.
+
+!!! warning
+    Toute personne disposant du lien d'un fichier public peut le télécharger. Vérifiez le contenu du dossier `public` avant d'activer le paramètre, et n'y placez jamais de données sensibles.
+
 ## Intégration avec les outils OpenHEXA
 
 Le système de fichiers de l'espace de travail s'intègre parfaitement avec les autres composants d'OpenHEXA :
