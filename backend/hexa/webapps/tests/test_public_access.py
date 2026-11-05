@@ -1334,6 +1334,24 @@ class CustomDomainMiddlewareTest(TestCase):
         response = self.client.get("/", HTTP_HOST="mycustomdomain.com")
         self.assertEqual(response["Content-Security-Policy"], "frame-ancestors *")
 
+    @override_settings(
+        WEBAPPS_ADDITIONAL_FRAME_ANCESTORS=["http://localhost:3020"],
+    )
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_csp_header_includes_additional_frame_ancestors(self, mock_get_client):
+        mock_get_client.return_value.get_file.return_value = b"<html>custom</html>"
+        session = SessionStore()
+        session["user_id"] = str(self.USER.pk)
+        session["webapp_id"] = str(self.PRIVATE_WEBAPP.pk)
+        session.create()
+        self.client.cookies["hexa_webapp_session"] = session.session_key
+
+        response = self.client.get("/", HTTP_HOST="privatecustomdomain.com")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            "http://localhost:3020", response.get("Content-Security-Policy", "")
+        )
+
     @patch("hexa.webapps.views.get_forgejo_client")
     def test_main_hostname_not_intercepted(self, mock_get_client):
         self.client.get("/", HTTP_HOST="localhost")
