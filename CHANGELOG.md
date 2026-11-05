@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.22.0](https://github.com/BLSQ/openhexa-app/compare/5.21.0...5.22.0) (2026-11-05)
+
+
+### Features
+
+* public saved queries(HEXA-1830) ([#2191](https://github.com/BLSQ/openhexa-app/issues/2191)) ([eed2260](https://github.com/BLSQ/openhexa-app/commit/eed2260a3126b86e97fd394632203a19ebd4dc83))
+
 ## [5.21.0](https://github.com/BLSQ/openhexa-app/compare/5.20.2...5.21.0) (2026-11-05)
 
 
