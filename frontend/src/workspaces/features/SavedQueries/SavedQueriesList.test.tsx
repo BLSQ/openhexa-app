@@ -93,6 +93,31 @@ describe("SavedQueriesList", () => {
     expect(screen.getByText("Private")).toBeInTheDocument();
   });
 
+  // The permalink is one click away from the list, for public queries only.
+  it("links to the permalink of a public query, in a new tab", () => {
+    renderList({
+      workspace: {
+        savedQueries: {
+          totalItems: 2,
+          totalPages: 1,
+          pageNumber: 1,
+          items: [
+            item("q1", "Query One", "first", SavedQueryVisibility.Public),
+            item("q2", "Query Two", "second"),
+          ],
+        },
+      },
+    });
+
+    const links = screen.getAllByRole("link", { name: "Open public link" });
+    expect(links).toHaveLength(1);
+    expect(links[0]).toHaveAttribute(
+      "href",
+      `${window.location.origin}/queries/q1-slug`,
+    );
+    expect(links[0]).toHaveAttribute("target", "_blank");
+  });
+
   it("shows an empty state when there are no queries", () => {
     renderList({
       workspace: {

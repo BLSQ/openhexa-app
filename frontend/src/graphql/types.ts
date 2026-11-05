@@ -5021,6 +5021,17 @@ export type PrepareVersionFileDownloadResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/**
+ * What anyone with its permalink may read of a public saved query: neither its SQL,
+ * nor who wrote it, nor the workspace it belongs to.
+ */
+export type PublicSavedQuery = {
+  __typename?: 'PublicSavedQuery';
+  description?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  slug: Scalars['String']['output'];
+};
+
 export type Query = {
   __typename?: 'Query';
   accessmodAccessRequests: AccessmodAccessRequestPage;
@@ -5057,7 +5068,7 @@ export type Query = {
   datasetVersionFile?: Maybe<DatasetVersionFile>;
   /** Search datasets. */
   datasets: DatasetPage;
-  /** Runs a saved query against the workspace database and returns its result, without exposing the SQL. */
+  /** Runs a saved query against the workspace database and returns its result, without exposing the SQL. Open to anonymous callers for public queries. */
   executeSavedQuery: ExecuteSqlResult;
   /** Get a file by its path within a workspace. */
   getFileByPath?: Maybe<BucketObject>;
@@ -5113,6 +5124,8 @@ export type Query = {
   pipelineVersion?: Maybe<PipelineVersion>;
   /** Retrieves a page of pipelines ordered by relevant name. */
   pipelines: PipelinesPage;
+  /** Retrieves a public saved query by its slug, for anyone, anonymous included. */
+  publicSavedQuery?: Maybe<PublicSavedQuery>;
   /**
    * Read the text content of a file from a workspace's bucket. startLine and endLine
    * (1-indexed, inclusive) select a window. lineNumbers prefixes each line with its number
@@ -5391,6 +5404,11 @@ export type QueryPipelinesArgs = {
   search?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryPublicSavedQueryArgs = {
+  slug: Scalars['String']['input'];
 };
 
 
@@ -5952,16 +5970,20 @@ export type SavedQueryPermissions = {
   __typename?: 'SavedQueryPermissions';
   /** Permission to delete the saved query. */
   delete: Scalars['Boolean']['output'];
+  /** Permission to make the saved query public, and take it back to the workspace. Held by its author if they may share publicly in the workspace, workspace admins and organization admins/owners. */
+  share: Scalars['Boolean']['output'];
   /** Permission to edit the saved query. */
   update: Scalars['Boolean']['output'];
-  /** Permission to share or unshare the saved query. */
+  /** Permission to move the saved query between private and workspace, and to take a public one straight to private. Held by its author only. */
   updateVisibility: Scalars['Boolean']['output'];
 };
 
-/** Who a saved query is visible to within its workspace. */
+/** Who a saved query is visible to. */
 export enum SavedQueryVisibility {
   /** Only the author can see, run and edit the query. */
   Private = 'PRIVATE',
+  /** Every member of the workspace, plus anyone with the permalink: they can run the query and export its result without logging in, but not read its SQL. */
+  Public = 'PUBLIC',
   /** Every member of the workspace can see and run the query. */
   Workspace = 'WORKSPACE'
 }
@@ -6754,7 +6776,7 @@ export type UpdateSavedQueryInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   /** Parameter definitions for the query. Omit or pass null to keep current parameters, or pass [] to remove all parameters. */
   parameters?: InputMaybe<Array<SavedQueryParameterInput>>;
-  /** Only the author may change this; PERMISSION_DENIED otherwise. */
+  /** Only the author may change this, except that the author, workspace admins and organization admins may make a query PUBLIC or take a public one back to WORKSPACE; PERMISSION_DENIED otherwise. */
   visibility?: InputMaybe<SavedQueryVisibility>;
 };
 
@@ -7381,6 +7403,8 @@ export type WorkspacePermissions = {
   launchNotebookServer: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
   manageTags: Scalars['Boolean']['output'];
+  /** Permission to make one's own saved queries of the workspace public. */
+  shareSavedQuery: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
 

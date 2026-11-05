@@ -50,5 +50,41 @@ def update_saved_query_visibility(principal: User, saved_query: SavedQuery):
     return _is_author(principal, saved_query)
 
 
+def _is_workspace_admin(principal: User, workspace: Workspace) -> bool:
+    return workspace.workspacemembership_set.filter(
+        user=principal, role=WorkspaceMembershipRole.ADMIN
+    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
+
+
+def create_public_saved_query(principal: User, workspace: Workspace):
+    """Whether the principal may make their own queries of this workspace public:
+    a workspace editor or admin, or an organization admin/owner.
+
+    Viewers may save queries, but sharing one publicly would hand whatever they can read
+    to anyone on the internet, which a read-only role must not be able to do.
+    """
+    return workspace.workspacemembership_set.filter(
+        user=principal,
+        role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
+    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
+
+
+def manage_public_saved_query(principal: User, saved_query: SavedQuery):
+    """The author (if they may share publicly in the workspace at all), a workspace admin or
+    an organization admin/owner manage a query's public link: make the query public
+    and take it back to the workspace.
+
+    A private query stays the author's alone: nobody else may expose what only its
+    author can see. Taking a public query back to private is not covered here either
+    (`update_saved_query_visibility`): a non-author doing it would hand the query to
+    the author and lock themselves out of it.
+    """
+    if _is_author(principal, saved_query):
+        return create_public_saved_query(principal, saved_query.workspace)
+    if saved_query.visibility == SavedQueryVisibility.PRIVATE:
+        return False
+    return _is_workspace_admin(principal, saved_query.workspace)
+
+
 def delete_saved_query(principal: User, saved_query: SavedQuery):
     return update_saved_query(principal, saved_query)

@@ -23,10 +23,11 @@ from hexa.databases.query_text import (
 )
 from hexa.databases.schema import database_object
 from hexa.git.exceptions import GitError
+from hexa.user_management.models import ServicePrincipal
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
-from .models import QueryLog, SavedQuery
+from .models import QueryLog, SavedQuery, SavedQueryVisibility
 from .pagination import PaginationError
 from .query_runner import run_and_log_database_query, run_saved_query
 from .templating import (
@@ -57,8 +58,9 @@ saved_query_order_by_enum = EnumType(
 )
 
 # Only the origins a client may declare are bound to the GraphQL enum: the CSV export's
-# origin is set server-side (see views.download_query_csv), so it cannot be claimed on an
-# interactive query and means what it says in the audit log. Derived from the model enum
+# origin is set server-side (see views.download_query_csv), and so are the ones a request
+# earns by who sends it (see query_runner.saved_query_origin), so none of them can be
+# claimed on an interactive query and each means what it says in the audit log. Derived from the model enum
 # rather than hand-listed, so the two stay in sync — a new client-settable value missing
 # from schema.graphql fails loudly when the schema is built.
 execute_sql_origin_enum = EnumType(
@@ -66,7 +68,12 @@ execute_sql_origin_enum = EnumType(
     {
         origin.name: origin
         for origin in QueryLog.Origin
-        if origin not in (QueryLog.Origin.DATA_STUDIO_EXPORT, QueryLog.Origin.WEBAPP)
+        if origin
+        not in (
+            QueryLog.Origin.DATA_STUDIO_EXPORT,
+            QueryLog.Origin.WEBAPP,
+            QueryLog.Origin.PUBLIC,
+        )
     },
 )
 
@@ -119,6 +126,21 @@ def resolve_saved_query_permissions(saved_query: SavedQuery, info, **kwargs):
     return saved_query
 
 
+def _reached_through_permalink(request: HttpRequest, saved_query: SavedQuery) -> bool:
+    """Whether the caller runs this query only because it is public, so must not read
+    anything that would reveal its SQL.
+    """
+    if not saved_query.is_public:
+        return False
+    if not request.user.is_authenticated:
+        return True
+    return (
+        not SavedQuery.objects.filter_for_user(request.user)
+        .filter(pk=saved_query.pk)
+        .exists()
+    )
+
+
 @saved_query_permissions.field("update")
 def resolve_saved_query_permissions_update(saved_query: SavedQuery, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -146,6 +168,16 @@ def resolve_saved_query_permissions_update_visibility(
     request: HttpRequest = info.context["request"]
     return (
         request.user.has_perm("data_studio.update_saved_query_visibility", saved_query)
+        if request.user.is_authenticated
+        else False
+    )
+
+
+@saved_query_permissions.field("share")
+def resolve_saved_query_permissions_share(saved_query: SavedQuery, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("data_studio.manage_public_saved_query", saved_query)
         if request.user.is_authenticated
         else False
     )
@@ -194,10 +226,42 @@ def resolve_workspace_permissions_create_saved_query(
     )
 
 
+@workspace_permissions.field("shareSavedQuery")
+def resolve_workspace_permissions_share_saved_query(
+    workspace: Workspace, info, **kwargs
+):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("data_studio.create_public_saved_query", workspace)
+        if request.user.is_authenticated
+        else False
+    )
+
+
 def _visible_saved_queries(request: HttpRequest):
     return SavedQuery.objects.filter_for_user(request.user).select_related(
         "created_by", "workspace", "workspace__organization"
     )
+
+
+def _saved_queries_reachable_by_permalink(request: HttpRequest):
+    """What a permalink opens: the queries the user may see, plus the public queries of
+    every workspace, for anonymous users too. Archiving a workspace takes its public
+    links down, as it already takes the queries away from its members.
+
+    Service principals (web apps, pipeline runs, MCP connections) stay confined to the
+    workspaces they were issued for: opening other workspaces' public queries to them
+    is a decision of its own (HEXA-1847).
+    """
+    visible = _visible_saved_queries(request)
+    if isinstance(request.user, ServicePrincipal):
+        return visible
+    # `pk__in` rather than `|`: `filter_for_user` returns a distinct queryset, except
+    # for superusers, and Django refuses to combine distinct and non-distinct ones.
+    return SavedQuery.objects.filter(
+        Q(pk__in=visible)
+        | Q(visibility=SavedQueryVisibility.PUBLIC, workspace__archived=False)
+    ).select_related("created_by", "workspace", "workspace__organization")
 
 
 @data_studio_queries.field("savedQuery")
@@ -223,6 +287,19 @@ def resolve_saved_query_by_slug(_, info, **kwargs):
         return _visible_saved_queries(request).get(slug=kwargs["slug"])
     except SavedQuery.DoesNotExist:
         return None
+
+
+@data_studio_queries.field("publicSavedQuery")
+def resolve_public_saved_query(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    # Kept from service principals, as in `_saved_queries_reachable_by_permalink`.
+    if isinstance(request.user, ServicePrincipal):
+        return None
+    return SavedQuery.objects.filter(
+        slug=kwargs["slug"],
+        visibility=SavedQueryVisibility.PUBLIC,
+        workspace__archived=False,
+    ).first()
 
 
 # What PostgreSQL raises when the wrapper's ORDER BY names a column that:
@@ -256,7 +333,9 @@ def resolve_execute_saved_query(_, info, **kwargs):
         # No workspace to match on: the slug is unique across workspaces, and
         # `filter_for_user` already confines a web app to the single workspace
         # its token was issued for.
-        saved_query = _visible_saved_queries(request).get(slug=query_input["slug"])
+        saved_query = _saved_queries_reachable_by_permalink(request).get(
+            slug=query_input["slug"]
+        )
         result = run_saved_query(
             request,
             saved_query,
@@ -305,6 +384,10 @@ def resolve_execute_saved_query(_, info, **kwargs):
         }
     except Psycopg2Error as e:
         code = "INVALID_ORDER_BY" if _is_order_by_error(e, order_by) else "QUERY_ERROR"
+        # PostgreSQL quotes the failing SQL back (`LINE 1: SELECT ...`), which is
+        # exactly what a permalink visitor must not read: they get the code alone.
+        if _reached_through_permalink(request, saved_query):
+            return {"success": False, "errors": [code]}
         return {"success": False, "errors": [code], "error_message": str(e).strip()}
 
 

@@ -352,6 +352,18 @@ describe("DataStudioResults", () => {
         expect(screen.getByText("map_geometry")).toBeInTheDocument();
       });
 
+      // The permalink page shows results to visitors who cannot act on the hint.
+      it("can be turned off by the caller", () => {
+        render(
+          <DataStudioResults
+            loading={false}
+            result={successResult()}
+            widgetHint={false}
+          />,
+        );
+        expect(hint()).not.toBeInTheDocument();
+      });
+
       it("is not offered on a result that is already charted", () => {
         render(<DataStudioResults loading={false} result={barResult()} />);
         expect(hint()).not.toBeInTheDocument();
