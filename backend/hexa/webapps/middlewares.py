@@ -49,7 +49,7 @@ def _webapp_not_found() -> HttpResponse:
     return HttpResponse(html, status=404)
 
 
-def _set_csp_frame_ancestors(response: HttpResponseBase, webapp: Webapp) -> None:
+def _set_csp_frame_ancestors(response: HttpResponseBase, is_public: bool) -> None:
     """Let any site embed public webapps; keep private ones framable only by OpenHEXA.
 
     A private webapp runs with the viewer's session, so letting other sites
@@ -57,7 +57,7 @@ def _set_csp_frame_ancestors(response: HttpResponseBase, webapp: Webapp) -> None
     """
     frame_ancestors = (
         ["*"]
-        if webapp.is_public
+        if is_public
         else [
             "'self'",
             settings.BASE_URL,
@@ -376,7 +376,7 @@ def _handle_webapp_request(
     )
 
     response = _dispatch_webapp_response(request, webapp, show_powered_by)
-    _set_csp_frame_ancestors(response, webapp)
+    _set_csp_frame_ancestors(response, webapp.is_public)
     return response
 
 
