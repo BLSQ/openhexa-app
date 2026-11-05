@@ -40,13 +40,13 @@ Chaque webapp obtient un sous-domaine sous le domaine webapps du workspace — p
 ## Public ou privé
 
 - **Privé** (par défaut) : seuls les membres authentifiés du workspace peuvent voir la webapp. Les webapps statiques privées peuvent aussi appeler l'API GraphQL d'OpenHEXA via un point d'accès sur leur propre URL (voir ci-dessous).
-- **Public** : n'importe qui ayant l'URL peut consulter la webapp. Les webapps publiques **ne peuvent pas** appeler le proxy GraphQL — si vous avez besoin d'exposer des données du workspace publiquement, générez un export statique depuis un pipeline et servez-le comme un fichier dans la webapp.
+- **Public** : n'importe qui ayant l'URL peut consulter la webapp, sans compte. Les webapps statiques publiques peuvent aussi appeler l'API GraphQL, mais n'accèdent qu'aux ressources du workspace marquées comme publiques (voir [Webapps publiques](#webapps-publiques)).
 
 Pour changer la visibilité, utilisez le bouton **Rendre publique** / **Rendre privée** dans l'en-tête de la webapp et confirmez dans la fenêtre qui s'ouvre. Il est accessible aux membres qui peuvent modifier la webapp. L'état actuel est indiqué par un badge à côté du nom de la webapp.
 
 ## Appeler l'API GraphQL d'OpenHEXA
 
-Les webapps statiques privées peuvent appeler l'API GraphQL de la plateforme depuis leur code JavaScript, via un point d'accès sur leur propre URL, pour lire les données du workspace et lancer des pipelines. Le reste de cette page couvre cette API en détail — les webapps publiques et iframe ne peuvent pas utiliser ce point d'accès.
+Les webapps statiques peuvent appeler l'API GraphQL de la plateforme depuis leur code JavaScript, via un point d'accès sur leur propre URL, pour lire les données du workspace et lancer des pipelines. Le reste de cette page couvre cette API en détail — les webapps iframe ne peuvent pas utiliser ce point d'accès, et les webapps publiques suivent les [règles ci-dessous](#webapps-publiques).
 
 ### Comment ça fonctionne
 
@@ -58,9 +58,18 @@ Les webapps statiques privées peuvent appeler l'API GraphQL de la plateforme de
 - **Uniquement son propre point d'accès** : l'API principale d'OpenHEXA refuse les requêtes provenant des pages de webapps. Appelez toujours `/graphql/` sur l'URL de la webapp elle-même.
 - **Corps JSON** : identique à n'importe quel POST GraphQL — `{"query": "...", "variables": {...}}`.
 
+### Webapps publiques
+
+Les visiteurs d'une webapp publique n'ont ni compte OpenHEXA ni session : ses requêtes s'exécutent au nom d'un visiteur anonyme lié à la webapp, et non d'un utilisateur :
+
+- **Aucun scope à activer** : la liste `allowed_operations` est ignorée. Toute webapp publique peut utiliser les points d'entrée de `PIPELINES_READ`, `PIPELINES_RUN`, `FILES_READ`, `DATASETS_READ` et `DATABASE_READ`, et rien d'autre — `me` et `workspace` sont refusés.
+- **Ressources publiques uniquement** : ces points d'entrée ne renvoient que ce qu'un administrateur de l'organisation a marqué comme public dans le workspace de la webapp : les datasets publics avec leurs versions et fichiers, les pipelines publics (les lire et lancer une exécution publique, avec des paramètres simples uniquement et une seule exécution publique à la fois), les requêtes enregistrées publiques via `executeSavedQuery`, et les fichiers du dossier `public/` lorsque les fichiers publics sont activés sur le workspace. Tout le reste est vide ou refusé.
+- **Aucun utilisateur** : les champs qui renvoient un utilisateur, comme `Dataset.createdBy` ou `PipelineRun.user`, sont refusés, afin qu'une page publique n'affiche jamais qui a créé ou lancé quoi que ce soit.
+- Être connecté à OpenHEXA ne change rien : les membres ont le même accès anonyme que n'importe quel visiteur.
+
 ## Activer l'API sur une webapp
 
-Par défaut, une webapp statique a une liste `allowed_operations` vide, ce qui signifie qu'elle ne peut pas appeler l'API. Activez les scopes depuis l'interface du workspace ("Paramètres de la webapp → Accès API") ou via la mutation GraphQL `updateWebapp`.
+Par défaut, une webapp statique privée a une liste `allowed_operations` vide, ce qui signifie qu'elle ne peut pas appeler l'API. Activez les scopes depuis l'interface du workspace ("Paramètres de la webapp → Accès API") ou via la mutation GraphQL `updateWebapp`.
 
 ## Référence des scopes
 

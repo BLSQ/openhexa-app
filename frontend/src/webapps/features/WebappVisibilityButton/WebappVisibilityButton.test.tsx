@@ -119,14 +119,14 @@ describe("WebappVisibilityButton", () => {
   });
 
   // Only static apps go through the API proxy, so the warning is irrelevant elsewhere.
-  it("warns about losing API access only for static web apps", async () => {
+  it("warns about API access only for static web apps", async () => {
     renderButton(buildWebapp({ type: WebappType.Iframe }));
 
     fireEvent.click(screen.getByRole("button", { name: "Make public" }));
     await screen.findByText("Make this web app public?");
 
     expect(
-      screen.queryByText(/Public web apps can't call the OpenHEXA API/),
+      screen.queryByText(/only reach the workspace's public resources/),
     ).not.toBeInTheDocument();
   });
 });
