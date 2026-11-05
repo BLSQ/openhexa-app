@@ -522,7 +522,7 @@ class SupersetWebapp(Webapp):
         self.save()
 
 
-class WebappUser(User, ServicePrincipal):
+class PrivateWebappUser(User, ServicePrincipal):
     class Meta:
         proxy = True
 
@@ -530,8 +530,8 @@ class WebappUser(User, ServicePrincipal):
     real_user = None
 
     @classmethod
-    def from_user(cls, user: User, webapp: Webapp) -> "WebappUser":
-        """Cast an existing User row to a WebappUser view tied to `webapp`."""
+    def from_user(cls, user: User, webapp: Webapp) -> "PrivateWebappUser":
+        """Cast an existing User row to a PrivateWebappUser view tied to `webapp`."""
         instance = cls.objects.get(pk=user.pk)
         instance.webapp = webapp
         instance.real_user = user

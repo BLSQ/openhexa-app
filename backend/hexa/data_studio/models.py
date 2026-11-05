@@ -25,7 +25,7 @@ from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.git.naming import build_repo_name
 from hexa.mcp.models import MCPUser
 from hexa.user_management.models import ServicePrincipal, User, UserInterface
-from hexa.webapps.models import PublicWebappVisitor
+from hexa.webapps.models import PublicWebappUser
 from hexa.workspaces.models import Workspace
 
 logger = logging.getLogger(__name__)
@@ -72,7 +72,7 @@ WORKSPACE_WIDE_VISIBILITIES = [
 
 class SavedQueryQuerySet(BaseQuerySet, SoftDeleteQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
-        if isinstance(user, PublicWebappVisitor):
+        if isinstance(user, PublicWebappUser):
             return self.filter(
                 workspace_id__in=user.workspace_ids,
                 workspace__archived=False,
@@ -82,7 +82,7 @@ class SavedQueryQuerySet(BaseQuerySet, SoftDeleteQuerySet):
         accessible = models.Q(visibility__in=WORKSPACE_WIDE_VISIBILITIES)
         # Service principals (pipeline runs, webapps) impersonate a workspace rather
         # than a person, so they never own a private query - a deliberate call for
-        # WebappUser, whose real User row `created_by` would match and which
+        # PrivateWebappUser, whose real User row `created_by` would match and which
         # WorkspaceQuerySet does treat as a person. An MCPUser is the exception: it
         # acts for the person who authorized it, who must keep seeing their own
         # private queries (still confined to the connection's workspaces).

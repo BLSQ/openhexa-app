@@ -23,10 +23,10 @@ from hexa.user_management.models import User
 from hexa.webapps.graphql_proxy import handle_graphql_proxy
 from hexa.webapps.models import (
     GitWebapp,
-    PublicWebappVisitor,
+    PrivateWebappUser,
+    PublicWebappUser,
     SupersetWebapp,
     Webapp,
-    WebappUser,
 )
 from hexa.webapps.utils import (
     PREVIEW_KEY_RE,
@@ -278,7 +278,9 @@ def get_or_create_preview_url(request: HttpRequest, webapp: Webapp, user: User) 
     return webapp_host_url(get_or_create_preview_session_key(request, webapp, user))
 
 
-def _check_webapp_session(request: HttpRequest, webapp: Webapp) -> WebappUser | None:
+def _check_webapp_session(
+    request: HttpRequest, webapp: Webapp
+) -> PrivateWebappUser | None:
     session_key = request.COOKIES.get(WEBAPP_SESSION_COOKIE)
     if not session_key:
         return None
@@ -294,7 +296,7 @@ def _check_webapp_session(request: HttpRequest, webapp: Webapp) -> WebappUser | 
     except User.DoesNotExist:
         return None
 
-    request.user = WebappUser.from_user(user, webapp)
+    request.user = PrivateWebappUser.from_user(user, webapp)
     request.bypass_two_factor = True
     return request.user
 
@@ -321,7 +323,7 @@ def _handle_webapp_request(
     """Shared auth + serve logic for both webapp middlewares."""
     if request.path.startswith("/graphql/"):
         if webapp.is_public:
-            request.user = PublicWebappVisitor(webapp)
+            request.user = PublicWebappUser(webapp)
         elif not _check_webapp_session(request, webapp):
             return JsonResponse(
                 {"errors": [{"message": "Authentication required"}]},
