@@ -126,11 +126,7 @@ def handle_graphql_proxy(request: HttpRequest, webapp: Webapp):
 
     if scope_check.denied:
         denied = sorted(scope_check.denied)
-        missing_scopes = (
-            []
-            if webapp.is_public
-            else sorted(webapp.scope_policy.missing_scopes(denied))
-        )
+        missing_scopes = sorted(webapp.scope_policy.missing_scopes(denied))
         track(
             request,
             "webapp_graphql_query",
