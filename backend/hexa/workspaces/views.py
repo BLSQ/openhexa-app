@@ -6,6 +6,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from hexa.assistant.notebooks.env import notebooks_ai_env
 from hexa.databases.api import get_db_server_credentials
 from hexa.files import storage
 from hexa.pipelines.models import PipelineRun
@@ -57,6 +58,7 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
             )
             server_hash = str(pipeline_run.id)
             pg_application_name = f"{workspace.slug} - {pipeline_run.pipeline.name} (run {pipeline_run.id})"
+            ai_env = {}
         except BadSignature:
             return JsonResponse({"error": "Token signature is invalid"}, status=401)
         except PipelineRun.DoesNotExist:
@@ -79,6 +81,9 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
             user=request.user, workspace=workspace, membership=membership
         ).sign()
         pg_application_name = f"notebook /user/{request.user.email}/{workspace_slug}"
+        # The way to the AI gateway for the image's Jupyter AI, see
+        # hexa.assistant.notebooks.env.
+        ai_env = notebooks_ai_env(workspace.organization)
     else:
         return JsonResponse(
             {},
@@ -127,6 +132,8 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
 
     # SDK Credentials
     env.update({"HEXA_TOKEN": token})
+
+    env.update(ai_env)
 
     return JsonResponse(
         {"env": env, "notebooks_server_hash": server_hash, "image": image},
