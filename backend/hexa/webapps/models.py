@@ -200,9 +200,13 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
     @property
     def scope_policy(self) -> "WebappScopePolicy":
         # Inline import: scopes imports the GraphQL schema, which imports this module.
-        from hexa.webapps.scopes import WebappScopePolicy
+        from hexa.webapps.scopes import PublicWebappScopePolicy, WebappScopePolicy
 
-        return WebappScopePolicy(self.allowed_operations)
+        return (
+            PublicWebappScopePolicy()
+            if self.is_public
+            else WebappScopePolicy(self.allowed_operations)
+        )
 
     @property
     def serve_url(self):
@@ -546,3 +550,30 @@ class WebappUser(User, ServicePrincipal):
 
     def get_username(self):
         return f"webapp_{self.webapp.id}_as_{self.email}"
+
+
+class PublicWebappUser(AnonymousUser):
+    """The principal of a request sent by a public web app through its GraphQL proxy.
+
+    Public web apps have no session, so the visitor is anonymous, only bound to the
+    web app. It is deliberately not a ServicePrincipal: those reach everything in
+    their workspaces, while this one must only reach what was explicitly made public,
+    each model's `filter_for_user` opting it in for its public resources.
+    """
+
+    def __init__(self, webapp: Webapp):
+        super().__init__()
+        self.webapp = webapp
+
+    @property
+    def workspace_ids(self):
+        return [self.webapp.workspace_id]
+
+    def get_username(self):
+        return f"public_webapp_{self.webapp.id}"
+
+    def has_perm(self, perm, obj=None):
+        return False
+
+    def has_module_perms(self, module):
+        return False
