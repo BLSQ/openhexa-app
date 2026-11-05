@@ -200,13 +200,9 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
     @property
     def scope_policy(self) -> "WebappScopePolicy":
         # Inline import: scopes imports the GraphQL schema, which imports this module.
-        from hexa.webapps.scopes import PublicWebappScopePolicy, WebappScopePolicy
+        from hexa.webapps.scopes import WebappScopePolicy
 
-        return (
-            PublicWebappScopePolicy()
-            if self.is_public
-            else WebappScopePolicy(self.allowed_operations)
-        )
+        return WebappScopePolicy(self)
 
     @property
     def serve_url(self):
