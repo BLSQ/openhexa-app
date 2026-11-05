@@ -11,6 +11,8 @@ import WebappLayout from "workspaces/layouts/WebappLayout";
 import WebappApiAccess from "webapps/features/WebappApiAccess";
 import useCacheKey from "core/hooks/useCacheKey";
 import { WebappType } from "graphql/types";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
 
 type Props = {
   webappSlug: string;
@@ -24,6 +26,19 @@ const WorkspaceWebappApiAccessPage: NextPageWithLayout = (props: Props) => {
     variables: { workspaceSlug, webappSlug },
   });
   useCacheKey("webapps", refetch);
+  const router = useRouter();
+  const hasNoApiAccess =
+    data?.webapp?.type !== WebappType.Static || data?.webapp?.isPublic;
+
+  // The tab disappears once the app is made public from the header, which would
+  // otherwise leave the user on a blank page.
+  useEffect(() => {
+    if (data?.webapp && hasNoApiAccess) {
+      router.replace(
+        `/workspaces/${encodeURIComponent(workspaceSlug)}/webapps/${encodeURIComponent(webappSlug)}`,
+      );
+    }
+  }, [data?.webapp, hasNoApiAccess, router, workspaceSlug, webappSlug]);
 
   if (!data?.workspace || !data?.webapp) {
     return null;
@@ -31,7 +46,7 @@ const WorkspaceWebappApiAccessPage: NextPageWithLayout = (props: Props) => {
 
   const { workspace, webapp } = data;
 
-  if (webapp.type !== WebappType.Static || webapp.isPublic) {
+  if (hasNoApiAccess) {
     return null;
   }
 

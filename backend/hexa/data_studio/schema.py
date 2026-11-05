@@ -196,7 +196,11 @@ def resolve_workspace_saved_queries(workspace: Workspace, info, query=None, **kw
         # Deliberately not searching `content` (the SQL body): it is costly to scan on
         # large bodies and noisy (would match SQL keywords/identifiers). Revisit once the
         # frontend defines whether and how body matches should surface to users.
-        qs = qs.filter(Q(name__icontains=query) | Q(description__icontains=query))
+        qs = qs.filter(
+            Q(name__icontains=query)
+            | Q(slug__icontains=query)
+            | Q(description__icontains=query)
+        )
 
     # `id` breaks ties so paging stays deterministic: neither `name` nor
     # `updated_at` is unique, and rows sharing a sort key could otherwise be

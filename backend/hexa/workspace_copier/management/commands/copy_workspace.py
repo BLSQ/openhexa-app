@@ -1,9 +1,10 @@
 """Copy a workspace from one OpenHEXA server to another (CLI wrapper).
 
 Thin wrapper around :func:`hexa.workspace_copier.service.run_copy`.
-An omitted/blank ``--source-url`` / ``--target-url`` means the local server.
+An omitted/blank ``--source-url`` / ``--target-url`` means this server's own
+GraphQL endpoint.
 
-Auth (per remote side): a ServiceAccount token, sent as an
+Auth (per side, this server included): a ServiceAccount token, sent as an
 ``Authorization: Bearer`` header on every GraphQL request.
 """
 
@@ -33,22 +34,22 @@ class Command(BaseCommand):
         parser.add_argument(
             "--source-url",
             default="",
-            help="Source GraphQL endpoint. Blank means the local server.",
+            help="Source GraphQL endpoint. Blank means this server.",
         )
         parser.add_argument(
             "--source-token",
             default="",
-            help="ServiceAccount token for the source server (remote only).",
+            help="ServiceAccount token for the source server.",
         )
         parser.add_argument(
             "--target-url",
             default="",
-            help="Target GraphQL endpoint. Blank means the local server.",
+            help="Target GraphQL endpoint. Blank means this server.",
         )
         parser.add_argument(
             "--target-token",
             default="",
-            help="ServiceAccount token for the target server (remote only).",
+            help="ServiceAccount token for the target server.",
         )
         parser.add_argument(
             "--target-organization",
@@ -88,6 +89,12 @@ class Command(BaseCommand):
             action="store_false",
             dest="include_connection_secrets",
             help="Create connections with their secret fields empty.",
+        )
+        parser.add_argument(
+            "--same-server",
+            action="store_true",
+            help="Both workspaces are on this server: also copy the workspace "
+            "database and static web apps.",
         )
 
     def _resolve_resources(self, resources: str | None):
@@ -137,6 +144,7 @@ class Command(BaseCommand):
                 options=CopyOptions(
                     all_dataset_versions=options["all_dataset_versions"],
                     include_connection_secrets=options["include_connection_secrets"],
+                    same_server=options["same_server"],
                 ),
                 reporter=reporter,
             )
