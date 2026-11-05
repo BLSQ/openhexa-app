@@ -381,14 +381,14 @@ class SavedQueryPublicVisibilityTest(SavedQueryTestMixin, TestCase):
             )
         self.assertFalse(SavedQuery.objects.exists())
 
-    def test_viewer_cannot_publish_their_own_query(self):
+    def test_viewer_cannot_share_their_own_query_publicly(self):
         query = self.create_saved_query(user=self.USER_VIEWER)
         with self.assertRaises(PermissionDenied):
             query.update_if_has_perm(
                 principal=self.USER_VIEWER, visibility=SavedQueryVisibility.PUBLIC
             )
 
-    def test_workspace_admin_publishes_a_shared_query(self):
+    def test_workspace_admin_shares_a_workspace_query_publicly(self):
         query = self.create_saved_query(user=self.USER_VIEWER)
         query.update_if_has_perm(
             principal=self.USER_ADMIN, visibility=SavedQueryVisibility.PUBLIC
@@ -396,7 +396,7 @@ class SavedQueryPublicVisibilityTest(SavedQueryTestMixin, TestCase):
         query.refresh_from_db()
         self.assertEqual(SavedQueryVisibility.PUBLIC, query.visibility)
 
-    def test_editor_cannot_publish(self):
+    def test_editor_cannot_share_publicly(self):
         query = self.create_saved_query(user=self.USER_VIEWER)
         with self.assertRaises(PermissionDenied):
             query.update_if_has_perm(

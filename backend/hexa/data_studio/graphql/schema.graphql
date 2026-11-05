@@ -233,8 +233,8 @@ type SavedQueryPermissions {
   delete: Boolean!
   "Permission to move the saved query between private and workspace, and to take a public one straight to private. Held by its author only."
   updateVisibility: Boolean!
-  "Permission to make the saved query public, and take it back to the workspace. Held by its author if they may publish in the workspace, workspace admins and organization admins/owners."
-  publish: Boolean!
+  "Permission to make the saved query public, and take it back to the workspace. Held by its author if they may share publicly in the workspace, workspace admins and organization admins/owners."
+  share: Boolean!
 }
 
 """
@@ -266,7 +266,7 @@ extend type WorkspacePermissions {
   "Permission to create a saved query in the workspace."
   createSavedQuery: Boolean!
   "Permission to make one's own saved queries of the workspace public."
-  publishSavedQuery: Boolean!
+  shareSavedQuery: Boolean!
 }
 
 extend type Query {

@@ -89,7 +89,7 @@ export type WorkspaceDataStudioPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceDataStudioPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, webappsEnabled: boolean, name: string, permissions: { __typename?: 'WorkspacePermissions', createSavedQuery: boolean, publishSavedQuery: boolean, manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, organization: { __typename?: 'Organization', id: string, aiBudgetLimitReached: boolean, name: string, shortName?: string | null, logo?: string | null, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null } | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
+export type WorkspaceDataStudioPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, webappsEnabled: boolean, name: string, permissions: { __typename?: 'WorkspacePermissions', createSavedQuery: boolean, shareSavedQuery: boolean, manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, organization: { __typename?: 'Organization', id: string, aiBudgetLimitReached: boolean, name: string, shortName?: string | null, logo?: string | null, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null } | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
 
 export type WorkspaceSavedQueriesPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -100,7 +100,7 @@ export type WorkspaceSavedQueriesPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceSavedQueriesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, webappsEnabled: boolean, name: string, permissions: { __typename?: 'WorkspacePermissions', createSavedQuery: boolean, manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, savedQueries: { __typename?: 'SavedQueryPage', totalItems: number, totalPages: number, pageNumber: number, items: Array<{ __typename?: 'SavedQuery', id: string, slug: string, name: string, description?: string | null, updatedAt: any, visibility: Types.SavedQueryVisibility, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean, updateVisibility: boolean, publish: boolean } }> }, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
+export type WorkspaceSavedQueriesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, webappsEnabled: boolean, name: string, permissions: { __typename?: 'WorkspacePermissions', createSavedQuery: boolean, manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, savedQueries: { __typename?: 'SavedQueryPage', totalItems: number, totalPages: number, pageNumber: number, items: Array<{ __typename?: 'SavedQuery', id: string, slug: string, name: string, description?: string | null, updatedAt: any, visibility: Types.SavedQueryVisibility, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean, updateVisibility: boolean, share: boolean } }> }, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
 
 export type WorkspaceSavedQueryPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -108,7 +108,7 @@ export type WorkspaceSavedQueryPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceSavedQueryPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, webappsEnabled: boolean, name: string, permissions: { __typename?: 'WorkspacePermissions', createSavedQuery: boolean, publishSavedQuery: boolean, manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, savedQueryBySlug?: { __typename?: 'SavedQuery', id: string, slug: string, name: string, description?: string | null, content: string, updatedAt: any, visibility: Types.SavedQueryVisibility, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean, updateVisibility: boolean, publish: boolean } } | null };
+export type WorkspaceSavedQueryPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, webappsEnabled: boolean, name: string, permissions: { __typename?: 'WorkspacePermissions', createSavedQuery: boolean, shareSavedQuery: boolean, manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, savedQueryBySlug?: { __typename?: 'SavedQuery', id: string, slug: string, name: string, description?: string | null, content: string, updatedAt: any, visibility: Types.SavedQueryVisibility, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean, updateVisibility: boolean, share: boolean } } | null };
 
 export type WorkspaceSavedQuerySlugByIdQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -593,7 +593,7 @@ export const WorkspaceDataStudioPageDocument = gql`
     slug
     permissions {
       createSavedQuery
-      publishSavedQuery
+      shareSavedQuery
     }
     organization {
       id
@@ -702,7 +702,7 @@ export const WorkspaceSavedQueryPageDocument = gql`
     slug
     permissions {
       createSavedQuery
-      publishSavedQuery
+      shareSavedQuery
     }
     ...WorkspaceLayout_workspace
   }

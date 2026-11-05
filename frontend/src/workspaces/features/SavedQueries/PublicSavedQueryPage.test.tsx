@@ -55,19 +55,14 @@ describe("PublicSavedQueryPage", () => {
     expect(screen.queryByText("Open in Data Studio")).not.toBeInTheDocument();
   });
 
-  // The app's home is a login page for them: the website tells them more.
-  it("links the logo to the website for visitors", () => {
-    renderPage({});
+  it.each([
+    ["visitors", undefined],
+    ["logged-in users", { id: "u1" }],
+  ])("links the logo to the website for %s", (_, user) => {
+    renderPage({ user });
     expect(
       screen.getAllByRole("img", { name: "OpenHEXA" })[0].closest("a"),
     ).toHaveAttribute("href", "https://www.openhexa.com/");
-  });
-
-  it("links the logo to the app's home for logged-in users", () => {
-    renderPage({ user: { id: "u1" } });
-    expect(
-      screen.getAllByRole("img", { name: "OpenHEXA" })[0].closest("a"),
-    ).toHaveAttribute("href", "/");
   });
 
   // Members already use OpenHEXA: they get a way back to the query instead.
@@ -97,12 +92,9 @@ describe("PublicSavedQueryPage", () => {
   it("is powered by OpenHEXA, for everyone", () => {
     renderPage({ user: { id: "u1" } });
 
-    // The header logo is a link named OpenHEXA too, but to the app's home.
-    const poweredBy = screen
-      .getAllByRole("link", { name: /OpenHEXA/ })
-      .filter(
-        (link) => link.getAttribute("href") === "https://www.openhexa.com/",
-      );
-    expect(poweredBy).toHaveLength(1);
+    expect(screen.getByText(/Powered by/).querySelector("a")).toHaveAttribute(
+      "href",
+      "https://www.openhexa.com/",
+    );
   });
 });

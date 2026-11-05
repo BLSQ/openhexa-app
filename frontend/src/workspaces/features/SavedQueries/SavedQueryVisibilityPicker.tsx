@@ -10,11 +10,11 @@ type SavedQueryVisibilityPickerProps = {
   value: SavedQueryVisibility;
   onChange: (visibility: SavedQueryVisibility) => void;
   disabled?: boolean;
-  // Sharing with the workspace (and unsharing) is the author's right; publishing
+  // Sharing with the workspace (and unsharing) is the author's right; sharing publicly
   // is also open to workspace and organization admins. The two are gated
   // separately because a user can hold either one without the other.
+  canUpdateVisibility?: boolean;
   canShare?: boolean;
-  canPublish?: boolean;
 };
 
 // Card-style radio group: each option carries a one-line explanation, because
@@ -25,8 +25,8 @@ const SavedQueryVisibilityPicker = ({
   value,
   onChange,
   disabled = false,
-  canShare = true,
-  canPublish = false,
+  canUpdateVisibility = true,
+  canShare = false,
 }: SavedQueryVisibilityPickerProps) => {
   const { t } = useTranslation();
   const options = useSavedQueryVisibilityOptions();
@@ -35,7 +35,7 @@ const SavedQueryVisibilityPicker = ({
   // visibility the user may not change still shows its state as checked.
   const isOptionDisabled = (optionValue: SavedQueryVisibility) =>
     disabled ||
-    !canChangeVisibility(value, optionValue, { canShare, canPublish });
+    !canChangeVisibility(value, optionValue, { canUpdateVisibility, canShare });
 
   return (
     <div>
@@ -78,7 +78,7 @@ const SavedQueryVisibilityPicker = ({
           },
         )}
       </div>
-      {!disabled && !canPublish && value !== SavedQueryVisibility.Public && (
+      {!disabled && !canShare && value !== SavedQueryVisibility.Public && (
         <p className="mt-2 text-xs text-gray-500">
           {t(
             "Only the author, workspace admins and organization admins can make a query public.",

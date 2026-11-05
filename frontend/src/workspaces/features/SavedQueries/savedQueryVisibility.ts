@@ -93,10 +93,10 @@ export const useSavedQueryVisibilityOption = (
 
 export type VisibilityRights = {
   // `permissions.updateVisibility`: the author's right to share and unshare.
-  canShare: boolean;
-  // `permissions.publish`: the author's, a workspace admin's or an organization
+  canUpdateVisibility: boolean;
+  // `permissions.share`: the author's, a workspace admin's or an organization
   // admin's right to make the query public and take it back to the workspace.
-  canPublish: boolean;
+  canShare: boolean;
 };
 
 // Mirrors SavedQuery._visibility_change_permission on the backend, so the
@@ -104,16 +104,16 @@ export type VisibilityRights = {
 export const canChangeVisibility = (
   from: SavedQueryVisibility,
   to: SavedQueryVisibility,
-  { canShare, canPublish }: VisibilityRights,
+  { canUpdateVisibility, canShare }: VisibilityRights,
 ) => {
   if (from === to) {
     return true;
   }
-  const isPublishing =
+  const isSharingPublicly =
     to === SavedQueryVisibility.Public ||
     (from === SavedQueryVisibility.Public &&
       to === SavedQueryVisibility.Workspace);
-  return isPublishing ? canPublish : canShare;
+  return isSharingPublicly ? canShare : canUpdateVisibility;
 };
 
 // The permalink of a public query. Slugs are stable across renames and never

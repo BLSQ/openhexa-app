@@ -90,15 +90,15 @@ class SavedQueryPermissionsTest(SavedQueryTestMixin, TestCase):
         self.assertTrue(manage_public_saved_query(self.USER_ADMIN, query))
         self.assertFalse(manage_public_saved_query(self.USER_VIEWER, query))
         self.assertFalse(manage_public_saved_query(self.USER_OUTSIDER, query))
-        # Editing rights are not publishing rights
+        # Editing rights are not public sharing rights
         admin_query = self._create(self.USER_ADMIN)
         self.assertFalse(manage_public_saved_query(self.USER_EDITOR, admin_query))
 
-    def test_viewer_cannot_publish_their_own_query(self):
+    def test_viewer_cannot_share_their_own_query_publicly(self):
         query = self._create(self.USER_VIEWER)
         self.assertFalse(manage_public_saved_query(self.USER_VIEWER, query))
 
-    def test_publish_private_saved_query(self):
+    def test_share_private_saved_query_publicly(self):
         # Nobody but its author may expose what only its author can see.
         query = self._create(self.USER_EDITOR, visibility=SavedQueryVisibility.PRIVATE)
         self.assertTrue(manage_public_saved_query(self.USER_EDITOR, query))
@@ -233,7 +233,7 @@ class SavedQueryOrganizationPermissionsTest(TestCase):
         self.assertIn(self.SAVED_QUERY, visible)
         self.assertNotIn(self.PRIVATE_SAVED_QUERY, visible)
 
-    def test_publish_via_organization_role(self):
+    def test_share_publicly_via_organization_role(self):
         self.assertTrue(
             manage_public_saved_query(self.USER_ORG_OWNER, self.SAVED_QUERY)
         )

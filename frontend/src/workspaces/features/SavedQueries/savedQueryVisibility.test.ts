@@ -4,16 +4,16 @@ import { canChangeVisibility } from "./savedQueryVisibility";
 const { Private, Workspace, Public } = SavedQueryVisibility;
 
 describe("canChangeVisibility", () => {
-  const author = { canShare: true, canPublish: true };
-  const admin = { canShare: false, canPublish: true };
-  const editor = { canShare: false, canPublish: false };
+  const author = { canUpdateVisibility: true, canShare: true };
+  const admin = { canUpdateVisibility: false, canShare: true };
+  const editor = { canUpdateVisibility: false, canShare: false };
 
   it("lets the author make any switch", () => {
     expect(canChangeVisibility(Private, Public, author)).toBe(true);
     expect(canChangeVisibility(Public, Private, author)).toBe(true);
   });
 
-  it("lets an admin publish and take a query back to the workspace", () => {
+  it("lets an admin share publicly and take a query back to the workspace", () => {
     expect(canChangeVisibility(Workspace, Public, admin)).toBe(true);
     expect(canChangeVisibility(Public, Workspace, admin)).toBe(true);
   });

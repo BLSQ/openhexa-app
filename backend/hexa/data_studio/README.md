@@ -36,11 +36,11 @@ workspace are not shown there: like a web app, the visitor gets the result, not 
 
 - **Being public is the whole authorization.** `ensure_can_run_query` waives
   `databases.run_query` for a public query (and only for one): the SQL was vetted by whoever
-  published it, and the visitor supplies none of their own. The permission still applies to
+  made it public, and the visitor supplies none of their own. The permission still applies to
   everything else, including a member running raw SQL.
-- **Who publishes** (`permissions.manage_public_saved_query`): the author, a workspace admin or an
+- **Who shares publicly** (`permissions.manage_public_saved_query`): the author, a workspace admin or an
   organization admin/owner — the rule shared by every public resource (HEXA-1848). The author
-  must also be allowed to publish in the workspace at all (`create_public_saved_query`:
+  must also be allowed to share publicly in the workspace at all (`create_public_saved_query`:
   editor, admin or organization admin/owner): a viewer may save queries, but must not be able
   to hand what they read to anyone on the internet. The same
   people can take a public query back to `WORKSPACE`; making it `PRIVATE` stays the author's

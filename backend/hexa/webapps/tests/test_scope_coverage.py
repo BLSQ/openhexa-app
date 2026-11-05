@@ -66,7 +66,7 @@ NEVER_GRANTED = {
     "User": {"lastLogin", "dateJoined", "analyticsEnabled"},
     "Me": {"hasTwoFactorEnabled"},
     # Whether web apps get any part in public resources is HEXA-1847's call.
-    "WorkspacePermissions": {"publishSavedQuery"},
+    "WorkspacePermissions": {"shareSavedQuery"},
 }
 
 

@@ -5970,8 +5970,8 @@ export type SavedQueryPermissions = {
   __typename?: 'SavedQueryPermissions';
   /** Permission to delete the saved query. */
   delete: Scalars['Boolean']['output'];
-  /** Permission to make the saved query public, and take it back to the workspace. Held by its author if they may publish in the workspace, workspace admins and organization admins/owners. */
-  publish: Scalars['Boolean']['output'];
+  /** Permission to make the saved query public, and take it back to the workspace. Held by its author if they may share publicly in the workspace, workspace admins and organization admins/owners. */
+  share: Scalars['Boolean']['output'];
   /** Permission to edit the saved query. */
   update: Scalars['Boolean']['output'];
   /** Permission to move the saved query between private and workspace, and to take a public one straight to private. Held by its author only. */
@@ -7404,7 +7404,7 @@ export type WorkspacePermissions = {
   manageMembers: Scalars['Boolean']['output'];
   manageTags: Scalars['Boolean']['output'];
   /** Permission to make one's own saved queries of the workspace public. */
-  publishSavedQuery: Scalars['Boolean']['output'];
+  shareSavedQuery: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
 

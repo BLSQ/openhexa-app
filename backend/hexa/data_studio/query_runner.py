@@ -99,7 +99,7 @@ def ensure_can_run_query(
         )
         raise PermissionDenied
     # A public query runs for anyone who can reach it, member or not: its SQL was
-    # vetted by whoever published it, and the caller supplies none of their own.
+    # vetted by whoever made it public, and the caller supplies none of their own.
     # Being public is the whole authorization (see the app README).
     if saved_query is not None and saved_query.is_public:
         return

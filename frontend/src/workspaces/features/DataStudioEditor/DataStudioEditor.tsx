@@ -218,7 +218,7 @@ const DataStudioEditor = ({
                 <SavedQueryVisibilityButton
                   visibility={editor.savedQuery.visibility}
                   canUpdate={editor.canUpdateVisibility}
-                  canPublish={editor.canPublish}
+                  canShare={editor.canShare}
                   saving={editor.saving}
                   onChange={editor.setVisibility}
                 />

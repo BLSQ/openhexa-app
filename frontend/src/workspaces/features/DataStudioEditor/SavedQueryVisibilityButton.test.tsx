@@ -8,7 +8,7 @@ const renderButton = (props: any = {}) => {
     <SavedQueryVisibilityButton
       visibility={props.visibility ?? SavedQueryVisibility.Private}
       canUpdate={props.canUpdate ?? true}
-      canPublish={props.canPublish ?? false}
+      canShare={props.canShare ?? false}
       saving={props.saving ?? false}
       onChange={onChange}
     />,
@@ -101,11 +101,11 @@ describe("SavedQueryVisibilityButton", () => {
     expect(screen.queryByRole("button")).toBeNull();
   });
 
-  describe("publishing", () => {
-    it("keeps the public option out of reach without the permission to publish", async () => {
+  describe("sharing publicly", () => {
+    it("keeps the public option out of reach without the permission to share", async () => {
       const onChange = renderButton({
         visibility: SavedQueryVisibility.Workspace,
-        canPublish: false,
+        canShare: false,
       });
 
       openMenu();
@@ -122,11 +122,11 @@ describe("SavedQueryVisibilityButton", () => {
       expect(onChange).not.toHaveBeenCalled();
     });
 
-    // Publishing hands the query to the whole internet, so it is confirmed first.
+    // Sharing publicly hands the query to the whole internet, so it is confirmed first.
     it("asks to confirm before making a query public", async () => {
       const onChange = renderButton({
         visibility: SavedQueryVisibility.Workspace,
-        canPublish: true,
+        canShare: true,
       });
 
       openMenu();
@@ -144,11 +144,11 @@ describe("SavedQueryVisibilityButton", () => {
       );
     });
 
-    // Unpublishing breaks a link that may be in use, so it is confirmed too.
+    // Stopping public sharing breaks a link that may be in use, so it is confirmed too.
     it("asks to confirm before taking a public query back to the workspace", async () => {
       const onChange = renderButton({
         visibility: SavedQueryVisibility.Public,
-        canPublish: true,
+        canShare: true,
       });
 
       openMenu();
@@ -168,12 +168,12 @@ describe("SavedQueryVisibilityButton", () => {
       );
     });
 
-    // An organization admin who is not the author may publish, and nothing else.
-    it("offers only the public option to someone who may publish but not share", async () => {
+    // An organization admin who is not the author may share publicly, and nothing else.
+    it("offers only the public option to someone who may share publicly but not change visibility", async () => {
       renderButton({
         visibility: SavedQueryVisibility.Workspace,
         canUpdate: false,
-        canPublish: true,
+        canShare: true,
       });
 
       openMenu();

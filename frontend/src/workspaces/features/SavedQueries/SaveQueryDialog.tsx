@@ -58,16 +58,16 @@ const SaveQueryDialog = ({
   const { create, update } = useSavedQueryMutations();
 
   // An editor may edit a shared query without being allowed to unshare it, and
-  // a workspace admin may publish a query without being allowed to unshare it.
+  // a workspace admin may share a query publicly without being allowed to unshare it.
   // The picker gates each option on its own; with neither right it only shows
   // the current state, read-only. Whoever creates a query is its author, who
-  // may always share it, and may publish it unless they are a viewer.
-  const canShare =
+  // may always share it with the workspace, and publicly unless they are a viewer.
+  const canUpdateVisibility =
     mode === "create" || (savedQuery?.permissions.updateVisibility ?? false);
-  const canPublishHere =
+  const canShareHere =
     mode === "create"
       ? canCreatePublic
-      : (savedQuery?.permissions.publish ?? false);
+      : (savedQuery?.permissions.share ?? false);
 
   const form = useForm<Values>({
     getInitialState: () => ({
@@ -172,9 +172,9 @@ const SaveQueryDialog = ({
               onChange={(visibility) =>
                 form.setFieldValue("visibility", visibility)
               }
-              disabled={!canShare && !canPublishHere}
-              canShare={canShare}
-              canPublish={canPublishHere}
+              disabled={!canUpdateVisibility && !canShareHere}
+              canUpdateVisibility={canUpdateVisibility}
+              canShare={canShareHere}
             />
           </Field>
           {form.submitError && (

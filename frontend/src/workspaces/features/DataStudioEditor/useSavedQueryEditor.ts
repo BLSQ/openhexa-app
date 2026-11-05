@@ -70,12 +70,12 @@ export const useSavedQueryEditor = ({
 
   const canUpdate = savedQuery?.permissions.update ?? false;
   const canUpdateVisibility = savedQuery?.permissions.updateVisibility ?? false;
-  const canPublish = savedQuery?.permissions.publish ?? false;
-  // Visitors run whatever SQL a public query holds, so only its publishers may
+  const canShare = savedQuery?.permissions.share ?? false;
+  // Visitors run whatever SQL a public query holds, so only those who may share it publicly may
   // change it (the backend enforces the same); others can still save a copy.
   const canSaveContent =
     canUpdate &&
-    (savedQuery?.visibility !== SavedQueryVisibility.Public || canPublish);
+    (savedQuery?.visibility !== SavedQueryVisibility.Public || canShare);
   const isDirty = content !== baseline;
   const hasContent = Boolean(content.trim());
 
@@ -143,8 +143,8 @@ export const useSavedQueryEditor = ({
         !savedQuery ||
         saving ||
         !canChangeVisibility(savedQuery.visibility, visibility, {
-          canShare: canUpdateVisibility,
-          canPublish,
+          canUpdateVisibility,
+          canShare,
         })
       ) {
         return;
@@ -166,7 +166,7 @@ export const useSavedQueryEditor = ({
         toast.error(err.message);
       }
     },
-    [savedQuery, canUpdateVisibility, canPublish, saving, update, t],
+    [savedQuery, canUpdateVisibility, canShare, saving, update, t],
   );
 
   const saveAsNew = useCallback(
@@ -246,7 +246,7 @@ export const useSavedQueryEditor = ({
     saving,
     canUpdate,
     canUpdateVisibility,
-    canPublish,
+    canShare,
     dialog,
     savePlan,
     save,

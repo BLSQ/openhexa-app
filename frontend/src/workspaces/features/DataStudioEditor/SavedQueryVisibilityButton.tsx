@@ -20,18 +20,18 @@ type SavedQueryVisibilityButtonProps = {
   canUpdate: boolean;
   // Making the query public and taking it back to the workspace (the author's,
   // a workspace admin's or an organization admin's right).
-  canPublish: boolean;
+  canShare: boolean;
   saving: boolean;
   onChange: (visibility: SavedQueryVisibility) => void;
 };
 
 // Toolbar control for the current query's sharing, sitting next to Save because
 // it is a decision about the query itself rather than about this session.
-// Read-only for members who may edit the query but neither unshare nor publish it.
+// Read-only for members who may edit the query but neither change its visibility nor share it publicly.
 const SavedQueryVisibilityButton = ({
   visibility,
   canUpdate,
-  canPublish,
+  canShare,
   saving,
   onChange,
 }: SavedQueryVisibilityButtonProps) => {
@@ -39,20 +39,20 @@ const SavedQueryVisibilityButton = ({
   const options = useSavedQueryVisibilityOptions();
   const current = useSavedQueryVisibilityOption(visibility);
   // Set while a switch that takes the query away from someone waits for
-  // confirmation: unsharing takes it from colleagues, publishing hands it to
-  // the whole internet, unpublishing breaks a link that may be in use. None of
+  // confirmation: making it private takes it from colleagues, sharing it publicly hands it
+  // to the whole internet, stopping that breaks a link that may be in use. None of
   // those is a one-click action like sharing with the workspace is.
   const [pending, setPending] = useState<SavedQueryVisibility | null>(null);
 
-  if (!canUpdate && !canPublish) {
+  if (!canUpdate && !canShare) {
     return <SavedQueryVisibilityBadge visibility={visibility} />;
   }
 
   const isOptionDisabled = (next: SavedQueryVisibility) =>
     saving ||
     !canChangeVisibility(visibility, next, {
-      canShare: canUpdate,
-      canPublish,
+      canUpdateVisibility: canUpdate,
+      canShare,
     });
 
   const select = (next: SavedQueryVisibility) => {
@@ -145,7 +145,7 @@ const SavedQueryVisibilityButton = ({
                 </button>
               ),
             )}
-            {!canPublish && visibility !== SavedQueryVisibility.Public && (
+            {!canShare && visibility !== SavedQueryVisibility.Public && (
               <p className="px-2.5 py-2 text-xs text-gray-400">
                 {t(
                   "Only the author, workspace admins and organization admins can make a query public.",

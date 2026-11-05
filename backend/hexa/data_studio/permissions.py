@@ -60,7 +60,7 @@ def create_public_saved_query(principal: User, workspace: Workspace):
     """Whether the principal may make their own queries of this workspace public:
     a workspace editor or admin, or an organization admin/owner.
 
-    Viewers may save queries, but publishing one would hand whatever they can read
+    Viewers may save queries, but sharing one publicly would hand whatever they can read
     to anyone on the internet, which a read-only role must not be able to do.
     """
     return workspace.workspacemembership_set.filter(
@@ -70,7 +70,7 @@ def create_public_saved_query(principal: User, workspace: Workspace):
 
 
 def manage_public_saved_query(principal: User, saved_query: SavedQuery):
-    """The author (if they may publish in the workspace at all), a workspace admin or
+    """The author (if they may share publicly in the workspace at all), a workspace admin or
     an organization admin/owner manage a query's public link: make the query public
     and take it back to the workspace.
 

@@ -34,7 +34,7 @@ const savedQuery = {
     update: true,
     delete: true,
     updateVisibility: true,
-    publish: false,
+    share: false,
   },
 } as any;
 
@@ -44,7 +44,7 @@ const readOnlyQuery = {
     update: false,
     delete: false,
     updateVisibility: false,
-    publish: false,
+    share: false,
   },
 };
 
@@ -181,7 +181,7 @@ describe("useSavedQueryEditor", () => {
         update: true,
         delete: true,
         updateVisibility: false,
-        publish: false,
+        share: false,
       },
     });
 
@@ -192,19 +192,19 @@ describe("useSavedQueryEditor", () => {
     expect(updateMock).not.toHaveBeenCalled();
   });
 
-  // The author's right to share is not the right to publish: the two are gated
+  // The author's right to change visibility is not the right to share publicly: the two are gated
   // separately, as on the backend.
-  it("does not publish without the permission to publish", async () => {
+  it("does not share publicly without the permission to share", async () => {
     const { result } = renderEditor("SELECT 1");
 
-    expect(result.current.canPublish).toBe(false);
+    expect(result.current.canShare).toBe(false);
     await act(async () => {
       await result.current.setVisibility(SavedQueryVisibility.Public);
     });
     expect(updateMock).not.toHaveBeenCalled();
   });
 
-  it("publishes with the permission to publish, even without the one to share", async () => {
+  it("shares publicly with the permission to share, even without the one to change visibility", async () => {
     updateMock.mockResolvedValue({
       data: {
         updateSavedQuery: {
@@ -223,7 +223,7 @@ describe("useSavedQueryEditor", () => {
         update: true,
         delete: true,
         updateVisibility: false,
-        publish: true,
+        share: true,
       },
     });
 
@@ -415,24 +415,24 @@ describe("useSavedQueryEditor", () => {
       expect(result.current.savePlan.saveAsNew).toBeInstanceOf(Function);
     });
 
-    // Visitors run whatever a public query holds: an editor who may not publish
+    // Visitors run whatever a public query holds: an editor who may not share it
     // it may not rewrite it either, only save a copy.
-    it("offers only a fork of a public query to an editor who cannot publish", () => {
+    it("offers only a fork of a public query to an editor who cannot share it publicly", () => {
       const { result } = renderEditor("SELECT 2", {
         ...savedQuery,
         visibility: SavedQueryVisibility.Public,
-        permissions: { ...savedQuery.permissions, publish: false },
+        permissions: { ...savedQuery.permissions, share: false },
       });
 
       expect(result.current.savePlan.variant).toBe("fork");
       expect(result.current.canUpdate).toBe(true);
     });
 
-    it("offers an in-place update of a public query to its publishers", () => {
+    it("offers an in-place update of a public query to those who may share it publicly", () => {
       const { result } = renderEditor("SELECT 2", {
         ...savedQuery,
         visibility: SavedQueryVisibility.Public,
-        permissions: { ...savedQuery.permissions, publish: true },
+        permissions: { ...savedQuery.permissions, share: true },
       });
 
       expect(result.current.savePlan.variant).toBe("update");

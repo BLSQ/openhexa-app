@@ -1615,7 +1615,7 @@ class PublicSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
                 content
                 createdBy { id }
                 workspace { slug }
-                permissions { publish }
+                permissions { share }
             }
         }
     """
@@ -1677,7 +1677,7 @@ class PublicSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         self.assertEqual("SELECT 1", result["content"])
         self.assertEqual(self.WORKSPACE.slug, result["workspace"]["slug"])
         self.assertEqual(str(self.USER_EDITOR.id), result["createdBy"]["id"])
-        self.assertTrue(result["permissions"]["publish"])
+        self.assertTrue(result["permissions"]["share"])
 
     def test_only_public_queries_are_read_as_public(self):
         query = self.create_saved_query()
@@ -1818,7 +1818,7 @@ class PublicSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
                 )
         self.assertEqual(0, QueryLog.objects.count())
 
-    def test_workspace_tells_who_may_publish_their_own_queries(self):
+    def test_workspace_tells_who_may_share_their_own_queries_publicly(self):
         for user, expected in [
             (self.USER_ADMIN, True),
             (self.USER_EDITOR, True),
@@ -1828,15 +1828,15 @@ class PublicSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
                 self.client.force_login(user)
                 r = self.run_query(
                     "query ($slug: String!) { workspace(slug: $slug) "
-                    "{ permissions { publishSavedQuery } } }",
+                    "{ permissions { shareSavedQuery } } }",
                     {"slug": self.WORKSPACE.slug},
                 )
                 self.assertEqual(
                     expected,
-                    r["data"]["workspace"]["permissions"]["publishSavedQuery"],
+                    r["data"]["workspace"]["permissions"]["shareSavedQuery"],
                 )
 
-    def test_workspace_admin_publishes_through_the_api(self):
+    def test_workspace_admin_shares_publicly_through_the_api(self):
         query = self.create_saved_query(user=self.USER_VIEWER)
         self.client.force_login(self.USER_ADMIN)
 

@@ -1,7 +1,4 @@
-import {
-  ArrowDownTrayIcon,
-  PencilSquareIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import Button from "core/components/Button";
 import Page from "core/components/Page";
@@ -91,15 +88,6 @@ const PublicSavedQueryPage: NextPageWithLayout = ({
     return null;
   }
   const savedQuery = data.publicSavedQuery;
-  const logoImage = (
-    <Image
-      src={logoWithTextBlack}
-      layout="fill"
-      objectFit="contain"
-      objectPosition="left"
-      alt="OpenHEXA"
-    />
-  );
   // Only members get an answer from savedQueryBySlug.
   const memberQuery = data.savedQueryBySlug;
 
@@ -113,22 +101,20 @@ const PublicSavedQueryPage: NextPageWithLayout = ({
       <div className="flex min-h-screen flex-col bg-gray-50">
         <header className="border-b border-gray-200 bg-white">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-            {/* Without an account, the app's home is a login page: the
-                website is where a visitor can learn what OpenHEXA is. */}
-            {me?.user ? (
-              <Link href="/" className="relative block h-8 w-28">
-                {logoImage}
-              </Link>
-            ) : (
-              <a
-                href={OPENHEXA_WEBSITE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative block h-8 w-28"
-              >
-                {logoImage}
-              </a>
-            )}
+            <a
+              href={OPENHEXA_WEBSITE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative block h-8 w-28"
+            >
+              <Image
+                src={logoWithTextBlack}
+                layout="fill"
+                objectFit="contain"
+                objectPosition="left"
+                alt="OpenHEXA"
+              />
+            </a>
             {me?.user ? (
               <Link
                 href="/workspaces"
@@ -166,14 +152,9 @@ const PublicSavedQueryPage: NextPageWithLayout = ({
                 href={dataStudioRoutes(memberQuery.workspace.slug).query(
                   memberQuery.slug,
                 )}
+                className="text-sm text-blue-600 hover:underline"
               >
-                <Button
-                  variant="white"
-                  size="sm"
-                  leadingIcon={<PencilSquareIcon className="h-4 w-4" />}
-                >
-                  {t("Open in Data Studio")}
-                </Button>
+                {t("Open in Data Studio")}
               </Link>
             )}
           </div>

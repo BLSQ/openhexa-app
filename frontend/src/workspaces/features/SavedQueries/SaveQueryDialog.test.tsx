@@ -32,7 +32,7 @@ const savedQuery = {
     update: true,
     delete: true,
     updateVisibility: true,
-    publish: false,
+    share: false,
   },
 };
 
@@ -245,7 +245,7 @@ describe("SaveQueryDialog", () => {
             update: true,
             delete: true,
             updateVisibility: false,
-            publish: false,
+            share: false,
           },
         }}
         onClose={jest.fn()}
@@ -259,7 +259,7 @@ describe("SaveQueryDialog", () => {
   });
 
   // A viewer may save queries but not expose the data they read.
-  it("keeps the public option closed to someone who may not publish", () => {
+  it("keeps the public option closed to someone who may not share publicly", () => {
     render(
       <SaveQueryDialog
         open
@@ -278,7 +278,7 @@ describe("SaveQueryDialog", () => {
   });
 
   // Whoever creates a query is its author, and authors who are editors or
-  // admins may publish.
+  // admins may share publicly.
   it("lets the author create a public query", async () => {
     createMock.mockResolvedValue({
       data: {
@@ -320,9 +320,9 @@ describe("SaveQueryDialog", () => {
     );
   });
 
-  // A workspace or organization admin who is not the author may publish but
-  // not unshare.
-  it("opens only the public option to someone who may publish but not share", () => {
+  // A workspace or organization admin who is not the author may share publicly
+  // but not unshare.
+  it("opens only the public option to someone who may share publicly but not change visibility", () => {
     render(
       <SaveQueryDialog
         open
@@ -335,7 +335,7 @@ describe("SaveQueryDialog", () => {
             update: true,
             delete: true,
             updateVisibility: false,
-            publish: true,
+            share: true,
           },
         }}
         onClose={jest.fn()}
