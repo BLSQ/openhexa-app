@@ -29,6 +29,20 @@ def delete_dataset(principal: User, dataset: Dataset):
     return create_dataset(principal, dataset.workspace)
 
 
+def publish_dataset(principal: User, dataset: Dataset):
+    """Making a dataset public, or taking it back, is up to its author (while they can
+    still edit the workspace's datasets), a workspace admin or an organization
+    admin/owner.
+    """
+    if dataset.created_by_id == principal.id:
+        return create_dataset(principal, dataset.workspace)
+    return dataset.workspace.workspacemembership_set.filter(
+        user=principal, role=WorkspaceMembershipRole.ADMIN
+    ).exists() or principal.is_organization_admin_or_owner(
+        dataset.workspace.organization
+    )
+
+
 def create_dataset_version(principal: User, dataset: Dataset):
     return create_dataset(principal, dataset.workspace)
 

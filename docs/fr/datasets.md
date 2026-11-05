@@ -118,10 +118,17 @@ Le partage de jeux de données est l'une des fonctionnalités de collaboration l
 - Sélectionnez l'espace de travail cible dans la liste disponible.
 - Cette approche fournit un contrôle granulaire sur l'accès aux données.
 
-#### Partage au niveau de l'organisation
-- Activez le bouton **Partager avec toute l'organisation**.
-- Cela rend le jeu de données disponible à tous les espaces de travail au sein de votre organisation.
-- ⚠️ Le partage au niveau de l'organisation remplace toutes les permissions d'espace de travail spécifiques.
+#### Visibilité
+La visibilité d'un jeu de données détermine qui peut y accéder au-delà des espaces de travail avec lesquels il est partagé :
+
+- **Espace de travail** (par défaut) : uniquement les espaces de travail avec lesquels le jeu de données est partagé.
+- **Organisation** : tous les espaces de travail au sein de votre organisation. Activez le bouton **Partager avec toute l'organisation** pour la choisir.
+- **Public** : pour l'instant, la même portée que la visibilité organisation.
+
+⚠️ Les visibilités organisation et publique remplacent toutes les permissions d'espace de travail spécifiques.
+
+#### Rendre un jeu de données public
+- Seuls l'auteur du jeu de données (s'il est encore éditeur ou administrateur de son espace de travail), les administrateurs de l'espace de travail et les administrateurs et propriétaires de l'organisation peuvent rendre un jeu de données public, ou ramener un jeu de données public à l'organisation ou à l'espace de travail.
 
 ### Permissions de partage
 

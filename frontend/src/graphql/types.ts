@@ -1655,12 +1655,14 @@ export type Dataset = MetadataObject & {
   permissions: DatasetPermissions;
   /** Slug unique across the whole instance, used for permalinks. Only set once the dataset needs one. */
   publicSlug?: Maybe<Scalars['String']['output']>;
+  /** @deprecated Use `visibility`. */
   sharedWithOrganization: Scalars['Boolean']['output'];
   slug: Scalars['String']['output'];
   targetId: Scalars['OpaqueID']['output'];
   updatedAt: Scalars['DateTime']['output'];
   version?: Maybe<DatasetVersion>;
   versions: DatasetVersionPage;
+  visibility: DatasetVisibility;
   workspace?: Maybe<Workspace>;
 };
 
@@ -1738,6 +1740,8 @@ export type DatasetPermissions = {
   createVersion: Scalars['Boolean']['output'];
   /** Permissions to delete the dataset */
   delete: Scalars['Boolean']['output'];
+  /** Permission to make the dataset public, or to take a public dataset back to the organization or workspace. */
+  publish: Scalars['Boolean']['output'];
   /** Permissions to edit the dataset */
   update: Scalars['Boolean']['output'];
 };
@@ -1848,6 +1852,16 @@ export type DatasetVersionPermissions = {
   /** Permissions to update the dataset version */
   update: Scalars['Boolean']['output'];
 };
+
+/** Who a dataset is visible to. */
+export enum DatasetVisibility {
+  /** Every member of the organization. */
+  Organization = 'ORGANIZATION',
+  /** For now, every member of the organization. */
+  Public = 'PUBLIC',
+  /** The members of the workspaces the dataset is shared with. */
+  Workspace = 'WORKSPACE'
+}
 
 /** Represents the error types for declining a workspace invitation. */
 export enum DeclineWorkspaceInvitationError {
@@ -6382,7 +6396,11 @@ export type UpdateDagResult = {
 /** Errors that can occur when updating a dataset. */
 export enum UpdateDatasetError {
   DatasetNotFound = 'DATASET_NOT_FOUND',
-  PermissionDenied = 'PERMISSION_DENIED'
+  PermissionDenied = 'PERMISSION_DENIED',
+  PublicSlugInvalidFormat = 'PUBLIC_SLUG_INVALID_FORMAT',
+  PublicSlugLocked = 'PUBLIC_SLUG_LOCKED',
+  PublicSlugReserved = 'PUBLIC_SLUG_RESERVED',
+  PublicSlugTaken = 'PUBLIC_SLUG_TAKEN'
 }
 
 /** Input for updating a dataset. */
@@ -6390,7 +6408,12 @@ export type UpdateDatasetInput = {
   datasetId: Scalars['ID']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  /** The slug of the dataset's permalink. Requires the `publish` permission and cannot be changed once set; derived from the dataset slug when making the dataset public without one. */
+  publicSlug?: InputMaybe<Scalars['String']['input']>;
+  /** @deprecated Use `visibility`. */
   sharedWithOrganization?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Making the dataset PUBLIC, or taking it back, requires the `publish` permission. */
+  visibility?: InputMaybe<DatasetVisibility>;
 };
 
 /** Result of updating a dataset. */

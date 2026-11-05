@@ -1625,12 +1625,13 @@ type Dataset implements MetadataObject {
   Slug unique across the whole instance, used for permalinks. Only set once the dataset needs one.
   """
   publicSlug: String
-  sharedWithOrganization: Boolean!
+  sharedWithOrganization: Boolean! @deprecated(reason: "Use `visibility`.")
   slug: String!
   targetId: OpaqueID!
   updatedAt: DateTime!
   version(id: ID!): DatasetVersion
   versions(page: Int = 1, perPage: Int = 15): DatasetVersionPage!
+  visibility: DatasetVisibility!
   workspace: Workspace
 }
 
@@ -1684,6 +1685,11 @@ type DatasetPermissions {
 
   """Permissions to delete the dataset"""
   delete: Boolean!
+
+  """
+  Permission to make the dataset public, or to take a public dataset back to the organization or workspace.
+  """
+  publish: Boolean!
 
   """Permissions to edit the dataset"""
   update: Boolean!
@@ -1772,6 +1778,18 @@ type DatasetVersionPermissions {
 
   """Permissions to update the dataset version"""
   update: Boolean!
+}
+
+"""Who a dataset is visible to."""
+enum DatasetVisibility {
+  """Every member of the organization."""
+  ORGANIZATION
+
+  """For now, every member of the organization."""
+  PUBLIC
+
+  """The members of the workspaces the dataset is shared with."""
+  WORKSPACE
 }
 
 scalar Date
@@ -5458,6 +5476,10 @@ type UpdateDAGResult {
 enum UpdateDatasetError {
   DATASET_NOT_FOUND
   PERMISSION_DENIED
+  PUBLIC_SLUG_INVALID_FORMAT
+  PUBLIC_SLUG_LOCKED
+  PUBLIC_SLUG_RESERVED
+  PUBLIC_SLUG_TAKEN
 }
 
 """Input for updating a dataset."""
@@ -5465,7 +5487,17 @@ input UpdateDatasetInput {
   datasetId: ID!
   description: String
   name: String
-  sharedWithOrganization: Boolean
+
+  """
+  The slug of the dataset's permalink. Requires the `publish` permission and cannot be changed once set; derived from the dataset slug when making the dataset public without one.
+  """
+  publicSlug: String
+  sharedWithOrganization: Boolean @deprecated(reason: "Use `visibility`.")
+
+  """
+  Making the dataset PUBLIC, or taking it back, requires the `publish` permission.
+  """
+  visibility: DatasetVisibility
 }
 
 """Result of updating a dataset."""

@@ -60,6 +60,12 @@ def create_dataset_public_slug(slug: str):
     )
 
 
+def public_slug_locked_error() -> ValidationError:
+    return ValidationError(
+        "A dataset public slug cannot be changed once set.", code="PUBLIC_SLUG_LOCKED"
+    )
+
+
 def check_principal_perm(principal, workspace_id, perm: str, obj) -> None:
     """A service principal is confined to its workspaces. One acting for a person
     (MCPUser, WebappUser) is also held to that person's role; a pipeline run has none.
@@ -71,6 +77,20 @@ def check_principal_perm(principal, workspace_id, perm: str, obj) -> None:
         raise PermissionDenied
     if not is_non_personal_principal(principal) and not principal.has_perm(perm, obj):
         raise PermissionDenied
+
+
+class DatasetVisibility(models.TextChoices):
+    WORKSPACE = "WORKSPACE", _("Workspace")
+    ORGANIZATION = "ORGANIZATION", _("Organization")
+    PUBLIC = "PUBLIC", _("Public")
+
+
+# A public dataset is still shared with its whole organization, so any organization
+# level check must accept both values.
+ORGANIZATION_WIDE_VISIBILITIES = [
+    DatasetVisibility.ORGANIZATION,
+    DatasetVisibility.PUBLIC,
+]
 
 
 class DatasetQuerySet(BaseQuerySet):
@@ -91,7 +111,7 @@ class DatasetQuerySet(BaseQuerySet):
             self.filter(
                 Q(links__workspace__in=accessible_workspaces)
                 | Q(
-                    shared_with_organization=True,
+                    visibility__in=ORGANIZATION_WIDE_VISIBILITIES,
                     workspace__organization__in=accessible_organizations,
                 )
             ).distinct()
@@ -181,7 +201,11 @@ class Dataset(MetadataMixin, Base):
         validators=[validate_public_slug],
     )
     description = models.TextField(blank=True, null=True)
-    shared_with_organization = models.BooleanField(default=False)
+    visibility = models.CharField(
+        max_length=20,
+        choices=DatasetVisibility.choices,
+        default=DatasetVisibility.WORKSPACE,
+    )
 
     objects = DatasetManager.from_queryset(DatasetQuerySet)()
 
@@ -194,24 +218,43 @@ class Dataset(MetadataMixin, Base):
     def save(self, *args, **kwargs):
         persisted = getattr(self, "_persisted_public_slug", None)
         if persisted and self.__dict__.get("public_slug") != persisted:
-            raise ValidationError("A dataset public slug cannot be changed once set.")
+            raise public_slug_locked_error()
         super().save(*args, **kwargs)
         self._persisted_public_slug = self.__dict__.get("public_slug")
 
-    def ensure_public_slug(self) -> str:
+    @property
+    def shared_with_organization(self) -> bool:
+        return self.visibility in ORGANIZATION_WIDE_VISIBILITIES
+
+    def ensure_public_slug(self, slug: str | None = None) -> str:
         """Public slugs are only claimed once needed, then never change. The conditional
         update keeps concurrent callers from overwriting each other's slug.
+
+        A requested ``slug`` is tried once, raising a ``ValidationError`` when it is
+        invalid, taken, or differs from the one already claimed. Without one, a slug is
+        derived from the dataset slug.
         """
+        if slug is not None and not self.public_slug:
+            validate_public_slug(slug)
         while not self.public_slug:
             try:
                 with transaction.atomic():
                     Dataset.objects.filter(pk=self.pk, public_slug__isnull=True).update(
-                        public_slug=create_dataset_public_slug(self.slug)
+                        public_slug=slug
+                        if slug is not None
+                        else create_dataset_public_slug(self.slug)
                     )
             except IntegrityError:
+                if slug is not None:
+                    raise ValidationError(
+                        "This public slug is already taken.", code="PUBLIC_SLUG_TAKEN"
+                    )
                 continue
             self.refresh_from_db(fields=["public_slug"])
         self._persisted_public_slug = self.public_slug
+        # Also catches a concurrent caller having claimed another slug first.
+        if slug is not None and slug != self.public_slug:
+            raise public_slug_locked_error()
         return self.public_slug
 
     @property
@@ -225,11 +268,60 @@ class Dataset(MetadataMixin, Base):
         if not principal.has_perm("datasets.update_dataset", self):
             raise PermissionDenied
 
-        for key in ["name", "description", "shared_with_organization"]:
-            if key in kwargs:
-                setattr(self, key, kwargs[key])
+        with transaction.atomic():
+            # Locked and re-read: the checks below must use the stored visibility and
+            # slug, or a stale save could revert a concurrent publish or unpublish.
+            self.refresh_from_db(from_queryset=Dataset.objects.select_for_update())
+            self._persisted_public_slug = self.public_slug
 
-        return self.save()
+            visibility = kwargs.get("visibility")
+            if (
+                visibility is None
+                and kwargs.get("shared_with_organization") is not None
+            ):
+                visibility = self._visibility_from_shared_with_organization(
+                    kwargs["shared_with_organization"]
+                )
+
+            # Gating only on change: a client echoing back the current values does
+            # not need the stricter permission. Claiming the permalink is a
+            # publisher's call, even ahead of publishing.
+            toggles_public = (
+                visibility is not None
+                and visibility != self.visibility
+                and DatasetVisibility.PUBLIC in (visibility, self.visibility)
+            )
+            public_slug = kwargs.get("public_slug")
+            claims_slug = public_slug is not None and public_slug != self.public_slug
+            if (toggles_public or claims_slug) and not principal.has_perm(
+                "datasets.publish_dataset", self
+            ):
+                raise PermissionDenied
+
+            if claims_slug or (
+                toggles_public and visibility == DatasetVisibility.PUBLIC
+            ):
+                self.ensure_public_slug(public_slug)
+
+            for key in ["name", "description"]:
+                if key in kwargs:
+                    setattr(self, key, kwargs[key])
+            if visibility is not None:
+                self.visibility = visibility
+
+            return self.save()
+
+    def _visibility_from_shared_with_organization(
+        self, shared: bool
+    ) -> DatasetVisibility:
+        """Map the deprecated boolean onto a visibility. Turning it on keeps a public
+        dataset public, since public already covers the organization.
+        """
+        if not shared:
+            return DatasetVisibility.WORKSPACE
+        if self.shared_with_organization:
+            return self.visibility
+        return DatasetVisibility.ORGANIZATION
 
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("datasets.delete_dataset", self):
@@ -648,7 +740,7 @@ class DatasetLinkQuerySet(BaseQuerySet):
             return DatasetLink.objects.none()
 
         permission_query = Q(workspace__id__in=workspace_ids) | Q(
-            dataset__shared_with_organization=True,
+            dataset__visibility__in=ORGANIZATION_WIDE_VISIBILITIES,
             workspace__organization__workspaces__id__in=workspace_ids,
         )
 
@@ -682,7 +774,7 @@ class DatasetLinkQuerySet(BaseQuerySet):
             self.filter(
                 Q(workspace__in=accessible_workspaces)
                 | Q(
-                    dataset__shared_with_organization=True,
+                    dataset__visibility__in=ORGANIZATION_WIDE_VISIBILITIES,
                     workspace__organization__in=accessible_organizations,
                 )
             ).distinct()

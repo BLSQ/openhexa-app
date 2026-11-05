@@ -13,7 +13,8 @@ type Dataset implements MetadataObject{
   updatedAt: DateTime!
   createdBy: User
   workspace: Workspace
-  sharedWithOrganization: Boolean!
+  sharedWithOrganization: Boolean! @deprecated(reason: "Use `visibility`.")
+  visibility: DatasetVisibility!
   permissions: DatasetPermissions!
   versions(page: Int = 1, perPage: Int = 15): DatasetVersionPage!
   version(id: ID!): DatasetVersion
@@ -33,6 +34,20 @@ type DatasetPermissions {
   delete: Boolean!
   "Permissions to create a new version of the dataset"
   createVersion: Boolean!
+  "Permission to make the dataset public, or to take a public dataset back to the organization or workspace."
+  publish: Boolean!
+}
+
+"""
+Who a dataset is visible to.
+"""
+enum DatasetVisibility {
+  "The members of the workspaces the dataset is shared with."
+  WORKSPACE
+  "Every member of the organization."
+  ORGANIZATION
+  "For now, every member of the organization."
+  PUBLIC
 }
 
 """
@@ -216,7 +231,11 @@ input UpdateDatasetInput {
   datasetId: ID!
   name: String
   description: String
-  sharedWithOrganization: Boolean
+  sharedWithOrganization: Boolean @deprecated(reason: "Use `visibility`.")
+  "Making the dataset PUBLIC, or taking it back, requires the `publish` permission."
+  visibility: DatasetVisibility
+  "The slug of the dataset's permalink. Requires the `publish` permission and cannot be changed once set; derived from the dataset slug when making the dataset public without one."
+  publicSlug: String
 }
 
 """
@@ -225,6 +244,10 @@ Errors that can occur when updating a dataset.
 enum UpdateDatasetError {
   DATASET_NOT_FOUND
   PERMISSION_DENIED
+  PUBLIC_SLUG_INVALID_FORMAT
+  PUBLIC_SLUG_RESERVED
+  PUBLIC_SLUG_TAKEN
+  PUBLIC_SLUG_LOCKED
 }
 
 """
