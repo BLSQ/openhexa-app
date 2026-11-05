@@ -10,7 +10,6 @@ from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.http import (
     HttpRequest,
     HttpResponse,
-    HttpResponseNotFound,
     HttpResponseNotModified,
     HttpResponseRedirect,
     JsonResponse,
@@ -22,7 +21,13 @@ from django.utils import timezone
 from hexa.superset.views import view_superset_dashboard
 from hexa.user_management.models import User
 from hexa.webapps.graphql_proxy import handle_graphql_proxy
-from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp, WebappUser
+from hexa.webapps.models import (
+    GitWebapp,
+    PublicWebappVisitor,
+    SupersetWebapp,
+    Webapp,
+    WebappUser,
+)
 from hexa.webapps.utils import (
     PREVIEW_KEY_RE,
     extract_webapp_subdomain,
@@ -316,9 +321,8 @@ def _handle_webapp_request(
     """Shared auth + serve logic for both webapp middlewares."""
     if request.path.startswith("/graphql/"):
         if webapp.is_public:
-            return HttpResponseNotFound("Not available")
-
-        if not _check_webapp_session(request, webapp):
+            request.user = PublicWebappVisitor(webapp)
+        elif not _check_webapp_session(request, webapp):
             return JsonResponse(
                 {"errors": [{"message": "Authentication required"}]},
                 status=401,
