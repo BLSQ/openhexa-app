@@ -27,10 +27,11 @@ const OrganizationUsageLimits = ({
   const isExpiredPastGracePeriod =
     subscription?.isExpired && !subscription?.isInGracePeriod;
 
+  // A null limit means the subscription does not cap that resource.
   const usageItems: {
     label: string;
     current: number;
-    limit: number | undefined;
+    limit: number | null | undefined;
     formatValue?: (value: number) => string;
   }[] = [
     {
@@ -106,11 +107,11 @@ const OrganizationUsageLimits = ({
           <div key={item.label}>
             <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700">
               {item.label}
-              {isExpiredPastGracePeriod && item.limit !== undefined && (
+              {isExpiredPastGracePeriod && item.limit != null && (
                 <LockClosedIcon className="h-4 w-4 text-gray-400" />
               )}
             </div>
-            {item.limit !== undefined ? (
+            {item.limit != null ? (
               <ProgressBar
                 value={item.current}
                 max={item.limit}

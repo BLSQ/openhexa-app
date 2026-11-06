@@ -233,6 +233,27 @@ class OrganizationSubscriptionTest(TestCase):
         )
         self.assertTrue(self.organization.is_workspaces_limit_reached())
 
+    def test_null_limits_are_unlimited(self):
+        self.subscription.users_limit = None
+        self.subscription.workspaces_limit = None
+        self.subscription.pipeline_runs_limit = None
+        self.subscription.save()
+
+        for i in range(3):
+            member = User.objects.create_user(f"member{i}@blsq.org", "password")
+            self.organization.organizationmembership_set.create(
+                user=member, role=OrganizationMembershipRole.MEMBER
+            )
+        Workspace.objects.create(
+            name="Test Workspace",
+            slug="test-workspace",
+            organization=self.organization,
+        )
+
+        self.assertFalse(self.organization.is_users_limit_reached())
+        self.assertFalse(self.organization.is_workspaces_limit_reached())
+        self.assertFalse(self.organization.is_pipeline_runs_limit_reached())
+
     def test_get_monthly_ai_cost(self):
         self.assertEqual(self.organization.get_monthly_ai_cost(), 0)
 

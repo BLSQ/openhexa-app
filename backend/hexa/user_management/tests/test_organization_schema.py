@@ -1239,6 +1239,55 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
             OrganizationSubscription.DEFAULT_MONTHLY_AI_BUDGET,
         )
 
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_create_organization_without_limits(self, mock_send_invite):
+        """A plan that defines no limits in the Console provisions an unlimited subscription instead of failing."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) {
+                    success
+                    errors
+                    organization {
+                        subscription {
+                            limits {
+                                users
+                                workspaces
+                                pipelineRuns
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "ownerEmail": "newowner@example.org",
+                    "name": "Org Without Limits",
+                    "subscriptionId": "12345678-1234-1234-1234-123456789014",
+                    "planCode": "oh_trial",
+                    "subscriptionStartDate": "2026-01-01",
+                    "subscriptionEndDate": "2026-12-31",
+                    "limits": {"users": None, "workspaces": 5},
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["createOrganization"]["success"])
+        self.assertEqual(
+            r["data"]["createOrganization"]["organization"]["subscription"]["limits"],
+            {"users": None, "workspaces": 5, "pipelineRuns": None},
+        )
+        subscription = Organization.objects.get(
+            name="Org Without Limits"
+        ).active_subscription
+        self.assertIsNone(subscription.users_limit)
+        self.assertEqual(subscription.workspaces_limit, 5)
+        self.assertIsNone(subscription.pipeline_runs_limit)
+        self.assertFalse(subscription.is_users_limit_reached())
+        self.assertFalse(subscription.is_pipeline_runs_limit_reached())
+
     @patch("hexa.user_management.schema.mutations.send_organization_add_user_email")
     def test_create_organization_with_existing_user(self, mock_send_email):
         """Test creating organization with an existing user as owner."""
@@ -1569,6 +1618,36 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
         self.assertEqual(self.subscription.pipeline_runs_limit, 10000)
         self.assertEqual(self.subscription.monthly_ai_budget, 200)
         self.assertEqual(self.subscription.end_date, date(2026, 12, 31))
+
+    def test_update_subscription_clears_limits(self):
+        """Sending null limits lifts the caps on an existing subscription."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation UpdateOrganizationSubscription($input: UpdateOrganizationSubscriptionInput!) {
+                updateOrganizationSubscription(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "organizationId": str(self.organization.id),
+                    "subscriptionId": str(self.subscription.subscription_id),
+                    "planCode": "openhexa_enterprise",
+                    "subscriptionStartDate": "2025-01-01",
+                    "subscriptionEndDate": "2026-12-31",
+                    "limits": {},
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["updateOrganizationSubscription"]["success"])
+        self.subscription.refresh_from_db()
+        self.assertIsNone(self.subscription.users_limit)
+        self.assertIsNone(self.subscription.workspaces_limit)
+        self.assertIsNone(self.subscription.pipeline_runs_limit)
 
     def test_update_subscription_without_monthly_ai_budget(self):
         """Omitting monthlyAiBudget defaults it to OrganizationSubscription.DEFAULT_MONTHLY_AI_BUDGET (fallback in case the Console doesn't send it)."""

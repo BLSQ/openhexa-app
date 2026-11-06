@@ -4816,9 +4816,7 @@ type ResolveAssistantProposalResult {
 
 """Resource counts"""
 type ResourceCounts {
-  """
-  AI budget / usage in USD. As usage: AI spend for the current month. As a limit: the monthly AI budget.
-  """
+  """AI spend in USD for the current month."""
   aiBudget: Float!
 
   """Number of pipeline runs."""
@@ -4831,12 +4829,16 @@ type ResourceCounts {
   workspaces: Int!
 }
 
-"""Input type for resource counts (used for subscription limits)."""
+"""
+Input type for subscription limits. Omitting a limit (or passing null) means the resource is unlimited.
+"""
 input ResourceCountsInput {
   """Maximum pipeline timeout in seconds."""
   maxPipelineTimeout: Int
 
-  """Monthly AI budget in USD. Defaults to 0 (AI disabled) if not provided."""
+  """
+  Monthly AI budget in USD. Never unlimited: when omitted, null or 0, the free trial amount is used.
+  """
   monthlyAiBudget: Int
 
   """JupyterHub profile to use (e.g., "trial")."""
@@ -4848,14 +4850,31 @@ input ResourceCountsInput {
   """Memory limit for pipeline pods (e.g., "1G")."""
   pipelineMemoryLimit: String
 
-  """Number of pipeline runs."""
-  pipelineRuns: Int!
+  """Maximum number of pipeline runs per month, or null if unlimited."""
+  pipelineRuns: Int
 
-  """Number of users."""
-  users: Int!
+  """Maximum number of users, or null if unlimited."""
+  users: Int
 
-  """Number of workspaces."""
-  workspaces: Int!
+  """Maximum number of workspaces, or null if unlimited."""
+  workspaces: Int
+}
+
+"""
+Resource limits of a subscription. A null limit means the resource is unlimited.
+"""
+type ResourceLimits {
+  """Monthly AI budget in USD."""
+  aiBudget: Float!
+
+  """Maximum number of pipeline runs per month, or null if unlimited."""
+  pipelineRuns: Int
+
+  """Maximum number of users, or null if unlimited."""
+  users: Int
+
+  """Maximum number of workspaces, or null if unlimited."""
+  workspaces: Int
 }
 
 enum RevokeMCPConnectionError {
@@ -5198,7 +5217,7 @@ type Subscription {
   isInGracePeriod: Boolean!
 
   """Resource limits for this subscription."""
-  limits: ResourceCounts!
+  limits: ResourceLimits!
 
   """The subscription plan code (e.g., "openhexa_starter")."""
   planCode: String!
