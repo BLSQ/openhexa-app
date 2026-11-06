@@ -1082,6 +1082,11 @@ export type CreateOrganizationInput = {
   /** The subscription plan code (e.g., "openhexa_starter"). */
   planCode: Scalars['String']['input'];
   /**
+   * Whether to email the owner (invitation link for a new user, notification for an existing one).
+   * Defaults to true. The caller can pass false and send the owner to invitationUrl itself.
+   */
+  sendInvitationEmail?: InputMaybe<Scalars['Boolean']['input']>;
+  /**
    * The short name of the organization (max 5 uppercase letters).
    * If not provided, it will be auto-generated from the name.
    */
@@ -1099,6 +1104,8 @@ export type CreateOrganizationResult = {
   __typename?: 'CreateOrganizationResult';
   /** The list of errors that occurred during the createOrganization mutation. */
   errors: Array<CreateOrganizationError>;
+  /** The registration link for a new owner (null when the owner already had an account). Valid for 48 hours. */
+  invitationUrl?: Maybe<Scalars['String']['output']>;
   /** The created organization object. */
   organization?: Maybe<Organization>;
   /** Indicates whether the createOrganization mutation was successful. */
