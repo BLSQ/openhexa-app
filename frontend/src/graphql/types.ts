@@ -3446,6 +3446,11 @@ export type Mutation = {
   upgradePipelineVersionFromTemplate: UpgradePipelineVersionFromTemplateResult;
   /** Uploads a pipeline. */
   uploadPipeline: UploadPipelineResult;
+  /**
+   * Saves the py-spy profile of the current pipeline run.
+   * Must be called by an authenticated pipeline run that has profiling enabled.
+   */
+  uploadPipelineRunProfile: UploadPipelineRunProfileResult;
   /** Verifies a device for two-factor authentication. */
   verifyDevice: VerifyDeviceResult;
   /** Write text content to a file in a workspace's bucket. Use the overwrite flag to replace an existing file. */
@@ -4113,6 +4118,11 @@ export type MutationUploadPipelineArgs = {
 };
 
 
+export type MutationUploadPipelineRunProfileArgs = {
+  input: UploadPipelineRunProfileInput;
+};
+
+
 export type MutationVerifyDeviceArgs = {
   input: VerifyDeviceInput;
 };
@@ -4508,6 +4518,7 @@ export enum PipelineError {
   DuplicatePipelineVersionName = 'DUPLICATE_PIPELINE_VERSION_NAME',
   FileNotFound = 'FILE_NOT_FOUND',
   InvalidConfig = 'INVALID_CONFIG',
+  InvalidProfile = 'INVALID_PROFILE',
   InvalidTimeoutValue = 'INVALID_TIMEOUT_VALUE',
   InvalidVersionFiles = 'INVALID_VERSION_FILES',
   PermissionDenied = 'PERMISSION_DENIED',
@@ -4662,6 +4673,7 @@ export type PipelineRun = {
   datasetVersions: Array<DatasetVersion>;
   duration?: Maybe<Scalars['Int']['output']>;
   enableDebugLogs: Scalars['Boolean']['output'];
+  enableProfiling: Scalars['Boolean']['output'];
   executionDate?: Maybe<Scalars['DateTime']['output']>;
   hasErrorMessages: Scalars['Boolean']['output'];
   id: Scalars['UUID']['output'];
@@ -4669,6 +4681,7 @@ export type PipelineRun = {
   messages: Array<PipelineRunMessage>;
   outputs: Array<PipelineRunOutput>;
   pipeline: Pipeline;
+  profile?: Maybe<Scalars['JSON']['output']>;
   progress: Scalars['Int']['output'];
   run_id: Scalars['UUID']['output'];
   sendMailNotifications: Scalars['Boolean']['output'];
@@ -5836,6 +5849,7 @@ export type RunDagResult = {
 export type RunPipelineInput = {
   config: Scalars['JSON']['input'];
   enableDebugLogs?: InputMaybe<Scalars['Boolean']['input']>;
+  enableProfiling?: InputMaybe<Scalars['Boolean']['input']>;
   id: Scalars['UUID']['input'];
   sendMailNotifications?: InputMaybe<Scalars['Boolean']['input']>;
   versionId?: InputMaybe<Scalars['UUID']['input']>;
@@ -7032,6 +7046,17 @@ export type UploadPipelineResult = {
   details?: Maybe<Scalars['String']['output']>;
   errors: Array<PipelineError>;
   pipelineVersion?: Maybe<PipelineVersion>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type UploadPipelineRunProfileInput = {
+  profile: Scalars['String']['input'];
+};
+
+/** Represents the result of uploading the profile of a pipeline run. */
+export type UploadPipelineRunProfileResult = {
+  __typename?: 'UploadPipelineRunProfileResult';
+  errors: Array<PipelineError>;
   success: Scalars['Boolean']['output'];
 };
 

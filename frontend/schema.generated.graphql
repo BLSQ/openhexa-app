@@ -3561,6 +3561,12 @@ type Mutation {
   """Uploads a pipeline."""
   uploadPipeline(input: UploadPipelineInput!): UploadPipelineResult!
 
+  """
+  Saves the py-spy profile of the current pipeline run.
+  Must be called by an authenticated pipeline run that has profiling enabled.
+  """
+  uploadPipelineRunProfile(input: UploadPipelineRunProfileInput!): UploadPipelineRunProfileResult!
+
   """Verifies a device for two-factor authentication."""
   verifyDevice(input: VerifyDeviceInput!): VerifyDeviceResult!
 
@@ -3909,6 +3915,7 @@ enum PipelineError {
   DUPLICATE_PIPELINE_VERSION_NAME
   FILE_NOT_FOUND
   INVALID_CONFIG
+  INVALID_PROFILE
   INVALID_TIMEOUT_VALUE
   INVALID_VERSION_FILES
   PERMISSION_DENIED
@@ -4056,6 +4063,7 @@ type PipelineRun {
   datasetVersions: [DatasetVersion!]!
   duration: Int
   enableDebugLogs: Boolean!
+  enableProfiling: Boolean!
   executionDate: DateTime
   hasErrorMessages: Boolean!
   id: UUID!
@@ -4063,6 +4071,7 @@ type PipelineRun {
   messages: [PipelineRunMessage!]!
   outputs: [PipelineRunOutput!]!
   pipeline: Pipeline!
+  profile: JSON
   progress: Int!
   run_id: UUID!
   sendMailNotifications: Boolean!
@@ -4892,6 +4901,7 @@ type RunDAGResult {
 input RunPipelineInput {
   config: JSON!
   enableDebugLogs: Boolean
+  enableProfiling: Boolean
   id: UUID!
   sendMailNotifications: Boolean
   versionId: UUID
@@ -6246,6 +6256,16 @@ type UploadPipelineResult {
   details: String
   errors: [PipelineError!]!
   pipelineVersion: PipelineVersion
+  success: Boolean!
+}
+
+input UploadPipelineRunProfileInput {
+  profile: String!
+}
+
+"""Represents the result of uploading the profile of a pipeline run."""
+type UploadPipelineRunProfileResult {
+  errors: [PipelineError!]!
   success: Boolean!
 }
 

@@ -1,5 +1,7 @@
 import base64
+import gzip
 import io
+import json
 import random
 import string
 import uuid
@@ -1056,6 +1058,127 @@ def test_pipeline(input_file, threshold, enable_debug):
                     {"__typename": "DatabaseTable"},
                 ],
             )
+
+    def upload_profile(self, run, profile: bytes):
+        run.state = PipelineRunState.RUNNING
+        run.save()
+        r = self.run_query(
+            """
+            mutation uploadPipelineRunProfile($input: UploadPipelineRunProfileInput!) {
+                uploadPipelineRunProfile(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"profile": base64.b64encode(profile).decode()}},
+            headers={
+                "HTTP_Authorization": f"bearer {Signer().sign_object(str(run.access_token))}"
+            },
+        )
+        return r["data"]["uploadPipelineRunProfile"]
+
+    def test_upload_pipeline_run_profile(self):
+        self.test_create_pipeline_version()
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
+        run = pipeline.run(
+            user=self.USER_ROOT,
+            pipeline_version=pipeline.last_version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config={},
+            enable_profiling=True,
+        )
+
+        result = self.upload_profile(
+            run,
+            gzip.compress(
+                json.dumps(
+                    [
+                        {
+                            "args": {"filename": "", "line": 0},
+                            "name": 'process 1:"python bootstrap.py --config secret"',
+                            "ph": "B",
+                            "pid": 1,
+                            "tid": 1,
+                            "ts": 0,
+                        },
+                        {
+                            "args": {
+                                "filename": "/home/hexa/pipeline/pipeline.py",
+                                "line": 1,
+                            },
+                            "name": "main",
+                            "ph": "B",
+                            "pid": 1,
+                            "tid": 1,
+                            "ts": 1000,
+                        },
+                        {"ph": "E", "pid": 1, "tid": 1, "ts": 3000},
+                        {"ph": "E", "pid": 1, "tid": 1, "ts": 3000},
+                    ]
+                ).encode()
+            ),
+        )
+
+        self.assertEqual(result, {"success": True, "errors": []})
+        self.client.force_login(self.USER_ROOT)
+        r = self.run_query(
+            """
+            query pipelineRunProfile($id: UUID!) {
+                pipelineRun(id: $id) {
+                    profile
+                }
+            }
+            """,
+            {"id": str(run.id)},
+        )
+        self.assertEqual(
+            r["data"]["pipelineRun"]["profile"],
+            {
+                "duration": 3.0,
+                "frames": ["main (pipeline.py)"],
+                "lanes": [{"name": "main", "nodes": [[0, 1.0, 3.0, []]]}],
+                "files": {"pipeline.py": [[1, 2.0]]},
+            },
+        )
+
+    def test_upload_pipeline_run_profile_invalid(self):
+        self.test_create_pipeline_version()
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
+        run = pipeline.run(
+            user=self.USER_ROOT,
+            pipeline_version=pipeline.last_version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config={},
+            enable_profiling=True,
+        )
+
+        self.assertEqual(
+            self.upload_profile(run, b"not gzip"),
+            {"success": False, "errors": ["INVALID_PROFILE"]},
+        )
+        with patch("hexa.pipelines.profiling.MAX_PROFILE_SIZE", 10):
+            self.assertEqual(
+                self.upload_profile(run, gzip.compress(b"x" * 11)),
+                {"success": False, "errors": ["INVALID_PROFILE"]},
+            )
+        run.refresh_from_db()
+        self.assertIsNone(run.profile)
+
+    def test_upload_pipeline_run_profile_not_profiled(self):
+        self.test_create_pipeline_version()
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
+        run = pipeline.run(
+            user=self.USER_ROOT,
+            pipeline_version=pipeline.last_version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config={},
+        )
+
+        self.assertEqual(
+            self.upload_profile(run, gzip.compress(b"[]")),
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+        )
 
     def test_pipeline_run_file_output_failed(self):
         self.test_create_pipeline_version()
@@ -2362,6 +2485,7 @@ def test_pipeline(input_file, threshold, enable_debug):
         pipeline_run = PipelineRun.objects.first()
         self.assertEqual(pipeline_run.log_level, PipelineRunLogLevel.INFO)
         self.assertFalse(pipeline_run.send_mail_notifications)
+        self.assertFalse(pipeline_run.enable_profiling)
 
     def test_pipeline_new_run_default_timeout(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
@@ -2378,6 +2502,7 @@ def test_pipeline(input_file, threshold, enable_debug):
                     run {
                         timeout
                         status
+                        enableProfiling
                     }
                 }
             }
@@ -2388,6 +2513,7 @@ def test_pipeline(input_file, threshold, enable_debug):
                     "config": {},
                     "sendMailNotifications": True,
                     "enableDebugLogs": True,
+                    "enableProfiling": True,
                 }
             },
         )
@@ -2395,7 +2521,11 @@ def test_pipeline(input_file, threshold, enable_debug):
             {
                 "success": True,
                 "errors": [],
-                "run": {"timeout": 14400, "status": PipelineRunState.QUEUED},
+                "run": {
+                    "timeout": 14400,
+                    "status": PipelineRunState.QUEUED,
+                    "enableProfiling": True,
+                },
             },
             r["data"]["runPipeline"],
         )
@@ -2403,6 +2533,7 @@ def test_pipeline(input_file, threshold, enable_debug):
         pipeline_run = PipelineRun.objects.first()
         self.assertEqual(pipeline_run.log_level, PipelineRunLogLevel.DEBUG)
         self.assertTrue(pipeline_run.send_mail_notifications)
+        self.assertTrue(pipeline_run.enable_profiling)
 
     def test_stop_running_pipeline(self):
         self.test_create_pipeline_version()

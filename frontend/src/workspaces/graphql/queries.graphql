@@ -431,6 +431,7 @@ query WorkspacePipelineRunPage($workspaceSlug: String!, $runId: UUID!) {
 
   pipelineRun(id: $runId) {
     id
+    enableProfiling
     version {
       versionName
       parameters {

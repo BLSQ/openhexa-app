@@ -51,6 +51,7 @@ class TestRunPipeline(TestCase):
         mock_run.pipeline.notebook_path = "/path/to/notebook"
         mock_run.pipeline.code = "pipeline_code"
         mock_run.send_mail_notifications = False
+        mock_run.enable_profiling = False
 
         mock_monitor_container.return_value = (True, "SomeLogs")
 
@@ -71,6 +72,35 @@ class TestRunPipeline(TestCase):
         mock_create_container.assert_called_once_with(
             mock_run, "docker_image", expected_env_vars
         )
+
+    @override_settings(
+        INTERNAL_BASE_URL="http://testserver",
+        DEFAULT_WORKSPACE_IMAGE="default_workspace_image",
+        PIPELINE_SCHEDULER_SPAWNER="docker",
+    )
+    @patch(
+        "hexa.pipelines.management.commands.pipelines_runner.monitor_container_docker"
+    )
+    @patch(
+        "hexa.pipelines.management.commands.pipelines_runner.create_container_docker"
+    )
+    @patch("os.fork", return_value=0)
+    def test_env_vars_profile(self, _, mock_create_container, mock_monitor_container):
+        mock_run = MagicMock(spec=PipelineRun)
+        mock_run.id = 123
+        mock_run.access_token = "someAccessToken"
+        mock_run.log_level = PipelineRunLogLevel.INFO
+        mock_run.pipeline.type = PipelineType.ZIPFILE
+        mock_run.send_mail_notifications = False
+        mock_run.enable_profiling = True
+
+        mock_monitor_container.return_value = (True, "SomeLogs")
+
+        with self.assertRaises(SystemExit):
+            run_pipeline(mock_run)
+
+        env_vars = mock_create_container.call_args[0][2]
+        self.assertEqual(env_vars["HEXA_PROFILE"], "true")
 
     @override_settings(
         INTERNAL_BASE_URL="http://testserver",
@@ -213,6 +243,34 @@ class TestKubernetesPipelineIntegration(TestCase):
         self.assertEqual(container.image, "test-image:latest")
         self.assertEqual(container.resources["limits"]["cpu"], "1000m")
         self.assertEqual(container.resources["limits"]["memory"], "1Gi")
+        self.assertEqual(
+            container.security_context["capabilities"]["add"], ["SYS_ADMIN"]
+        )
+
+    @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
+    @patch.dict(os.environ, {"IS_LOCAL_DEV": "False"}, clear=False)
+    @patch("hexa.pipelines.management.commands.pipelines_runner.k8s_config")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.CoreV1Api")
+    def test_create_pod_adds_sys_ptrace_when_profiling(
+        self, mock_k8s_client, mock_config
+    ):
+        mock_api = self._create_mock_kubernetes_api()
+        mock_k8s_client.return_value = mock_api
+        self.run.enable_profiling = True
+
+        create_pod_kube(
+            self.run,
+            "test-image:latest",
+            {"HEXA_WORKSPACE": "test-workspace", "HEXA_RUN_ID": str(self.run.id)},
+        )
+
+        container = mock_api.create_namespaced_pod.call_args[1]["body"].spec.containers[
+            0
+        ]
+        self.assertEqual(
+            container.security_context["capabilities"]["add"],
+            ["SYS_ADMIN", "SYS_PTRACE"],
+        )
 
     @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
     @patch.dict(os.environ, {"IS_LOCAL_DEV": "False"}, clear=False)

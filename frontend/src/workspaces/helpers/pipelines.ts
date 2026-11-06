@@ -273,6 +273,7 @@ export async function runPipeline(
   versionId?: string,
   sendMailNotifications?: boolean,
   enableDebugLogs?: boolean,
+  enableProfiling?: boolean,
 ) {
   const client = getApolloClient();
 
@@ -300,6 +301,7 @@ export async function runPipeline(
         versionId,
         sendMailNotifications,
         enableDebugLogs,
+        enableProfiling,
       },
     },
     update: (cache, { data }) => {

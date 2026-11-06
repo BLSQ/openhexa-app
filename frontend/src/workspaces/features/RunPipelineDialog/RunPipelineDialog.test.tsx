@@ -103,6 +103,7 @@ describe("RunPipelineDialog", () => {
       pipeline.currentVersion.id,
       true,
       false,
+      false,
     );
   });
 
@@ -138,6 +139,7 @@ describe("RunPipelineDialog", () => {
       pipeline.currentVersion.id,
       false,
       true,
+      false,
     );
   });
 
@@ -220,6 +222,7 @@ describe("RunPipelineDialog", () => {
       pipeline.currentVersion.id,
       true,
       false,
+      false,
     );
   });
 
@@ -284,6 +287,7 @@ describe("RunPipelineDialog", () => {
       pipeline.currentVersion.id,
       true,
       false,
+      false,
     );
   });
 
@@ -335,6 +339,7 @@ describe("RunPipelineDialog", () => {
       pipeline.currentVersion.id,
       true,
       false,
+      false,
     );
   });
 
@@ -385,6 +390,7 @@ describe("RunPipelineDialog", () => {
       { string: "coucou" },
       pipeline.currentVersion.id,
       true,
+      false,
       false,
     );
   });
@@ -438,6 +444,7 @@ describe("RunPipelineDialog", () => {
       { choices_param: 2 },
       pipeline.currentVersion.id,
       true,
+      false,
       false,
     );
   });
@@ -507,6 +514,7 @@ describe("RunPipelineDialog", () => {
       pipeline.currentVersion.id,
       true,
       false,
+      false,
     );
   });
 
@@ -547,6 +555,7 @@ describe("RunPipelineDialog", () => {
       { run_report_only: false, data_input: "real" },
       pipeline.currentVersion.id,
       true,
+      false,
       false,
     );
   });

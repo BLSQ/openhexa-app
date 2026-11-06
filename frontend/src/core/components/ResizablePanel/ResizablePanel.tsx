@@ -39,6 +39,8 @@ type ResizablePanelProps = {
   reserve?: number;
   /** Dragging past the floor closes the panel entirely; set false to forbid it. */
   collapsible?: boolean;
+  /** Start closed until the user opens it. */
+  defaultCollapsed?: boolean;
   /** The panel's name, used to label its separator and collapse toggle. */
   label: string;
   /** Only needed to tell apart two panels on the same side of the same page. */
@@ -130,6 +132,7 @@ const ResizablePanel = ({
   maxSize,
   reserve = 0,
   collapsible = true,
+  defaultCollapsed = false,
   label,
   id,
   handleRef,
@@ -142,7 +145,7 @@ const ResizablePanel = ({
   // lets the panel come back at its own size without a second layout.
   const [remembered, remember] = useCookieState<PanelLayout>({
     name: cookieName,
-    defaultValue: { size: defaultSize, collapsed: false },
+    defaultValue: { size: defaultSize, collapsed: defaultCollapsed },
   });
   const horizontal = isHorizontal(side);
   const inverted = isInverted(side);
