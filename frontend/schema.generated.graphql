@@ -6167,6 +6167,7 @@ input UpdateWorkspaceInput {
   description: String
   dockerImage: String
   name: String
+  publicFilesEnabled: Boolean
   slug: String!
   tags: [String!]
 }
@@ -6459,6 +6460,9 @@ type Workspace {
   pipelineLastRunStatuses: [PipelineRunStatus!]!
   pipelineTags: [String!]!
   pipelineTemplateTags: [String!]!
+  publicFilesAvailable: Boolean!
+  publicFilesEnabled: Boolean!
+  publicFilesUrl: String
 
   """The saved queries of the workspace."""
   savedQueries(orderBy: SavedQueryOrderBy! = UPDATED_AT_DESC, page: Int = 1, perPage: Int = 15, query: String): SavedQueryPage!
@@ -6582,6 +6586,7 @@ type WorkspacePermissions {
   generateToken: Boolean!
   launchNotebookServer: Boolean!
   manageMembers: Boolean!
+  managePublicFiles: Boolean!
   manageTags: Boolean!
 
   """Permission to make one's own saved queries of the workspace public."""

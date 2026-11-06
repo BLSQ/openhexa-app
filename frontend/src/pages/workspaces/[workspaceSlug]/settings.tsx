@@ -15,6 +15,7 @@ import {
 } from "workspaces/graphql/queries.generated";
 import DataCard from "core/components/DataCard";
 import TextProperty from "core/components/DataCard/TextProperty";
+import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import { OnSaveFn } from "core/components/DataCard/FormSection";
 import { useUpdateWorkspaceMutation } from "workspaces/graphql/mutations.generated";
 import { useState } from "react";
@@ -72,6 +73,18 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
               code,
             }),
           ),
+        },
+      },
+    });
+    await refetch();
+  };
+
+  const onPublicFilesSave: OnSaveFn = async (values) => {
+    await mutate({
+      variables: {
+        input: {
+          slug: workspace.slug,
+          publicFilesEnabled: values.publicFilesEnabled,
         },
       },
     });
@@ -184,6 +197,28 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                     )}
                   />
                 </DataCard.FormSection>
+                {/* Its own section, so that saving the general settings never sends a field reserved to admins */}
+                {workspace.publicFilesAvailable && (
+                  <DataCard.FormSection
+                    title={t("Public files")}
+                    onSave={
+                      workspace.permissions.managePublicFiles
+                        ? onPublicFilesSave
+                        : undefined
+                    }
+                  >
+                    <p className="text-sm text-gray-500">
+                      {t(
+                        'When enabled, every file in the "public" folder at the root of the workspace filesystem can be downloaded by anyone who has its link, without signing in. Folder contents are never listed.',
+                      )}
+                    </p>
+                    <SwitchProperty
+                      id="publicFilesEnabled"
+                      accessor="publicFilesEnabled"
+                      label={t("Enabled")}
+                    />
+                  </DataCard.FormSection>
+                )}
               </DataCard>
             </Tabs.Tab>
 

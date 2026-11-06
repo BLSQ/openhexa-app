@@ -8,4 +8,5 @@ class FilesConfig(CoreAppConfig):
     ANONYMOUS_URLS = [
         "files:upload_file",
         "files:download_file",
+        "files:public_file",
     ]
