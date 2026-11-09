@@ -1741,7 +1741,7 @@ export type DatasetPermissions = {
   /** Permissions to delete the dataset */
   delete: Scalars['Boolean']['output'];
   /** Permission to make the dataset public, or to take a public dataset back to the organization or workspace. */
-  publish: Scalars['Boolean']['output'];
+  share: Scalars['Boolean']['output'];
   /** Permissions to edit the dataset */
   update: Scalars['Boolean']['output'];
 };
@@ -6444,11 +6444,11 @@ export type UpdateDatasetInput = {
   datasetId: Scalars['ID']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
-  /** The slug of the dataset's permalink. Requires the `publish` permission and cannot be changed once set; derived from the dataset slug when making the dataset public without one. */
+  /** The slug of the dataset's permalink. Requires the `share` permission and cannot be changed once set; derived from the dataset slug when making the dataset public without one. */
   publicSlug?: InputMaybe<Scalars['String']['input']>;
   /** @deprecated Use `visibility`. */
   sharedWithOrganization?: InputMaybe<Scalars['Boolean']['input']>;
-  /** Making the dataset PUBLIC, or taking it back, requires the `publish` permission. */
+  /** Making the dataset PUBLIC, or taking it back, requires the `share` permission. */
   visibility?: InputMaybe<DatasetVisibility>;
 };
 

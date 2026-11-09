@@ -406,7 +406,7 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                 "DatasetFileSample": {"sample", "status", "statusReason"},
                 "DatasetLink": {"createdBy", "permissions"},
                 # Resolved through `has_perm`, like `PipelinePermissions`.
-                "DatasetPermissions": {"update", "delete", "createVersion", "publish"},
+                "DatasetPermissions": {"update", "delete", "createVersion", "share"},
                 "DatasetVersionPermissions": {"update", "delete", "download"},
                 "DatasetLinkPermissions": {"delete", "pin"},
                 # Only reachable through `Query.workspace`, i.e. with USER_READ too.

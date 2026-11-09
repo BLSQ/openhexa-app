@@ -29,7 +29,7 @@ def delete_dataset(principal: User, dataset: Dataset):
     return create_dataset(principal, dataset.workspace)
 
 
-def publish_dataset(principal: User, dataset: Dataset):
+def share_dataset(principal: User, dataset: Dataset):
     """Making a dataset public, or taking it back, is up to its author (while they can
     still edit the workspace's datasets), a workspace admin or an organization
     admin/owner.

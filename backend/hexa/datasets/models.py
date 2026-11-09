@@ -270,7 +270,7 @@ class Dataset(MetadataMixin, Base):
 
         with transaction.atomic():
             # Locked and re-read: the checks below must use the stored visibility and
-            # slug, or a stale save could revert a concurrent publish or unpublish.
+            # slug, or a stale save could revert a concurrent change to or from PUBLIC.
             self.refresh_from_db(from_queryset=Dataset.objects.select_for_update())
             self._persisted_public_slug = self.public_slug
 
@@ -285,7 +285,7 @@ class Dataset(MetadataMixin, Base):
 
             # Gating only on change: a client echoing back the current values does
             # not need the stricter permission. Claiming the permalink is a
-            # publisher's call, even ahead of publishing.
+            # call for whoever may share publicly, even ahead of making it public.
             toggles_public = (
                 visibility is not None
                 and visibility != self.visibility
@@ -294,7 +294,7 @@ class Dataset(MetadataMixin, Base):
             public_slug = kwargs.get("public_slug")
             claims_slug = public_slug is not None and public_slug != self.public_slug
             if (toggles_public or claims_slug) and not principal.has_perm(
-                "datasets.publish_dataset", self
+                "datasets.share_dataset", self
             ):
                 raise PermissionDenied
 

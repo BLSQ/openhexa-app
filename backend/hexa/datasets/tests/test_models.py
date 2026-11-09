@@ -1137,7 +1137,7 @@ class DatasetVisibilityTest(BaseTestMixin, TestCase):
         )
         self.assertIn(self.dataset, Dataset.objects.filter_for_user(other_org_member))
 
-    def test_who_can_publish(self):
+    def test_who_can_share_publicly(self):
         for user, allowed in [
             (self.USER_EDITOR, True),  # author
             (self.USER_ADMIN, True),  # workspace admin
@@ -1147,18 +1147,18 @@ class DatasetVisibilityTest(BaseTestMixin, TestCase):
         ]:
             with self.subTest(user=user.email):
                 self.assertEqual(
-                    allowed, user.has_perm("datasets.publish_dataset", self.dataset)
+                    allowed, user.has_perm("datasets.share_dataset", self.dataset)
                 )
 
-    def test_author_demoted_to_viewer_cannot_publish(self):
+    def test_author_demoted_to_viewer_cannot_share_publicly(self):
         WorkspaceMembership.objects.filter(
             workspace=self.WORKSPACE, user=self.USER_EDITOR
         ).update(role=WorkspaceMembershipRole.VIEWER)
         self.assertFalse(
-            self.USER_EDITOR.has_perm("datasets.publish_dataset", self.dataset)
+            self.USER_EDITOR.has_perm("datasets.share_dataset", self.dataset)
         )
 
-    def test_publish_claims_slug_derived_from_dataset_slug(self):
+    def test_sharing_publicly_claims_slug_derived_from_dataset_slug(self):
         self.dataset.update_if_has_perm(
             principal=self.USER_EDITOR, visibility=DatasetVisibility.PUBLIC
         )
@@ -1166,7 +1166,7 @@ class DatasetVisibilityTest(BaseTestMixin, TestCase):
         self.assertEqual(DatasetVisibility.PUBLIC, self.dataset.visibility)
         self.assertEqual("my-dataset", self.dataset.public_slug)
 
-    def test_publish_with_chosen_slug(self):
+    def test_share_publicly_with_chosen_slug(self):
         self.dataset.update_if_has_perm(
             principal=self.USER_EDITOR,
             visibility=DatasetVisibility.PUBLIC,
@@ -1175,7 +1175,7 @@ class DatasetVisibilityTest(BaseTestMixin, TestCase):
         self.dataset.refresh_from_db()
         self.assertEqual("malaria-cases", self.dataset.public_slug)
 
-    def test_publish_with_invalid_slug(self):
+    def test_share_publicly_with_invalid_slug(self):
         for slug, code in [
             ("Not A Slug", "PUBLIC_SLUG_INVALID_FORMAT"),
             ("openhexa", "PUBLIC_SLUG_RESERVED"),
@@ -1192,7 +1192,7 @@ class DatasetVisibilityTest(BaseTestMixin, TestCase):
         self.assertEqual(DatasetVisibility.WORKSPACE, self.dataset.visibility)
         self.assertIsNone(self.dataset.public_slug)
 
-    def test_publish_with_taken_slug(self):
+    def test_share_publicly_with_taken_slug(self):
         other = Dataset.objects.create_if_has_perm(
             self.USER_EDITOR, self.WORKSPACE, name="Other", description=""
         )
@@ -1208,7 +1208,7 @@ class DatasetVisibilityTest(BaseTestMixin, TestCase):
         self.dataset.refresh_from_db()
         self.assertEqual(DatasetVisibility.WORKSPACE, self.dataset.visibility)
 
-    def test_public_slug_is_kept_when_republishing(self):
+    def test_public_slug_is_kept_when_shared_publicly_again(self):
         self.dataset.update_if_has_perm(
             principal=self.USER_EDITOR,
             visibility=DatasetVisibility.PUBLIC,
@@ -1229,7 +1229,7 @@ class DatasetVisibilityTest(BaseTestMixin, TestCase):
             )
         self.assertEqual("PUBLIC_SLUG_LOCKED", ctx.exception.code)
 
-    def test_non_publisher_cannot_publish_or_unpublish(self):
+    def test_editor_without_share_cannot_make_public_or_take_back(self):
         with self.assertRaises(PermissionDenied):
             self.dataset.update_if_has_perm(
                 principal=self.USER_OTHER_EDITOR, visibility=DatasetVisibility.PUBLIC
@@ -1248,7 +1248,7 @@ class DatasetVisibilityTest(BaseTestMixin, TestCase):
                 principal=self.USER_OTHER_EDITOR, shared_with_organization=False
             )
 
-    def test_non_publisher_can_edit_public_dataset(self):
+    def test_editor_without_share_can_edit_public_dataset(self):
         self.dataset.update_if_has_perm(
             principal=self.USER_EDITOR, visibility=DatasetVisibility.PUBLIC
         )
@@ -1263,7 +1263,7 @@ class DatasetVisibilityTest(BaseTestMixin, TestCase):
         self.assertEqual("Renamed", self.dataset.name)
         self.assertEqual(DatasetVisibility.PUBLIC, self.dataset.visibility)
 
-    def test_non_publisher_cannot_claim_slug(self):
+    def test_editor_without_share_cannot_claim_slug(self):
         with self.assertRaises(PermissionDenied):
             self.dataset.update_if_has_perm(
                 principal=self.USER_OTHER_EDITOR, public_slug="malaria-cases"
@@ -1277,7 +1277,7 @@ class DatasetVisibilityTest(BaseTestMixin, TestCase):
         self.assertEqual(DatasetVisibility.ORGANIZATION, self.dataset.visibility)
         self.assertIsNone(self.dataset.public_slug)
 
-    def test_stale_instance_does_not_revert_concurrent_publish(self):
+    def test_stale_instance_does_not_revert_concurrent_public_share(self):
         Dataset.objects.filter(pk=self.dataset.pk).update(
             visibility=DatasetVisibility.PUBLIC, public_slug="malaria-cases"
         )
@@ -1288,7 +1288,7 @@ class DatasetVisibilityTest(BaseTestMixin, TestCase):
         self.assertEqual(DatasetVisibility.PUBLIC, self.dataset.visibility)
         self.assertEqual("malaria-cases", self.dataset.public_slug)
 
-    def test_stale_instance_cannot_unpublish_without_permission(self):
+    def test_stale_instance_cannot_take_back_public_without_permission(self):
         stale = Dataset.objects.get(pk=self.dataset.pk)
         Dataset.objects.filter(pk=self.dataset.pk).update(
             visibility=DatasetVisibility.PUBLIC, public_slug="malaria-cases"

@@ -35,7 +35,7 @@ type DatasetPermissions {
   "Permissions to create a new version of the dataset"
   createVersion: Boolean!
   "Permission to make the dataset public, or to take a public dataset back to the organization or workspace."
-  publish: Boolean!
+  share: Boolean!
 }
 
 """
@@ -232,9 +232,9 @@ input UpdateDatasetInput {
   name: String
   description: String
   sharedWithOrganization: Boolean @deprecated(reason: "Use `visibility`.")
-  "Making the dataset PUBLIC, or taking it back, requires the `publish` permission."
+  "Making the dataset PUBLIC, or taking it back, requires the `share` permission."
   visibility: DatasetVisibility
-  "The slug of the dataset's permalink. Requires the `publish` permission and cannot be changed once set; derived from the dataset slug when making the dataset public without one."
+  "The slug of the dataset's permalink. Requires the `share` permission and cannot be changed once set; derived from the dataset slug when making the dataset public without one."
   publicSlug: String
 }
 

@@ -1342,7 +1342,7 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
             r["data"]["updateDataset"],
         )
 
-    def test_publish_dataset_with_chosen_slug(self):
+    def test_share_dataset_publicly_with_chosen_slug(self):
         self.client.force_login(self.org_admin)
         mutation = """
             mutation UpdateDataset ($input: UpdateDatasetInput!) {
@@ -1351,7 +1351,7 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
                         visibility
                         publicSlug
                         sharedWithOrganization
-                        permissions { publish }
+                        permissions { share }
                     }
                     success
                     errors
@@ -1377,7 +1377,7 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
                     "visibility": "PUBLIC",
                     "publicSlug": "test-public-dataset",
                     "sharedWithOrganization": True,
-                    "permissions": {"publish": True},
+                    "permissions": {"share": True},
                 },
             },
             r["data"]["updateDataset"],
