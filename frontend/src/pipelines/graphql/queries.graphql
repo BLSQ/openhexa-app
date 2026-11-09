@@ -116,3 +116,16 @@ query PipelineRunPoller($runId: UUID!) {
         hasErrorMessages
       }
 }
+query PipelineRunProfile($runId: UUID!) {
+  pipelineRun(id: $runId) {
+    id
+    profile
+    version {
+      id
+      versionName
+      files {
+        ...FilesEditor_file
+      }
+    }
+  }
+}

@@ -62,6 +62,7 @@ _PIPELINE_RUN = _merge(
             "hasErrorMessages",
             "timeout",
             "enableDebugLogs",
+            "enableProfiling",
             "sendMailNotifications",
             "user",
             "stoppedBy",

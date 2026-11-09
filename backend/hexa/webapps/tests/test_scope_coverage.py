@@ -60,6 +60,8 @@ NEVER_GRANTED = {
     },
     # Pipeline source code.
     "PipelineVersion": {"zipfile", "files", "dag", "templateVersion"},
+    # Profiles name the pipeline's files, functions and lines.
+    "PipelineRun": {"profile"},
     # Table content is only readable through DATABASE_READ's saved queries.
     "DatabaseTable": {"rows", "sample"},
     "DatasetVersionFile": {"uri"},

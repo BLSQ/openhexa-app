@@ -34,6 +34,7 @@ from hexa.pipelines.models import (
     PipelineType,
     PipelineVersion,
 )
+from hexa.pipelines.profiling import InvalidProfile, build_profile, decompress_profile
 from hexa.tags.models import InvalidTag, Tag
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
@@ -428,6 +429,7 @@ def resolve_run_pipeline(_, info, **kwargs):
                 if input.get("enable_debug_logs", False)
                 else PipelineRunLogLevel.INFO
             ),
+            enable_profiling=input.get("enable_profiling", False),
         )
         track(
             request,
@@ -826,6 +828,28 @@ def resolve_add_pipeline_output(_, info, **kwargs):
 
     pipeline_run.add_output(input["uri"], input.get("type"), input.get("name"))
 
+    return {"success": True, "errors": []}
+
+
+@pipelines_mutations.field("uploadPipelineRunProfile")
+def resolve_upload_pipeline_run_profile(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    if not request.user.is_authenticated or not isinstance(
+        request.user, PipelineRunUser
+    ):
+        return {"success": False, "errors": ["PIPELINE_NOT_FOUND"]}
+
+    pipeline_run = PipelineRun.objects.get(pk=request.user.pipeline_run.id)
+    if not pipeline_run.enable_profiling:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+    try:
+        pipeline_run.profile = build_profile(
+            decompress_profile(base64.b64decode(kwargs["input"]["profile"]))
+        )
+    except (ValueError, InvalidProfile):
+        return {"success": False, "errors": ["INVALID_PROFILE"]}
+    pipeline_run.save(update_fields=["profile"])
     return {"success": True, "errors": []}
 
 

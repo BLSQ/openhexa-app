@@ -1,6 +1,7 @@
 import { json } from "@codemirror/lang-json";
 import { python } from "@codemirror/lang-python";
 import { unifiedMergeView } from "@codemirror/merge";
+import { Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { DocumentIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
@@ -30,6 +31,7 @@ type FileEditorPaneProps = {
   hasSaveHandler: boolean;
   /** When set, the Save button is disabled and shows this as its tooltip. */
   saveDisabledReason?: string;
+  fileExtensions?: (file: FileNode) => Extension[];
 };
 
 const FileEditorPane = ({
@@ -49,6 +51,7 @@ const FileEditorPane = ({
   onRestore,
   hasSaveHandler,
   saveDisabledReason,
+  fileExtensions,
 }: FileEditorPaneProps) => {
   const { t } = useTranslation();
 
@@ -116,8 +119,9 @@ const FileEditorPane = ({
             }),
           ]
         : []),
+      ...(selectedFile && fileExtensions ? fileExtensions(selectedFile) : []),
     ],
-    [isDiffMode, selectedFile?.content],
+    [isDiffMode, selectedFile, fileExtensions],
   );
 
   if (!selectedFile) {
