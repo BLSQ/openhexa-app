@@ -683,10 +683,10 @@ def resolve_delete_organization_member(_, info, **kwargs):
 
     try:
         membership = OrganizationMembership.objects.get(id=delete_input["id"])
+        membership.delete_if_has_perm(principal=principal)
         WorkspaceMembership.objects.filter(
             user=membership.user, workspace__organization=membership.organization
         ).delete()
-        membership.delete_if_has_perm(principal=principal)
 
         return {"success": True, "errors": []}
 

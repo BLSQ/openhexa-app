@@ -305,6 +305,70 @@ class OrganizationMemberTest(GraphQLTestCase, OrganizationTestMixin):
             r["data"]["deleteOrganizationMember"],
         )
 
+    def test_delete_organization_member_by_member_keeps_workspace_memberships(self):
+        workspace = self.create_workspace(
+            self.owner, self.organization, "Workspace", "Description"
+        )
+        WorkspaceMembership.objects.create(
+            user=self.other_member,
+            workspace=workspace,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+        self.client.force_login(self.member)
+        r = self.run_query(
+            """
+            mutation DeleteOrganizationMember($input: DeleteOrganizationMemberInput!) {
+                deleteOrganizationMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"id": str(self.other_member_membership.id)}},
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["deleteOrganizationMember"],
+        )
+        self.assertTrue(
+            WorkspaceMembership.objects.filter(
+                user=self.other_member, workspace=workspace
+            ).exists()
+        )
+
+    def test_delete_organization_member_removes_workspace_memberships(self):
+        workspace = self.create_workspace(
+            self.owner, self.organization, "Workspace", "Description"
+        )
+        WorkspaceMembership.objects.create(
+            user=self.member,
+            workspace=workspace,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation DeleteOrganizationMember($input: DeleteOrganizationMemberInput!) {
+                deleteOrganizationMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"id": str(self.member_membership.id)}},
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["deleteOrganizationMember"],
+        )
+        self.assertFalse(
+            WorkspaceMembership.objects.filter(
+                user=self.member, workspace=workspace
+            ).exists()
+        )
+
     def test_organization_members_query(self):
         self.client.force_login(self.owner)
         r = self.run_query(
