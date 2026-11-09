@@ -1,0 +1,11 @@
+-- Read-only export of every pipeline the scheduler considers (same filters as
+-- hexa/pipelines/management/commands/pipelines_scheduler.py: has a schedule,
+-- not soft-deleted, workspace not archived). One indexed scan, no cron expansion;
+-- the heavy lifting happens locally in scheduled_pipelines_heatmap.py.
+--
+-- Usage (psql, ideally against the read replica):
+--   psql "$DATABASE_URL" -f export_scheduled_pipelines.sql
+-- Produces scheduled_pipelines.csv in the current directory.
+--
+-- \copy must stay on a single line.
+\copy (SELECT p.id, w.slug AS workspace, p.code, p.name, p.schedule, p.cpu_request, p.memory_request FROM pipelines_pipeline p JOIN workspaces_workspace w ON w.id = p.workspace_id WHERE p.schedule IS NOT NULL AND p.schedule <> '' AND p.deleted_at IS NULL AND w.archived = false ORDER BY w.slug, p.code) TO 'scheduled_pipelines.csv' WITH (FORMAT csv, HEADER)
