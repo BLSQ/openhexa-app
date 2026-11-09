@@ -1196,7 +1196,7 @@ class DatasetVisibilityTest(BaseTestMixin, TestCase):
         other = Dataset.objects.create_if_has_perm(
             self.USER_EDITOR, self.WORKSPACE, name="Other", description=""
         )
-        other.ensure_public_slug("malaria-cases")
+        other.claim_public_slug("malaria-cases")
 
         with self.assertRaises(ValidationError) as ctx:
             self.dataset.update_if_has_perm(

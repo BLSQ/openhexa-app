@@ -226,37 +226,6 @@ class Dataset(MetadataMixin, Base):
     def shared_with_organization(self) -> bool:
         return self.visibility in ORGANIZATION_WIDE_VISIBILITIES
 
-    def ensure_public_slug(self, slug: str | None = None) -> str:
-        """Public slugs are only claimed once needed, then never change. The conditional
-        update keeps concurrent callers from overwriting each other's slug.
-
-        A requested ``slug`` is tried once, raising a ``ValidationError`` when it is
-        invalid, taken, or differs from the one already claimed. Without one, a slug is
-        derived from the dataset slug.
-        """
-        if slug is not None and not self.public_slug:
-            validate_public_slug(slug)
-        while not self.public_slug:
-            try:
-                with transaction.atomic():
-                    Dataset.objects.filter(pk=self.pk, public_slug__isnull=True).update(
-                        public_slug=slug
-                        if slug is not None
-                        else create_dataset_public_slug(self.slug)
-                    )
-            except IntegrityError:
-                if slug is not None:
-                    raise ValidationError(
-                        "This public slug is already taken.", code="PUBLIC_SLUG_TAKEN"
-                    )
-                continue
-            self.refresh_from_db(fields=["public_slug"])
-        self._persisted_public_slug = self.public_slug
-        # Also catches a concurrent caller having claimed another slug first.
-        if slug is not None and slug != self.public_slug:
-            raise public_slug_locked_error()
-        return self.public_slug
-
     @property
     def latest_version(self):
         versions = self.get_prefetched("versions")
@@ -298,10 +267,10 @@ class Dataset(MetadataMixin, Base):
             ):
                 raise PermissionDenied
 
-            if claims_slug or (
-                toggles_public and visibility == DatasetVisibility.PUBLIC
-            ):
-                self.ensure_public_slug(public_slug)
+            if claims_slug:
+                self.claim_public_slug(public_slug)
+            elif toggles_public and visibility == DatasetVisibility.PUBLIC:
+                self.ensure_public_slug()
 
             for key in ["name", "description"]:
                 if key in kwargs:
@@ -322,6 +291,43 @@ class Dataset(MetadataMixin, Base):
         if self.shared_with_organization:
             return self.visibility
         return DatasetVisibility.ORGANIZATION
+
+    def claim_public_slug(self, slug: str):
+        """Claim a slug chosen by the user, raising a ``ValidationError`` when it is
+        invalid, taken, or another slug was already claimed.
+        """
+        if not self.public_slug:
+            validate_public_slug(slug)
+            try:
+                with transaction.atomic():
+                    Dataset.objects.filter(pk=self.pk, public_slug__isnull=True).update(
+                        public_slug=slug
+                    )
+            except IntegrityError:
+                raise ValidationError(
+                    "This public slug is already taken.", code="PUBLIC_SLUG_TAKEN"
+                )
+            self.refresh_from_db(fields=["public_slug"])
+            self._persisted_public_slug = self.public_slug
+        # Also catches a concurrent caller having claimed another slug first.
+        if slug != self.public_slug:
+            raise public_slug_locked_error()
+
+    def ensure_public_slug(self) -> str:
+        """Public slugs are only claimed once needed, then never change. The conditional
+        update keeps concurrent callers from overwriting each other's slug.
+        """
+        while not self.public_slug:
+            try:
+                with transaction.atomic():
+                    Dataset.objects.filter(pk=self.pk, public_slug__isnull=True).update(
+                        public_slug=create_dataset_public_slug(self.slug)
+                    )
+            except IntegrityError:
+                continue
+            self.refresh_from_db(fields=["public_slug"])
+        self._persisted_public_slug = self.public_slug
+        return self.public_slug
 
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("datasets.delete_dataset", self):
