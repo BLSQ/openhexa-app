@@ -530,6 +530,7 @@ class Pipeline(SoftDeletedModel):
         config: typing.Mapping[typing.Dict, typing.Any] | None = None,
         send_mail_notifications: bool = True,
         log_level: PipelineRunLogLevel = PipelineRunLogLevel.INFO,
+        enable_profiling: bool = False,
     ):
         if pipeline_version and config:
             pipeline_version.validate_config_types(config)
@@ -568,6 +569,7 @@ class Pipeline(SoftDeletedModel):
             memory_limit=(subscription and subscription.pipeline_memory_limit)
             or settings.PIPELINE_DEFAULT_CONTAINER_MEMORY_LIMIT,
             log_level=log_level,
+            enable_profiling=enable_profiling,
         )
 
         return run
@@ -962,6 +964,8 @@ class PipelineRun(Base, WithStatus):
     log_level = models.IntegerField(
         choices=PipelineRunLogLevel.choices, default=PipelineRunLogLevel.INFO
     )
+    enable_profiling = models.BooleanField(default=False)
+    profile = models.JSONField(null=True, blank=True)
     objects = PipelineRunQuerySet.as_manager()
 
     @property

@@ -25,6 +25,7 @@ import {
 import isNil from "lodash/isNil";
 import { useTranslation } from "next-i18next";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
+import RunProfile from "pipelines/features/RunProfile";
 import RunLogs from "pipelines/features/RunLogs";
 import RunMessages from "pipelines/features/RunMessages";
 import { formatParamValue } from "pipelines/helpers/format";
@@ -395,6 +396,13 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
             </Block.Section>
             <Block.Section title={t("Logs")} collapsible defaultOpen={false}>
               <RunLogs run={run} />
+            </Block.Section>
+            <Block.Section title={t("Profile")} collapsible defaultOpen={false}>
+              <RunProfile
+                runId={run.id}
+                enableProfiling={run.enableProfiling}
+                isFinished={Boolean(isFinished)}
+              />
             </Block.Section>
           </Block>
         </WorkspaceLayout.PageContent>

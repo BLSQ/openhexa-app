@@ -81,7 +81,12 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
 
   const form = useForm<{ [key: string]: any }>({
     async onSubmit(values) {
-      const { sendMailNotifications, enableDebugLogs, ...params } = values;
+      const {
+        sendMailNotifications,
+        enableDebugLogs,
+        enableProfiling,
+        ...params
+      } = values;
       if (!activeVersion) {
         throw new Error("No active version found");
       }
@@ -91,6 +96,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
         activeVersion!.id,
         sendMailNotifications,
         enableDebugLogs,
+        enableProfiling,
       );
       await router.push(
         `/workspaces/${encodeURIComponent(
@@ -107,12 +113,14 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
         return {
           sendMailNotifications: true,
           enableDebugLogs: false,
+          enableProfiling: false,
           ...run.config,
         };
       } else if (activeVersion) {
         return {
           sendMailNotifications: true,
           enableDebugLogs: false,
+          enableProfiling: false,
           ...activeVersion.config,
         };
       }
@@ -344,6 +352,27 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
                             label={t("Show debug messages")}
                             help={t(
                               "Debug messages will be shown for this run.",
+                            )}
+                          />
+                        </Field>
+                        <Field
+                          name="profiling"
+                          label={t("Profiling")}
+                          required
+                          className="mt-4"
+                        >
+                          <Checkbox
+                            checked={form.formData.enableProfiling}
+                            name="enableProfiling"
+                            onChange={(event) =>
+                              form.setFieldValue(
+                                "enableProfiling",
+                                event.target.checked,
+                              )
+                            }
+                            label={t("Profile this run")}
+                            help={t(
+                              "Shows which functions of your pipeline take the most time, on the run page.",
                             )}
                           />
                         </Field>

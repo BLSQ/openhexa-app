@@ -10,6 +10,7 @@ import { PipelineRunDataCard_DagRunFragmentDoc, PipelineRunDataCard_DagFragmentD
 import { PipelineRunForm_DagFragmentDoc } from '../features/PipelineRunForm/PipelineRunForm.generated';
 import { PipelinesPicker_ValueFragmentDoc } from '../features/PipelinesPicker/PipelinesPicker.generated';
 import { UsePipelineRunPoller_RunFragmentDoc } from '../hooks/usePipelineRunPoller/usePipelineRunPoller.generated';
+import { FilesEditor_FileFragmentDoc } from '../../workspaces/features/FilesEditor/FilesEditor.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type PipelinesPageQueryVariables = Types.Exact<{
@@ -55,6 +56,13 @@ export type PipelineRunPollerQueryVariables = Types.Exact<{
 
 
 export type PipelineRunPollerQuery = { __typename?: 'Query', run?: { __typename?: 'PipelineRun', duration?: number | null, progress: number, hasErrorMessages: boolean, id: string, status: Types.PipelineRunStatus } | null };
+
+export type PipelineRunProfileQueryVariables = Types.Exact<{
+  runId: Types.Scalars['UUID']['input'];
+}>;
+
+
+export type PipelineRunProfileQuery = { __typename?: 'Query', pipelineRun?: { __typename?: 'PipelineRun', id: string, profile?: any | null, version?: { __typename?: 'PipelineVersion', id: string, versionName: string, files: Array<{ __typename?: 'FileNode', id: string, name: string, path: string, type: Types.FileType, content?: string | null, encoding?: Types.FileEncoding | null, parentId?: string | null, autoSelect: boolean, language?: string | null, lineCount?: number | null, size?: number | null, tooLarge?: boolean | null }> } | null } | null };
 
 
 export const PipelinesPageDocument = gql`
@@ -389,3 +397,51 @@ export type PipelineRunPollerQueryHookResult = ReturnType<typeof usePipelineRunP
 export type PipelineRunPollerLazyQueryHookResult = ReturnType<typeof usePipelineRunPollerLazyQuery>;
 export type PipelineRunPollerSuspenseQueryHookResult = ReturnType<typeof usePipelineRunPollerSuspenseQuery>;
 export type PipelineRunPollerQueryResult = Apollo.QueryResult<PipelineRunPollerQuery, PipelineRunPollerQueryVariables>;
+export const PipelineRunProfileDocument = gql`
+    query PipelineRunProfile($runId: UUID!) {
+  pipelineRun(id: $runId) {
+    id
+    profile
+    version {
+      id
+      versionName
+      files {
+        ...FilesEditor_file
+      }
+    }
+  }
+}
+    ${FilesEditor_FileFragmentDoc}`;
+
+/**
+ * __usePipelineRunProfileQuery__
+ *
+ * To run a query within a React component, call `usePipelineRunProfileQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePipelineRunProfileQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePipelineRunProfileQuery({
+ *   variables: {
+ *      runId: // value for 'runId'
+ *   },
+ * });
+ */
+export function usePipelineRunProfileQuery(baseOptions: Apollo.QueryHookOptions<PipelineRunProfileQuery, PipelineRunProfileQueryVariables> & ({ variables: PipelineRunProfileQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PipelineRunProfileQuery, PipelineRunProfileQueryVariables>(PipelineRunProfileDocument, options);
+      }
+export function usePipelineRunProfileLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PipelineRunProfileQuery, PipelineRunProfileQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PipelineRunProfileQuery, PipelineRunProfileQueryVariables>(PipelineRunProfileDocument, options);
+        }
+export function usePipelineRunProfileSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PipelineRunProfileQuery, PipelineRunProfileQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PipelineRunProfileQuery, PipelineRunProfileQueryVariables>(PipelineRunProfileDocument, options);
+        }
+export type PipelineRunProfileQueryHookResult = ReturnType<typeof usePipelineRunProfileQuery>;
+export type PipelineRunProfileLazyQueryHookResult = ReturnType<typeof usePipelineRunProfileLazyQuery>;
+export type PipelineRunProfileSuspenseQueryHookResult = ReturnType<typeof usePipelineRunProfileSuspenseQuery>;
+export type PipelineRunProfileQueryResult = Apollo.QueryResult<PipelineRunProfileQuery, PipelineRunProfileQueryVariables>;
