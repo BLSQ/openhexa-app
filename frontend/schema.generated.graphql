@@ -527,6 +527,7 @@ type AssistantToolSegment {
 
 enum AuthorizeMCPConnectionError {
   CLIENT_NOT_FOUND
+  ORGANIZATION_NOT_FOUND
   TOOL_NOT_FOUND
   WORKSPACE_NOT_FOUND
 }
@@ -537,6 +538,7 @@ Creates the connection if this is the client's first authorization.
 """
 input AuthorizeMCPConnectionInput {
   clientId: String!
+  organizationIds: [UUID!]
   tools: [String!]
   workspaceSlugs: [String!]
 }
@@ -3173,6 +3175,7 @@ type MCPConnection {
   id: UUID!
   lastUsedAt: DateTime
   name: String!
+  organizations: [Organization!]!
   tools: [String!]!
   workspaces: [Workspace!]!
 }
@@ -3576,6 +3579,12 @@ type Mutation {
   """Uploads a pipeline."""
   uploadPipeline(input: UploadPipelineInput!): UploadPipelineResult!
 
+  """
+  Saves the py-spy profile of the current pipeline run.
+  Must be called by an authenticated pipeline run that has profiling enabled.
+  """
+  uploadPipelineRunProfile(input: UploadPipelineRunProfileInput!): UploadPipelineRunProfileResult!
+
   """Verifies a device for two-factor authentication."""
   verifyDevice(input: VerifyDeviceInput!): VerifyDeviceResult!
 
@@ -3924,6 +3933,7 @@ enum PipelineError {
   DUPLICATE_PIPELINE_VERSION_NAME
   FILE_NOT_FOUND
   INVALID_CONFIG
+  INVALID_PROFILE
   INVALID_TIMEOUT_VALUE
   INVALID_VERSION_FILES
   PERMISSION_DENIED
@@ -4071,6 +4081,7 @@ type PipelineRun {
   datasetVersions: [DatasetVersion!]!
   duration: Int
   enableDebugLogs: Boolean!
+  enableProfiling: Boolean!
   executionDate: DateTime
   hasErrorMessages: Boolean!
   id: UUID!
@@ -4078,6 +4089,7 @@ type PipelineRun {
   messages: [PipelineRunMessage!]!
   outputs: [PipelineRunOutput!]!
   pipeline: Pipeline!
+  profile: JSON
   progress: Int!
   run_id: UUID!
   sendMailNotifications: Boolean!
@@ -4413,6 +4425,16 @@ type PrepareVersionFileDownloadResult {
   success: Boolean!
 }
 
+"""
+What anyone with its permalink may read of a public saved query: neither its SQL,
+nor who wrote it, nor the workspace it belongs to.
+"""
+type PublicSavedQuery {
+  description: String
+  name: String!
+  slug: String!
+}
+
 type Query {
   accessmodAccessRequests(page: Int, perPage: Int): AccessmodAccessRequestPage!
   accessmodAnalyses(page: Int, perPage: Int, projectId: String!): AccessmodAnalysisPage!
@@ -4457,7 +4479,7 @@ type Query {
   datasets(page: Int = 1, perPage: Int = 15, query: String): DatasetPage!
 
   """
-  Runs a saved query against the workspace database and returns its result, without exposing the SQL.
+  Runs a saved query against the workspace database and returns its result, without exposing the SQL. Open to anonymous callers for public queries.
   """
   executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSQLResult!
 
@@ -4530,6 +4552,11 @@ type Query {
 
   """Retrieves a page of pipelines ordered by relevant name."""
   pipelines(functionalType: PipelineFunctionalType, lastRunStates: [PipelineRunStatus!], name: String, orderBy: PipelineOrderBy, page: Int, perPage: Int, search: String, tags: [String!], workspaceSlug: String): PipelinesPage!
+
+  """
+  Retrieves a public saved query by its slug, for anyone, anonymous included.
+  """
+  publicSavedQuery(slug: String!): PublicSavedQuery
 
   """
   Read the text content of a file from a workspace's bucket. startLine and endLine
@@ -4892,6 +4919,7 @@ type RunDAGResult {
 input RunPipelineInput {
   config: JSON!
   enableDebugLogs: Boolean
+  enableProfiling: Boolean
   id: UUID!
   sendMailNotifications: Boolean
   versionId: UUID
@@ -5024,17 +5052,29 @@ type SavedQueryPermissions {
   """Permission to delete the saved query."""
   delete: Boolean!
 
+  """
+  Permission to make the saved query public, and take it back to the workspace. Held by its author if they may share publicly in the workspace, workspace admins and organization admins/owners.
+  """
+  share: Boolean!
+
   """Permission to edit the saved query."""
   update: Boolean!
 
-  """Permission to share or unshare the saved query."""
+  """
+  Permission to move the saved query between private and workspace, and to take a public one straight to private. Held by its author only.
+  """
   updateVisibility: Boolean!
 }
 
-"""Who a saved query is visible to within its workspace."""
+"""Who a saved query is visible to."""
 enum SavedQueryVisibility {
   """Only the author can see, run and edit the query."""
   PRIVATE
+
+  """
+  Every member of the workspace, plus anyone with the permalink: they can run the query and export its result without logging in, but not read its SQL.
+  """
+  PUBLIC
 
   """Every member of the workspace can see and run the query."""
   WORKSPACE
@@ -5573,12 +5613,14 @@ type UpdateExternalCollaboratorResult {
 
 enum UpdateMCPConnectionError {
   NOT_FOUND
+  ORGANIZATION_NOT_FOUND
   TOOL_NOT_FOUND
   WORKSPACE_NOT_FOUND
 }
 
 input UpdateMCPConnectionInput {
   id: UUID!
+  organizationIds: [UUID!]
   tools: [String!]
   workspaceSlugs: [String!]
 }
@@ -5960,7 +6002,9 @@ input UpdateSavedQueryInput {
   """
   parameters: [SavedQueryParameterInput!]
 
-  """Only the author may change this; PERMISSION_DENIED otherwise."""
+  """
+  Only the author may change this, except that the author, workspace admins and organization admins may make a query PUBLIC or take a public one back to WORKSPACE; PERMISSION_DENIED otherwise.
+  """
   visibility: SavedQueryVisibility
 }
 
@@ -6244,6 +6288,16 @@ type UploadPipelineResult {
   details: String
   errors: [PipelineError!]!
   pipelineVersion: PipelineVersion
+  success: Boolean!
+}
+
+input UploadPipelineRunProfileInput {
+  profile: String!
+}
+
+"""Represents the result of uploading the profile of a pipeline run."""
+type UploadPipelineRunProfileResult {
+  errors: [PipelineError!]!
   success: Boolean!
 }
 
@@ -6581,6 +6635,9 @@ type WorkspacePermissions {
   launchNotebookServer: Boolean!
   manageMembers: Boolean!
   manageTags: Boolean!
+
+  """Permission to make one's own saved queries of the workspace public."""
+  shareSavedQuery: Boolean!
   update: Boolean!
 }
 

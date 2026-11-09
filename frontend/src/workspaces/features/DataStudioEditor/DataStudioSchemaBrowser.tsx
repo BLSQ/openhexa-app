@@ -102,6 +102,9 @@ const DataStudioSchemaBrowser = ({
 
   const { data, loading } = useWorkspaceDataStudioSchemaQuery({
     variables: { workspaceSlug },
+    // Tables are created outside the app (pipelines, notebooks), so the cached
+    // schema can be stale after client-side navigation: revalidate on mount.
+    fetchPolicy: "cache-and-network",
   });
 
   const openSearch = () => {

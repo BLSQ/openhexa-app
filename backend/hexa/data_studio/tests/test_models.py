@@ -366,6 +366,83 @@ class SavedQueryModelTest(SavedQueryTestMixin, TestCase):
         self.assertEqual(content, query.content)
 
 
+class SavedQueryPublicVisibilityTest(SavedQueryTestMixin, TestCase):
+    def test_author_creates_a_public_query(self):
+        query = self.create_saved_query(
+            user=self.USER_EDITOR, visibility=SavedQueryVisibility.PUBLIC
+        )
+        self.assertTrue(query.is_public)
+
+    def test_viewer_cannot_create_a_public_query(self):
+        # A read-only role must not hand what it reads to anyone on the internet.
+        with self.assertRaises(PermissionDenied):
+            self.create_saved_query(
+                user=self.USER_VIEWER, visibility=SavedQueryVisibility.PUBLIC
+            )
+        self.assertFalse(SavedQuery.objects.exists())
+
+    def test_viewer_cannot_share_their_own_query_publicly(self):
+        query = self.create_saved_query(user=self.USER_VIEWER)
+        with self.assertRaises(PermissionDenied):
+            query.update_if_has_perm(
+                principal=self.USER_VIEWER, visibility=SavedQueryVisibility.PUBLIC
+            )
+
+    def test_workspace_admin_shares_a_workspace_query_publicly(self):
+        query = self.create_saved_query(user=self.USER_VIEWER)
+        query.update_if_has_perm(
+            principal=self.USER_ADMIN, visibility=SavedQueryVisibility.PUBLIC
+        )
+        query.refresh_from_db()
+        self.assertEqual(SavedQueryVisibility.PUBLIC, query.visibility)
+
+    def test_editor_cannot_share_publicly(self):
+        query = self.create_saved_query(user=self.USER_VIEWER)
+        with self.assertRaises(PermissionDenied):
+            query.update_if_has_perm(
+                principal=self.USER_EDITOR, visibility=SavedQueryVisibility.PUBLIC
+            )
+
+    def test_workspace_admin_takes_a_public_query_back_to_the_workspace(self):
+        query = self.create_saved_query(
+            user=self.USER_EDITOR, visibility=SavedQueryVisibility.PUBLIC
+        )
+        query.update_if_has_perm(
+            principal=self.USER_ADMIN, visibility=SavedQueryVisibility.WORKSPACE
+        )
+        query.refresh_from_db()
+        self.assertEqual(SavedQueryVisibility.WORKSPACE, query.visibility)
+
+    def test_only_the_author_makes_a_public_query_private(self):
+        # Anyone else would hand the query to its author and lose it themselves.
+        query = self.create_saved_query(
+            user=self.USER_EDITOR, visibility=SavedQueryVisibility.PUBLIC
+        )
+        with self.assertRaises(PermissionDenied):
+            query.update_if_has_perm(
+                principal=self.USER_ADMIN, visibility=SavedQueryVisibility.PRIVATE
+            )
+        query.update_if_has_perm(
+            principal=self.USER_EDITOR, visibility=SavedQueryVisibility.PRIVATE
+        )
+        query.refresh_from_db()
+        self.assertEqual(SavedQueryVisibility.PRIVATE, query.visibility)
+
+    def test_filter_for_user_keeps_public_queries_to_their_workspace(self):
+        # Only the permalink lookups reach public queries from outside (see schema.py)
+        public = self.create_saved_query(
+            name="public", visibility=SavedQueryVisibility.PUBLIC
+        )
+        shared = self.create_saved_query(name="shared")
+
+        for user in [AnonymousUser(), self.USER_OUTSIDER]:
+            self.assertFalse(SavedQuery.objects.filter_for_user(user).exists())
+        self.assertEqual(
+            {public, shared},
+            set(SavedQuery.objects.filter_for_user(self.USER_VIEWER)),
+        )
+
+
 class SavedQueryAuthorDeletionTest(SavedQueryTestMixin, TestCase):
     """What saved queries survive the deletion of the account that wrote them.
 

@@ -572,6 +572,7 @@ export type AssistantToolSegment = {
 
 export enum AuthorizeMcpConnectionError {
   ClientNotFound = 'CLIENT_NOT_FOUND',
+  OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
   ToolNotFound = 'TOOL_NOT_FOUND',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
@@ -582,6 +583,7 @@ export enum AuthorizeMcpConnectionError {
  */
 export type AuthorizeMcpConnectionInput = {
   clientId: Scalars['String']['input'];
+  organizationIds?: InputMaybe<Array<Scalars['UUID']['input']>>;
   tools?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlugs?: InputMaybe<Array<Scalars['String']['input']>>;
 };
@@ -3132,6 +3134,7 @@ export type McpConnection = {
   id: Scalars['UUID']['output'];
   lastUsedAt?: Maybe<Scalars['DateTime']['output']>;
   name: Scalars['String']['output'];
+  organizations: Array<Organization>;
   tools: Array<Scalars['String']['output']>;
   workspaces: Array<Workspace>;
 };
@@ -3457,6 +3460,11 @@ export type Mutation = {
   upgradePipelineVersionFromTemplate: UpgradePipelineVersionFromTemplateResult;
   /** Uploads a pipeline. */
   uploadPipeline: UploadPipelineResult;
+  /**
+   * Saves the py-spy profile of the current pipeline run.
+   * Must be called by an authenticated pipeline run that has profiling enabled.
+   */
+  uploadPipelineRunProfile: UploadPipelineRunProfileResult;
   /** Verifies a device for two-factor authentication. */
   verifyDevice: VerifyDeviceResult;
   /** Write text content to a file in a workspace's bucket. Use the overwrite flag to replace an existing file. */
@@ -4124,6 +4132,11 @@ export type MutationUploadPipelineArgs = {
 };
 
 
+export type MutationUploadPipelineRunProfileArgs = {
+  input: UploadPipelineRunProfileInput;
+};
+
+
 export type MutationVerifyDeviceArgs = {
   input: VerifyDeviceInput;
 };
@@ -4519,6 +4532,7 @@ export enum PipelineError {
   DuplicatePipelineVersionName = 'DUPLICATE_PIPELINE_VERSION_NAME',
   FileNotFound = 'FILE_NOT_FOUND',
   InvalidConfig = 'INVALID_CONFIG',
+  InvalidProfile = 'INVALID_PROFILE',
   InvalidTimeoutValue = 'INVALID_TIMEOUT_VALUE',
   InvalidVersionFiles = 'INVALID_VERSION_FILES',
   PermissionDenied = 'PERMISSION_DENIED',
@@ -4673,6 +4687,7 @@ export type PipelineRun = {
   datasetVersions: Array<DatasetVersion>;
   duration?: Maybe<Scalars['Int']['output']>;
   enableDebugLogs: Scalars['Boolean']['output'];
+  enableProfiling: Scalars['Boolean']['output'];
   executionDate?: Maybe<Scalars['DateTime']['output']>;
   hasErrorMessages: Scalars['Boolean']['output'];
   id: Scalars['UUID']['output'];
@@ -4680,6 +4695,7 @@ export type PipelineRun = {
   messages: Array<PipelineRunMessage>;
   outputs: Array<PipelineRunOutput>;
   pipeline: Pipeline;
+  profile?: Maybe<Scalars['JSON']['output']>;
   progress: Scalars['Int']['output'];
   run_id: Scalars['UUID']['output'];
   sendMailNotifications: Scalars['Boolean']['output'];
@@ -5032,6 +5048,17 @@ export type PrepareVersionFileDownloadResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/**
+ * What anyone with its permalink may read of a public saved query: neither its SQL,
+ * nor who wrote it, nor the workspace it belongs to.
+ */
+export type PublicSavedQuery = {
+  __typename?: 'PublicSavedQuery';
+  description?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  slug: Scalars['String']['output'];
+};
+
 export type Query = {
   __typename?: 'Query';
   accessmodAccessRequests: AccessmodAccessRequestPage;
@@ -5068,7 +5095,7 @@ export type Query = {
   datasetVersionFile?: Maybe<DatasetVersionFile>;
   /** Search datasets. */
   datasets: DatasetPage;
-  /** Runs a saved query against the workspace database and returns its result, without exposing the SQL. */
+  /** Runs a saved query against the workspace database and returns its result, without exposing the SQL. Open to anonymous callers for public queries. */
   executeSavedQuery: ExecuteSqlResult;
   /** Get a file by its path within a workspace. */
   getFileByPath?: Maybe<BucketObject>;
@@ -5124,6 +5151,8 @@ export type Query = {
   pipelineVersion?: Maybe<PipelineVersion>;
   /** Retrieves a page of pipelines ordered by relevant name. */
   pipelines: PipelinesPage;
+  /** Retrieves a public saved query by its slug, for anyone, anonymous included. */
+  publicSavedQuery?: Maybe<PublicSavedQuery>;
   /**
    * Read the text content of a file from a workspace's bucket. startLine and endLine
    * (1-indexed, inclusive) select a window. lineNumbers prefixes each line with its number
@@ -5402,6 +5431,11 @@ export type QueryPipelinesArgs = {
   search?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryPublicSavedQueryArgs = {
+  slug: Scalars['String']['input'];
 };
 
 
@@ -5829,6 +5863,7 @@ export type RunDagResult = {
 export type RunPipelineInput = {
   config: Scalars['JSON']['input'];
   enableDebugLogs?: InputMaybe<Scalars['Boolean']['input']>;
+  enableProfiling?: InputMaybe<Scalars['Boolean']['input']>;
   id: Scalars['UUID']['input'];
   sendMailNotifications?: InputMaybe<Scalars['Boolean']['input']>;
   versionId?: InputMaybe<Scalars['UUID']['input']>;
@@ -5963,16 +5998,20 @@ export type SavedQueryPermissions = {
   __typename?: 'SavedQueryPermissions';
   /** Permission to delete the saved query. */
   delete: Scalars['Boolean']['output'];
+  /** Permission to make the saved query public, and take it back to the workspace. Held by its author if they may share publicly in the workspace, workspace admins and organization admins/owners. */
+  share: Scalars['Boolean']['output'];
   /** Permission to edit the saved query. */
   update: Scalars['Boolean']['output'];
-  /** Permission to share or unshare the saved query. */
+  /** Permission to move the saved query between private and workspace, and to take a public one straight to private. Held by its author only. */
   updateVisibility: Scalars['Boolean']['output'];
 };
 
-/** Who a saved query is visible to within its workspace. */
+/** Who a saved query is visible to. */
 export enum SavedQueryVisibility {
   /** Only the author can see, run and edit the query. */
   Private = 'PRIVATE',
+  /** Every member of the workspace, plus anyone with the permalink: they can run the query and export its result without logging in, but not read its SQL. */
+  Public = 'PUBLIC',
   /** Every member of the workspace can see and run the query. */
   Workspace = 'WORKSPACE'
 }
@@ -6473,12 +6512,14 @@ export type UpdateExternalCollaboratorResult = {
 
 export enum UpdateMcpConnectionError {
   NotFound = 'NOT_FOUND',
+  OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
   ToolNotFound = 'TOOL_NOT_FOUND',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
 export type UpdateMcpConnectionInput = {
   id: Scalars['UUID']['input'];
+  organizationIds?: InputMaybe<Array<Scalars['UUID']['input']>>;
   tools?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlugs?: InputMaybe<Array<Scalars['String']['input']>>;
 };
@@ -6772,7 +6813,7 @@ export type UpdateSavedQueryInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   /** Parameter definitions for the query. Omit or pass null to keep current parameters, or pass [] to remove all parameters. */
   parameters?: InputMaybe<Array<SavedQueryParameterInput>>;
-  /** Only the author may change this; PERMISSION_DENIED otherwise. */
+  /** Only the author may change this, except that the author, workspace admins and organization admins may make a query PUBLIC or take a public one back to WORKSPACE; PERMISSION_DENIED otherwise. */
   visibility?: InputMaybe<SavedQueryVisibility>;
 };
 
@@ -7028,6 +7069,17 @@ export type UploadPipelineResult = {
   details?: Maybe<Scalars['String']['output']>;
   errors: Array<PipelineError>;
   pipelineVersion?: Maybe<PipelineVersion>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type UploadPipelineRunProfileInput = {
+  profile: Scalars['String']['input'];
+};
+
+/** Represents the result of uploading the profile of a pipeline run. */
+export type UploadPipelineRunProfileResult = {
+  __typename?: 'UploadPipelineRunProfileResult';
+  errors: Array<PipelineError>;
   success: Scalars['Boolean']['output'];
 };
 
@@ -7399,6 +7451,8 @@ export type WorkspacePermissions = {
   launchNotebookServer: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
   manageTags: Scalars['Boolean']['output'];
+  /** Permission to make one's own saved queries of the workspace public. */
+  shareSavedQuery: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
 

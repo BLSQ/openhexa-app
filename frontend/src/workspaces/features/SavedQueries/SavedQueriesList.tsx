@@ -1,16 +1,20 @@
-import { TrashIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowTopRightOnSquareIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import UserColumn from "core/components/DataGrid/UserColumn";
 import Link from "core/components/Link";
 import SearchInput from "core/features/SearchInput";
-import { SavedQueryOrderBy } from "graphql/types";
+import { SavedQueryOrderBy, SavedQueryVisibility } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { SortingRule } from "react-table";
 import DeleteSavedQueryTrigger from "workspaces/features/SavedQueries/DeleteSavedQueryTrigger";
 import { SavedQueryListItem_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
 import SavedQueryVisibilityBadge from "workspaces/features/SavedQueries/SavedQueryVisibilityBadge";
+import { getPublicSavedQueryUrl } from "workspaces/features/SavedQueries/savedQueryVisibility";
 import { savedQuerySorting } from "workspaces/features/SavedQueries/sorting";
 import { WorkspaceSavedQueriesPageQuery } from "workspaces/graphql/queries.generated";
 import { dataStudioRoutes } from "workspaces/helpers/dataStudio";
@@ -141,10 +145,23 @@ const SavedQueriesList = ({
                 disableSortBy
               >
                 {(item) => (
-                  <SavedQueryVisibilityBadge
-                    visibility={item.visibility}
-                    className="text-gray-700"
-                  />
+                  <div className="flex items-center gap-2">
+                    <SavedQueryVisibilityBadge visibility={item.visibility} />
+                    {/* The permalink is what a public query is for, so it is
+                        one click away from the list, not only from the editor. */}
+                    {item.visibility === SavedQueryVisibility.Public && (
+                      <a
+                        href={getPublicSavedQueryUrl(item.slug)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={t("Open public link")}
+                        aria-label={t("Open public link")}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                      </a>
+                    )}
+                  </div>
                 )}
               </BaseColumn>
               <DateColumn

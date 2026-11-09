@@ -9,7 +9,7 @@ export type UpdateMcpConnectionMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateMcpConnectionMutation = { __typename?: 'Mutation', updateMCPConnection: { __typename?: 'UpdateMCPConnectionResult', success: boolean, errors: Array<Types.UpdateMcpConnectionError>, mcpConnection?: { __typename?: 'MCPConnection', id: string, name: string, createdAt: any, lastUsedAt?: any | null, tools: Array<string>, workspaces: Array<{ __typename?: 'Workspace', slug: string, name: string }> } | null } };
+export type UpdateMcpConnectionMutation = { __typename?: 'Mutation', updateMCPConnection: { __typename?: 'UpdateMCPConnectionResult', success: boolean, errors: Array<Types.UpdateMcpConnectionError>, mcpConnection?: { __typename?: 'MCPConnection', id: string, name: string, createdAt: any, lastUsedAt?: any | null, tools: Array<string>, workspaces: Array<{ __typename?: 'Workspace', slug: string, name: string }>, organizations: Array<{ __typename?: 'Organization', id: string, name: string }> } | null } };
 
 export type RevokeMcpConnectionMutationVariables = Types.Exact<{
   input: Types.RevokeMcpConnectionInput;

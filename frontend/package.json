@@ -78,6 +78,7 @@
     "express": "^5.2.0",
     "express-http-proxy": "^2.1.1",
     "filesize": "^10.1.6",
+    "flame-chart-js": "^3.3.0",
     "graphql": "^16.9.0",
     "i18next": "^25.0.0",
     "isomorphic-unfetch": "^4.0.2",
@@ -156,5 +157,5 @@
     "prettier-plugin-tailwindcss": "^0.8.0",
     "tailwindcss": "4.1.17"
   },
-  "version": "5.20.2"
+  "version": "5.21.0"
 }

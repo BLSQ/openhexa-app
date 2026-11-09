@@ -607,6 +607,8 @@ PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "kuber
 DEFAULT_WORKSPACE_IMAGE = os.environ.get(
     "DEFAULT_WORKSPACE_IMAGE", "blsq/openhexa-base-environment:latest"
 )
+# Override with linux/arm64 to run locally built images on Apple Silicon without emulation
+PIPELINE_DOCKER_PLATFORM = os.environ.get("PIPELINE_DOCKER_PLATFORM", "linux/amd64")
 PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT = os.environ.get(
     "PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT", "2"
 )
@@ -670,6 +672,11 @@ WORKSPACE_DATABASE_QUERY_MAX_ROWS = int(
 # See hexa/data_studio/README.md.
 DATA_STUDIO_EXPORT_MAX_CONCURRENCY = int(
     os.environ.get("DATA_STUDIO_EXPORT_MAX_CONCURRENCY", "2")
+)
+# Same, for exports of public saved queries through their permalink. A separate pool,
+# so visitors can only ever crowd out each other, never the workspace members.
+DATA_STUDIO_PUBLIC_EXPORT_MAX_CONCURRENCY = int(
+    os.environ.get("DATA_STUDIO_PUBLIC_EXPORT_MAX_CONCURRENCY", "1")
 )
 
 # Datasets config

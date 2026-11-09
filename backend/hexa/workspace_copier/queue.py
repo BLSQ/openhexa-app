@@ -66,6 +66,7 @@ def execute_copy_run(run_id: str) -> None:
             options=CopyOptions(
                 all_dataset_versions=run.all_dataset_versions,
                 include_connection_secrets=run.include_connection_secrets,
+                same_server=run.same_server,
             ),
             reporter=reporter,
             result=result,

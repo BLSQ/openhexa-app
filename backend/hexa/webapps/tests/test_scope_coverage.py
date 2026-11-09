@@ -60,11 +60,15 @@ NEVER_GRANTED = {
     },
     # Pipeline source code.
     "PipelineVersion": {"zipfile", "files", "dag", "templateVersion"},
+    # Profiles name the pipeline's files, functions and lines.
+    "PipelineRun": {"profile"},
     # Table content is only readable through DATABASE_READ's saved queries.
     "DatabaseTable": {"rows", "sample"},
     "DatasetVersionFile": {"uri"},
     "User": {"lastLogin", "dateJoined", "analyticsEnabled"},
     "Me": {"hasTwoFactorEnabled"},
+    # Whether web apps get any part in public resources is HEXA-1847's call.
+    "WorkspacePermissions": {"shareSavedQuery"},
 }
 
 

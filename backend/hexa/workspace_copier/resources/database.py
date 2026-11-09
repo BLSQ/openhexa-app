@@ -1,8 +1,8 @@
 """Workspace database copier.
 
 Copies the database natively (``CREATE DATABASE ... WITH TEMPLATE``, see
-:func:`hexa.databases.api.replace_empty_database_with_copy`) when both endpoints
-are LOCAL. Otherwise the database is skipped with instructions to copy it
+:func:`hexa.databases.api.replace_empty_database_with_copy`) when the run is a
+same-server copy. Otherwise the database is skipped with instructions to copy it
 separately.
 """
 
@@ -20,14 +20,20 @@ from hexa.workspace_copier.resources.base import ResourceCopier
 from hexa.workspace_copier.results import CopyResult, DatabaseResult
 from hexa.workspaces.models import Workspace
 
+NOT_ON_THIS_SERVER = (
+    "the workspaces are not both on this server: run the copy without the "
+    "same-server option."
+)
+
 
 def copy_instructions(source_slug: str, target_slug: str) -> str:
     return "\n".join(
         [
             "If both workspaces are on the same server, copy it natively by running "
             "this on that server:",
-            f"  ./manage.py copy_workspace --source-workspace-slug {source_slug} "
-            f"--target-workspace-slug {target_slug} --resources database",
+            "  ./manage.py copy_workspace --same-server --source-workspace-slug "
+            f"{source_slug} --target-workspace-slug {target_slug} --resources "
+            "database --source-token <token> --target-token <token>",
             "Otherwise, copy it manually from a machine that has pg_dump / "
             "pg_restore and can reach both database servers:",
             "  1. Set SOURCE_URL and TARGET_URL to the `url` shown on the Database "
@@ -46,7 +52,7 @@ class DatabaseCopier(ResourceCopier):
     name = "database"
     label = "Workspace database"
     help_text = (
-        "Only when both source and target are this server (blank URLs). The source database "
+        'Only with "Both workspaces are on this server". The source database '
         "must have no open connection, and a target database that already holds "
         "data is left untouched."
     )
@@ -61,17 +67,20 @@ class DatabaseCopier(ResourceCopier):
         options: CopyOptions = CopyOptions(),
     ) -> None:
         result.database = DatabaseResult()
-        if source.is_remote or target.is_remote:
+        if not options.same_server:
             instructions = copy_instructions(source.slug, target.slug)
             self._skip(
                 result,
                 reporter,
-                "the database is only copied when both source and target are this "
-                f"server (blank URLs).\n{instructions}",
+                "the database is only copied when both workspaces are on this "
+                f"server (same-server copy).\n{instructions}",
             )
             return
-        source_ws = Workspace.objects.get(slug=source.slug)
-        target_ws = Workspace.objects.get(slug=target.slug)
+        source_ws = Workspace.objects.filter(slug=source.slug).first()
+        target_ws = Workspace.objects.filter(slug=target.slug).first()
+        if source_ws is None or target_ws is None:
+            self._fail(result, reporter, NOT_ON_THIS_SERVER)
+            return
 
         reporter.info(
             f"   copying database of '{source_ws.slug}' into '{target_ws.slug}' ..."

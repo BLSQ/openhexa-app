@@ -21,7 +21,6 @@ import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import useCacheKey from "core/hooks/useCacheKey";
 import { isRequestTooLargeError } from "core/helpers/errors";
 import ImageProperty from "core/components/DataCard/ImageProperty";
-import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import useDebounce from "core/hooks/useDebounce";
 import WebappIframe from "webapps/features/WebappIframe";
 import WebappSourceEditor from "webapps/features/WebappSourceEditor/WebappSourceEditor";
@@ -102,7 +101,6 @@ const WebappForm = ({
             id: webapp!.id,
             name: values.name,
             icon: values.icon,
-            isPublic: values.isPublic,
             ...(values.subdomain && { subdomain: values.subdomain }),
             ...(webapp!.type !== WebappType.Static && {
               source: buildSource[webapp!.type](values),
@@ -170,7 +168,6 @@ const WebappForm = ({
             workspaceSlug: workspace.slug,
             name: values.name,
             icon: values.icon,
-            isPublic: values.isPublic,
             source,
           },
         },
@@ -321,14 +318,6 @@ const WebappForm = ({
             serveUrl={webapp.serveUrl}
           />
         )}
-        <SwitchProperty
-          id="isPublic"
-          accessor="isPublic"
-          label={t("Public access")}
-          help={t(
-            "When enabled, the play link can be accessed without authentication",
-          )}
-        />
       </DataCard.FormSection>
       {!webapp && selectedType === WebappType.Static && (
         <DataCard.Section title={t("Source Files")} collapsible={false}>
@@ -367,7 +356,6 @@ WebappForm.fragment = {
       pointsToOpenhexaWebapp
       type
       icon
-      isPublic
       subdomain
       serveUrl
       source {

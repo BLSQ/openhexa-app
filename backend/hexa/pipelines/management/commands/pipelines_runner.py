@@ -209,10 +209,15 @@ def create_pod_kube(run: PipelineRun, image: str, env_vars: dict):
                     # Having /dev/fuse is not enough. We also need to be able to execute the mount()
                     # syscall from inside the container. Requiring CAP_SYS_ADMIN seems enough and
                     # we DON'T need to be privileged.
+                    # py-spy needs CAP_SYS_PTRACE to read the pipeline process memory. Keep
+                    # allowPrivilegeEscalation unset: with no_new_privs the kernel ignores the
+                    # file capability set on the py-spy binary.
                     security_context={
                         "privileged": False,
                         "capabilities": {
-                            "add": ["SYS_ADMIN"],
+                            "add": ["SYS_ADMIN", "SYS_PTRACE"]
+                            if run.enable_profiling
+                            else ["SYS_ADMIN"],
                         },
                     },
                 )
@@ -375,7 +380,7 @@ def create_container_docker(run: PipelineRun, image: str, env_vars: dict):
         labels={"hexa-run-id": str(run.id)},
         privileged=True,
         network="openhexa",
-        platform="linux/amd64",
+        platform=settings.PIPELINE_DOCKER_PLATFORM,
         environment=env_vars,
         volumes=volumes,
         detach=True,
@@ -457,6 +462,8 @@ def run_pipeline(run: PipelineRun, create_container: bool = True):
     }
     if run.pipeline.type == PipelineType.NOTEBOOK:
         env_vars.update({"HEXA_NOTEBOOK_PATH": run.pipeline.notebook_path})
+    if run.enable_profiling:
+        env_vars.update({"HEXA_PROFILE": "true"})
 
     image = (
         run.pipeline.workspace.docker_image

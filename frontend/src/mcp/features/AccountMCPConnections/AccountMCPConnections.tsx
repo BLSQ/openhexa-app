@@ -9,8 +9,10 @@ import Time from "core/components/Time";
 import { CustomApolloClient } from "core/helpers/apollo";
 import { getMCPErrorMessage } from "mcp/helpers";
 import MCPPermissionMatrix, {
+  isWorkspaceGranted,
   MCPGrant,
   MCPTool,
+  MCPOrganization,
   MCPWorkspace,
 } from "mcp/features/MCPPermissionMatrix";
 import {
@@ -33,6 +35,9 @@ type Connection = AccountMcpConnectionsQuery["mcpConnections"][number];
 function grantOf(connection: Connection): MCPGrant {
   return {
     workspaceSlugs: connection.workspaces.map((workspace) => workspace.slug),
+    organizationIds: connection.organizations.map(
+      (organization) => organization.id,
+    ),
     tools: [...connection.tools],
   };
 }
@@ -40,6 +45,7 @@ function grantOf(connection: Connection): MCPGrant {
 function canonicalGrant(grant: MCPGrant) {
   return JSON.stringify({
     workspaceSlugs: [...grant.workspaceSlugs].sort(),
+    organizationIds: [...grant.organizationIds].sort(),
     tools: [...grant.tools].sort(),
   });
 }
@@ -54,10 +60,12 @@ function grantsNothing(grant: MCPGrant) {
 
 const ConnectionCard = ({
   connection,
+  organizations,
   workspaces,
   tools,
 }: {
   connection: Connection;
+  organizations: MCPOrganization[];
   workspaces: MCPWorkspace[];
   tools: MCPTool[];
 }) => {
@@ -79,7 +87,18 @@ const ConnectionCard = ({
           count: draft.tools.length,
           total: grantable,
         }),
-    t("{{count}} workspaces", { count: draft.workspaceSlugs.length }),
+    ...(draft.organizationIds.length > 0
+      ? [
+          t("{{count}} organizations", {
+            count: draft.organizationIds.length,
+          }),
+        ]
+      : []),
+    t("{{count}} workspaces", {
+      count: workspaces.filter((workspace) =>
+        isWorkspaceGranted(draft, workspace),
+      ).length,
+    }),
   ].join(" · ");
 
   const onSave = async () => {
@@ -89,6 +108,7 @@ const ConnectionCard = ({
         input: {
           id: connection.id,
           workspaceSlugs: draft.workspaceSlugs,
+          organizationIds: draft.organizationIds,
           tools: draft.tools,
         },
       },
@@ -129,10 +149,10 @@ const ConnectionCard = ({
           )}
         />
         <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-center gap-2">
             <span className="font-medium text-gray-900">{connection.name}</span>
             {isDirty && (
-              <span className="rounded-sm bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-700">
+              <span className="rounded-sm bg-amber-50 px-1.5 text-[11px] leading-4 font-medium text-amber-700">
                 {t("Unsaved")}
               </span>
             )}
@@ -162,6 +182,7 @@ const ConnectionCard = ({
           <MCPPermissionMatrix
             idPrefix={`mcp-${connection.id}`}
             grant={draft}
+            organizations={organizations}
             workspaces={workspaces}
             tools={tools}
             onChange={setDraft}
@@ -236,6 +257,7 @@ const AccountMCPConnections = () => {
               <ConnectionCard
                 key={connection.id}
                 connection={connection}
+                organizations={data?.organizations ?? []}
                 workspaces={data?.workspaces.items ?? []}
                 tools={data?.mcpTools ?? []}
               />

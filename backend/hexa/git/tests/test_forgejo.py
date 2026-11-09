@@ -686,6 +686,83 @@ class ForgejoClientArchiveRepositoryTest(TestCase):
         self.assertTrue(result["archived"])
 
 
+class ForgejoClientMigrateRepositoryTest(TestCase):
+    def setUp(self):
+        self.client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+        )
+
+    @responses.activate
+    def test_migrate_repository_clones_from_this_server(self):
+        responses.post(
+            f"{FORGEJO_URL}/api/v1/repos/migrate",
+            json={"name": "target-repo"},
+            status=201,
+        )
+
+        result = self.client.migrate_repository(
+            source_org_slug="source-org",
+            source_repo_name="source-repo",
+            target_org_slug="target-org",
+            target_repo_name="target-repo",
+            private=True,
+        )
+
+        self.assertEqual(result["name"], "target-repo")
+        self.assertEqual(
+            json.loads(responses.calls[0].request.body),
+            {
+                "clone_addr": f"{FORGEJO_URL}/source-org/source-repo.git",
+                "auth_username": USERNAME,
+                "auth_password": PASSWORD,
+                "repo_owner": "target-org",
+                "repo_name": "target-repo",
+                "service": "git",
+                "private": True,
+            },
+        )
+
+    @responses.activate
+    def test_migrate_repository_raises_when_refused(self):
+        responses.post(
+            f"{FORGEJO_URL}/api/v1/repos/migrate",
+            json={"message": "You can not import from disallowed hosts."},
+            status=422,
+        )
+
+        with self.assertRaises(ForgejoAPIError) as ctx:
+            self.client.migrate_repository(
+                source_org_slug="source-org",
+                source_repo_name="source-repo",
+                target_org_slug="target-org",
+                target_repo_name="target-repo",
+                private=False,
+            )
+
+        self.assertEqual(ctx.exception.status_code, 422)
+        self.assertIn("disallowed hosts", ctx.exception.detail)
+
+    @responses.activate
+    def test_get_repository(self):
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/my-org/my-repo",
+            json={"name": "my-repo", "private": True},
+            status=200,
+        )
+
+        self.assertTrue(self.client.get_repository("my-org", "my-repo")["private"])
+
+    @responses.activate
+    def test_delete_repository(self):
+        responses.delete(f"{FORGEJO_URL}/api/v1/repos/my-org/my-repo", status=204)
+
+        self.client.delete_repository("my-org", "my-repo")
+
+        self.assertEqual(len(responses.calls), 1)
+
+
 class ForgejoClientGetFilesTreeWithOwnerTest(TestCase):
     @responses.activate
     def test_get_files_tree_with_owner(self):

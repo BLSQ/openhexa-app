@@ -82,6 +82,7 @@ query WorkspaceDataStudioPage($workspaceSlug: String!) {
     slug
     permissions {
       createSavedQuery
+      shareSavedQuery
     }
     organization {
       id
@@ -128,6 +129,7 @@ query WorkspaceSavedQueryPage($workspaceSlug: String!, $slug: String!) {
     slug
     permissions {
       createSavedQuery
+      shareSavedQuery
     }
     ...WorkspaceLayout_workspace
   }
@@ -142,6 +144,37 @@ query WorkspaceSavedQuerySlugById($workspaceSlug: String!, $id: ID!) {
   savedQuery(workspaceSlug: $workspaceSlug, id: $id) {
     id
     slug
+  }
+}
+
+# The permalink page of a public saved query. `publicSavedQuery` is what anyone
+# may read of it, the SQL aside. `savedQueryBySlug` only answers members: it is
+# asked for to send them to the Data Studio when the query is not public.
+query PublicSavedQueryPage($slug: String!) {
+  publicSavedQuery(slug: $slug) {
+    slug
+    name
+    description
+  }
+  savedQueryBySlug(slug: $slug) {
+    id
+    slug
+    workspace {
+      slug
+    }
+  }
+}
+
+query ExecuteSavedQuery($slug: String!, $perPage: Int) {
+  executeSavedQuery(input: { slug: $slug, perPage: $perPage }) {
+    success
+    errors
+    errorMessage
+    columns
+    rows
+    rowCount
+    truncated
+    durationMs
   }
 }
 
@@ -398,6 +431,7 @@ query WorkspacePipelineRunPage($workspaceSlug: String!, $runId: UUID!) {
 
   pipelineRun(id: $runId) {
     id
+    enableProfiling
     version {
       versionName
       parameters {

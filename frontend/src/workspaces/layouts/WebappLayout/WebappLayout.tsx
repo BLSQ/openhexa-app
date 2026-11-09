@@ -1,6 +1,13 @@
 import { gql } from "@apollo/client";
-import { EyeIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  EyeIcon,
+  GlobeAltIcon,
+  LockClosedIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
+import Badge from "core/components/Badge";
 import Breadcrumbs from "core/components/Breadcrumbs";
+import Title from "core/components/Title";
 import Button from "core/components/Button";
 import Link from "next/link";
 import { useState } from "react";
@@ -14,6 +21,7 @@ import {
   WebappLayout_WorkspaceFragment,
 } from "./WebappLayout.generated";
 import { WebappType } from "graphql/types";
+import WebappVisibilityButton from "webapps/features/WebappVisibilityButton";
 
 type WebappLayoutProps = {
   webapp: WebappLayout_WebappFragment;
@@ -72,7 +80,22 @@ const WebappLayout = (props: WebappLayoutProps) => {
       item={webapp}
       currentTab={currentTab}
       tabs={tabs}
-      title={webapp.name}
+      title={
+        <Title level={2} className="flex items-center gap-3">
+          {webapp.name}
+          {webapp.isPublic ? (
+            <Badge className="gap-1 bg-green-50 text-green-700 ring-green-600/20">
+              <GlobeAltIcon className="h-3.5 w-3.5" />
+              {t("Public")}
+            </Badge>
+          ) : (
+            <Badge className="gap-1 bg-gray-50 text-gray-600 ring-gray-500/20">
+              <LockClosedIcon className="h-3.5 w-3.5" />
+              {t("Private")}
+            </Badge>
+          )}
+        </Title>
+      }
       header={
         <Breadcrumbs withHome={false} className="flex-1">
           <Breadcrumbs.Part
@@ -92,6 +115,7 @@ const WebappLayout = (props: WebappLayoutProps) => {
       headerActions={
         <div className="flex items-center gap-2">
           {extraActions}
+          <WebappVisibilityButton webapp={webapp} />
           <Link href={webapp.serveUrl ?? webapp.url ?? "#"} target="_blank">
             <Button
               variant="primary"
@@ -151,7 +175,9 @@ WebappLayout.fragments = {
         update
         delete
       }
+      ...WebappVisibilityButton_webapp
     }
+    ${WebappVisibilityButton.fragments.webapp}
   `,
 };
 

@@ -65,6 +65,10 @@
             {% include "admin/workspace_copier/_field_row.html" with field=form.target_workspace_slug %}
         </div>
     </fieldset>
+    <fieldset class="module aligned">
+        <h2>{% trans 'Server' %}</h2>
+        {% include "admin/workspace_copier/_field_row.html" with field=form.same_server %}
+    </fieldset>
     <fieldset class="module">
         <h2>{% trans 'Resources' %}</h2>
         <div class="form-row field-resources{% if form.resources.errors %} errors{% endif %}">

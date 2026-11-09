@@ -1,9 +1,10 @@
+import { Extension } from "@codemirror/state";
 import { ReactNode } from "react";
 import { gql } from "@apollo/client";
 import { useTranslation } from "next-i18next";
 import ResizablePanel from "core/components/ResizablePanel";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
-import { ProposedFile, SaveResult } from "./types";
+import { FileNode, ProposedFile, SaveResult } from "./types";
 import { useFilesEditorState } from "./useFilesEditorState";
 import FileTree from "./FileTree";
 import FileEditorPane from "./FileEditorPane";
@@ -29,6 +30,8 @@ interface FilesEditorProps {
     deletedPaths: string[],
   ) => Promise<SaveResult>;
   saveDisabledReason?: string;
+  fileExtensions?: (file: FileNode) => Extension[];
+  defaultSidebarCollapsed?: boolean;
 }
 
 export const FilesEditor = ({
@@ -41,6 +44,8 @@ export const FilesEditor = ({
   headerActions,
   onSave,
   saveDisabledReason,
+  fileExtensions,
+  defaultSidebarCollapsed,
 }: FilesEditorProps) => {
   const { t } = useTranslation();
   const {
@@ -78,6 +83,7 @@ export const FilesEditor = ({
         minSize={SIDEBAR_MIN_WIDTH}
         maxSize={SIDEBAR_MAX_WIDTH}
         reserve={EDITOR_MIN_WIDTH}
+        defaultCollapsed={defaultSidebarCollapsed}
       >
         <FileTree
           name={name}
@@ -113,6 +119,7 @@ export const FilesEditor = ({
           onRestore={restoreDeleted}
           hasSaveHandler={!!onSave}
           saveDisabledReason={saveDisabledReason}
+          fileExtensions={fileExtensions}
         />
       </div>
     </div>
