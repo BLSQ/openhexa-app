@@ -63,7 +63,7 @@ Static webapps can call the platform's GraphQL API from their JavaScript code, t
 A public webapp's visitors have no OpenHEXA account and no session, so its requests run as an anonymous visitor bound to the webapp rather than as a user:
 
 - **No scopes to enable**: the `allowed_operations` list is ignored. Every public webapp can use the entry points of `PIPELINES_READ`, `PIPELINES_RUN`, `FILES_READ`, `DATASETS_READ` and `DATABASE_READ`, and nothing else — `me` and `workspace` are refused.
-- **Public resources only**: these entry points only return what an organization admin marked as public in the webapp's workspace: public datasets with their versions and files, public pipelines (read them and launch a public run, with plain parameters only and one public run at a time), public saved queries through `executeSavedQuery`, and files under the `public/` folder when public files are enabled on the workspace. Anything else comes back empty or refused.
+- **Public resources only**: these entry points only return what was made public in the webapp's workspace. For now, saved queries are the only resources that can be made public: a public saved query of the webapp's workspace can be run through `executeSavedQuery`. Datasets, pipelines and files cannot be made public yet, so requests on them come back empty or are refused as unauthenticated.
 - **No users**: fields that return a user, such as `Dataset.createdBy` or `PipelineRun.user`, are refused, so a public page never shows who created or ran something.
 - Being signed in to OpenHEXA makes no difference: members get the same anonymous access as any visitor.
 
