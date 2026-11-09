@@ -930,6 +930,60 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["inviteWorkspaceMember"],
         )
 
+    def test_invite_workspace_member_existing_user_by_viewer(self):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            """
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "userEmail": self.USER_SABRINA.email,
+                    "role": WorkspaceMembershipRole.ADMIN,
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["inviteWorkspaceMember"],
+        )
+        self.assertFalse(
+            WorkspaceMembership.objects.filter(
+                user=self.USER_SABRINA, workspace=self.WORKSPACE
+            ).exists()
+        )
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_invite_workspace_member_existing_member_by_viewer(self):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            """
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "userEmail": self.USER_WORKSPACE_ADMIN.email,
+                    "role": WorkspaceMembershipRole.VIEWER,
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["inviteWorkspaceMember"],
+        )
+
     def test_get_workspace_members(self):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
