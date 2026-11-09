@@ -76,6 +76,21 @@ def openid_configuration(request: HttpRequest) -> JsonResponse:
     return JsonResponse(_server_metadata(request))
 
 
+def is_unambiguous_redirect_uri(uri) -> bool:
+    r"""Whether the host `urlparse` sees is the only host the URI can resolve to.
+
+    The stored redirect URIs are split on whitespace, so whitespace would register
+    extra URIs that skipped the host check. Browsers read `\` as `/`, so
+    `https://evil.com\@claude.ai` parses as claude.ai but opens evil.com.
+    """
+    if not isinstance(uri, str):
+        return False
+    if any(c.isspace() or not c.isprintable() or c == "\\" for c in uri):
+        return False
+    parsed = urlparse(uri)
+    return not (parsed.username or parsed.password or parsed.fragment)
+
+
 @csrf_exempt
 @require_POST
 def dynamic_client_registration(request: HttpRequest) -> JsonResponse:
@@ -88,11 +103,11 @@ def dynamic_client_registration(request: HttpRequest) -> JsonResponse:
     redirect_uris = data.get("redirect_uris", [])
     client_name = data.get("client_name", "MCP Client")
 
-    if not redirect_uris:
+    if not redirect_uris or not isinstance(redirect_uris, list):
         return JsonResponse(
             {
                 "error": "invalid_client_metadata",
-                "error_description": "redirect_uris is required",
+                "error_description": "redirect_uris must be a non-empty list",
             },
             status=400,
         )
@@ -100,6 +115,14 @@ def dynamic_client_registration(request: HttpRequest) -> JsonResponse:
     loopback_hosts = {"localhost", "127.0.0.1"}
     allowed_hosts = settings.OAUTH2_ALLOWED_REDIRECT_URI_HOSTS
     for uri in redirect_uris:
+        if not is_unambiguous_redirect_uri(uri):
+            return JsonResponse(
+                {
+                    "error": "invalid_redirect_uri",
+                    "error_description": "Redirect URI is malformed",
+                },
+                status=400,
+            )
         parsed = urlparse(uri)
         host = parsed.hostname
         scheme = parsed.scheme

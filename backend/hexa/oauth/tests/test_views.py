@@ -237,3 +237,50 @@ class MCPConsentRedirectTest(TestCase):
 
         self.assertEqual(302, response.status_code)
         self.assertIn("/login", response["Location"])
+
+
+class DynamicClientRegistrationTest(TestCase):
+    def register(self, redirect_uris):
+        return self.client.post(
+            "/oauth/register/",
+            {"client_name": "Claude", "redirect_uris": redirect_uris},
+            content_type="application/json",
+        )
+
+    def test_registers_allowed_redirect_uri(self):
+        response = self.register(["https://claude.ai/api/mcp/auth_callback"])
+
+        self.assertEqual(201, response.status_code)
+        application = Application.objects.get(client_id=response.json()["client_id"])
+        self.assertEqual(
+            "https://claude.ai/api/mcp/auth_callback", application.redirect_uris
+        )
+
+    def test_rejects_disallowed_host(self):
+        response = self.register(["https://evil.com/callback"])
+
+        self.assertEqual(400, response.status_code)
+
+    def test_rejects_smuggled_redirect_uris(self):
+        # The host check parses each URI on its own, while the stored value is
+        # split on whitespace, and browsers read `\` as `/`.
+        for uri in (
+            "https://claude.ai/callback https://evil.com/callback",
+            "https://claude.ai/callback\nhttps://evil.com/callback",
+            "https://claude.ai/callback\thttps://evil.com/callback",
+            "https://evil.com\\@claude.ai/callback",
+            "https://user@claude.ai/callback",
+            "https://claude.ai/callback#fragment",
+        ):
+            with self.subTest(uri=uri):
+                response = self.register([uri])
+
+                self.assertEqual(400, response.status_code)
+                self.assertEqual("invalid_redirect_uri", response.json()["error"])
+        self.assertFalse(Application.objects.filter(name="Claude").exists())
+
+    def test_rejects_non_list_redirect_uris(self):
+        response = self.register("https://claude.ai/callback")
+
+        self.assertEqual(400, response.status_code)
+        self.assertFalse(Application.objects.filter(name="Claude").exists())
