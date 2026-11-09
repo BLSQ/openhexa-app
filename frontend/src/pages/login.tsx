@@ -6,6 +6,7 @@ import { GlobeAltIcon } from "@heroicons/react/24/outline";
 import { useLoginMutation } from "identity/graphql/mutations.generated";
 import { useSignupPageQuery } from "identity/graphql/queries.generated";
 import { createGetServerSideProps } from "core/helpers/page";
+import { getSafeRedirectPath } from "core/helpers/redirect";
 import { NextPageWithLayout } from "core/helpers/types";
 import useForm from "core/hooks/useForm";
 import Image from "next/legacy/image";
@@ -69,7 +70,7 @@ const LoginPage: NextPageWithLayout = () => {
         throw new Error(t("An unexpected error occurred."));
       }
       if (data.login.success) {
-        await router.push((router.query.next as string) ?? "/");
+        await router.push(getSafeRedirectPath(router.query.next));
       } else if (
         data.login.errors?.some(
           (error) => error === LoginError.InvalidCredentials,
@@ -292,7 +293,7 @@ const LoginPage: NextPageWithLayout = () => {
               oidcProviders.map((provider) => (
                 <a
                   key={provider.id}
-                  href={`${provider.loginUrl}?next=${encodeURIComponent((router.query.next as string) ?? "/")}`}
+                  href={`${provider.loginUrl}?next=${encodeURIComponent(getSafeRedirectPath(router.query.next))}`}
                   className={clsx(
                     ButtonClasses.base,
                     ButtonClasses.secondary,

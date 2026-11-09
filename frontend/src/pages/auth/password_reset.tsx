@@ -2,6 +2,7 @@ import Button from "core/components/Button";
 import Field from "core/components/forms/Field";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
+import { getSafeRedirectPath } from "core/helpers/redirect";
 import { NextPageWithLayout } from "core/helpers/types";
 import useForm from "core/hooks/useForm";
 import { useResetPasswordMutation } from "identity/graphql/mutations.generated";
@@ -111,7 +112,7 @@ const PasswordResetPage: NextPageWithLayout = () => {
 PasswordResetPage.getLayout = (page: ReactElement) => page;
 
 export const getServerSideProps = createGetServerSideProps({
-  redirectIfLoggedIn: (ctx) => (ctx.query.next as string) || "/",
+  redirectIfLoggedIn: (ctx) => getSafeRedirectPath(ctx.query.next),
 });
 
 export default PasswordResetPage;
