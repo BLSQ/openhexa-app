@@ -196,6 +196,43 @@ class OrganizationMemberTest(GraphQLTestCase, OrganizationTestMixin):
             r["data"]["updateOrganizationMember"],
         )
 
+    def test_update_organization_member_by_member_same_role_with_workspace_permissions(
+        self,
+    ):
+        workspace = self.create_workspace(
+            self.owner, self.organization, "Workspace", "Description"
+        )
+        self.client.force_login(self.member)
+        r = self.run_query(
+            """
+            mutation UpdateOrganizationMember($input: UpdateOrganizationMemberInput!) {
+                updateOrganizationMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.member_membership.id),
+                    "role": "MEMBER",
+                    "workspacePermissions": [
+                        {"workspaceSlug": workspace.slug, "role": "ADMIN"}
+                    ],
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["updateOrganizationMember"],
+        )
+        self.assertFalse(
+            WorkspaceMembership.objects.filter(
+                user=self.member, workspace=workspace
+            ).exists()
+        )
+
     def test_delete_organization_member(self):
         self.client.force_login(self.owner)
         r = self.run_query(

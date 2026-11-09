@@ -535,6 +535,11 @@ def resolve_update_organization_member(_, info, **kwargs):
 
     try:
         membership = OrganizationMembership.objects.get(id=update_input["id"])
+        if not principal.has_perm(
+            "user_management.manage_members", membership.organization
+        ):
+            raise PermissionDenied
+
         new_role = update_input["role"].lower()
         if new_role != membership.role:
             membership.update_if_has_perm(principal=principal, role=new_role)
