@@ -1486,7 +1486,7 @@ extend type Query {
     organization(id: UUID!): Organization @loginRequired
 }
 
-directive @loginRequired(withoutTwoFactor: Boolean) on FIELD_DEFINITION
+directive @loginRequired(withoutTwoFactor: Boolean, allowPublicWebapp: Boolean) on FIELD_DEFINITION
 
 extend type Me {
     hasTwoFactorEnabled: Boolean!
