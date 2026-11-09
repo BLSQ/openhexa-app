@@ -102,6 +102,26 @@ describe("WebappVisibilityButton", () => {
     );
   });
 
+  it("keeps the dialog content while the new visibility reaches the cache", async () => {
+    const { rerender } = renderButton(buildWebapp());
+
+    fireEvent.click(screen.getByRole("button", { name: "Make public" }));
+    expect(
+      await screen.findByText("Make this web app public?"),
+    ).toBeInTheDocument();
+
+    rerender(
+      <TestApp mocks={[]}>
+        <WebappVisibilityButton webapp={buildWebapp({ isPublic: true })} />
+      </TestApp>,
+    );
+
+    expect(screen.getByText("Make this web app public?")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Make this web app private?"),
+    ).not.toBeInTheDocument();
+  });
+
   it("makes a public web app private after confirmation", async () => {
     const mock = updateMock(false);
     renderButton(buildWebapp({ isPublic: true }), [mock]);

@@ -26,6 +26,7 @@ const WebappVisibilityButton = ({ webapp }: WebappVisibilityButtonProps) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [makePublic, setMakePublic] = useState(!webapp.isPublic);
   const [updateWebapp] = useUpdateWebappMutation();
   const clearCache = useCacheKey("webapps");
 
@@ -33,12 +34,15 @@ const WebappVisibilityButton = ({ webapp }: WebappVisibilityButtonProps) => {
     return null;
   }
 
-  const makePublic = !webapp.isPublic;
   // Only static apps call the OpenHEXA API (through their proxy, which serves
   // public apps anonymously), so the API consequences only apply to them.
   const isStatic = webapp.type === WebappType.Static;
   const publicLink = webapp.serveUrl ?? webapp.url;
 
+  const open = () => {
+    setMakePublic(!webapp.isPublic);
+    setIsOpen(true);
+  };
   const close = () => !saving && setIsOpen(false);
 
   const confirm = async () => {
@@ -72,15 +76,15 @@ const WebappVisibilityButton = ({ webapp }: WebappVisibilityButtonProps) => {
       <Button
         variant="white"
         leadingIcon={
-          makePublic ? (
-            <GlobeAltIcon className="h-4 w-4" />
-          ) : (
+          webapp.isPublic ? (
             <LockClosedIcon className="h-4 w-4" />
+          ) : (
+            <GlobeAltIcon className="h-4 w-4" />
           )
         }
-        onClick={() => setIsOpen(true)}
+        onClick={open}
       >
-        {makePublic ? t("Make public") : t("Make private")}
+        {webapp.isPublic ? t("Make private") : t("Make public")}
       </Button>
       <Dialog open={isOpen} onClose={close} maxWidth="max-w-lg">
         <Dialog.Title onClose={close}>
