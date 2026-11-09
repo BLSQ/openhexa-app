@@ -35,7 +35,7 @@ const RunProfile = ({
     return (
       <Message>
         {t(
-          'This run was not profiled. Check "Profile this run" in the advanced settings to see where your pipeline spends its time.',
+          'This run was not profiled. Check "Profile this run" in the advanced settings when launching the pipeline to see where your pipeline spends its time.',
         )}
       </Message>
     );
