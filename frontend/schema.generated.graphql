@@ -1,4 +1,4 @@
-directive @loginRequired(withoutTwoFactor: Boolean) on FIELD_DEFINITION
+directive @loginRequired(allowPublicWebapp: Boolean, withoutTwoFactor: Boolean) on FIELD_DEFINITION
 
 type AccessmodAccessRequest {
   acceptedTos: Boolean!
