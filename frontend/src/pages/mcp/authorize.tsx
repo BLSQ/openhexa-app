@@ -196,9 +196,8 @@ export const getServerSideProps = createGetServerSideProps({
               ),
             }
           : {
-              // A first authorization starts read-only: writing is opted into.
               tools: request.tools
-                .filter((tool) => tool.resource && !tool.write)
+                .filter((tool) => tool.resource)
                 .map((tool) => tool.name),
               workspaceSlugs: [],
               organizationIds: data.organizations.map(
