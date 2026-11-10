@@ -1635,6 +1635,34 @@ class RegisterTest(GraphQLTestCase):
             },
         )
 
+    def test_register_uses_invitation_language(self):
+        self.WORKSPACE_INVITATION.language = "fr"
+        self.WORKSPACE_INVITATION.save()
+        r = self.run_query(
+            """
+            mutation register($input: RegisterInput!) {
+                register(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "password1": "Pa$$Word1",
+                    "password2": "Pa$$Word1",
+                    "firstName": "John",
+                    "lastName": "Doe",
+                    "invitationToken": self.WORKSPACE_INVITATION.generate_token(),
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["register"]["success"])
+        self.assertEqual(
+            User.objects.get(email=self.WORKSPACE_INVITATION.email).language, "fr"
+        )
+
     def test_register_with_organization_invitation(self):
         """Test registration using an organization invitation token."""
         r = self.run_query(

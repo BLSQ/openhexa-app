@@ -265,6 +265,7 @@ Enum representing the possible errors that can occur when inviting a user to a w
 """
 enum InviteWorkspaceMembershipError {
     ALREADY_EXISTS
+    INVALID_LANGUAGE
     PERMISSION_DENIED
     USER_NOT_FOUND
     WORKSPACE_NOT_FOUND
@@ -448,6 +449,9 @@ input InviteWorkspaceMemberInput {
 
     # The role of the user in the workspace.
     role: WorkspaceMembershipRole!
+
+    # The language of the invitation email for users without an account. Defaults to the inviter's language.
+    language: String
 }
 
 """
