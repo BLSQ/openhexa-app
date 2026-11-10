@@ -3,6 +3,7 @@ ariadne_django
 colorhash
 cryptography
 Django>=5.2.17
+django-axes
 django-cors-headers
 django-countries
 django-debug-toolbar

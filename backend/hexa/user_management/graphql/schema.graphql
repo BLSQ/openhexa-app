@@ -146,6 +146,11 @@ enum LoginError {
     Indicates that the provided OTP is invalid.
     """
     INVALID_OTP
+
+    """
+    Indicates that too many logins failed for this email; retry later.
+    """
+    TOO_MANY_ATTEMPTS
 }
 
 """

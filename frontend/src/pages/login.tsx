@@ -78,6 +78,12 @@ const LoginPage: NextPageWithLayout = () => {
       ) {
         throw new Error(t("Wrong email address and/or password."));
       } else if (
+        data.login.errors?.some((error) => error === LoginError.TooManyAttempts)
+      ) {
+        throw new Error(
+          t("Too many failed attempts. Please try again in 15 minutes."),
+        );
+      } else if (
         data.login.errors?.some((error) => error === LoginError.InvalidOtp)
       ) {
         form.setFieldValue("token", "");

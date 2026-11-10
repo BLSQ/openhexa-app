@@ -158,6 +158,8 @@ def resolve_login(_, info, **kwargs):
     )
 
     if user_candidate is None:
+        if getattr(request, "axes_locked_out", False):
+            return {"success": False, "errors": ["TOO_MANY_ATTEMPTS"]}
         return {"success": False, "errors": ["INVALID_CREDENTIALS"]}
 
     if has_configured_two_factor(user_candidate):
@@ -258,7 +260,7 @@ def resolve_register(_, info, **kwargs):
     )
 
     authenticated_user = authenticate(
-        username=user.email, password=mutation_input["password1"]
+        request, username=user.email, password=mutation_input["password1"]
     )
     login(request, authenticated_user)
     return {"success": True, "errors": []}

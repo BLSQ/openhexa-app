@@ -192,6 +192,41 @@ describe("LoginPage: No Two Factor Authentication", () => {
     },
   );
 
+  it("displays a lockout message after too many failed attempts", async () => {
+    const { useLoginMutation } = jest.requireActual(
+      "identity/graphql/mutations.generated",
+    );
+    useLoginMutationMock.mockImplementation(useLoginMutation);
+    const user = userEvent.setup();
+    const [EMAIL, PWD] = ["root@openhexa.org", "pA$$W0rd"];
+    const mocks = [
+      {
+        request: {
+          query: LoginDocument,
+          variables: { input: { email: EMAIL, password: PWD } },
+        },
+        result: {
+          data: { login: { success: false, errors: ["TOO_MANY_ATTEMPTS"] } },
+        },
+      },
+    ];
+    render(
+      <TestApp mocks={mocks}>
+        <LoginPage />
+      </TestApp>,
+    );
+
+    await user.type(screen.getByTestId("email"), EMAIL);
+    await user.type(screen.getByTestId("password"), PWD);
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+
+    expect(
+      await screen.findByText(
+        "Too many failed attempts. Please try again in 15 minutes.",
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("displays an error message if email/password is incorrect", async () => {
     const { useLoginMutation } = jest.requireActual(
       "identity/graphql/mutations.generated",
