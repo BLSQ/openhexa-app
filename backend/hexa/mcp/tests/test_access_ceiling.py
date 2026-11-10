@@ -3,7 +3,12 @@ from oauth2_provider.models import Application
 
 from hexa.core.test import TestCase
 from hexa.data_studio.models import SavedQuery, SavedQueryVisibility
-from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
+from hexa.datasets.models import (
+    Dataset,
+    DatasetVersion,
+    DatasetVersionFile,
+    DatasetVisibility,
+)
 from hexa.mcp.models import MCPConnection, MCPUser
 from hexa.mcp.tests.testutils import all_tool_names
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
@@ -75,7 +80,7 @@ class MCPAccessCeilingTest(TestCase):
             cls.populate(workspace)
 
         shared = Dataset.objects.get(workspace=cls.W2)
-        shared.shared_with_organization = True
+        shared.visibility = DatasetVisibility.ORGANIZATION
         shared.save()
         Dataset.objects.get(workspace=cls.W1).link(cls.SUPERUSER, cls.W3)
         for author, visibility in (
