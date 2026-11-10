@@ -1,15 +1,37 @@
 import io
 import zipfile
+from datetime import timedelta
 
+from django.utils import timezone
 from pydantic_ai.models.test import TestModel
 
 from hexa.assistant.agents.edit_pipeline_agent import EditPipelineAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
-from hexa.pipelines.models import Pipeline, PipelineVersion
+from hexa.assistant.tools.pipelines import SECRET_MASK, get_pipeline_run
+from hexa.pipelines.models import (
+    Pipeline,
+    PipelineRun,
+    PipelineRunState,
+    PipelineRunTrigger,
+    PipelineVersion,
+)
 
 from ._helpers import FakeModelBuilder, _make_tool_call_model, _make_zipfile, run_agent
 from ._testcase import AgentTestCase
+
+
+def _make_run(user, pipeline, version, state, execution_date, **fields):
+    return PipelineRun.objects.create(
+        pipeline=pipeline,
+        pipeline_version=version,
+        user=user,
+        run_id=f"run-{execution_date.isoformat()}",
+        execution_date=execution_date,
+        trigger_mode=PipelineRunTrigger.MANUAL,
+        state=state,
+        **fields,
+    )
 
 
 class EditPipelineAgentExtraInstructionsTest(AgentTestCase):
@@ -143,6 +165,157 @@ class EditPipelineAgentExtraInstructionsTest(AgentTestCase):
         self.assertIn("Staged For Deletion", instructions)
         self.assertIn("assets/logo.png", instructions)
 
+    def _make_run(self, pipeline, version, state, execution_date, **fields):
+        return _make_run(self.user, pipeline, version, state, execution_date, **fields)
+
+    def _run_line(self, instructions, run):
+        return next(line for line in instructions.splitlines() if str(run.id) in line)
+
+    def test_recent_runs_show_parameters_and_last_log_line_of_failed_runs(self):
+        pipeline = Pipeline.objects.create(
+            code="crashing", name="Crashing", workspace=self.workspace
+        )
+        version = PipelineVersion.objects.create(pipeline=pipeline, user=self.user)
+        run = self._make_run(
+            pipeline,
+            version,
+            PipelineRunState.FAILED,
+            timezone.now(),
+            config={"mode": "crash"},
+            run_logs="Traceback (most recent call last):\n  ...\nKeyError: 'population'\n",
+        )
+        line = self._run_line(self._make_agent(pipeline)._extra_instructions(), run)
+        self.assertIn('{"mode": "crash"}', line)
+        self.assertIn("KeyError: 'population'", line)
+
+    def test_recent_runs_prefer_error_message_over_logs(self):
+        pipeline = Pipeline.objects.create(
+            code="reported", name="Reported", workspace=self.workspace
+        )
+        run = self._make_run(
+            pipeline,
+            None,
+            PipelineRunState.FAILED,
+            timezone.now(),
+            messages=[
+                {"priority": "INFO", "message": "Starting"},
+                {"priority": "ERROR", "message": "DHIS2 returned 401"},
+            ],
+            run_logs="SystemExit: 1",
+        )
+        line = self._run_line(self._make_agent(pipeline)._extra_instructions(), run)
+        self.assertIn("DHIS2 returned 401", line)
+        self.assertNotIn("SystemExit", line)
+
+    def test_recent_runs_omit_error_for_successful_runs(self):
+        pipeline = Pipeline.objects.create(
+            code="fine", name="Fine", workspace=self.workspace
+        )
+        run = self._make_run(
+            pipeline,
+            None,
+            PipelineRunState.SUCCESS,
+            timezone.now(),
+            run_logs="Pipeline completed.",
+        )
+        line = self._run_line(self._make_agent(pipeline)._extra_instructions(), run)
+        self.assertNotIn("error", line)
+
+    def test_recent_runs_mask_secret_parameters(self):
+        pipeline = Pipeline.objects.create(
+            code="secretive", name="Secretive", workspace=self.workspace
+        )
+        version = PipelineVersion.objects.create(
+            pipeline=pipeline,
+            user=self.user,
+            parameters=[
+                {"code": "token", "type": "secret"},
+                {"code": "country", "type": "str"},
+            ],
+        )
+        run = self._make_run(
+            pipeline,
+            version,
+            PipelineRunState.SUCCESS,
+            timezone.now(),
+            config={"token": "s3cr3t", "country": "BE"},
+        )
+        line = self._run_line(self._make_agent(pipeline)._extra_instructions(), run)
+        self.assertNotIn("s3cr3t", line)
+        self.assertIn(SECRET_MASK, line)
+        self.assertIn('"country": "BE"', line)
+
+    def test_recent_runs_clip_long_errors(self):
+        pipeline = Pipeline.objects.create(
+            code="verbose", name="Verbose", workspace=self.workspace
+        )
+        run = self._make_run(
+            pipeline,
+            None,
+            PipelineRunState.FAILED,
+            timezone.now(),
+            run_logs="ValueError: " + "x" * 5000,
+        )
+        line = self._run_line(self._make_agent(pipeline)._extra_instructions(), run)
+        self.assertLess(len(line), 600)
+        self.assertIn("…", line)
+
+    def test_pipeline_without_runs_omits_recent_runs(self):
+        pipeline = Pipeline.objects.create(
+            code="no-runs", name="No Runs", workspace=self.workspace
+        )
+        PipelineVersion.objects.create(pipeline=pipeline, user=self.user)
+        agent = self._make_agent(pipeline=pipeline)
+        self.assertNotIn("Recent Runs", agent._extra_instructions())
+
+    def test_recent_runs_lists_latest_five_most_recent_first(self):
+        pipeline = Pipeline.objects.create(
+            code="with-runs", name="With Runs", workspace=self.workspace
+        )
+        version = PipelineVersion.objects.create(
+            pipeline=pipeline, user=self.user, name="Release"
+        )
+        now = timezone.now()
+        runs = [
+            self._make_run(
+                pipeline,
+                version,
+                PipelineRunState.FAILED if i == 0 else PipelineRunState.SUCCESS,
+                now - timedelta(hours=i),
+            )
+            for i in range(6)
+        ]
+        agent = self._make_agent(pipeline=pipeline)
+        instructions = agent._extra_instructions()
+
+        self.assertIn("Recent Runs", instructions)
+        self.assertNotIn(str(runs[5].id), instructions)
+        positions = [instructions.index(str(run.id)) for run in runs[:5]]
+        self.assertEqual(positions, sorted(positions))
+        newest_line = next(
+            line for line in instructions.splitlines() if str(runs[0].id) in line
+        )
+        self.assertIn(PipelineRunState.FAILED, newest_line)
+        self.assertIn(runs[0].execution_date.isoformat(), newest_line)
+        self.assertIn(version.version_name, newest_line)
+        self.assertIn("5 most recent only", instructions)
+
+    def test_recent_runs_exclude_other_pipelines(self):
+        pipeline = Pipeline.objects.create(
+            code="mine", name="Mine", workspace=self.workspace
+        )
+        other = Pipeline.objects.create(
+            code="other", name="Other", workspace=self.workspace
+        )
+        other_run = self._make_run(other, None, PipelineRunState.FAILED, timezone.now())
+        agent = self._make_agent(pipeline=pipeline)
+        instructions = agent._extra_instructions()
+        self.assertNotIn(str(other_run.id), instructions)
+        self.assertNotIn("Recent Runs", instructions)
+
+    def test_get_pipeline_run_tool_is_available(self):
+        self.assertIn(get_pipeline_run, EditPipelineAgent.tools)
+
     def test_pipeline_is_injected_into_context(self):
         pipeline = Pipeline.objects.create(
             code="ctx-pipeline", name="Context Pipeline", workspace=self.workspace
@@ -238,3 +411,62 @@ class EditPipelineAgentToolCallTest(AgentTestCase):
         self.assertEqual(len(invocations), 2)
         self.assertFalse(invocations[0].proposal_pending)
         self.assertTrue(invocations[1].proposal_pending)
+
+
+class GetPipelineRunToolTest(AgentTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.pipeline = Pipeline.objects.create(
+            code="linked", name="Linked", workspace=cls.workspace
+        )
+        cls.version = PipelineVersion.objects.create(
+            pipeline=cls.pipeline,
+            user=cls.user,
+            parameters=[{"code": "token", "type": "secret"}],
+        )
+        cls.linked_run = _make_run(
+            cls.user,
+            cls.pipeline,
+            cls.version,
+            PipelineRunState.FAILED,
+            timezone.now(),
+            config={"token": "s3cr3t", "mode": "crash"},
+            run_logs="\n".join(f"line {i}" for i in range(1, 301)),
+        )
+        cls.other_pipeline = Pipeline.objects.create(
+            code="other", name="Other", workspace=cls.workspace
+        )
+        cls.other_run = _make_run(
+            cls.user,
+            cls.other_pipeline,
+            None,
+            PipelineRunState.FAILED,
+            timezone.now(),
+        )
+
+    def test_reads_run_of_linked_pipeline_with_secrets_masked(self):
+        result = get_pipeline_run(
+            user=self.user, pipeline=self.pipeline, run_id=str(self.linked_run.id)
+        )
+        self.assertEqual(str(result["id"]), str(self.linked_run.id))
+        self.assertEqual(result["config"], {"token": SECRET_MASK, "mode": "crash"})
+        self.assertIn("logsTruncated", result)
+
+    def test_rejects_run_of_another_pipeline(self):
+        result = get_pipeline_run(
+            user=self.user, pipeline=self.pipeline, run_id=str(self.other_run.id)
+        )
+        self.assertEqual(
+            result, {"error": "No run with this id belongs to the current pipeline"}
+        )
+
+    def test_rejects_without_linked_pipeline(self):
+        result = get_pipeline_run(
+            user=self.user, pipeline=None, run_id=str(self.linked_run.id)
+        )
+        self.assertIn("error", result)
+
+    def test_rejects_invalid_run_id(self):
+        result = get_pipeline_run(user=self.user, pipeline=self.pipeline, run_id="#2")
+        self.assertEqual(result, {"error": "'#2' is not a valid run id"})

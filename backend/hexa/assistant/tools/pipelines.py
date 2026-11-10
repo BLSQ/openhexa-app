@@ -1,4 +1,5 @@
 import io
+import uuid
 import zipfile
 
 from pydantic import BaseModel
@@ -10,7 +11,11 @@ from hexa.assistant.tools.proposals import (
     resolve_commit_message,
     resolve_deleted_paths,
 )
-from hexa.pipelines.models import Pipeline
+from hexa.mcp.tools.pipelines import DEFAULT_RUN_LOG_LINES
+from hexa.mcp.tools.pipelines import get_pipeline_run as mcp_get_pipeline_run
+from hexa.pipelines.models import Pipeline, PipelineRun, PipelineVersion
+
+SECRET_MASK = "[secret]"
 
 
 class ProposedFile(BaseModel):
@@ -88,3 +93,51 @@ def propose_pipeline_version(
     if message:
         output["commit_message"] = message
     return output
+
+
+def mask_secret_parameters(config: dict, version: PipelineVersion | None) -> dict:
+    """Replace the values of the version's secret parameters, which must not reach the model."""
+    secret_codes = {
+        parameter["code"]
+        for parameter in (version.parameters if version else None) or []
+        if parameter.get("type") == "secret"
+    }
+    return {
+        code: SECRET_MASK if code in secret_codes else value
+        for code, value in (config or {}).items()
+    }
+
+
+def get_pipeline_run(
+    user,
+    pipeline: Pipeline | None,
+    run_id: str,
+    max_log_lines: int = DEFAULT_RUN_LOG_LINES,
+) -> dict:
+    """Get a run of the current pipeline: status, parameters used, messages, outputs and logs.
+
+    Take run ids from "Recent Runs" in your context, or from the user. Only runs of the
+    current pipeline can be read. Logs are cut to their last `max_log_lines` lines, and a
+    `logsTruncated` note says when earlier lines were left out: call again with a higher
+    value if the cause is not visible. Secret parameter values are masked.
+    """
+    try:
+        run_uuid = uuid.UUID(run_id)
+    except ValueError:
+        return {"error": f"{run_id!r} is not a valid run id"}
+    run = (
+        PipelineRun.objects.select_related("pipeline_version")
+        .filter(id=run_uuid, pipeline=pipeline)
+        .first()
+        if pipeline is not None
+        else None
+    )
+    if run is None:
+        return {"error": "No run with this id belongs to the current pipeline"}
+
+    result = mcp_get_pipeline_run(user, run_id, max_log_lines)
+    if "config" in result:
+        result["config"] = mask_secret_parameters(
+            result["config"], run.pipeline_version
+        )
+    return result

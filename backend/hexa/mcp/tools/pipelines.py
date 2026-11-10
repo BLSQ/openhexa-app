@@ -45,15 +45,38 @@ def get_pipeline(
     return pipeline
 
 
+DEFAULT_RUN_LOG_LINES = 200
+
+
+def _tail_logs(run: dict, max_log_lines: int) -> None:
+    """Keep only the last `max_log_lines` lines of the run logs, noting when lines were dropped."""
+    logs = run.get("logs")
+    if not logs:
+        return
+    lines = logs.splitlines()
+    if len(lines) <= max_log_lines:
+        return
+    run["logs"] = "\n".join(lines[-max_log_lines:])
+    run["logsTruncated"] = (
+        f"Showing the last {max_log_lines} of {len(lines)} log lines. "
+        f"Call again with a higher max_log_lines to see more."
+    )
+
+
 @tool
-def get_pipeline_run(user, run_id: str) -> dict:
-    """Get detailed information about a specific pipeline run. Returns status, configuration used, messages (warnings/errors), outputs (files, database tables), and execution logs. Use this after run_pipeline to check results, or to inspect any run from get_pipeline's runs list."""
+def get_pipeline_run(
+    user, run_id: str, max_log_lines: int = DEFAULT_RUN_LOG_LINES
+) -> dict:
+    """Get detailed information about a specific pipeline run. Returns status, configuration used, messages (warnings/errors), outputs (files, database tables), and execution logs. Only the last `max_log_lines` log lines are returned (a `logsTruncated` note says when earlier lines were left out); raise it if the tail does not show what you need. Use this after run_pipeline to check results, or to inspect any run from get_pipeline's runs list."""
+    if max_log_lines < 1:
+        return {"error": "max_log_lines must be at least 1"}
     data = execute_graphql(user, "GetPipelineRun", {"id": run_id})
     if "errors" in data:
         return data
     run = data.get("pipelineRun")
     if run is None:
         return {"error": "Pipeline run not found"}
+    _tail_logs(run, max_log_lines)
     return run
 
 
