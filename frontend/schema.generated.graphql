@@ -2906,6 +2906,9 @@ enum InviteOrganizationMemberError {
   """Indicates that the user is already a member of the organization."""
   ALREADY_MEMBER
 
+  """Indicates that the provided language is not supported."""
+  INVALID_LANGUAGE
+
   """Indicates that the organization was not found."""
   ORGANIZATION_NOT_FOUND
 
@@ -2927,6 +2930,11 @@ enum InviteOrganizationMemberError {
 The InviteOrganizationMemberInput type represents the input for the inviteOrganizationMember mutation.
 """
 input InviteOrganizationMemberInput {
+  """
+  The language of the invitation email for users without an account. Defaults to the inviter's language.
+  """
+  language: String
+
   """The unique identifier of the organization."""
   organizationId: UUID!
 
@@ -2957,6 +2965,7 @@ type InviteOrganizationMemberResult {
 
 """Represents the input for inviting a member to a workspace."""
 input InviteWorkspaceMemberInput {
+  language: String
   role: WorkspaceMembershipRole!
   userEmail: String!
   workspaceSlug: String!
@@ -2974,6 +2983,7 @@ Enum representing the possible errors that can occur when inviting a user to a w
 """
 enum InviteWorkspaceMembershipError {
   ALREADY_EXISTS
+  INVALID_LANGUAGE
   PERMISSION_DENIED
   USER_NOT_FOUND
   WORKSPACE_NOT_FOUND
