@@ -926,6 +926,7 @@ class OrganizationInvitationManager(InvitationManager):
         organization: Organization,
         email: str,
         role: OrganizationMembershipRole,
+        language: str | None = None,
         workspace_invitations: list = None,
     ):
         if not principal.has_perm("user_management.manage_members", organization):
@@ -942,6 +943,7 @@ class OrganizationInvitationManager(InvitationManager):
             email=email,
             organization=organization,
             role=role,
+            language=language or principal.language,
             invited_by=principal,
         )
 
