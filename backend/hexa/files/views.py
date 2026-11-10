@@ -13,7 +13,11 @@ def download_file(request: HttpRequest, token: str) -> HttpResponse:
     object = storage.get_bucket_object_by_token(token)
     full_path = storage.path(object.path)
     as_attachment = request.GET.get("attachment", "false")
-    return FileResponse(open(full_path, "rb"), as_attachment=as_attachment == "true")
+    response = FileResponse(
+        open(full_path, "rb"), as_attachment=as_attachment == "true"
+    )
+    response["Content-Security-Policy"] = "sandbox"
+    return response
 
 
 @require_http_methods(["POST", "PUT"])
