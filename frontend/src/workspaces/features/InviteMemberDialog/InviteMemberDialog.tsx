@@ -16,6 +16,7 @@ import useCacheKey from "core/hooks/useCacheKey";
 import { useEffect } from "react";
 import { UserPicker } from "../UserPicker/UserPicker";
 import { toast } from "react-toastify";
+import InvitationLanguageField from "identity/features/InvitationLanguageField";
 
 type InviteMemberDialogProps = {
   onClose(): void;
@@ -26,10 +27,11 @@ type InviteMemberDialogProps = {
 type Form = {
   user: React.ComponentProps<typeof UserPicker>["value"];
   role: WorkspaceMembershipRole;
+  language: string;
 };
 
 const InviteMemberDialog = (props: InviteMemberDialogProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { open, onClose, workspace } = props;
 
   const [createWorkspaceMember] = useInviteWorkspaceMemberMutation();
@@ -43,6 +45,7 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
             role: values.role,
             workspaceSlug: workspace.slug,
             userEmail: values.user!.email,
+            language: values.language,
           },
         },
       });
@@ -77,7 +80,11 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
       clearCache();
       handleClose();
     },
-    initialState: { role: WorkspaceMembershipRole.Viewer, user: null },
+    initialState: {
+      role: WorkspaceMembershipRole.Viewer,
+      user: null,
+      language: i18n.language,
+    },
     validate: (values) => {
       const errors = {} as any;
       if (!values.user) {
@@ -102,7 +109,9 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
 
   return (
     <Dialog open={open} onClose={handleClose} onSubmit={form.handleSubmit}>
-      <Dialog.Title onClose={handleClose}>{t("Add or invite member")}</Dialog.Title>
+      <Dialog.Title onClose={handleClose}>
+        {t("Add or invite member")}
+      </Dialog.Title>
       <Dialog.Content className="space-y-4">
         <Field name="email" label={t("User")} type="email" required>
           <UserPicker
@@ -127,6 +136,10 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
             </option>
           </SimpleSelect>
         </Field>
+        <InvitationLanguageField
+          value={form.formData.language}
+          onChange={(language) => form.setFieldValue("language", language)}
+        />
 
         {form.submitError && (
           <div className="text-danger mt-3 text-sm">{form.submitError}</div>

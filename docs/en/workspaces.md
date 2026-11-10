@@ -83,6 +83,7 @@ To invite users:
 - **For existing users**: Search by their name.
 - **For new users**: Enter their email address.
 - Select their role in the workspace (**Admin**, **Editor**, or **Viewer**).
+- Select the **Invitation language** (English or French). New users receive the invitation email in this language, and it becomes the default language of their account. Existing users always receive emails in their own language.
 
 The invited users will receive an email invitation to join the workspace, which you'll see in the **Pending and Declined Invitations** section. Once they accept, they'll have access according to their assigned role.
 
