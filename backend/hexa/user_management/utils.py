@@ -3,7 +3,7 @@ from itertools import chain
 from urllib.parse import urlencode
 
 from django.conf import settings
-from django.utils.translation import gettext_lazy, override
+from django.utils.translation import gettext, gettext_lazy, override
 from django_otp import devices_for_user, user_has_device
 
 from hexa.analytics.api import track
@@ -51,15 +51,15 @@ def is_two_factor_pending(request):
 
 def send_organization_invite(invitation):
     """Send invitation email to organization"""
-    title = gettext_lazy(
-        f"You've been invited to join the organization {invitation.organization.name} on OpenHEXA"
-    )
     token = invitation.generate_token()
     action_url = f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
     invited_by = invitation.invited_by
     invited_by_user = None if isinstance(invited_by, ServiceAccount) else invited_by
 
-    with override(invited_by.language):
+    with override(invitation.language):
+        title = gettext(
+            "You've been invited to join the organization %(organization)s on OpenHEXA"
+        ) % {"organization": invitation.organization.name}
         send_mail(
             title=title,
             template_name="user_management/mails/invite_organization",
