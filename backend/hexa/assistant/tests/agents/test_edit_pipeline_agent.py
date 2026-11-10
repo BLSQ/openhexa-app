@@ -8,7 +8,7 @@ from pydantic_ai.models.test import TestModel
 from hexa.assistant.agents.edit_pipeline_agent import EditPipelineAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
-from hexa.assistant.tools.pipelines import SECRET_MASK, get_pipeline_run
+from hexa.assistant.tools.pipelines import get_pipeline_run
 from hexa.pipelines.models import (
     Pipeline,
     PipelineRun,
@@ -16,6 +16,8 @@ from hexa.pipelines.models import (
     PipelineRunTrigger,
     PipelineVersion,
 )
+from hexa.pipelines.utils import SECRET_MASK
+from hexa.user_management.models import User
 
 from ._helpers import FakeModelBuilder, _make_tool_call_model, _make_zipfile, run_agent
 from ._testcase import AgentTestCase
@@ -35,9 +37,9 @@ def _make_run(user, pipeline, version, state, execution_date, **fields):
 
 
 class EditPipelineAgentExtraInstructionsTest(AgentTestCase):
-    def _make_agent(self, pipeline=None):
+    def _make_agent(self, pipeline=None, user=None):
         conversation = Conversation(
-            user=self.user,
+            user=user or self.user,
             workspace=self.workspace,
             instruction_set=InstructionSet.EDIT_PIPELINE,
         )
@@ -267,6 +269,16 @@ class EditPipelineAgentExtraInstructionsTest(AgentTestCase):
         PipelineVersion.objects.create(pipeline=pipeline, user=self.user)
         agent = self._make_agent(pipeline=pipeline)
         self.assertNotIn("Recent Runs", agent._extra_instructions())
+
+    def test_recent_runs_hidden_from_users_without_access(self):
+        pipeline = Pipeline.objects.create(
+            code="private", name="Private", workspace=self.workspace
+        )
+        run = self._make_run(pipeline, None, PipelineRunState.FAILED, timezone.now())
+        outsider = User.objects.create_user("outsider@example.com", "password")
+        instructions = self._make_agent(pipeline, user=outsider)._extra_instructions()
+        self.assertNotIn("Recent Runs", instructions)
+        self.assertNotIn(str(run.id), instructions)
 
     def test_recent_runs_lists_latest_five_most_recent_first(self):
         pipeline = Pipeline.objects.create(

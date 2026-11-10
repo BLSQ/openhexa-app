@@ -13,9 +13,7 @@ from hexa.assistant.tools.proposals import (
 )
 from hexa.mcp.tools.pipelines import DEFAULT_RUN_LOG_LINES
 from hexa.mcp.tools.pipelines import get_pipeline_run as mcp_get_pipeline_run
-from hexa.pipelines.models import Pipeline, PipelineRun, PipelineVersion
-
-SECRET_MASK = "[secret]"
+from hexa.pipelines.models import Pipeline, PipelineRun
 
 
 class ProposedFile(BaseModel):
@@ -95,19 +93,6 @@ def propose_pipeline_version(
     return output
 
 
-def mask_secret_parameters(config: dict, version: PipelineVersion | None) -> dict:
-    """Replace the values of the version's secret parameters, which must not reach the model."""
-    secret_codes = {
-        parameter["code"]
-        for parameter in (version.parameters if version else None) or []
-        if parameter.get("type") == "secret"
-    }
-    return {
-        code: SECRET_MASK if code in secret_codes else value
-        for code, value in (config or {}).items()
-    }
-
-
 def get_pipeline_run(
     user,
     pipeline: Pipeline | None,
@@ -125,19 +110,10 @@ def get_pipeline_run(
         run_uuid = uuid.UUID(run_id)
     except ValueError:
         return {"error": f"{run_id!r} is not a valid run id"}
-    run = (
-        PipelineRun.objects.select_related("pipeline_version")
-        .filter(id=run_uuid, pipeline=pipeline)
-        .first()
-        if pipeline is not None
-        else None
-    )
-    if run is None:
+    if (
+        pipeline is None
+        or not PipelineRun.objects.filter(id=run_uuid, pipeline=pipeline).exists()
+    ):
         return {"error": "No run with this id belongs to the current pipeline"}
 
-    result = mcp_get_pipeline_run(user, run_id, max_log_lines)
-    if "config" in result:
-        result["config"] = mask_secret_parameters(
-            result["config"], run.pipeline_version
-        )
-    return result
+    return mcp_get_pipeline_run(user, run_id, max_log_lines)

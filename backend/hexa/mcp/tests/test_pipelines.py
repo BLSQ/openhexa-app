@@ -4,6 +4,7 @@ from zipfile import ZipFile
 
 from hexa.mcp.tools.pipelines import (
     DEFAULT_RUN_LOG_LINES,
+    MAX_RUN_LOG_CHARS,
     create_pipeline_version,
     get_pipeline,
     get_pipeline_run,
@@ -12,6 +13,7 @@ from hexa.mcp.tools.pipelines import (
     update_pipeline,
 )
 from hexa.pipelines.models import PipelineVersion
+from hexa.pipelines.utils import SECRET_MASK
 
 from .testutils import MCPTestCase
 
@@ -117,6 +119,19 @@ class GetPipelineRunTest(MCPTestCase):
         self.assertEqual(result["config"], {"param1": "value1"})
         self.assertEqual(result["pipeline"]["code"], "test-pipeline")
 
+    def test_get_pipeline_run_masks_secret_parameters(self):
+        self.PIPELINE_VERSION.parameters = [
+            {"code": "token", "name": "Token", "type": "secret"},
+            {"code": "param1", "name": "Param 1", "type": "str"},
+        ]
+        self.PIPELINE_VERSION.save()
+        self.PIPELINE_RUN.config = {"token": "s3cr3t", "param1": "value1"}
+        self.PIPELINE_RUN.save()
+        result = get_pipeline_run(
+            user=self.USER_ADMIN, run_id=str(self.PIPELINE_RUN.id)
+        )
+        self.assertEqual(result["config"], {"token": SECRET_MASK, "param1": "value1"})
+
     def test_get_pipeline_run_keeps_short_logs_whole(self):
         self.PIPELINE_RUN.run_logs = "line 1\nline 2"
         self.PIPELINE_RUN.save()
@@ -147,6 +162,16 @@ class GetPipelineRunTest(MCPTestCase):
         )
         self.assertEqual(len(result["logs"].splitlines()), 500)
         self.assertNotIn("logsTruncated", result)
+
+    def test_get_pipeline_run_caps_logs_with_very_long_lines(self):
+        self.PIPELINE_RUN.run_logs = "\n".join(["x" * 50_000, "KeyError: 'population'"])
+        self.PIPELINE_RUN.save()
+        result = get_pipeline_run(
+            user=self.USER_ADMIN, run_id=str(self.PIPELINE_RUN.id)
+        )
+        self.assertEqual(len(result["logs"]), MAX_RUN_LOG_CHARS)
+        self.assertTrue(result["logs"].endswith("KeyError: 'population'"))
+        self.assertIn(f"last {MAX_RUN_LOG_CHARS} characters", result["logsTruncated"])
 
     def test_get_pipeline_run_rejects_non_positive_max_log_lines(self):
         result = get_pipeline_run(
