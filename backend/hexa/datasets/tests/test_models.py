@@ -17,6 +17,7 @@ from hexa.datasets.models import (
     DatasetVersion,
     DatasetVersionFile,
     DatasetVisibility,
+    FileUploadError,
 )
 from hexa.files import storage
 from hexa.pipelines.authentication import PipelineRunUser
@@ -334,6 +335,41 @@ class DatasetVersionTest(BaseTestMixin, TestCase):
             version.get_file_by_name("file.txt").uri,
             f"{version.dataset.id}/{version.id}/file.txt",
         )
+
+    def test_get_full_uri_rejects_path_traversal(self):
+        version = self.test_create_dataset_version()
+        for uri in [
+            "../../../other-workspace-bucket/secret.csv",
+            "dir/../../escape.csv",
+            "~/file.csv",
+            "file\x00.csv",
+        ]:
+            with self.subTest(uri=uri), self.assertRaises(ValidationError):
+                version.get_full_uri(uri)
+
+    def test_get_full_uri_accepts_nested_paths(self):
+        version = self.test_create_dataset_version()
+        self.assertEqual(
+            version.get_full_uri("/dir/sub/file.csv"),
+            f"{version.dataset.id}/{version.id}/dir/sub/file.csv",
+        )
+
+    def test_create_version_rejects_path_traversal_in_files(self):
+        with self.assertRaises(FileUploadError):
+            DatasetVersion.objects.create_if_has_perm(
+                principal=self.USER_ADMIN,
+                dataset=self.DATASET,
+                name="Traversal",
+                changelog="",
+                files=[
+                    {
+                        "uri": "../../../other-workspace-bucket/x.py",
+                        "content_type": "text/plain",
+                        "content": "print('pwned')",
+                    }
+                ],
+            )
+        self.assertFalse(self.DATASET.versions.filter(name="Traversal").exists())
 
 
 @override_settings(WORKSPACE_DATASETS_BUCKET="hexa-datasets-bucket")

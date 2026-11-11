@@ -20,6 +20,7 @@ from hexa.core.models.base import Base, BaseQuerySet
 from hexa.core.validators import RESERVED_PUBLIC_SLUGS, validate_public_slug
 from hexa.datasets.api import get_blob
 from hexa.files import storage
+from hexa.files.utils import is_safe_path
 from hexa.metadata.models import MetadataMixin
 from hexa.user_management.models import (
     Organization,
@@ -426,7 +427,9 @@ class DatasetVersionManager(models.Manager):
 
                         file.generate_metadata()
                 except Exception as e:
-                    logger.warning("Failed to clean up uploaded file %s", full_uri)
+                    logger.warning(
+                        "Failed to clean up uploaded file %s", file_input["uri"]
+                    )
                     raise FileUploadError(str(e)) from e
 
         return version
@@ -487,7 +490,10 @@ class DatasetVersion(MetadataMixin, Base):
         return True
 
     def get_full_uri(self, file_uri):
-        return f"{self.dataset.id}/{self.id}/{file_uri.lstrip('/')}"
+        relative_uri = file_uri.lstrip("/")
+        if not is_safe_path(relative_uri):
+            raise ValidationError(f"Invalid file URI: {file_uri}")
+        return f"{self.dataset.id}/{self.id}/{relative_uri}"
 
     def get_file_by_name(self, name: str):
         return DatasetVersionFile.objects.get(

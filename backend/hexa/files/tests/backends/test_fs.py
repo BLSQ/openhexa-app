@@ -66,6 +66,13 @@ class FileSystemStorageTest(StorageTestMixin, TestCase):
             os.path.lexists(self.data_directory / "my-bucket/my-second-dir")
         )
 
+    def test_object_key_cannot_escape_its_bucket(self):
+        self.storage.create_bucket("my-bucket")
+        self.storage.create_bucket("other-bucket")
+        with self.assertRaises(self.storage.exceptions.SuspiciousFileOperation):
+            self.storage.save_object("my-bucket", "../other-bucket/x.txt", b"data")
+        self.assertFalse((self.data_directory / "other-bucket/x.txt").exists())
+
     def test_valid_filenames(self):
         self.storage.create_bucket("default-bucket")
         dir_obj = self.storage.create_bucket_folder("default-bucket", "éà_?_d 1")
