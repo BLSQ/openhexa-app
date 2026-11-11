@@ -5,6 +5,7 @@ from hexa.pipelines.models import (
     PipelineVersion,
 )
 from hexa.user_management.models import Organization, User
+from hexa.workspaces.models import WorkspaceMembership, WorkspaceMembershipRole
 from hexa.workspaces.tests.testutils import create_workspace
 
 
@@ -98,6 +99,44 @@ class PipelineTemplatesTest(GraphQLTestCase):
         self.create_template_version(self.PIPELINE_VERSION1.id, [{"versionNumber": 1}])
         self.create_template_version(
             self.PIPELINE_VERSION2.id, [{"versionNumber": 2}, {"versionNumber": 1}]
+        )
+
+    def run_create_template_version(self, workspace, pipeline, pipeline_version):
+        return self.run_query(
+            """
+                mutation createPipelineTemplateVersion($input: CreatePipelineTemplateVersionInput!) {
+                    createPipelineTemplateVersion(input: $input) { success errors }
+                }
+            """,
+            {
+                "input": {
+                    "name": "Stolen template",
+                    "code": "stolen_template",
+                    "workspaceSlug": workspace.slug,
+                    "pipelineId": str(pipeline.id),
+                    "pipelineVersionId": str(pipeline_version.id),
+                }
+            },
+        )["data"]["createPipelineTemplateVersion"]
+
+    def test_create_template_version_from_another_workspace_pipeline_is_denied(self):
+        """Being an editor of the target workspace doesn't grant access to a pipeline seen as viewer elsewhere."""
+        user = User.objects.create_user("viewer@bluesquarehub.com", "standardpassword")
+        WorkspaceMembership.objects.create(
+            workspace=self.WS1, user=user, role=WorkspaceMembershipRole.VIEWER
+        )
+        WorkspaceMembership.objects.create(
+            workspace=self.WS2, user=user, role=WorkspaceMembershipRole.EDITOR
+        )
+        self.client.force_login(user)
+
+        result = self.run_create_template_version(
+            self.WS2, self.PIPELINE1, self.PIPELINE_VERSION1
+        )
+
+        self.assertEqual({"success": False, "errors": ["PIPELINE_NOT_FOUND"]}, result)
+        self.assertFalse(
+            PipelineTemplate.all_objects.filter(code="stolen_template").exists()
         )
 
     def test_create_pipeline_from_template_version(self):
