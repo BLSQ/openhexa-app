@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from hexa.core.test import TestCase
 from hexa.databases.api import get_db_server_credentials
-from hexa.pipelines.models import Pipeline, PipelineRunTrigger
+from hexa.pipelines.models import Pipeline, PipelineRunState, PipelineRunTrigger
 from hexa.user_management.models import (
     Organization,
     OrganizationMembership,
@@ -161,10 +161,56 @@ class ViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
+    def request_pipeline_credentials(self, run):
+        return self.client.post(
+            reverse("workspaces:credentials"),
+            data={"workspace": self.WORKSPACE.slug},
+            **{
+                "HTTP_Authorization": f"Bearer {Signer().sign_object(run.access_token)}"
+            },
+        )
+
+    def test_pipeline_credentials_only_for_running_runs(self):
+        """A run token must stop granting workspace secrets once the run is over."""
+        run = self.PIPELINE.run(
+            self.USER_JULIA, self.PIPELINE.last_version, PipelineRunTrigger.MANUAL, {}
+        )
+        run.state = PipelineRunState.RUNNING
+        run.save()
+        self.assertEqual(self.request_pipeline_credentials(run).status_code, 200)
+
+        for state in [
+            PipelineRunState.QUEUED,
+            PipelineRunState.TERMINATING,
+            PipelineRunState.SUCCESS,
+            PipelineRunState.FAILED,
+            PipelineRunState.STOPPED,
+            PipelineRunState.SKIPPED,
+        ]:
+            with self.subTest(state=state):
+                run.state = state
+                run.save()
+                self.assertEqual(
+                    self.request_pipeline_credentials(run).status_code, 404
+                )
+
+    def test_pipeline_credentials_404_when_workspace_is_archived(self):
+        run = self.PIPELINE.run(
+            self.USER_JULIA, self.PIPELINE.last_version, PipelineRunTrigger.MANUAL, {}
+        )
+        run.state = PipelineRunState.RUNNING
+        run.save()
+        self.WORKSPACE.archived = True
+        self.WORKSPACE.save()
+
+        self.assertEqual(self.request_pipeline_credentials(run).status_code, 404)
+
     def test_pipeline_credentials_200(self):
         run = self.PIPELINE.run(
             self.USER_JULIA, self.PIPELINE.last_version, PipelineRunTrigger.MANUAL, {}
         )
+        run.state = PipelineRunState.RUNNING
+        run.save()
 
         token = Signer().sign_object(run.access_token)
 
