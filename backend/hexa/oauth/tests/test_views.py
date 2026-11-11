@@ -237,3 +237,58 @@ class MCPConsentRedirectTest(TestCase):
 
         self.assertEqual(302, response.status_code)
         self.assertIn("/login", response["Location"])
+
+
+class OAuthLibraryManagementRoutesTest(TestCase):
+    """django-oauth-toolkit's management views must not be exposed to regular users."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user("regular@bluesquarehub.com", "password")
+
+    def test_application_management_pages_are_not_reachable(self):
+        self.client.force_login(self.user)
+        for url in (
+            "/oauth/applications/",
+            "/oauth/applications/register/",
+            "/oauth/authorized_tokens/",
+            "/oauth/device/",
+            "/oauth/device-authorization/",
+            "/oauth/introspect/",
+        ):
+            with self.subTest(url=url):
+                self.assertEqual(self.client.get(url).status_code, 404)
+
+    def test_token_and_revoke_endpoints_stay_available(self):
+        self.assertEqual(self.client.post("/oauth/token/", {}).status_code, 400)
+        self.assertNotEqual(
+            self.client.post("/oauth/revoke_token/", {}).status_code, 404
+        )
+
+
+class OAuthGrantTypeTest(TestCase):
+    """Only the authorization code and refresh token grants are supported."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user("victim@bluesquarehub.com", "password")
+        cls.app = Application.objects.create(
+            name="password app",
+            client_id="password-client",
+            client_type=Application.CLIENT_PUBLIC,
+            authorization_grant_type=Application.GRANT_PASSWORD,
+        )
+
+    def test_password_grant_is_rejected(self):
+        response = self.client.post(
+            "/oauth/token/",
+            {
+                "grant_type": "password",
+                "username": "victim@bluesquarehub.com",
+                "password": "password",
+                "client_id": "password-client",
+                "scope": GIT_SCOPE,
+            },
+        )
+        self.assertNotEqual(response.status_code, 200, response.content)
+        self.assertFalse(AccessToken.objects.filter(user=self.user).exists())
