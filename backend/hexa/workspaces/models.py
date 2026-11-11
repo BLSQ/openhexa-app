@@ -171,7 +171,7 @@ class WorkspaceQuerySet(BaseQuerySet):
         if not user.is_authenticated:
             return self.none()
 
-        # A service principal that also subclasses User (WebappUser, MCPUser)
+        # A service principal that also subclasses User (PrivateWebappUser, MCPUser)
         # falls through to the User branch below, where its own workspaces are
         # intersected with the person's memberships: it can narrow their access,
         # never widen it. One that doesn't (PipelineRunUser) replaces it.
@@ -687,7 +687,7 @@ class Connection(models.Model):
             )
         ]
 
-    def set_fields(self, user: User, fields: typing.List[dict]):
+    def set_fields(self, user: User, fields: list[dict]):
         fields_map = {str(f.code): f for f in self.fields.all()}
         for field in fields:
             if field["code"] not in fields_map:

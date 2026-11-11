@@ -58,7 +58,8 @@ def _report_denied_to_sentry(
         scope.set_tag("workspace_slug", webapp.workspace.slug)
         scope.set_tag("webapp_is_public", webapp.is_public)
         scope.set_tag(
-            "denial_kind", "not_grantable" if ungrantable else "missing_scope"
+            "denial_kind",
+            "not_grantable" if ungrantable or not missing_scopes else "missing_scope",
         )
         scope.set_context(
             "webapp_graphql_denied",

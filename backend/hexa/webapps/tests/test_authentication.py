@@ -10,7 +10,7 @@ from hexa.user_management.models import (
     Team,
     User,
 )
-from hexa.webapps.models import Webapp, WebappUser
+from hexa.webapps.models import PrivateWebappUser, Webapp
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceInvitation,
@@ -20,7 +20,7 @@ from hexa.workspaces.models import (
 from hexa.workspaces.tests.testutils import create_workspace
 
 
-class TestWebappUserFiltering(TestCase):
+class TestPrivateWebappUserFiltering(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.SUPERUSER = User.objects.create_user(
@@ -62,7 +62,7 @@ class TestWebappUserFiltering(TestCase):
             description="",
         )
 
-        cls.webapp_user = WebappUser.from_user(cls.REAL_USER, cls.WEBAPP_A)
+        cls.webapp_user = PrivateWebappUser.from_user(cls.REAL_USER, cls.WEBAPP_A)
 
     def test_is_service_principal(self):
         self.assertIsInstance(self.webapp_user, ServicePrincipal)
@@ -74,7 +74,7 @@ class TestWebappUserFiltering(TestCase):
 
     def _webapp_user(self, user, scopes):
         webapp = Webapp(workspace=self.WORKSPACE_A, allowed_operations=scopes)
-        return WebappUser.from_user(user, webapp)
+        return PrivateWebappUser.from_user(user, webapp)
 
     def test_credential_permissions_are_refused_whatever_the_scopes(self):
         self.assertTrue(
@@ -124,7 +124,7 @@ class TestWebappUserFiltering(TestCase):
 
     def test_webapp_user_sees_nothing_when_real_user_has_no_workspace_access(self):
         outsider = User.objects.create_user("outsider@example.com", "password")
-        outsider_webapp_user = WebappUser.from_user(outsider, self.WEBAPP_A)
+        outsider_webapp_user = PrivateWebappUser.from_user(outsider, self.WEBAPP_A)
         self.assertEqual(
             Workspace.objects.filter_for_user(outsider_webapp_user).count(), 0
         )

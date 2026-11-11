@@ -89,9 +89,9 @@ class UserInterface:
 
 class ServicePrincipal:
     """Marker mixin for principals that impersonate workspaces rather than
-    a real user account (PipelineRunUser, WebappUser, MCPUser).
+    a real user account (PipelineRunUser, PrivateWebappUser, MCPUser).
 
-    Some of them act for a person (WebappUser, MCPUser are also Users) and must
+    Some of them act for a person (PrivateWebappUser, MCPUser are also Users) and must
     never reach more than that person. A filter_for_user branch that replaces
     the person's access with "everything in my workspaces" is therefore for
     non-personal principals only (see is_non_personal_principal); one acting for
@@ -112,7 +112,7 @@ class ServicePrincipal:
 
 def is_non_personal_principal(principal) -> bool:
     """A service principal with no person behind it (ex. PipelineRunUser): it acts
-    only within its workspaces and has no role of its own. WebappUser and MCPUser
+    only within its workspaces and has no role of its own. PrivateWebappUser and MCPUser
     act for a person, so they are Users too.
     """
     return isinstance(principal, ServicePrincipal) and not isinstance(principal, User)

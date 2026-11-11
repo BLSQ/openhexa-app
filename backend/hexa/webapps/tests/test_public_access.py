@@ -551,11 +551,11 @@ class GitWebappServeViewTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/auth-token/", response["Location"])
 
-    def test_graphql_blocked_on_subdomain(self):
+    def test_graphql_proxy_on_public_subdomain_only_accepts_post(self):
         response = self.client.get(
             "/graphql/", HTTP_HOST=self._subdomain_host(self.PUBLIC_WEBAPP)
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 405)
 
 
 @override_settings(
@@ -1321,9 +1321,9 @@ class CustomDomainMiddlewareTest(TestCase):
         response = self.client.get("/", HTTP_HOST="unknowndomain.com")
         self.assertNotEqual(response.status_code, 200)
 
-    def test_graphql_blocked_on_custom_domain(self):
+    def test_graphql_proxy_on_public_custom_domain_only_accepts_post(self):
         response = self.client.get("/graphql/", HTTP_HOST="mycustomdomain.com")
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 405)
 
     @patch("hexa.webapps.views.get_forgejo_client")
     def test_public_webapp_on_custom_domain_can_be_framed_by_any_site(

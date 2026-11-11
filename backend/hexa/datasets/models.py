@@ -68,7 +68,7 @@ def public_slug_locked_error() -> ValidationError:
 
 def check_principal_perm(principal, workspace_id, perm: str, obj) -> None:
     """A service principal is confined to its workspaces. One acting for a person
-    (MCPUser, WebappUser) is also held to that person's role; a pipeline run has none.
+    (MCPUser, PrivateWebappUser) is also held to that person's role; a pipeline run has none.
     """
     if (
         isinstance(principal, ServicePrincipal)
