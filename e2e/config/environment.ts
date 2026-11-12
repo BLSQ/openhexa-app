@@ -73,6 +73,17 @@ export const mailgun = process.env.E2E_MAILGUN_API_KEY
   : null;
 
 /**
+ * Whether the outsider's address is on the mailbox domain, so that the mail
+ * the app sends that account can be read back. The checks on it are left out
+ * otherwise.
+ */
+export const outsiderInboxIsReadable =
+  !!mailgun &&
+  !!outsiderCredentials?.email
+    .toLowerCase()
+    .endsWith(`@${mailgun.domain.toLowerCase()}`);
+
+/**
  * The organization the suite navigates. It is a dedicated, otherwise-unused
  * organization on the target environment, so its name and short name are stable
  * enough to assert on.

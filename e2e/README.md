@@ -29,7 +29,10 @@ that is signed in but has no access to the test workspace -- not a member of
 it, and not an admin or owner of its organization, which would reach every
 workspace in it. The tests that check what such a user is refused are skipped
 without it. The suite also switches this account's interface language, so that
-the main account's never changes under the tests running alongside.
+the main account's never changes under the tests running alongside. Give it an
+address on the mailbox domain (below) and the email telling it that it was added
+to a workspace is read and its link followed; with any other address that check
+is left out and the mail lands in a real inbox.
 
 `E2E_MAILGUN_API_KEY` is optional too: a read-only key of the Mailgun account
 that receives mail for `e2e-testing.openhexa.org`. Every address on that domain
@@ -154,7 +157,7 @@ Covered so far:
 | `organization-members.spec.ts` | The members list; inviting an address, resending the invitation and deleting it |
 | `user-menu.spec.ts` | The user menu's links (Account settings, MCP, Documentation); the profile name, access tokens and two-factor dialog |
 | `mcp-connections.spec.ts` | An MCP client of the suite's own authorized with the tools and workspace picked on the consent screen; what its token may list and call, what it is refused, and that it cannot see or write into a workspace left out of the grant; the connection on the account page, widened there, then revoked |
-| `outsider.spec.ts` | Everything seen through the outsider account: being added to a workspace and listed as an external collaborator; the interface language; what a workspace Viewer, Editor and Admin are offered; the organization changing a collaborator's roles, converting them to a member, and removing them |
+| `outsider.spec.ts` | Everything seen through the outsider account: being added to a workspace, told so by email when its inbox is on the mailbox domain, and listed as an external collaborator; the interface language; what a workspace Viewer, Editor and Admin are offered; the organization changing a collaborator's roles, converting them to a member, and removing them |
 | `workspace-navigation.spec.ts` | The workspace home page; every sidebar section; the global search finding a table and a new pipeline; the retired /pipelines and /notebooks pages leading to the workspaces |
 | `workspace-lifecycle.spec.ts` | Creating a workspace and archiving it again |
 | `workspace-settings.spec.ts` | In a temporary workspace: its name, countries and configuration, regenerating its database passwords, and a pipeline run that reads the configuration and writes to the database; with the mailbox, inviting an address without an account: the email, the resent one, the organization listing it, and deleting it |
@@ -304,7 +307,7 @@ nightly. It needs two repository secrets, plus three optional ones:
 | --- | --- |
 | `E2E_EMAIL` | The test account's email |
 | `E2E_PASSWORD` | Its password |
-| `E2E_OUTSIDER_EMAIL` | Optional: an account without access to the test workspace |
+| `E2E_OUTSIDER_EMAIL` | Optional: an account without access to the test workspace, ideally on the mailbox domain |
 | `E2E_OUTSIDER_PASSWORD` | Its password |
 | `E2E_MAILGUN_API_KEY` | Optional: a read-only key of the Mailgun account receiving mail for the mailbox domain |
 

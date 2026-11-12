@@ -1,8 +1,14 @@
 import { mergeTests } from "@playwright/test";
 
-import { organizationPaths, outsiderCredentials } from "../config/environment";
+import {
+  credentials,
+  organizationPaths,
+  outsiderCredentials,
+  outsiderInboxIsReadable,
+} from "../config/environment";
 import { test as disposableTest } from "../fixtures/disposableWorkspace";
 import { expect, test as visitorsTest } from "../fixtures/visitors";
+import { Mailbox, linkTo } from "../helpers/mailbox";
 import { AccountSettingsPage } from "../pages/AccountSettingsPage";
 import { OrganizationExternalCollaboratorsPage } from "../pages/OrganizationExternalCollaboratorsPage";
 import { OrganizationMembersPage } from "../pages/OrganizationMembersPage";
@@ -47,10 +53,28 @@ test.describe("Seen by another account", () => {
     expect(before?.status()).toBe(404);
 
     await settings.goto(slug);
+    const since = new Date();
     await settings.addMember(email, "Editor");
 
     const after = await outsiderPage.goto(`/workspaces/${slug}/`);
     expect(after?.status()).toBe(200);
+
+    if (outsiderInboxIsReadable) {
+      await test.step("they are told by email, with a link to it", async () => {
+        const mailbox = await Mailbox.open();
+        try {
+          const added = await mailbox.waitForEmail(email, {
+            since,
+            subject: `You've been added to the workspace ${disposableWorkspace.name} on OpenHEXA`,
+          });
+          expect(added.text).toContain(credentials.email);
+          const link = linkTo(added, `/workspaces/${slug}`);
+          expect((await outsiderPage.goto(link.href))?.status()).toBe(200);
+        } finally {
+          await mailbox.dispose();
+        }
+      });
+    }
 
     await outsiderAccount.goto();
     await expect(
