@@ -529,6 +529,7 @@ export enum AssistantToolName {
   GetDbTableSchema = 'get_db_table_schema',
   GetHelpOrDoc = 'get_help_or_doc',
   GetPipeline = 'get_pipeline',
+  GetPipelineRun = 'get_pipeline_run',
   GetSavedQuery = 'get_saved_query',
   GetWorkspace = 'get_workspace',
   GlobFiles = 'glob_files',

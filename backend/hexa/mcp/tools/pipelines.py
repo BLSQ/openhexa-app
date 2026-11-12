@@ -2,6 +2,7 @@ import json
 
 from hexa.mcp.protocol import tool
 from hexa.pipelines.models import PipelineFunctionalType
+from hexa.pipelines.utils import mask_secret_parameters
 
 from ._graphql import execute_graphql
 
@@ -45,15 +46,57 @@ def get_pipeline(
     return pipeline
 
 
+DEFAULT_RUN_LOG_LINES = 200
+
+MAX_RUN_LOG_CHARS = 20_000
+
+
+def _tail_logs(run: dict, max_log_lines: int) -> None:
+    """Keep only the end of the run logs, at most `max_log_lines` lines and `MAX_RUN_LOG_CHARS` characters.
+
+    Adds a `logsTruncated` note when anything was dropped.
+    """
+    logs = run.get("logs")
+    if not logs:
+        return
+    lines = logs.splitlines()
+    tail = "\n".join(lines[-max_log_lines:])
+    note = None
+    if len(lines) > max_log_lines:
+        note = (
+            f"Showing the last {max_log_lines} of {len(lines)} log lines. "
+            f"Call again with a higher max_log_lines to see more."
+        )
+    if len(tail) > MAX_RUN_LOG_CHARS:
+        tail = tail[-MAX_RUN_LOG_CHARS:]
+        note = (
+            f"Showing only the last {MAX_RUN_LOG_CHARS} characters of the logs "
+            f"because they contain very long lines."
+        )
+    if note is None:
+        return
+    run["logs"] = tail
+    run["logsTruncated"] = note
+
+
 @tool
-def get_pipeline_run(user, run_id: str) -> dict:
-    """Get detailed information about a specific pipeline run. Returns status, configuration used, messages (warnings/errors), outputs (files, database tables), and execution logs. Use this after run_pipeline to check results, or to inspect any run from get_pipeline's runs list."""
+def get_pipeline_run(
+    user, run_id: str, max_log_lines: int = DEFAULT_RUN_LOG_LINES
+) -> dict:
+    """Get detailed information about a specific pipeline run. Returns status, configuration used, messages (warnings/errors), outputs (files, database tables), and execution logs. Only the last `max_log_lines` log lines are returned (a `logsTruncated` note says when earlier lines were left out); raise it if the tail does not show what you need. Values of secret parameters in the configuration are masked. Use this after run_pipeline to check results, or to inspect any run from get_pipeline's runs list."""
+    if max_log_lines < 1:
+        return {"error": "max_log_lines must be at least 1"}
     data = execute_graphql(user, "GetPipelineRun", {"id": run_id})
     if "errors" in data:
         return data
     run = data.get("pipelineRun")
     if run is None:
         return {"error": "Pipeline run not found"}
+    if run.get("config"):
+        run["config"] = mask_secret_parameters(
+            run["config"], (run.get("version") or {}).get("parameters")
+        )
+    _tail_logs(run, max_log_lines)
     return run
 
 

@@ -850,6 +850,7 @@
   "Reading documentation": "Lecture de la documentation",
   "Reading file": "Lecture du fichier",
   "Reading pipeline": "Lecture du pipeline",
+  "Reading pipeline run": "Lecture de l'exécution du pipeline",
   "Reading saved query": "Lecture de la requête enregistrée",
   "Reading table schema": "Lecture du schéma de la table",
   "Reading web app file": "Lecture du fichier de l'application web",

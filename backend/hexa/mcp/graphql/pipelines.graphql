@@ -95,6 +95,10 @@ query GetPipelineRun($id: UUID!) {
     }
     version {
       versionName
+      parameters {
+        code
+        type
+      }
     }
     messages {
       priority

@@ -201,3 +201,22 @@ def generate_pipeline_container_name(run: PipelineRun) -> str:
     )
 
     return f"pipeline-{truncated_workspace_slug}-{truncated_pipeline_slug}-{run_id}"
+
+
+SECRET_MASK = "[secret]"
+
+
+def mask_secret_parameters(config: dict | None, parameters: list[dict] | None) -> dict:
+    """Replace the values of secret parameters in a run config, so they never reach a model.
+
+    `parameters` are the run version's parameter definitions (dicts with `code` and `type`).
+    """
+    secret_codes = {
+        parameter["code"]
+        for parameter in parameters or []
+        if parameter.get("type") == "secret"
+    }
+    return {
+        code: SECRET_MASK if code in secret_codes else value
+        for code, value in (config or {}).items()
+    }
