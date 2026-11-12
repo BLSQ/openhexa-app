@@ -40,10 +40,10 @@ Un espace de travail peut rendre certains de ses fichiers accessibles à tous, s
 Seuls les fichiers d'un dossier nommé `public` à la racine du système de fichiers sont concernés. Chacun d'eux est accessible à une URL stable :
 
 ```
-https://<votre-instance-openhexa>/files/public/<slug_du_workspace>/<chemin_dans_le_dossier_public>
+https://<votre-instance-openhexa>/files/<slug_du_workspace>/public/<chemin_dans_le_dossier_public>
 ```
 
-Par exemple, `public/maps/regions.pmtiles` est servi à `/files/public/<slug_du_workspace>/maps/regions.pmtiles`.
+Par exemple, `public/maps/regions.pmtiles` est servi à `/files/<slug_du_workspace>/public/maps/regions.pmtiles`.
 
 - L'URL redirige vers un lien de téléchargement temporaire du stockage. Sur un stockage cloud (Google Cloud Storage, S3, Azure), les requêtes partielles (range) sont prises en charge. Le stockage sur système de fichiers local renvoie toujours le fichier entier.
 - Les fichiers sont toujours envoyés en téléchargement : ouvrir un lien dans un onglet télécharge le fichier au lieu de l'afficher. La lecture depuis du code (`fetch()`, `<img>`, bibliothèques cartographiques) n'est pas affectée.
@@ -56,7 +56,7 @@ Les fichiers publics sont désactivés par défaut. Pour les activer :
 1. L'instance doit avoir la variable d'environnement `PUBLIC_FILES_ENABLED=true`.
 2. Un administrateur du workspace (ou un administrateur ou propriétaire de l'organisation) active **Fichiers publics** dans les paramètres du workspace.
 
-Une fois activé, le dossier `public` affiche un badge **Public** et chaque fichier qu'il contient dispose d'un bouton pour copier son lien public.
+Une fois activé, le dossier `public` affiche une icône de globe et chaque fichier qu'il contient dispose d'un bouton pour copier son lien public. Tant que le dossier `public` n'existe pas, un emplacement grisé à la racine du système de fichiers indique l'étape suivante : activer le paramètre ou créer le dossier.
 
 !!! warning
     Toute personne disposant du lien d'un fichier public peut le télécharger. Vérifiez le contenu du dossier `public` avant d'activer le paramètre, et n'y placez jamais de données sensibles.

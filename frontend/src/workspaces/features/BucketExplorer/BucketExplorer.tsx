@@ -1,12 +1,13 @@
 import { gql } from "@apollo/client";
 import {
   ArrowDownTrayIcon,
+  GlobeAltIcon,
   LinkIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import Badge from "core/components/Badge";
 import Button from "core/components/Button";
 import Spinner from "core/components/Spinner";
+import Tooltip from "core/components/Tooltip";
 import { BucketObject, BucketObjectType } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import DeleteBucketObject from "../DeleteBucketObject";
@@ -18,6 +19,7 @@ import {
 import FileSystemDataGrid from "workspaces/components/FileSystemDataGrid";
 import { useUploadFiles } from "workspaces/hooks/useUploadFiles";
 import { toast } from "react-toastify";
+import PublicFolderPlaceholder from "./PublicFolderPlaceholder";
 
 const PUBLIC_FOLDER = "public/";
 
@@ -46,7 +48,7 @@ const BucketExplorer = (props: BucketExplorerProps) => {
   const directoryLinkGenerator = (item: BucketObject) =>
     `/workspaces/${encodeURIComponent(workspace.slug)}/files/${item.key}`;
 
-  const { publicFilesUrl } = workspace;
+  const publicFilesUrl = workspace.publicFiles?.url;
 
   const copyPublicLink = async (item: BucketObject) => {
     try {
@@ -60,11 +62,20 @@ const BucketExplorer = (props: BucketExplorerProps) => {
     }
   };
 
+  // A span, not the default button: the suffix is rendered inside the folder link
   const nameSuffixRenderer = (item: BucketObject) =>
     publicFilesUrl && isPublicFolder(item) ? (
-      <Badge className="ml-1 bg-green-50 text-green-700 ring-green-600/20">
-        {t("Public")}
-      </Badge>
+      <Tooltip
+        as="span"
+        label={t(
+          "Shared publicly: anyone with the link of a file in this folder can download it, without signing in.",
+        )}
+      >
+        <GlobeAltIcon
+          className="ml-1 h-4 w-4 text-green-600"
+          aria-label={t("Shared publicly")}
+        />
+      </Tooltip>
     ) : null;
 
   const actionsRenderer = (item: BucketObject) => (
@@ -127,6 +138,11 @@ const BucketExplorer = (props: BucketExplorerProps) => {
       actionsRenderer={actionsRenderer}
       directoryLinkGenerator={directoryLinkGenerator}
       nameSuffixRenderer={nameSuffixRenderer}
+      leadingRow={
+        !prefix && objects.pageNumber === 1 ? (
+          <PublicFolderPlaceholder workspace={workspace} />
+        ) : null
+      }
       onDroppingFiles={uploadFiles}
       onChangePage={onChangePage}
     />
@@ -137,11 +153,15 @@ BucketExplorer.fragments = {
   workspace: gql`
     fragment BucketExplorer_workspace on Workspace {
       slug
-      publicFilesUrl
+      publicFiles {
+        url
+      }
       ...DownloadBucketObject_workspace
       ...DeleteBucketObject_workspace
+      ...PublicFolderPlaceholder_workspace
     }
 
+    ${PublicFolderPlaceholder.fragments.workspace}
     ${DeleteBucketObject.fragments.workspace}
     ${DownloadBucketObject.fragments.workspace}
   `,

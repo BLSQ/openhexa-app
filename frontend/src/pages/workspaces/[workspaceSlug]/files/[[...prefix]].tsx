@@ -2,14 +2,12 @@ import {
   ArrowUpTrayIcon,
   Cog6ToothIcon,
   FolderPlusIcon,
-  GlobeAltIcon,
 } from "@heroicons/react/24/outline";
 import SearchInput from "core/features/SearchInput";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
-import Link from "core/components/Link";
 import Page from "core/components/Page";
 import Popover from "core/components/Popover/Popover";
 import Switch from "core/components/Switch/Switch";
@@ -208,29 +206,6 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
               </>
             )}
           </div>
-          {workspace.publicFilesAvailable &&
-            !workspace.publicFilesEnabled &&
-            !prefix &&
-            (workspace.permissions.managePublicFiles ||
-              workspace.permissions.createObject) && (
-              <div className="flex items-start gap-3 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
-                <GlobeAltIcon className="h-5 w-5 flex-shrink-0" />
-                <p>
-                  {t(
-                    'Need to share files with a public web app or an external tool? Files in a "public" folder at the root can be made accessible to anyone with their link.',
-                  )}{" "}
-                  {workspace.permissions.managePublicFiles ? (
-                    <Link
-                      href={`/workspaces/${encodeURIComponent(workspace.slug)}/settings`}
-                    >
-                      {t("Enable public files in the workspace settings")}
-                    </Link>
-                  ) : (
-                    t("Ask a workspace admin to enable public files.")
-                  )}
-                </p>
-              </div>
-            )}
           <Block className="divide divide-y divide-gray-100">
             <BucketExplorer
               workspace={workspace}
