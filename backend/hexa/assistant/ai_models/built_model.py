@@ -26,7 +26,8 @@ class BuiltModel(NamedTuple):
         """Price `usage`, or None if this model has no known price.
 
         Agents in one conversation may run on different models, so each prices
-        its own usage. A model's price can be overridden by a backend ENV setting.
+        its own usage. A model's price can be overridden by a backend ENV setting,
+        which outranks genai_prices.
         """
         try:
             if self.price_override is not None:

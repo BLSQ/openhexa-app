@@ -2,7 +2,7 @@ from pydantic_ai.models.test import TestModel
 
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.instructions import InstructionSet
-from hexa.assistant.models import Conversation, Message
+from hexa.assistant.models import AiUsage, Conversation, Message
 
 from ._helpers import (
     FakeModelBuilder,
@@ -90,6 +90,41 @@ class BaseAgentRunTest(AgentTestCase):
         ).first()
         self.assertIsNotNone(assistant_msg.input_tokens)
         self.assertIsNotNone(assistant_msg.output_tokens)
+
+    def test_run_records_usage_for_the_reply_and_the_naming(self):
+        agent = BaseAgent(
+            self.conversation, FakeModelBuilder(TestModel(custom_output_text="Hello"))
+        )
+        run_agent(agent, "Test")
+        rows = AiUsage.objects.filter(conversation=self.conversation)
+        reply = rows.get(message__isnull=False)
+        naming = rows.get(message__isnull=True)
+        assistant_msg = self.conversation.messages.get(role=Message.Role.ASSISTANT)
+        self.assertEqual(reply.message, assistant_msg)
+        self.assertEqual(
+            (reply.organization, reply.workspace, reply.user, reply.source),
+            (
+                self.workspace.organization,
+                self.workspace,
+                self.user,
+                AiUsage.Source.CONVERSATION,
+            ),
+        )
+        self.assertEqual(
+            (reply.provider, reply.model_name),
+            (agent._built_model.provider_id, agent._built_model.api_name),
+        )
+        self.assertEqual(
+            (reply.input_tokens, reply.output_tokens),
+            (assistant_msg.input_tokens, assistant_msg.output_tokens),
+        )
+        self.assertEqual(naming.source, AiUsage.Source.CONVERSATION)
+        self.assertGreater(naming.input_tokens, 0)
+
+        # The conversation is named once: later runs only charge the reply.
+        run_agent(agent, "Again")
+        self.assertEqual(rows.count(), 3)
+        self.assertEqual(rows.filter(message__isnull=True).count(), 1)
 
     def test_second_run_appends_to_history(self):
         agent = BaseAgent(

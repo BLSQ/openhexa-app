@@ -6,7 +6,7 @@ from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.html import format_html, mark_safe
 
-from hexa.assistant.models import Conversation, Message, ToolInvocation
+from hexa.assistant.models import AiUsage, Conversation, Message, ToolInvocation
 from hexa.utils.format import format_cost
 
 TOKEN_ORANGE_THRESHOLD = 200_000
@@ -255,3 +255,44 @@ class ToolInvocationAdmin(admin.ModelAdmin):
     list_filter = ("tool_name", "success")
     search_fields = ("id", "message__id", "tool_name")
     raw_id_fields = ("message",)
+
+
+@admin.register(AiUsage)
+class AiUsageAdmin(admin.ModelAdmin):
+    """Read-only: the rows are written as the calls run."""
+
+    list_display = (
+        "created_at",
+        "organization",
+        "workspace",
+        "user",
+        "source",
+        "provider",
+        "model_name",
+        "input_tokens",
+        "output_tokens",
+        "cost_display",
+    )
+    list_filter = ("source", "provider", "model_name")
+    search_fields = (
+        "organization__name",
+        "workspace__name",
+        "user__email",
+        "model_name",
+    )
+    list_select_related = ("organization", "workspace", "user")
+    raw_id_fields = ("conversation", "message")
+    date_hierarchy = "created_at"
+    readonly_fields = [
+        field.name for field in AiUsage._meta.fields if field.name != "id"
+    ]
+
+    @admin.display(description="Cost", ordering="cost")
+    def cost_display(self, obj):
+        return "—" if obj.cost is None else format_cost(obj.cost)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
