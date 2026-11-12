@@ -5,10 +5,17 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.signing import Signer
 from django.db import IntegrityError
 
 from hexa.core.test import GraphQLTestCase
 from hexa.files import storage
+from hexa.pipelines.models import (
+    Pipeline,
+    PipelineRunState,
+    PipelineRunTrigger,
+    PipelineVersion,
+)
 from hexa.user_management.models import (
     Organization,
     OrganizationMembership,
@@ -647,6 +654,85 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                 "errors": [],
             },
         )
+
+    def generate_upload_url(self, dataset_version, headers=None):
+        return self.run_query(
+            """
+            mutation generateDatasetUploadUrl ($input: GenerateDatasetUploadUrlInput!) {
+                generateDatasetUploadUrl(input: $input) {
+                    uploadUrl
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "versionId": str(dataset_version.id),
+                    "uri": "uri_file.csv",
+                    "contentType": "text/csv",
+                }
+            },
+            headers=headers or {},
+        )["data"]["generateDatasetUploadUrl"]
+
+    def create_running_pipeline_run(self, user, workspace):
+        pipeline = Pipeline.objects.create(
+            code=f"pipeline-{workspace.slug}", name="Pipeline", workspace=workspace
+        )
+        pipeline_version = PipelineVersion.objects.create(
+            pipeline=pipeline, version_number=1, zipfile=b"zip"
+        )
+        run = pipeline.run(user, pipeline_version, PipelineRunTrigger.MANUAL, {})
+        run.state = PipelineRunState.RUNNING
+        run.save()
+        return run
+
+    def test_generate_upload_url_requires_write_permission(self):
+        superuser = self.create_user("superuser@blsq.com", is_superuser=True)
+        viewer = self.create_user("viewer@blsq.com")
+        workspace = self.create_workspace(
+            superuser,
+            name="My Workspace",
+            description="Test workspace",
+        )
+        self.join_workspace(viewer, workspace, WorkspaceMembershipRole.VIEWER)
+        dataset = self.create_dataset(
+            superuser, workspace, "Dataset", "Dataset description"
+        )
+        dataset_version = self.create_dataset_version(superuser, dataset=dataset)
+        self.client.force_login(viewer)
+
+        self.assertEqual(
+            self.generate_upload_url(dataset_version),
+            {"uploadUrl": None, "success": False, "errors": ["PERMISSION_DENIED"]},
+        )
+
+    def test_generate_upload_url_as_pipeline_run(self):
+        """Pipelines upload dataset files through the SDK; only for their own workspace."""
+        superuser = self.create_user("superuser@blsq.com", is_superuser=True)
+        workspace = self.create_workspace(
+            superuser, name="My Workspace", description="Test workspace"
+        )
+        other_workspace = self.create_workspace(
+            superuser, name="Other Workspace", description="Test workspace"
+        )
+        dataset = self.create_dataset(
+            superuser, workspace, "Dataset", "Dataset description"
+        )
+        dataset_version = self.create_dataset_version(superuser, dataset=dataset)
+
+        for run_workspace, expected_success in [
+            (workspace, True),
+            (other_workspace, False),
+        ]:
+            with self.subTest(workspace=run_workspace.slug):
+                run = self.create_running_pipeline_run(superuser, run_workspace)
+                token = Signer().sign_object(str(run.access_token))
+                result = self.generate_upload_url(
+                    dataset_version, headers={"HTTP_Authorization": f"Bearer {token}"}
+                )
+                self.assertEqual(result["success"], expected_success, result)
 
     def test_get_file_by_name(self):
         self.test_create_dataset_version()

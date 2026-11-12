@@ -18,7 +18,7 @@ from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.core.validators import RESERVED_PUBLIC_SLUGS, validate_public_slug
-from hexa.datasets.api import get_blob
+from hexa.datasets.api import generate_upload_url, get_blob
 from hexa.files import storage
 from hexa.files.utils import is_safe_path
 from hexa.metadata.models import MetadataMixin
@@ -494,6 +494,24 @@ class DatasetVersion(MetadataMixin, Base):
         if not is_safe_path(relative_uri):
             raise ValidationError(f"Invalid file URI: {file_uri}")
         return f"{self.dataset.id}/{self.id}/{relative_uri}"
+
+    def generate_upload_url_if_has_perm(
+        self, *, principal: UserInterface, uri: str, content_type: str
+    ) -> tuple[str, dict | None]:
+        """Return a signed upload URL and headers for a new file of this version.
+
+        Raises FileExistsError if a file was already uploaded at this URI.
+        """
+        check_principal_perm(
+            principal,
+            self.dataset.workspace_id,
+            "datasets.create_dataset_version_file",
+            self,
+        )
+        full_uri = self.get_full_uri(uri)
+        if get_blob(full_uri) is not None:
+            raise FileExistsError(full_uri)
+        return generate_upload_url(full_uri, content_type)
 
     def get_file_by_name(self, name: str):
         return DatasetVersionFile.objects.get(
