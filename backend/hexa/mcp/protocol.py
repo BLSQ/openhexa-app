@@ -61,13 +61,17 @@ def _permissions_page() -> str:
     return f"{settings.NEW_FRONTEND_DOMAIN}/user/account#mcp-connections"
 
 
-def scope_refusal_message(connection: MCPConnection | None) -> str:
+def scope_refusal_message(connection: MCPConnection | None, action: str) -> str:
+    """The message for anything the connection's grant keeps out, `action` saying what.
+
+    Shared by a disabled tool, an ungranted workspace and a search that only
+    ungranted workspaces match.
+    """
     return (
-        f"{_client_label(connection)} is not authorized to do this: the tool or "
-        f"workspace it needs is not granted to it (or the workspace does not exist). "
-        f"The person who authorized it can grant tools and workspaces at "
-        f"{_permissions_page()} — the change takes effect on the next call, with no "
-        f"need to authorize the client again."
+        f"{_client_label(connection)} is not authorized to {action}. The person who "
+        f"authorized it can grant tools and workspaces at {_permissions_page()} — the "
+        f"change takes effect on the next call, with no need to authorize the client "
+        f"again."
     )
 
 
@@ -183,10 +187,19 @@ def call_tool(name, arguments, user, connection: MCPConnection | None):
     if not entry:
         raise ValueError(f"Unknown tool: {name}")
     if not _is_granted(name, entry, connection):
-        _refuse(user, name, arguments, scope_refusal_message(connection))
+        _refuse(
+            user, name, arguments, scope_refusal_message(connection, f"call {name}")
+        )
     slug = _workspace_slug(entry, arguments)
     if slug and isinstance(user, MCPUser) and slug not in user.granted_workspaces:
-        _refuse(user, name, arguments, scope_refusal_message(connection))
+        _refuse(
+            user,
+            name,
+            arguments,
+            scope_refusal_message(
+                connection, f'access workspace "{slug}" (or it does not exist)'
+            ),
+        )
     try:
         result = entry.func(user=user, **arguments)
         ToolCall.objects.create(

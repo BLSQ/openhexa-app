@@ -32,7 +32,9 @@ def list_workspaces(user, query: str = "", page: int = 1, per_page: int = 10) ->
         and listing.get("totalItems") == 0
         and _matches_ungranted_workspace(user, query)
     ):
-        data["message"] = scope_refusal_message(user.connection)
+        data["message"] = scope_refusal_message(
+            user.connection, "access the workspaces matching this search"
+        )
     return data
 
 
