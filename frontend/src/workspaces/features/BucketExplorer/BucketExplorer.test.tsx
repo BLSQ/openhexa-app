@@ -85,18 +85,57 @@ describe("getPublicFileUrl", () => {
 });
 
 describe("BucketExplorer public files", () => {
-  it("marks the public folder as shared only when public files are enabled", () => {
-    const items = [
-      buildObject("public/", BucketObjectType.Directory),
-      buildObject("data.csv", BucketObjectType.File),
-    ];
-    const { unmount } = renderExplorer(null, items);
-    expect(screen.queryByLabelText("Shared publicly")).not.toBeInTheDocument();
-    unmount();
+  const publicFolder = [
+    buildObject("public/", BucketObjectType.Directory),
+    buildObject("data.csv", BucketObjectType.File),
+  ];
 
-    renderExplorer(PUBLIC_FILES_URL, items);
+  it("marks the public folder as shared while public files are enabled", () => {
+    renderExplorer(PUBLIC_FILES_URL, publicFolder);
     expect(screen.getByLabelText("Shared publicly")).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("Not shared publicly"),
+    ).not.toBeInTheDocument();
     expect(screen.queryByTitle("Copy public link")).not.toBeInTheDocument();
+  });
+
+  it("marks the public folder as not shared while public files are disabled", () => {
+    renderExplorer(null, publicFolder);
+    expect(screen.getByLabelText("Not shared publicly")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Shared publicly")).not.toBeInTheDocument();
+  });
+
+  it("shows no icon when the instance does not offer public files", () => {
+    renderExplorer(null, publicFolder, { publicFiles: null });
+    expect(
+      screen.queryByLabelText("Not shared publicly"),
+    ).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["enabled", PUBLIC_FILES_URL, "Shared publicly"],
+    ["disabled", null, "Not shared publicly"],
+  ])(
+    "opens the settings from the icon while public files are %s",
+    async (_, url, label) => {
+      const user = userEvent.setup();
+      mockRouter.setCurrentUrl("/workspaces/my-ws/files");
+      renderExplorer(url, publicFolder);
+
+      await user.click(screen.getByRole("button", { name: label }));
+
+      await waitFor(() =>
+        expect(mockRouter.asPath).toBe("/workspaces/my-ws/settings"),
+      );
+    },
+  );
+
+  it("does not make the icon clickable for users who cannot manage public files", () => {
+    renderExplorer(null, publicFolder, { managePublicFiles: false });
+    expect(screen.getByLabelText("Not shared publicly")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Not shared publicly" }),
+    ).not.toBeInTheDocument();
   });
 
   it("copies the public link of files in the public folder", async () => {
@@ -142,11 +181,13 @@ describe("BucketExplorer public folder placeholder", () => {
     expect(screen.queryByText("public")).not.toBeInTheDocument();
   });
 
-  it("is hidden once the public folder exists", () => {
+  it("is hidden once the public folder exists, without leaving an empty row", () => {
     renderExplorer(null, items, {
       publicFiles: { url: null, folderExists: true },
     });
     expect(screen.queryByText("public")).not.toBeInTheDocument();
+    // Header row + one row per item
+    expect(screen.getAllByRole("row")).toHaveLength(1 + items.length);
   });
 
   it("is hidden outside of the root folder", () => {
@@ -165,15 +206,35 @@ describe("BucketExplorer public folder placeholder", () => {
     expect(
       screen.getByRole("link", { name: "Enable public files" }),
     ).toHaveAttribute("href", "/workspaces/my-ws/settings");
+    expect(
+      screen.getByRole("button", { name: "Create folder" }),
+    ).toBeInTheDocument();
   });
 
-  it("tells editors to ask an admin while public files are disabled", () => {
+  it("shows the next steps without a link to users who cannot manage public files", () => {
     renderExplorer(null, items, {
       publicFiles: { url: null, folderExists: false },
       managePublicFiles: false,
     });
     expect(
-      screen.getByText("Ask a workspace admin to enable public files"),
+      screen.getByText(
+        "Enable public files and create this folder to start sharing files publicly",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Create folder" }),
+    ).toBeInTheDocument();
+  });
+
+  it("invites to create the folder while public files are enabled", () => {
+    renderExplorer(PUBLIC_FILES_URL, items, {
+      publicFiles: { url: PUBLIC_FILES_URL, folderExists: false },
+    });
+    expect(
+      screen.getByText(
+        "Create this folder and put files in it to share publicly",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -186,7 +247,7 @@ describe("BucketExplorer public folder placeholder", () => {
     expect(screen.queryByText("public")).not.toBeInTheDocument();
   });
 
-  it("creates the public folder once public files are enabled", async () => {
+  it("creates the public folder", async () => {
     const user = userEvent.setup();
     (createBucketFolder as jest.Mock).mockResolvedValue({ key: "public/" });
     renderExplorer(PUBLIC_FILES_URL, items, {

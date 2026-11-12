@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import { DownloadBucketObject_WorkspaceFragmentDoc, DownloadBucketObject_ObjectFragmentDoc } from '../DownloadBucketObject/DownloadBucketObject.generated';
 import { DeleteBucketObject_WorkspaceFragmentDoc, DeleteBucketObject_ObjectFragmentDoc } from '../DeleteBucketObject/DeleteBucketObject.generated';
 import { PublicFolderPlaceholder_WorkspaceFragmentDoc } from './PublicFolderPlaceholder.generated';
-export type BucketExplorer_WorkspaceFragment = { __typename?: 'Workspace', slug: string, publicFiles?: { __typename?: 'WorkspacePublicFiles', url?: string | null, folderExists: boolean } | null, permissions: { __typename?: 'WorkspacePermissions', deleteObject: boolean, createObject: boolean, managePublicFiles: boolean } };
+export type BucketExplorer_WorkspaceFragment = { __typename?: 'Workspace', slug: string, publicFiles?: { __typename?: 'WorkspacePublicFiles', url?: string | null, folderExists: boolean } | null, permissions: { __typename?: 'WorkspacePermissions', managePublicFiles: boolean, deleteObject: boolean, createObject: boolean } };
 
 export type BucketExplorer_ObjectsFragment = { __typename?: 'BucketObjectPage', hasNextPage: boolean, hasPreviousPage: boolean, pageNumber: number, items: Array<{ __typename?: 'BucketObject', key: string, name: string, path: string, size?: any | null, updatedAt?: any | null, type: Types.BucketObjectType }> };
 
@@ -13,6 +13,9 @@ export const BucketExplorer_WorkspaceFragmentDoc = gql`
   slug
   publicFiles {
     url
+  }
+  permissions {
+    managePublicFiles
   }
   ...DownloadBucketObject_workspace
   ...DeleteBucketObject_workspace

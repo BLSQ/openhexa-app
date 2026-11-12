@@ -3,13 +3,17 @@ import {
   ArrowDownTrayIcon,
   GlobeAltIcon,
   LinkIcon,
+  LockClosedIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import Spinner from "core/components/Spinner";
 import Tooltip from "core/components/Tooltip";
+import clsx from "clsx";
 import { BucketObject, BucketObjectType } from "graphql/types";
 import { useTranslation } from "next-i18next";
+import { useRouter } from "next/router";
+import { MouseEvent } from "react";
 import DeleteBucketObject from "../DeleteBucketObject";
 import DownloadBucketObject from "../DownloadBucketObject";
 import {
@@ -19,7 +23,9 @@ import {
 import FileSystemDataGrid from "workspaces/components/FileSystemDataGrid";
 import { useUploadFiles } from "workspaces/hooks/useUploadFiles";
 import { toast } from "react-toastify";
-import PublicFolderPlaceholder from "./PublicFolderPlaceholder";
+import PublicFolderPlaceholder, {
+  shouldShowPublicFolderPlaceholder,
+} from "./PublicFolderPlaceholder";
 
 const PUBLIC_FOLDER = "public/";
 
@@ -42,6 +48,7 @@ type BucketExplorerProps = {
 
 const BucketExplorer = (props: BucketExplorerProps) => {
   const { t } = useTranslation();
+  const router = useRouter();
   const { workspace, objects, prefix, perPage, onChangePage } = props;
   const uploadFiles = useUploadFiles({ workspaceSlug: workspace.slug, prefix });
 
@@ -62,21 +69,49 @@ const BucketExplorer = (props: BucketExplorerProps) => {
     }
   };
 
-  // A span, not the default button: the suffix is rendered inside the folder link
-  const nameSuffixRenderer = (item: BucketObject) =>
-    publicFilesUrl && isPublicFolder(item) ? (
-      <Tooltip
-        as="span"
-        label={t(
-          "Shared publicly: anyone with the link of a file in this folder can download it, without signing in.",
-        )}
-      >
-        <GlobeAltIcon
-          className="ml-1 h-4 w-4 text-green-600"
-          aria-label={t("Shared publicly")}
-        />
+  const goToSettings = (event: MouseEvent) => {
+    // The icon sits inside the folder link: open the settings instead of the folder
+    event.preventDefault();
+    event.stopPropagation();
+    router.push(`/workspaces/${encodeURIComponent(workspace.slug)}/settings`);
+  };
+
+  // Spans, not the default button: the suffix is rendered inside the folder link
+  const nameSuffixRenderer = (item: BucketObject) => {
+    if (!workspace.publicFiles || !isPublicFolder(item)) {
+      return null;
+    }
+    const canOpenSettings = workspace.permissions.managePublicFiles;
+    const [Icon, label, tooltip, color] = publicFilesUrl
+      ? [
+          GlobeAltIcon,
+          t("Shared publicly"),
+          t(
+            "Shared publicly: anyone with the link of a file in this folder can download it, without signing in.",
+          ),
+          "text-green-600",
+        ]
+      : [
+          LockClosedIcon,
+          t("Not shared publicly"),
+          t(
+            "Not shared publicly: public files are disabled for this workspace.",
+          ),
+          "text-gray-400",
+        ];
+    return (
+      <Tooltip as="span" label={tooltip}>
+        <span
+          role={canOpenSettings ? "button" : undefined}
+          onClick={canOpenSettings ? goToSettings : undefined}
+          aria-label={label}
+          className={clsx("ml-1 block", canOpenSettings && "cursor-pointer")}
+        >
+          <Icon className={clsx("h-4 w-4", color)} />
+        </span>
       </Tooltip>
-    ) : null;
+    );
+  };
 
   const actionsRenderer = (item: BucketObject) => (
     <div className="flex flex-1 justify-end gap-2">
@@ -139,7 +174,9 @@ const BucketExplorer = (props: BucketExplorerProps) => {
       directoryLinkGenerator={directoryLinkGenerator}
       nameSuffixRenderer={nameSuffixRenderer}
       leadingRow={
-        !prefix && objects.pageNumber === 1 ? (
+        !prefix &&
+        objects.pageNumber === 1 &&
+        shouldShowPublicFolderPlaceholder(workspace) ? (
           <PublicFolderPlaceholder workspace={workspace} />
         ) : null
       }
@@ -155,6 +192,9 @@ BucketExplorer.fragments = {
       slug
       publicFiles {
         url
+      }
+      permissions {
+        managePublicFiles
       }
       ...DownloadBucketObject_workspace
       ...DeleteBucketObject_workspace

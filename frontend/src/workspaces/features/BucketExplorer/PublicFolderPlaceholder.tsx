@@ -2,7 +2,7 @@ import { gql } from "@apollo/client";
 import { FolderIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import Link from "core/components/Link";
-import { useTranslation } from "next-i18next";
+import { Trans, useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { ReactNode, useState } from "react";
 import { toast } from "react-toastify";
@@ -12,6 +12,16 @@ import { PublicFolderPlaceholder_WorkspaceFragment } from "./PublicFolderPlaceho
 type PublicFolderPlaceholderProps = {
   workspace: PublicFolderPlaceholder_WorkspaceFragment;
 };
+
+/**
+ * Whether the placeholder has something to show. Kept outside of the component because
+ * the data grid renders an extra row as soon as it receives an element, even an empty one.
+ */
+export const shouldShowPublicFolderPlaceholder = ({
+  publicFiles,
+  permissions,
+}: PublicFolderPlaceholder_WorkspaceFragment) =>
+  Boolean(publicFiles && !publicFiles.folderExists && permissions.createObject);
 
 /**
  * Greyed-out "public" folder shown at the root of the filesystem while the folder does not
@@ -24,10 +34,6 @@ const PublicFolderPlaceholder = ({
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
   const { publicFiles, permissions } = workspace;
-
-  if (!publicFiles || publicFiles.folderExists) {
-    return null;
-  }
 
   const createFolder = async () => {
     setIsCreating(true);
@@ -43,41 +49,24 @@ const PublicFolderPlaceholder = ({
     }
   };
 
-  let description: string;
-  let action: ReactNode;
-  if (!publicFiles.url) {
-    description = t(
-      "Share files with anyone who has their link, for example to feed a public web app.",
-    );
-    if (permissions.managePublicFiles) {
-      action = (
+  let description: ReactNode;
+  if (publicFiles?.url) {
+    description = t("Create this folder and put files in it to share publicly");
+  } else if (permissions.managePublicFiles) {
+    description = (
+      <Trans>
         <Link
           href={`/workspaces/${encodeURIComponent(workspace.slug)}/settings`}
         >
-          {t("Enable public files")}
-        </Link>
-      );
-    } else if (permissions.createObject) {
-      action = t("Ask a workspace admin to enable public files");
-    } else {
-      return null;
-    }
-  } else if (permissions.createObject) {
-    description = t(
-      "Public files are enabled. Create this folder and put the files to share in it.",
-    );
-    action = (
-      <Button
-        size="sm"
-        variant="secondary"
-        onClick={createFolder}
-        disabled={isCreating}
-      >
-        {t("Create folder")}
-      </Button>
+          Enable public files
+        </Link>{" "}
+        and create this folder to start sharing files publicly
+      </Trans>
     );
   } else {
-    return null;
+    description = t(
+      "Enable public files and create this folder to start sharing files publicly",
+    );
   }
 
   return (
@@ -85,7 +74,16 @@ const PublicFolderPlaceholder = ({
       <FolderIcon className="h-5 w-5 flex-shrink-0 text-gray-300" />
       <span className="font-medium text-gray-400">public</span>
       <span className="text-gray-400">{description}</span>
-      <div className="ml-auto flex-shrink-0">{action}</div>
+      <div className="ml-auto flex-shrink-0">
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={createFolder}
+          disabled={isCreating}
+        >
+          {t("Create folder")}
+        </Button>
+      </div>
     </div>
   );
 };

@@ -56,7 +56,7 @@ Public files are disabled by default. To enable them:
 1. The instance must have the `PUBLIC_FILES_ENABLED=true` environment variable set.
 2. A workspace admin (or an organization admin or owner) turns on **Public files** in the workspace settings.
 
-Once enabled, the `public` folder shows a globe icon and each file inside it has a button to copy its public link. While the `public` folder does not exist, a greyed-out placeholder at the root of the filesystem shows the next step: enabling the setting, or creating the folder.
+Once enabled, the `public` folder shows a globe icon and each file inside it has a button to copy its public link. While the setting is disabled, the folder shows a lock icon instead: nothing in it is shared. Admins can click either icon to open the workspace settings. While the `public` folder does not exist, a greyed-out placeholder at the root of the filesystem offers to create it, along with a link to enable the setting if needed.
 
 !!! warning
     Anyone who has the link of a public file can download it. Check the content of the `public` folder before enabling the setting, and never put sensitive data in it.

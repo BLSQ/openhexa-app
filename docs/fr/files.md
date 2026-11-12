@@ -56,7 +56,7 @@ Les fichiers publics sont désactivés par défaut. Pour les activer :
 1. L'instance doit avoir la variable d'environnement `PUBLIC_FILES_ENABLED=true`.
 2. Un administrateur du workspace (ou un administrateur ou propriétaire de l'organisation) active **Fichiers publics** dans les paramètres du workspace.
 
-Une fois activé, le dossier `public` affiche une icône de globe et chaque fichier qu'il contient dispose d'un bouton pour copier son lien public. Tant que le dossier `public` n'existe pas, un emplacement grisé à la racine du système de fichiers indique l'étape suivante : activer le paramètre ou créer le dossier.
+Une fois activé, le dossier `public` affiche une icône de globe et chaque fichier qu'il contient dispose d'un bouton pour copier son lien public. Tant que le paramètre est désactivé, le dossier affiche à la place une icône de cadenas : rien n'y est partagé. Les administrateurs peuvent cliquer sur l'une ou l'autre icône pour ouvrir les paramètres du workspace. Tant que le dossier `public` n'existe pas, un emplacement grisé à la racine du système de fichiers propose de le créer, avec un lien pour activer le paramètre si nécessaire.
 
 !!! warning
     Toute personne disposant du lien d'un fichier public peut le télécharger. Vérifiez le contenu du dossier `public` avant d'activer le paramètre, et n'y placez jamais de données sensibles.
