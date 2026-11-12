@@ -27,9 +27,15 @@ export class OrganizationSidebar {
     return this.nav.getByRole("link", { name: section, exact: true });
   }
 
-  /** Back-link to the organization picker, labelled with the short name. */
+  /**
+   * Back-link to the organization picker, labelled with the short name. An
+   * organization with a logo repeats that name as the image's alt text, so the
+   * link is found by its visible text rather than its accessible name.
+   */
   organizationLink(label: string): Locator {
-    return this.page.getByRole("link", { name: label, exact: true });
+    return this.page
+      .getByRole("link")
+      .filter({ has: this.page.getByText(label, { exact: true }) });
   }
 
   async open(section: OrganizationSection) {
