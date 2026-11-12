@@ -379,7 +379,12 @@ class Workspace(Base):
                 raise PermissionDenied
             self.tags.set(kwargs["tags"])
 
-        if "public_files_enabled" in kwargs:
+        # Only an actual change is checked, so that a form sending back the current value
+        # can still be saved by members who cannot manage public files.
+        if (
+            "public_files_enabled" in kwargs
+            and kwargs["public_files_enabled"] != self.public_files_enabled
+        ):
             if not principal.has_perm("workspaces.manage_public_files", self):
                 raise PermissionDenied
             self.public_files_enabled = kwargs["public_files_enabled"]

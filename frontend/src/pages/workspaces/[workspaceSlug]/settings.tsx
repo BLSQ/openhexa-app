@@ -73,18 +73,9 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
               code,
             }),
           ),
-        },
-      },
-    });
-    await refetch();
-  };
-
-  const onPublicFilesSave: OnSaveFn = async (values) => {
-    await mutate({
-      variables: {
-        input: {
-          slug: workspace.slug,
-          publicFilesEnabled: values.publicFilesEnabled,
+          ...(workspace.permissions.managePublicFiles && {
+            publicFilesEnabled: values.publicFilesEnabled,
+          }),
         },
       },
     });
@@ -196,29 +187,17 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                       "Custom configuration properties for the workspace. Each property has a name (string) and a value (JSON).",
                     )}
                   />
+                  <SwitchProperty
+                    id="publicFilesEnabled"
+                    accessor={(item) => Boolean(item.publicFiles?.url)}
+                    label={t("Public files")}
+                    visible={Boolean(workspace.publicFiles)}
+                    readonly={!workspace.permissions.managePublicFiles}
+                    help={t(
+                      'When enabled, every file in the "public" folder at the root of the workspace filesystem can be downloaded by anyone who has its link, without signing in. Folder contents are never listed.',
+                    )}
+                  />
                 </DataCard.FormSection>
-                {/* Its own section, so that saving the general settings never sends a field reserved to admins */}
-                {workspace.publicFilesAvailable && (
-                  <DataCard.FormSection
-                    title={t("Public files")}
-                    onSave={
-                      workspace.permissions.managePublicFiles
-                        ? onPublicFilesSave
-                        : undefined
-                    }
-                  >
-                    <p className="text-sm text-gray-500">
-                      {t(
-                        'When enabled, every file in the "public" folder at the root of the workspace filesystem can be downloaded by anyone who has its link, without signing in. Folder contents are never listed.',
-                      )}
-                    </p>
-                    <SwitchProperty
-                      id="publicFilesEnabled"
-                      accessor="publicFilesEnabled"
-                      label={t("Enabled")}
-                    />
-                  </DataCard.FormSection>
-                )}
               </DataCard>
             </Tabs.Tab>
 
