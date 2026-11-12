@@ -952,6 +952,25 @@ def is_valid_short_name(short_name: str) -> bool:
     return short_name.isupper() and short_name.isalpha() and len(short_name) <= 5
 
 
+def subscription_fields_from_limits(limits: dict) -> dict:
+    """Map the Console's limits input onto OrganizationSubscription fields.
+
+    A missing or null users/workspaces/pipeline runs limit means unlimited. The AI
+    budget can never be unlimited: missing, null or 0 falls back to the trial amount.
+    """
+    return {
+        "users_limit": limits.get("users"),
+        "workspaces_limit": limits.get("workspaces"),
+        "pipeline_runs_limit": limits.get("pipeline_runs"),
+        "monthly_ai_budget": limits.get("monthly_ai_budget")
+        or OrganizationSubscription.DEFAULT_MONTHLY_AI_BUDGET,
+        "max_pipeline_timeout": limits.get("max_pipeline_timeout"),
+        "pipeline_cpu_limit": limits.get("pipeline_cpu_limit"),
+        "pipeline_memory_limit": limits.get("pipeline_memory_limit"),
+        "notebook_profile": limits.get("notebook_profile"),
+    }
+
+
 @identity_mutations.field("createOrganization")
 @transaction.atomic
 def resolve_create_organization(_, info, **kwargs):
@@ -1008,15 +1027,7 @@ def resolve_create_organization(_, info, **kwargs):
         plan_code=plan_code,
         start_date=subscription_start_date,
         end_date=subscription_end_date,
-        users_limit=limits["users"],
-        workspaces_limit=limits["workspaces"],
-        pipeline_runs_limit=limits["pipeline_runs"],
-        monthly_ai_budget=limits.get("monthly_ai_budget")
-        or OrganizationSubscription.DEFAULT_MONTHLY_AI_BUDGET,
-        max_pipeline_timeout=limits.get("max_pipeline_timeout"),
-        pipeline_cpu_limit=limits.get("pipeline_cpu_limit"),
-        pipeline_memory_limit=limits.get("pipeline_memory_limit"),
-        notebook_profile=limits.get("notebook_profile"),
+        **subscription_fields_from_limits(limits),
     )
 
     try:
@@ -1157,15 +1168,7 @@ def resolve_update_organization_subscription(_, info, **kwargs):
             "plan_code": plan_code,
             "start_date": subscription_start_date,
             "end_date": subscription_end_date,
-            "users_limit": limits["users"],
-            "workspaces_limit": limits["workspaces"],
-            "pipeline_runs_limit": limits["pipeline_runs"],
-            "monthly_ai_budget": limits.get("monthly_ai_budget")
-            or OrganizationSubscription.DEFAULT_MONTHLY_AI_BUDGET,
-            "max_pipeline_timeout": limits.get("max_pipeline_timeout"),
-            "pipeline_cpu_limit": limits.get("pipeline_cpu_limit"),
-            "pipeline_memory_limit": limits.get("pipeline_memory_limit"),
-            "notebook_profile": limits.get("notebook_profile"),
+            **subscription_fields_from_limits(limits),
         },
     )
 

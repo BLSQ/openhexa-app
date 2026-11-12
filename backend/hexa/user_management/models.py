@@ -536,6 +536,8 @@ class OrganizationSubscription(Base):
     Use organization.active_subscription to get the currently active one.
 
     Self-hosted deployments have no subscription (active_subscription returns None).
+    A null users/workspaces/pipeline runs limit means the resource is unlimited, so
+    a plan that is missing a limit in the Console never blocks provisioning.
     """
 
     # Default monthly AI budget, matching the "OH free trial" (oh_trial) plan.
@@ -558,9 +560,9 @@ class OrganizationSubscription(Base):
     start_date = models.DateField()
     end_date = models.DateField()
 
-    users_limit = models.PositiveIntegerField()
-    workspaces_limit = models.PositiveIntegerField()
-    pipeline_runs_limit = models.PositiveIntegerField()
+    users_limit = models.PositiveIntegerField(null=True, blank=True)
+    workspaces_limit = models.PositiveIntegerField(null=True, blank=True)
+    pipeline_runs_limit = models.PositiveIntegerField(null=True, blank=True)
     monthly_ai_budget = models.PositiveIntegerField()
 
     max_pipeline_timeout = models.PositiveIntegerField(null=True, blank=True)
@@ -585,15 +587,21 @@ class OrganizationSubscription(Base):
         return today <= grace_end_date
 
     def is_users_limit_reached(self) -> bool:
-        """Check if the organization has reached its user limit."""
+        """Check if the organization has reached its user limit (never when unlimited)."""
+        if self.users_limit is None:
+            return False
         return self.organization.get_users_count() >= self.users_limit
 
     def is_workspaces_limit_reached(self) -> bool:
-        """Check if the organization has reached its workspace limit."""
+        """Check if the organization has reached its workspace limit (never when unlimited)."""
+        if self.workspaces_limit is None:
+            return False
         return self.organization.get_workspaces_count() >= self.workspaces_limit
 
     def is_pipeline_runs_limit_reached(self) -> bool:
-        """Check if the organization has reached its monthly pipeline runs limit."""
+        """Check if the organization has reached its monthly pipeline runs limit (never when unlimited)."""
+        if self.pipeline_runs_limit is None:
+            return False
         return (
             self.organization.get_monthly_pipeline_runs_count()
             >= self.pipeline_runs_limit
