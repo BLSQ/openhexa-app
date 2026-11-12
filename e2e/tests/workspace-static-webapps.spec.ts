@@ -139,7 +139,7 @@ test.describe("Workspace static web apps", () => {
       await member.goto(url);
       await expect(member.heading(marker)).toBeVisible();
       await expect(member.apiResult).toHaveText(
-        "API error 403: Fields not allowed: Me.user, Query.me, User.email",
+        "API error 403: Fields not allowed: Me.user, Query.me, User.email. Enable scope(s): USER_READ",
       );
     });
 
@@ -157,7 +157,7 @@ test.describe("Workspace static web apps", () => {
 
     await test.step("a public app has no API access to configure", async () => {
       await webapps.gotoTab(slug, "General");
-      await webapps.updateDetails({ isPublic: true });
+      await webapps.setPublic(true);
 
       await webapps.gotoTab(slug, "General");
       await expect(webapps.tab("Code")).toBeVisible();
@@ -187,7 +187,7 @@ test.describe("Workspace static web apps", () => {
 
     await test.step("a private app again sends visitors to sign in", async () => {
       await webapps.gotoTab(slug, "General");
-      await webapps.updateDetails({ isPublic: false });
+      await webapps.setPublic(false);
 
       await anonymous.goto(url);
       await expect(anonymous.loginHeading).toBeVisible();
@@ -219,7 +219,7 @@ test.describe("Workspace static web apps", () => {
       await expect(outsider.forbidden).toBeVisible();
       await expect(outsider.heading(TEMPLATE_HEADING)).toHaveCount(0);
 
-      await webapps.updateDetails({ isPublic: true });
+      await webapps.setPublic(true);
       await outsider.goto(url);
       await expect(outsider.heading(TEMPLATE_HEADING)).toBeVisible();
     });

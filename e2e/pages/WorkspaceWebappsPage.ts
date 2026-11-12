@@ -145,10 +145,6 @@ export class WorkspaceWebappsPage {
     return this.field("Published URL").getByRole("textbox");
   }
 
-  get publicAccessSwitch(): Locator {
-    return this.field("Public access").getByRole("switch");
-  }
-
   /** Visually hidden behind its "Change Icon" label. */
   get iconInput(): Locator {
     return this.page.locator("input#file-upload");
@@ -163,7 +159,6 @@ export class WorkspaceWebappsPage {
     name?: string;
     sourceUrl?: string;
     subdomain?: string;
-    isPublic?: boolean;
     icon?: Buffer;
   }) {
     await this.editButton.click();
@@ -183,11 +178,21 @@ export class WorkspaceWebappsPage {
         buffer: changes.icon,
       });
     }
-    if (changes.isPublic !== undefined) {
-      await this.publicAccessSwitch.setChecked(changes.isPublic);
-    }
     await this.saveButton.click();
     await expect(this.toast("Web app updated successfully")).toBeVisible();
+  }
+
+  /** Visibility is changed from the page header, behind a confirmation. */
+  async setPublic(isPublic: boolean) {
+    const action = isPublic ? "Make public" : "Make private";
+    await this.page.getByRole("button", { name: action, exact: true }).click();
+    await this.page
+      .getByRole("dialog")
+      .getByRole("button", { name: action, exact: true })
+      .click();
+    await expect(
+      this.toast(isPublic ? "Web app is now public" : "Web app is now private"),
+    ).toBeVisible();
   }
 
   // --- play ----------------------------------------------------------------
