@@ -5201,6 +5201,9 @@ type Subscription {
   """Whether the subscription has expired."""
   isExpired: Boolean!
 
+  """Whether the subscription ends soon and no renewal has been booked yet."""
+  isExpiringSoon: Boolean!
+
   """
   Whether the subscription is in the grace period after expiration.
   During the grace period, limits are not enforced but a warning is shown.

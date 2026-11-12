@@ -231,6 +231,7 @@
   "Connections": "Connections",
   "Connectors": "Connectors",
   "Constant": "Constant",
+  "Contact us": "Contact us",
   "Contact your administrator or a member of the OpenHEXA team to get invited to a workspace.": "Contact your administrator or a member of the OpenHEXA team to get invited to a workspace.",
   "Content type": "Content type",
   "Convert to member": "Convert to member",
@@ -1196,6 +1197,7 @@
   "Updating permissions for": "Updating permissions for",
   "Updating saved query": "Updating saved query",
   "Upgrade": "Upgrade",
+  "Upgrade plan": "Upgrade plan",
   "Upgrade to latest template version": "Upgrade to latest template version",
   "Upgrade to latest version": "Upgrade to latest version",
   "Upgrade your subscription": "Upgrade your subscription",
@@ -1346,8 +1348,9 @@
   "You're about to remove {{name}} from this workspace.": "You're about to remove {{name}} from this workspace.",
   "You've reached the limit for your subscription plan.": "You've reached the limit for your subscription plan.",
   "Your account": "Your account",
-  "Your subscription has expired. Limits are frozen until you renew.": "Your subscription has expired. Limits are frozen until you renew.",
-  "Your subscription has expired. Please renew soon to avoid service interruption.": "Your subscription has expired. Please renew soon to avoid service interruption.",
+  "Your subscription for {{organization}} expired on {{date}}. Renew soon to avoid service interruption.": "Your subscription for {{organization}} expired on {{date}}. Renew soon to avoid service interruption.",
+  "Your subscription for {{organization}} expires on {{date}}. Renew or upgrade your plan to avoid any interruption.": "Your subscription for {{organization}} expires on {{date}}. Renew or upgrade your plan to avoid any interruption.",
+  "Your subscription for {{organization}} has expired. Limits are frozen until you renew.": "Your subscription for {{organization}} has expired. Limits are frozen until you renew.",
   "Your tokens for all workspaces are available in your <2>account settings</2>.": "Your tokens for all workspaces are available in your <2>account settings</2>.",
   "Your web app can query the OpenHEXA GraphQL API on behalf of the connected user. Requests are scoped to the permissions you enable below.": "Your web app can query the OpenHEXA GraphQL API on behalf of the connected user. Requests are scoped to the permissions you enable below."
 }

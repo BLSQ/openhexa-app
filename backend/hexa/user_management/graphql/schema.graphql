@@ -1239,6 +1239,11 @@ type Subscription {
     isInGracePeriod: Boolean!
 
     """
+    Whether the subscription ends soon and no renewal has been booked yet.
+    """
+    isExpiringSoon: Boolean!
+
+    """
     Resource limits for this subscription.
     """
     limits: ResourceCounts!

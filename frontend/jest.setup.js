@@ -20,6 +20,7 @@ process.env.SENTRY_ENVIRONMENT = "test";
 process.env.SENTRY_TRACES_SAMPLE_RATE = "1";
 process.env.DISABLE_ANALYTICS = "true";
 process.env.CONSOLE_URL = "";
+process.env.CONTACT_EMAIL = "";
 
 Settings.defaultLocale = "en";
 Settings.defaultZone = "Europe/Brussels";

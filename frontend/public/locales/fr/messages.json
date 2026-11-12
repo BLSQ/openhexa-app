@@ -246,6 +246,7 @@
   "Connections": "Connexions",
   "Connectors": "Connecteurs",
   "Constant": "Constante",
+  "Contact us": "Contactez-nous",
   "Contact your administrator or a member of the OpenHEXA team to get invited to a workspace.": "Contactez votre administrateur ou un membre de l'équipe OpenHEXA pour être invité à un workspace.",
   "Content type": "Type de contenu",
   "Convert to member": "Convertir en membre",
@@ -1218,6 +1219,7 @@
   "Updating permissions for": "Mise à jour des autorisations pour",
   "Updating saved query": "Mise à jour de la requête enregistrée",
   "Upgrade": "Mise à jour",
+  "Upgrade plan": "Changer de forfait",
   "Upgrade to latest template version": "Mise à jour vers la dernière version du modèle",
   "Upgrade to latest version": "Migration vers la nouvelle version",
   "Upgrade your subscription": "Mettre à niveau votre abonnement",
@@ -1369,8 +1371,9 @@
   "You're about to remove {{name}} from this workspace.": "Vous êtes sur le point de supprimer {{name}} de ce workspace.",
   "You've reached the limit for your subscription plan.": "Vous avez atteint la limite de votre forfait d'abonnement.",
   "Your account": "Votre compte",
-  "Your subscription has expired. Limits are frozen until you renew.": "Votre abonnement a expiré. Les limites sont gelées jusqu'à ce que vous renouveliez.",
-  "Your subscription has expired. Please renew soon to avoid service interruption.": "Votre abonnement a expiré. Veuillez renouveler bientôt pour éviter toute interruption de service.",
+  "Your subscription for {{organization}} expired on {{date}}. Renew soon to avoid service interruption.": "Votre abonnement pour {{organization}} a expiré le {{date}}. Veuillez renouveler bientôt pour éviter toute interruption de service.",
+  "Your subscription for {{organization}} expires on {{date}}. Renew or upgrade your plan to avoid any interruption.": "Votre abonnement pour {{organization}} expire le {{date}}. Renouvelez ou changez de forfait pour éviter toute interruption.",
+  "Your subscription for {{organization}} has expired. Limits are frozen until you renew.": "Votre abonnement pour {{organization}} a expiré. Les limites sont gelées jusqu'à ce que vous renouveliez.",
   "Your tokens for all workspaces are available in your <2>account settings</2>.": "Vos jetons pour tous les workspaces sont disponibles dans les <2>paramètres de votre compte</2>.",
   "Your web app can query the OpenHEXA GraphQL API on behalf of the connected user. Requests are scoped to the permissions you enable below.": "Votre application web peut interroger l'API GraphQL d'OpenHEXA au nom de l'utilisateur connecté. Les requêtes sont limitées aux permissions que vous activez ci-dessous."
 }

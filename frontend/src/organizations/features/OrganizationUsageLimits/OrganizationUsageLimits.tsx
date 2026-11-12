@@ -5,7 +5,6 @@ import ProgressBar from "core/components/ProgressBar";
 import Link from "core/components/Link";
 import {
   ArrowTopRightOnSquareIcon,
-  ExclamationTriangleIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import { usePublicEnv } from "core/helpers/runtimeConfig";
@@ -81,27 +80,6 @@ const OrganizationUsageLimits = ({
       </div>
 
       <div className="space-y-6 px-6 py-6">
-        {subscription?.isInGracePeriod && (
-          <div className="flex items-center gap-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-            <ExclamationTriangleIcon className="h-5 w-5 flex-shrink-0" />
-            <span>
-              {t(
-                "Your subscription has expired. Please renew soon to avoid service interruption.",
-              )}
-            </span>
-          </div>
-        )}
-        {isExpiredPastGracePeriod && (
-          <div className="flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">
-            <LockClosedIcon className="h-5 w-5 flex-shrink-0" />
-            <span>
-              {t(
-                "Your subscription has expired. Limits are frozen until you renew.",
-              )}
-            </span>
-          </div>
-        )}
-
         {usageItems.map((item) => (
           <div key={item.label}>
             <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700">

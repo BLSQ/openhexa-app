@@ -103,7 +103,10 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
         {server?.ready ? (
           <iframe
             width="100%"
-            style={{ height: "calc(100vh - 4rem)" }}
+            style={{
+              height:
+                "calc(100vh - 4rem - var(--subscription-banner-height, 0px))",
+            }}
             src={serverUrl}
           ></iframe>
         ) : (
