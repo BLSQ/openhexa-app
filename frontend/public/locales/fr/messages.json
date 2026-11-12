@@ -642,7 +642,6 @@
   "Name must be at most {{max}} characters": "Le nom ne doit pas dépasser {{max}} caractères",
   "Navigating outside of this folder is disabled.": "La recherche ou la navigation en dehors de ce dossier est désactivée.",
   "Never used": "Jamais utilisé",
-  "New": "Nouveau",
   "New conversation": "Nouvelle conversation",
   "New folder": "Nouveau dossier",
   "New query": "Nouvelle requête",
