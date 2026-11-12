@@ -212,7 +212,7 @@ CORS_PATTERNS = [
     r"^/graphql/(\w+/)?",
     r"^/analytics/track/",
     # Public files set a wildcard origin themselves, incompatible with credentialed CORS
-    r"^/files/(?!public/)[\w/]+/?$",
+    r"^/files/(?![-a-z0-9]+/public/)[\w/]+/?$",
     r"^/mcp/",
     r"^/oauth/",
     r"^/\.well-known/",

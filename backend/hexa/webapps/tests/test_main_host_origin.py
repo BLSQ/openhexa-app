@@ -102,7 +102,7 @@ class MainHostFromWebappOriginTest(TestCase):
 
         with patch("hexa.files.views.storage", storage):
             response = self.client.get(
-                f"/files/public/{workspace.slug}/data.csv",
+                f"/files/{workspace.slug}/public/data.csv",
                 HTTP_ORIGIN=self.webapp_origin,
             )
         self.assertEqual(response.status_code, 302)

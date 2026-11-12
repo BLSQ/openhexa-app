@@ -6,7 +6,7 @@ from django.conf import settings
 PREVIEW_KEY_RE = re.compile(r"^[a-z0-9]{32}$")
 # TODO: Once removing Scope.FILES_WRITE, remove up endpoint
 FILE_TRANSFER_PATH_RE = re.compile(r"^/files/(dl|up)/[^/]+/$")
-PUBLIC_FILE_PATH_RE = re.compile(r"^/files/public/")
+PUBLIC_FILE_PATH_RE = re.compile(r"^/files/[-a-z0-9]+/public/")
 POWERED_BY_TARGET_URL = "https://www.openhexa.com/"
 
 
@@ -39,7 +39,7 @@ def is_file_transfer_path(path):
 
 
 def is_public_file_path(path):
-    """Whether a path is a public file URL (`/files/public/<workspace_slug>/<path>`),
+    """Whether a path is a public file URL (`/files/<workspace_slug>/public/<path>`),
     which never relies on the session.
     """
     return bool(PUBLIC_FILE_PATH_RE.match(path))
