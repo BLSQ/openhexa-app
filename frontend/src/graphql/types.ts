@@ -7318,9 +7318,7 @@ export type Workspace = {
   pipelineLastRunStatuses: Array<PipelineRunStatus>;
   pipelineTags: Array<Scalars['String']['output']>;
   pipelineTemplateTags: Array<Scalars['String']['output']>;
-  publicFilesAvailable: Scalars['Boolean']['output'];
-  publicFilesEnabled: Scalars['Boolean']['output'];
-  publicFilesUrl?: Maybe<Scalars['String']['output']>;
+  publicFiles?: Maybe<WorkspacePublicFiles>;
   /** The saved queries of the workspace. */
   savedQueries: SavedQueryPage;
   shortcuts: Array<ShortcutItem>;
@@ -7473,6 +7471,13 @@ export type WorkspacePermissions = {
   /** Permission to make one's own saved queries of the workspace public. */
   shareSavedQuery: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
+};
+
+/** The files of the "public" folder at the root of a workspace filesystem, which anyone with their link can download. */
+export type WorkspacePublicFiles = {
+  __typename?: 'WorkspacePublicFiles';
+  folderExists: Scalars['Boolean']['output'];
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 /** Represents a minimal workspace reference in the token payload. */

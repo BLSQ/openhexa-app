@@ -12,10 +12,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from hexa.files import storage
+from hexa.files.public import PUBLIC_FOLDER
 from hexa.files.utils import is_safe_path
 from hexa.workspaces.models import Workspace
 
-PUBLIC_FOLDER = "public/"
 PUBLIC_FILE_CACHE_MAX_AGE = 300
 
 

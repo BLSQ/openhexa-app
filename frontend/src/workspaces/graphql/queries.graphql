@@ -13,8 +13,9 @@ query WorkspacePage($slug: String!) {
     description
     dockerImage
     configuration
-    publicFilesAvailable
-    publicFilesEnabled
+    publicFiles {
+      url
+    }
     countries {
       code
       flag
@@ -713,11 +714,8 @@ query WorkspaceFilesPage(
         ...BucketExplorer_objects
       }
     }
-    publicFilesAvailable
-    publicFilesEnabled
     permissions {
       createObject
-      managePublicFiles
     }
   }
 }

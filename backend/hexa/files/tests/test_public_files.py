@@ -5,10 +5,11 @@ from tempfile import mkdtemp
 from unittest.mock import patch
 
 from django.conf import settings
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 
 from hexa.files.backends.dummy import DummyStorageClient
 from hexa.files.backends.fs import FileSystemStorage
+from hexa.files.public import public_folder_exists
 from hexa.workspaces.tests.testutils import create_workspace
 
 
@@ -39,7 +40,7 @@ class PublicFileViewTest(TestCase):
         self.addCleanup(patcher.stop)
 
     def _url(self, path):
-        return f"/files/public/{self.WORKSPACE.slug}/{path}"
+        return f"/files/{self.WORKSPACE.slug}/public/{path}"
 
     def test_redirects_to_download_url(self):
         for path in ["data.csv", "maps/tiles.pmtiles"]:
@@ -97,7 +98,7 @@ class PublicFileViewTest(TestCase):
                 self.assertEqual(response.status_code, 404)
 
     def test_unknown_workspace(self):
-        response = self.client.get("/files/public/unknown-ws/data.csv")
+        response = self.client.get("/files/unknown-ws/public/data.csv")
         self.assertEqual(response.status_code, 404)
 
     def test_workspace_setting_disabled(self):
@@ -145,7 +146,7 @@ class PublicFileViewFileSystemStorageTest(TestCase):
         self.addCleanup(patcher.stop)
 
     def test_redirect_can_be_followed_to_the_file(self):
-        response = self.client.get(f"/files/public/{self.WORKSPACE.slug}/data.csv")
+        response = self.client.get(f"/files/{self.WORKSPACE.slug}/public/data.csv")
         self.assertEqual(response.status_code, 302)
         self.assertIn("/files/dl/", response["Location"])
 
@@ -154,3 +155,44 @@ class PublicFileViewFileSystemStorageTest(TestCase):
         # Served from the app origin, so it must never be rendered as a page
         self.assertTrue(download["Content-Disposition"].startswith("attachment"))
         self.assertEqual(b"".join(download.streaming_content), b"a,b\n1,2\n")
+
+
+class PublicFolderExistsTest(SimpleTestCase):
+    BUCKET = "bucket"
+
+    def _patch_storage(self, storage):
+        storage.create_bucket(self.BUCKET)
+        patcher = patch("hexa.files.public.storage", storage)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        return storage
+
+    def _filesystem_storage(self):
+        data_directory = Path(mkdtemp())
+        self.addCleanup(shutil.rmtree, data_directory)
+        return self._patch_storage(FileSystemStorage(data_dir=data_directory))
+
+    def test_missing_folder(self):
+        for make_storage in [
+            lambda: self._patch_storage(DummyStorageClient()),
+            self._filesystem_storage,
+        ]:
+            storage = make_storage()
+            with self.subTest(storage=type(storage).__name__):
+                storage.save_object(self.BUCKET, "private.csv", io.BytesIO(b"a"))
+                self.assertFalse(public_folder_exists(self.BUCKET))
+
+    def test_empty_folder(self):
+        for make_storage in [
+            lambda: self._patch_storage(DummyStorageClient()),
+            self._filesystem_storage,
+        ]:
+            storage = make_storage()
+            with self.subTest(storage=type(storage).__name__):
+                storage.create_bucket_folder(self.BUCKET, "public/")
+                self.assertTrue(public_folder_exists(self.BUCKET))
+
+    def test_folder_implied_by_its_files(self):
+        storage = self._patch_storage(DummyStorageClient())
+        storage.save_object(self.BUCKET, "public/data.csv", io.BytesIO(b"a"))
+        self.assertTrue(public_folder_exists(self.BUCKET))

@@ -9,6 +9,7 @@ from openhexa.toolbox.dhis2.api import DHIS2ToolboxError
 from openhexa.toolbox.iaso.api_client import IASOError
 
 from hexa.core.graphql import result_page
+from hexa.files.public import public_folder_exists
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.tags.models import Tag
@@ -32,6 +33,7 @@ from ..utils import (
 
 workspace_object = ObjectType("Workspace")
 workspace_permissions = ObjectType("WorkspacePermissions")
+workspace_public_files_object = ObjectType("WorkspacePublicFiles")
 workspace_membership_object = ObjectType("WorkspaceMembership")
 connection_interface = InterfaceType("Connection")
 connection_field_object = ObjectType("ConnectionField")
@@ -149,18 +151,23 @@ def resolve_webapps_enabled(workspace: Workspace, info):
     return bool(settings.WEBAPPS_DOMAIN)
 
 
-@workspace_object.field("publicFilesAvailable")
-def resolve_public_files_available(workspace: Workspace, info):
-    return settings.PUBLIC_FILES_ENABLED
+@workspace_object.field("publicFiles")
+def resolve_public_files(workspace: Workspace, info):
+    return workspace if settings.PUBLIC_FILES_ENABLED else None
 
 
-@workspace_object.field("publicFilesUrl")
+@workspace_public_files_object.field("url")
 def resolve_public_files_url(workspace: Workspace, info):
-    if not (settings.PUBLIC_FILES_ENABLED and workspace.public_files_enabled):
+    if not workspace.public_files_enabled:
         return None
     return (
         f"{settings.BASE_URL}{reverse('files:public_file', args=[workspace.slug, ''])}"
     )
+
+
+@workspace_public_files_object.field("folderExists")
+def resolve_public_files_folder_exists(workspace: Workspace, info):
+    return bool(workspace.bucket_name) and public_folder_exists(workspace.bucket_name)
 
 
 @workspace_object.field("permissions")
@@ -471,6 +478,7 @@ def resolve_connection_type(obj, *_):
 bindables = [
     workspace_object,
     workspace_permissions,
+    workspace_public_files_object,
     workspace_membership_object,
     connection_field_object,
     connection_interface,

@@ -32,14 +32,8 @@ type Workspace {
     # Whether the webapps feature is enabled on this instance.
     webappsEnabled: Boolean!
 
-    # Whether the public files feature is enabled on this instance.
-    publicFilesAvailable: Boolean!
-
-    # Whether the files of the "public" root folder of the bucket are publicly accessible.
-    publicFilesEnabled: Boolean!
-
-    # The base URL under which the files of the "public" root folder are served, null when disabled.
-    publicFilesUrl: String
+    # The public files of the workspace, null when the instance does not offer them.
+    publicFiles: WorkspacePublicFiles
 
     # The date and time when the workspace was created.
     createdAt: DateTime!
@@ -128,6 +122,17 @@ enum WorkspaceInvitationStatus {
     PENDING
     DECLINED
     ACCEPTED
+}
+
+"""
+The files of the "public" folder at the root of a workspace filesystem, which anyone with their link can download.
+"""
+type WorkspacePublicFiles {
+    # The base URL under which the files are served, null while the workspace has not enabled them.
+    url: String
+
+    # Whether the "public" folder exists at the root of the workspace filesystem.
+    folderExists: Boolean!
 }
 
 """

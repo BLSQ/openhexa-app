@@ -699,8 +699,7 @@ class WorkspaceTest(GraphQLTestCase):
             updateWorkspace(input: $input) {
                 success
                 workspace {
-                    publicFilesEnabled
-                    publicFilesUrl
+                    publicFiles { url }
                 }
                 errors
             }
@@ -719,8 +718,9 @@ class WorkspaceTest(GraphQLTestCase):
                 "success": True,
                 "errors": [],
                 "workspace": {
-                    "publicFilesEnabled": True,
-                    "publicFilesUrl": f"{settings.BASE_URL}/files/public/{self.WORKSPACE.slug}/",
+                    "publicFiles": {
+                        "url": f"{settings.BASE_URL}/files/{self.WORKSPACE.slug}/public/"
+                    },
                 },
             },
             r["data"]["updateWorkspace"],
@@ -728,6 +728,7 @@ class WorkspaceTest(GraphQLTestCase):
         self.WORKSPACE.refresh_from_db()
         self.assertTrue(self.WORKSPACE.public_files_enabled)
 
+    @override_settings(PUBLIC_FILES_ENABLED=True)
     def test_update_workspace_public_files_as_editor_is_denied(self):
         self.client.force_login(self.USER_WORKSPACE_EDITOR_ONLY)
         r = self.run_query(
@@ -748,22 +749,39 @@ class WorkspaceTest(GraphQLTestCase):
         self.assertFalse(self.WORKSPACE.public_files_enabled)
         self.assertEqual(self.WORKSPACE.name, "Senegal Workspace")
 
-    def test_public_files_fields(self):
+    @override_settings(PUBLIC_FILES_ENABLED=True)
+    def test_update_workspace_unchanged_public_files_as_editor(self):
+        self.client.force_login(self.USER_WORKSPACE_EDITOR_ONLY)
+        r = self.run_query(
+            self.UPDATE_PUBLIC_FILES_MUTATION,
+            {
+                "input": {
+                    "slug": self.WORKSPACE.slug,
+                    "name": "Renamed",
+                    "publicFilesEnabled": False,
+                }
+            },
+        )
+        self.assertTrue(r["data"]["updateWorkspace"]["success"])
+        self.WORKSPACE.refresh_from_db()
+        self.assertEqual(self.WORKSPACE.name, "Renamed")
+
+    @patch("hexa.workspaces.schema.types.public_folder_exists", return_value=True)
+    def test_public_files_fields(self, _):
         self.WORKSPACE.public_files_enabled = True
         self.WORKSPACE.save()
         query = """
             query workspace($slug: String!) {
                 workspace(slug: $slug) {
-                    publicFilesAvailable
-                    publicFilesEnabled
-                    publicFilesUrl
+                    publicFiles { url folderExists }
                     permissions { managePublicFiles }
                 }
             }
         """
         for user, available, can_manage in [
             (self.USER_WORKSPACE_ADMIN_ONLY, True, True),
-            (self.USER_WORKSPACE_EDITOR_ONLY, False, False),
+            (self.USER_WORKSPACE_EDITOR_ONLY, True, False),
+            (self.USER_WORKSPACE_ADMIN_ONLY, False, False),
         ]:
             with (
                 self.subTest(user=user.email, available=available),
@@ -773,10 +791,11 @@ class WorkspaceTest(GraphQLTestCase):
                 r = self.run_query(query, {"slug": self.WORKSPACE.slug})
                 self.assertEqual(
                     {
-                        "publicFilesAvailable": available,
-                        "publicFilesEnabled": True,
-                        "publicFilesUrl": (
-                            f"{settings.BASE_URL}/files/public/{self.WORKSPACE.slug}/"
+                        "publicFiles": (
+                            {
+                                "url": f"{settings.BASE_URL}/files/{self.WORKSPACE.slug}/public/",
+                                "folderExists": True,
+                            }
                             if available
                             else None
                         ),
@@ -784,6 +803,23 @@ class WorkspaceTest(GraphQLTestCase):
                     },
                     r["data"]["workspace"],
                 )
+
+    @override_settings(PUBLIC_FILES_ENABLED=True)
+    @patch("hexa.workspaces.schema.types.public_folder_exists", return_value=False)
+    def test_public_files_url_is_null_while_disabled(self, _):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
+        r = self.run_query(
+            """
+            query workspace($slug: String!) {
+                workspace(slug: $slug) { publicFiles { url folderExists } }
+            }
+            """,
+            {"slug": self.WORKSPACE.slug},
+        )
+        self.assertEqual(
+            {"url": None, "folderExists": False},
+            r["data"]["workspace"]["publicFiles"],
+        )
 
     @override_settings(PUBLIC_FILES_ENABLED=False)
     def test_update_workspace_public_files_refused_when_instance_flag_is_off(self):

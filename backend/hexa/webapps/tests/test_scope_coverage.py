@@ -49,9 +49,7 @@ NEVER_GRANTED = {
         "assistantConversations",
         "pipelineTemplateTags",
         # Web apps fetch public files by URL, they never need the setting itself.
-        "publicFilesAvailable",
-        "publicFilesEnabled",
-        "publicFilesUrl",
+        "publicFiles",
     },
     "Pipeline": {
         "workspace",
