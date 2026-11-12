@@ -1065,6 +1065,12 @@ input CreateOrganizationInput {
   planCode: String!
 
   """
+  Whether to email the owner (invitation link for a new user, notification for an existing one).
+  Defaults to true. The caller can pass false and send the owner to invitationUrl itself.
+  """
+  sendInvitationEmail: Boolean
+
+  """
   The short name of the organization (max 5 uppercase letters).
   If not provided, it will be auto-generated from the name.
   """
@@ -1088,6 +1094,11 @@ type CreateOrganizationResult {
   The list of errors that occurred during the createOrganization mutation.
   """
   errors: [CreateOrganizationError!]!
+
+  """
+  The registration link for a new owner (null when the owner already had an account). Valid for 48 hours.
+  """
+  invitationUrl: String
 
   """The created organization object."""
   organization: Organization
