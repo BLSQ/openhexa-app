@@ -43,3 +43,12 @@ if not os.environ.get("LOGFIRE_BASE_URL"):
 # distinct environment they look like real user activity, which would pollute
 # the production traces we mine for cases.
 os.environ.setdefault("SENTRY_ENVIRONMENT", "eval")
+
+# The test settings point at a git server that only the test compose project
+# runs. Suites that need real repositories (webapp_edit) use the dev one, and
+# without the proxy user, which the dev server does not have.
+GIT_SERVER_URL = os.environ.get("GIT_SERVER_URL", "http://forgejo:3000")
+GIT_SERVER_ADMIN_USERNAME = os.environ.get("GIT_SERVER_ADMIN_USERNAME")
+GIT_SERVER_ADMIN_PASSWORD = os.environ.get("GIT_SERVER_ADMIN_PASSWORD")
+GIT_PROXY_USERNAME = None
+GIT_PROXY_PASSWORD = None

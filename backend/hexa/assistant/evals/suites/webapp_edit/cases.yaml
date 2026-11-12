@@ -1,0 +1,149 @@
+# Cases for the webapp_edit eval suite: run_evals --suite=webapp_edit.
+# Field types are defined in schemas.py. Every case is validated by make t.
+#
+# Check patterns are case-insensitive regular expressions (see FileCheck). Each
+# case's checks must fail on the seeded files, which make t also verifies, so a
+# proposal that changes nothing can never pass.
+
+name: webapp-edit-evals
+cases:
+- name: confirmed_line_color-en
+  inputs:
+    prompt: In the trend chart, make the confirmed cases line dark red (#b91c1c) instead
+      of blue. Leave the other series as they are.
+    fixture_profile: standard_workspace
+    webapp: malaria-dashboard
+  metadata:
+    task_id: confirmed_line_color
+    lang: en
+    difficulty: easy
+    surface_tags: [js, constant]
+    notes: CHART_COLORS.confirmed near the top of js/app.js (689 lines).
+    checks:
+    - path: js/app.js
+      contains: ['confirmed:\s*[''"]#b91c1c[''"]']
+      not_contains: ['confirmed:\s*[''"]#2563eb']
+- name: header_date_format-en
+  inputs:
+    prompt: The "Last updated" date in the header shows as 2024-03-01. Show it day first
+      instead, like 01/03/2024.
+    fixture_profile: standard_workspace
+    webapp: malaria-dashboard
+  metadata:
+    task_id: header_date_format
+    lang: en
+    difficulty: easy
+    surface_tags: [js, function]
+    notes: formatDate in js/app.js; any day-first formatting passes.
+    checks:
+    - path: js/app.js
+      contains: ['\$\{day\}/\$\{month\}/\$\{year\}|en-GB|fr-FR|dd/mm']
+- name: export_csv_french-en
+  inputs:
+    prompt: The export button still says "Export CSV" when the page is in French. Add the
+      missing French translation.
+    fixture_profile: standard_workspace
+    webapp: malaria-dashboard
+  metadata:
+    task_id: export_csv_french
+    lang: en
+    difficulty: easy
+    surface_tags: [js, i18n]
+    notes: The fr block of js/i18n.js lacks the export_csv key.
+    checks:
+    - path: js/i18n.js
+      contains: ['fr:\s*\{[^}]*export_csv:']
+- name: low_stock_threshold-en
+  inputs:
+    prompt: Items are flagged as low stock under 20 units. Raise the threshold to 50.
+    fixture_profile: standard_workspace
+    webapp: stock-tracker
+  metadata:
+    task_id: low_stock_threshold
+    lang: en
+    difficulty: easy
+    surface_tags: [html, inline-script, constant]
+    notes: Everything is inline in index.html (322 lines, over the inline limit).
+    checks:
+    - path: index.html
+      contains: ['LOW_STOCK_THRESHOLD\s*=\s*50\b']
+      not_contains: ['LOW_STOCK_THRESHOLD\s*=\s*20\b']
+- name: last_updated_column-en
+  inputs:
+    prompt: Add a "Last updated" column at the end of the stock table, showing each item's
+      updated_at date.
+    fixture_profile: standard_workspace
+    webapp: stock-tracker
+  metadata:
+    task_id: last_updated_column
+    lang: en
+    difficulty: medium
+    surface_tags: [html, inline-script, table]
+    notes: Needs both the header row and the row template in renderTable.
+    checks:
+    - path: index.html
+      contains: ['<th[^>]*>\s*Last updated\s*</th>', 'item\.updated_at']
+- name: rename_title-en
+  inputs:
+    prompt: Rename the page from "Stock Tracker" to "Essential Medicines Stock", both in
+      the browser tab and in the page heading.
+    fixture_profile: standard_workspace
+    webapp: stock-tracker
+  metadata:
+    task_id: rename_title
+    lang: en
+    difficulty: easy
+    surface_tags: [html]
+    may_change: [README.md]
+    checks:
+    - path: index.html
+      contains: ['<title>\s*Essential Medicines Stock\s*</title>', '<h1[^>]*>\s*Essential
+          Medicines Stock\s*</h1>']
+      not_contains: ['Stock Tracker\s*</(title|h1)>']
+- name: closed_marker_grey-en
+  inputs:
+    prompt: Closed facilities are shown in red on the map. Show them in grey instead.
+    fixture_profile: standard_workspace
+    webapp: facility-map
+  metadata:
+    task_id: closed_marker_grey
+    lang: en
+    difficulty: easy
+    surface_tags: [js, constant]
+    notes: STATUS_COLORS in js/map.js. Any colour value other than the old red passes.
+    checks:
+    - path: js/map.js
+      contains: ['closed:\s*[''"](#|gr[ae]y|rgb)']
+      not_contains: ['closed:\s*[''"]#dc2626']
+- name: fix_coordinates-en
+  inputs:
+    prompt: The facility "CSI Tahoua Nord" is placed in the wrong spot. Its coordinates
+      should be latitude 14.89, longitude 5.27.
+    fixture_profile: standard_workspace
+    webapp: facility-map
+  metadata:
+    task_id: fix_coordinates
+    lang: en
+    difficulty: easy
+    surface_tags: [js, data, large-file]
+    notes: One line out of 1,203 in js/data.js. Reading the whole file is the expensive
+      way; a grep finds it.
+    checks:
+    - path: js/data.js
+      contains: ['name:\s*''CSI Tahoua Nord''[^\n]*lat:\s*14\.89,\s*lon:\s*5\.27\b']
+      not_contains: ['lat:\s*41\.89']
+- name: popup_phone-en
+  inputs:
+    prompt: In the facility popup, add the phone number on its own line when the facility
+      has one.
+    fixture_profile: standard_workspace
+    webapp: facility-map
+  metadata:
+    task_id: popup_phone
+    lang: en
+    difficulty: medium
+    surface_tags: [js, function]
+    notes: buildPopup in js/map.js; the phone field is in js/data.js, null for some facilities.
+    checks:
+    - path: js/map.js
+      contains: ['facility\.phone']

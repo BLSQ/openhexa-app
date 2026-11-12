@@ -10,9 +10,11 @@ Profiles are shared across suites.
 from __future__ import annotations
 
 import io
+import json
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 
 from django.conf import settings
 from django.db import connection as db_connection
@@ -53,10 +55,61 @@ _STANDARD_DATASETS = {
     "analytics-output": ("Analytics Output", "Target dataset for extracted analytics."),
 }
 
+# Files too long to inline, stored at their bucket paths under one directory
+# per profile.
+_FIXTURE_FILES_DIR = Path(__file__).parent / "fixture_files"
+
+_REGIONS = ("Nord", "Sud", "Est", "Ouest", "Centre", "Littoral")
+_FACILITY_TYPES = ("CSI", "CS", "Hopital de district", "Poste de sante")
+
+
+def _files_under(root: Path) -> dict[str, bytes]:
+    return {
+        path.relative_to(root).as_posix(): path.read_bytes()
+        for path in sorted(root.rglob("*"))
+        if path.is_file() and "__pycache__" not in path.parts
+    }
+
+
+def _facilities_csv(rows: int = 3000) -> bytes:
+    """A facility registry big enough that reading it whole is a real cost.
+
+    Built from arithmetic rather than random draws, so every run seeds the
+    same bytes and the two arms of a comparison see the same workspace.
+    """
+    lines = ["id,dhis2_uid,name,type,region,district,latitude,longitude,active"]
+    for i in range(1, rows + 1):
+        region = _REGIONS[i % len(_REGIONS)]
+        lines.append(
+            f"{i},FAC{i:08d},{_FACILITY_TYPES[i % len(_FACILITY_TYPES)]} {region} {i},"
+            f"{_FACILITY_TYPES[i % len(_FACILITY_TYPES)]},{region},"
+            f"{region} {i % 17 + 1},{4 + (i * 37 % 900) / 100:.4f},"
+            f"{-2 + (i * 53 % 1100) / 100:.4f},{'false' if i % 23 == 0 else 'true'}"
+        )
+    return ("\n".join(lines) + "\n").encode()
+
+
+def _data_elements_mapping(count: int = 150) -> bytes:
+    entries = [
+        {
+            "source_de": f"SRC{i:08d}",
+            "target_de": f"TGT{i:08d}",
+            "name": f"Malaria indicator {i}",
+            "category_option_combo": "HllvX50cXC0",
+            "aggregation": "SUM" if i % 3 else "AVERAGE",
+        }
+        for i in range(1, count + 1)
+    ]
+    return json.dumps(entries, indent=2).encode()
+
+
 _STANDARD_FILES = {
     "data/mapping.csv": b"source_de,target_de\nabc123,def456\n",
     "data/boundaries/district.parquet": b"PAR1",
     "data/raw/facilities.csv": b"id,name\n1,Clinic\n",
+    "data/raw/facilities_full.csv": _facilities_csv(),
+    "config/data_elements_mapping.json": _data_elements_mapping(),
+    **_files_under(_FIXTURE_FILES_DIR / STANDARD_WORKSPACE),
 }
 
 
@@ -183,6 +236,23 @@ def build_standard_workspace(user: User) -> EvalWorld:
         _seed_file(workspace, path, content)
 
     return EvalWorld(user=user, workspace=workspace, spec=SPECS[STANDARD_WORKSPACE])
+
+
+WEBAPPS_DIR = _FIXTURE_FILES_DIR / "webapps"
+
+
+def webapp_slugs() -> list[str]:
+    return sorted(path.name for path in WEBAPPS_DIR.iterdir() if path.is_dir())
+
+
+def webapp_files(slug: str) -> dict[str, str]:
+    """The files a seeded web app starts from, by path in its repository."""
+    root = WEBAPPS_DIR / slug
+    if not root.is_dir():
+        raise KeyError(
+            f"Unknown webapp {slug!r}. Known webapps: {', '.join(webapp_slugs())}."
+        )
+    return {path: content.decode() for path, content in _files_under(root).items()}
 
 
 # One profile today, but kept as a registry: `fixture_profile` is stored in
