@@ -76,6 +76,7 @@ class MCPUserFilteringTest(TestCase):
         with self.assertNumQueries(1):
             mcp_user.workspace_ids
             mcp_user.workspace_ids
+            mcp_user.granted_workspaces
 
     def test_grant_narrows_to_the_granted_workspaces(self):
         connection = self.connection_for(self.USER, self.GRANTED)
