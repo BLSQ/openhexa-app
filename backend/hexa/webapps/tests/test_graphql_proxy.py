@@ -29,7 +29,7 @@ from hexa.user_management.backends import PermissionsBackend
 from hexa.user_management.models import Organization, User
 from hexa.webapps.middlewares import WEBAPP_SESSION_COOKIE, WEBAPP_SESSION_MAX_AGE
 from hexa.webapps.models import Webapp
-from hexa.webapps.scopes import SCOPE_GRANTS, WebappScopePolicy
+from hexa.webapps.scopes import SCOPE_GRANTS
 from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
@@ -41,7 +41,7 @@ WEBAPPS_DOMAIN = "webapps.test.local"
 
 class WebappScopePolicyTest(SimpleTestCase):
     def _denied(self, scopes, query):
-        return WebappScopePolicy(scopes).check(parse(query)).denied
+        return Webapp(allowed_operations=scopes).scope_policy.check(parse(query)).denied
 
     def test_allowed_root_and_nested_fields(self):
         self.assertEqual(
@@ -122,8 +122,32 @@ class WebappScopePolicyTest(SimpleTestCase):
             {"?.me", "?.user", "?.id"},
         )
 
+    def test_public_webapp_policy_ignores_scopes_and_users(self):
+        policy = Webapp(is_public=True).scope_policy
+        for query in [
+            'query { pipeline(id: "abc") { id name currentVersion { versionNumber } } }',
+            'query { dataset(id: "abc") { id name latestVersion { files { items { filename } } } } }',
+            'query { executeSavedQuery(input: {slug: "q"}) { success rows } }',
+            'query { readFileContent(path: "public/a.csv") { content } }',
+            'mutation { runPipeline(input: {id: "abc"}) { success run { id status } } }',
+        ]:
+            with self.subTest(query=query):
+                self.assertEqual(policy.check(parse(query)).denied, set())
+        for query, denied in [
+            ("query { me { user { email } } }", "Query.me"),
+            ('query { workspace(slug: "w") { slug } }', "Query.workspace"),
+            ('query { dataset(id: "abc") { createdBy { email } } }', "User.email"),
+            ('query { pipelineRun(id: "abc") { user { id } } }', "User.id"),
+            (
+                'mutation { prepareObjectUpload(input: {workspaceSlug: "w", objectKey: "k"}) { success } }',
+                "Mutation.prepareObjectUpload",
+            ),
+        ]:
+            with self.subTest(query=query):
+                self.assertIn(denied, policy.check(parse(query)).denied)
+
     def test_operations_lists_the_root_fields(self):
-        check = WebappScopePolicy([]).check(
+        check = Webapp().scope_policy.check(
             parse(
                 "query { __typename ... on Query { me { user { id } } } } "
                 'mutation { runPipeline(input: {id: "abc"}) { success } }'
@@ -287,7 +311,9 @@ class WebappScopePolicyTest(SimpleTestCase):
                 self.assertIn(field, self._denied(all_scopes, query))
 
     def test_missing_scopes_suggests_a_small_set(self):
-        policy = WebappScopePolicy([Webapp.OperationScope.USER_READ])
+        policy = Webapp(
+            allowed_operations=[Webapp.OperationScope.USER_READ]
+        ).scope_policy
         self.assertEqual(
             policy.missing_scopes(
                 {"Workspace.datasets", "DatasetLink.dataset", "Dataset.name"}
@@ -295,7 +321,7 @@ class WebappScopePolicyTest(SimpleTestCase):
             {Webapp.OperationScope.DATASETS_READ},
         )
         self.assertEqual(
-            WebappScopePolicy([]).missing_scopes({"Query.me", "User.email"}),
+            Webapp().scope_policy.missing_scopes({"Query.me", "User.email"}),
             {Webapp.OperationScope.USER_READ},
         )
         self.assertEqual(policy.missing_scopes({"Workspace.connections"}), set())
@@ -378,10 +404,6 @@ class GraphQLProxyMiddlewareTest(TestCase):
         if session_key:
             self.client.cookies[WEBAPP_SESSION_COOKIE] = session_key
         return self.client.post("/graphql/", **kwargs)
-
-    def test_public_webapp_graphql_returns_404(self):
-        response = self._graphql_post("public-app", "query { me { user { email } } }")
-        self.assertEqual(response.status_code, 404)
 
     def test_no_session_returns_401(self):
         response = self._graphql_post("private-app", "query { me { user { email } } }")
@@ -1625,7 +1647,7 @@ class GraphQLProxyWorkspaceScopingTest(TestCase):
     def test_saved_query_of_other_workspace_is_out_of_reach(self):
         """`executeSavedQuery` takes a slug and no workspace, so nothing in the
         request says which workspace to look in. What keeps a web app to its own
-        is `filter_for_user`, which confines a WebappUser to the workspace its
+        is `filter_for_user`, which confines a PrivateWebappUser to the workspace its
         session was issued for. That holds for public queries too, which anyone
         may run from their permalink: whether web apps may is HEXA-1847's call.
         """
@@ -1729,7 +1751,7 @@ class GraphQLProxyWorkspaceScopingTest(TestCase):
 
     def test_non_proxy_graphql_unaffected(self):
         """Hitting the main /graphql/ endpoint (no webapp subdomain) with
-        the same user should not be wrapped in WebappUser. The user keeps
+        the same user should not be wrapped in PrivateWebappUser. The user keeps
         full visibility across their workspaces.
         """
         self.client.force_login(self.USER)
@@ -1748,3 +1770,202 @@ class GraphQLProxyWorkspaceScopingTest(TestCase):
             for p in json.loads(response.content)["data"]["pipelines"]["items"]
         }
         self.assertEqual(codes, {"pb"})
+
+
+@override_settings(
+    WEBAPPS_DOMAIN=WEBAPPS_DOMAIN,
+    ALLOWED_HOSTS=["*"],
+)
+class PublicWebappGraphQLProxyTest(TestCase):
+    """Public web apps reach the proxy as an anonymous visitor, so nothing comes back
+    until a resource is marked as public.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user("public-proxy@test.com", "password")
+        cls.WORKSPACE = create_workspace(name="Public Proxy WS")
+        WorkspaceMembership.objects.create(
+            user=cls.USER,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        cls.WEBAPP = Webapp.objects.create(
+            name="Public App",
+            slug="public-app",
+            subdomain="public-app",
+            workspace=cls.WORKSPACE,
+            created_by=cls.USER,
+            is_public=True,
+            allowed_operations=[Webapp.OperationScope.USER_READ],
+        )
+        cls.PIPELINE = Pipeline.objects.create(
+            workspace=cls.WORKSPACE, name="Pipeline", code="pipeline"
+        )
+        PipelineVersion.objects.create(
+            pipeline=cls.PIPELINE,
+            version_number=1,
+            description="v1",
+            zipfile=b"some_bytes",
+        )
+        cls.DATASET = Dataset.objects.create(
+            workspace=cls.WORKSPACE,
+            created_by=cls.USER,
+            name="Dataset",
+            slug="dataset",
+        )
+        DatasetLink.objects.create(
+            dataset=cls.DATASET, workspace=cls.WORKSPACE, created_by=cls.USER
+        )
+        cls.SAVED_QUERY = SavedQuery.objects.create(
+            workspace=cls.WORKSPACE,
+            created_by=cls.USER,
+            name="Probe",
+            content="SELECT 1 AS probe",
+            visibility=SavedQueryVisibility.WORKSPACE,
+        )
+
+    def setUp(self):
+        cache.clear()
+
+    def _graphql_post(self, query, extra_headers=None):
+        return self.client.post(
+            "/graphql/",
+            data=json.dumps({"query": query}),
+            content_type="application/json",
+            HTTP_HOST=f"public-app.{WEBAPPS_DOMAIN}",
+            **(extra_headers or {}),
+        )
+
+    def test_query_runs_without_a_session(self):
+        response = self._graphql_post(
+            f'query {{ pipeline(id: "{self.PIPELINE.id}") {{ id }} '
+            f'dataset(id: "{self.DATASET.id}") {{ id }} }}'
+        )
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data["data"], {"pipeline": None, "dataset": None})
+
+    def test_member_session_is_ignored(self):
+        session = SessionStore()
+        session["user_id"] = str(self.USER.pk)
+        session["webapp_id"] = str(self.WEBAPP.pk)
+        session.create()
+        self.client.cookies[WEBAPP_SESSION_COOKIE] = session.session_key
+        self.client.force_login(self.USER)
+        response = self._graphql_post(
+            f'query {{ pipeline(id: "{self.PIPELINE.id}") {{ id }} }}'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(json.loads(response.content)["data"]["pipeline"])
+
+    def test_owner_scopes_are_ignored(self):
+        response = self._graphql_post("query { me { user { email } } }")
+        self.assertEqual(response.status_code, 403)
+        message = json.loads(response.content)["errors"][0]["message"]
+        self.assertIn("Query.me", message)
+        self.assertNotIn("Enable scope", message)
+
+    def test_users_are_not_exposed(self):
+        response = self._graphql_post(
+            f'query {{ dataset(id: "{self.DATASET.id}") {{ createdBy {{ email }} }} }}'
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertIn(
+            "User.email", json.loads(response.content)["errors"][0]["message"]
+        )
+
+    def test_cannot_run_a_non_public_pipeline(self):
+        response = self._graphql_post(
+            f'mutation {{ runPipeline(input: {{id: "{self.PIPELINE.id}", config: {{}}}}) '
+            "{ success errors } }"
+        )
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertIsNone(data["data"])
+        self.assertEqual(data["errors"][0]["extensions"]["code"], "UNAUTHENTICATED")
+        self.assertFalse(PipelineRun.objects.filter(pipeline=self.PIPELINE).exists())
+
+    def _execute_saved_query(self, slug):
+        # The workspace has no provisioned database: what is under test is which
+        # queries the visitor reaches and how the run is logged.
+        with patch(
+            "hexa.data_studio.query_runner.execute_database_query",
+            return_value={
+                "columns": ["probe"],
+                "rows": [{"probe": 1}],
+                "row_count": 1,
+                "truncated": False,
+                "duration_ms": 1,
+                "first_row": {"probe": 1},
+                "last_row": {"probe": 1},
+            },
+        ):
+            response = self._graphql_post(
+                f'query {{ executeSavedQuery(input: {{ slug: "{slug}" }}) '
+                "{ success errors errorMessage rows } }"
+            )
+        self.assertEqual(response.status_code, 200)
+        return json.loads(response.content)["data"]["executeSavedQuery"]
+
+    def test_executes_a_public_saved_query(self):
+        saved_query = SavedQuery.objects.create(
+            workspace=self.WORKSPACE,
+            created_by=self.USER,
+            name="Public probe",
+            content="SELECT 1 AS probe",
+            visibility=SavedQueryVisibility.PUBLIC,
+        )
+        result = self._execute_saved_query(saved_query.slug)
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "errorMessage": None,
+                "rows": [{"probe": 1}],
+            },
+            result,
+        )
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Origin.WEBAPP, log.origin)
+        self.assertEqual(saved_query, log.saved_query)
+        self.assertIsNone(log.user)
+
+    def test_cannot_execute_a_workspace_saved_query(self):
+        result = self._execute_saved_query(self.SAVED_QUERY.slug)
+        self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
+        self.assertFalse(QueryLog.objects.exists())
+
+    def test_cannot_execute_a_public_saved_query_of_another_workspace(self):
+        other = SavedQuery.objects.create(
+            workspace=create_workspace(
+                name="Elsewhere", slug="elsewhere", db_name="elsewhere"
+            ),
+            created_by=self.USER,
+            name="Elsewhere",
+            content="SELECT 1 AS probe",
+            visibility=SavedQueryVisibility.PUBLIC,
+        )
+        result = self._execute_saved_query(other.slug)
+        self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
+        self.assertFalse(QueryLog.objects.exists())
+
+    def test_cannot_execute_a_public_saved_query_of_an_archived_workspace(self):
+        saved_query = SavedQuery.objects.create(
+            workspace=self.WORKSPACE,
+            created_by=self.USER,
+            name="Archived",
+            content="SELECT 1 AS probe",
+            visibility=SavedQueryVisibility.PUBLIC,
+        )
+        self.WORKSPACE.archived = True
+        self.WORKSPACE.save()
+        result = self._execute_saved_query(saved_query.slug)
+        self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
+
+    def test_origin_is_checked(self):
+        response = self._graphql_post(
+            f'query {{ pipeline(id: "{self.PIPELINE.id}") {{ id }} }}',
+            extra_headers={"HTTP_ORIGIN": "https://evil.example.com"},
+        )
+        self.assertEqual(response.status_code, 403)

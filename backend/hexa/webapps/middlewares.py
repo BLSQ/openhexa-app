@@ -10,7 +10,6 @@ from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.http import (
     HttpRequest,
     HttpResponse,
-    HttpResponseNotFound,
     HttpResponseNotModified,
     HttpResponseRedirect,
     JsonResponse,
@@ -22,7 +21,13 @@ from django.utils import timezone
 from hexa.superset.views import view_superset_dashboard
 from hexa.user_management.models import User
 from hexa.webapps.graphql_proxy import handle_graphql_proxy
-from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp, WebappUser
+from hexa.webapps.models import (
+    GitWebapp,
+    PrivateWebappUser,
+    PublicWebappUser,
+    SupersetWebapp,
+    Webapp,
+)
 from hexa.webapps.utils import (
     PREVIEW_KEY_RE,
     extract_webapp_subdomain,
@@ -49,17 +54,26 @@ def _webapp_not_found() -> HttpResponse:
     return HttpResponse(html, status=404)
 
 
-def _set_csp_frame_ancestors(response: HttpResponseBase) -> None:
-    frame_ancestors = " ".join(
-        [
+def _set_csp_frame_ancestors(response: HttpResponseBase, is_public: bool) -> None:
+    """Let any site embed public webapps; keep private ones framable only by OpenHEXA.
+
+    A private webapp runs with the viewer's session, so letting other sites
+    frame it would expose it to clickjacking.
+    """
+    frame_ancestors = (
+        ["*"]
+        if is_public
+        else [
             "'self'",
             settings.BASE_URL,
             settings.NEW_FRONTEND_DOMAIN,
             *settings.WEBAPPS_ADDITIONAL_FRAME_ANCESTORS,
         ]
     )
-    del response["X-Frame-Options"]
-    response["Content-Security-Policy"] = f"frame-ancestors {frame_ancestors}"
+    # XFrameOptionsMiddleware wraps the webapp middlewares, so deleting the header
+    # here would not stick: it would add SAMEORIGIN back on the way out.
+    response.xframe_options_exempt = True
+    response["Content-Security-Policy"] = f"frame-ancestors {' '.join(frame_ancestors)}"
     response["Referrer-Policy"] = "no-referrer"
 
 
@@ -273,7 +287,9 @@ def get_or_create_preview_url(request: HttpRequest, webapp: Webapp, user: User) 
     return webapp_host_url(get_or_create_preview_session_key(request, webapp, user))
 
 
-def _check_webapp_session(request: HttpRequest, webapp: Webapp) -> WebappUser | None:
+def _check_webapp_session(
+    request: HttpRequest, webapp: Webapp
+) -> PrivateWebappUser | None:
     session_key = request.COOKIES.get(WEBAPP_SESSION_COOKIE)
     if not session_key:
         return None
@@ -289,7 +305,7 @@ def _check_webapp_session(request: HttpRequest, webapp: Webapp) -> WebappUser | 
     except User.DoesNotExist:
         return None
 
-    request.user = WebappUser.from_user(user, webapp)
+    request.user = PrivateWebappUser.from_user(user, webapp)
     request.bypass_two_factor = True
     return request.user
 
@@ -316,9 +332,8 @@ def _handle_webapp_request(
     """Shared auth + serve logic for both webapp middlewares."""
     if request.path.startswith("/graphql/"):
         if webapp.is_public:
-            return HttpResponseNotFound("Not available")
-
-        if not _check_webapp_session(request, webapp):
+            request.user = PublicWebappUser(webapp)
+        elif not _check_webapp_session(request, webapp):
             return JsonResponse(
                 {"errors": [{"message": "Authentication required"}]},
                 status=401,
@@ -367,7 +382,7 @@ def _handle_webapp_request(
     )
 
     response = _dispatch_webapp_response(request, webapp, show_powered_by)
-    _set_csp_frame_ancestors(response)
+    _set_csp_frame_ancestors(response, webapp.is_public)
     return response
 
 

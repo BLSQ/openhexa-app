@@ -24,6 +24,7 @@ from hexa.databases.query_text import (
 from hexa.databases.schema import database_object
 from hexa.git.exceptions import GitError
 from hexa.user_management.models import ServicePrincipal
+from hexa.webapps.models import PublicWebappUser
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
@@ -249,12 +250,12 @@ def _saved_queries_reachable_by_permalink(request: HttpRequest):
     every workspace, for anonymous users too. Archiving a workspace takes its public
     links down, as it already takes the queries away from its members.
 
-    Service principals (web apps, pipeline runs, MCP connections) stay confined to the
-    workspaces they were issued for: opening other workspaces' public queries to them
-    is a decision of its own (HEXA-1847).
+    Service principals (web apps, pipeline runs, MCP connections) and the visitors of
+    public web apps stay confined to the workspaces they were issued for, so that a web
+    app only depends on queries its own workspace controls.
     """
     visible = _visible_saved_queries(request)
-    if isinstance(request.user, ServicePrincipal):
+    if isinstance(request.user, ServicePrincipal | PublicWebappUser):
         return visible
     # `pk__in` rather than `|`: `filter_for_user` returns a distinct queryset, except
     # for superusers, and Django refuses to combine distinct and non-distinct ones.

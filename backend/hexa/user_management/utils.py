@@ -49,10 +49,15 @@ def is_two_factor_pending(request):
     return is_verified is None or not is_verified()
 
 
+def get_organization_invite_url(invitation: OrganizationInvitation) -> str:
+    """Registration link for an organization invitation (the token is valid for 48 hours)."""
+    token = invitation.generate_token()
+    return f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
+
+
 def send_organization_invite(invitation):
     """Send invitation email to organization"""
-    token = invitation.generate_token()
-    action_url = f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
+    action_url = get_organization_invite_url(invitation)
     invited_by = invitation.invited_by
     invited_by_user = None if isinstance(invited_by, ServiceAccount) else invited_by
 

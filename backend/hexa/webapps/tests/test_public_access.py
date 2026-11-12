@@ -370,6 +370,36 @@ class GitWebappServeViewTest(TestCase):
         self.client.cookies["hexa_webapp_session"] = session.session_key
 
     @patch("hexa.webapps.views.get_forgejo_client")
+    def test_public_webapp_can_be_framed_by_any_site(self, mock_get_client):
+        mock_get_client.return_value.get_file.return_value = b"<html></html>"
+
+        response = self._get(self.PUBLIC_WEBAPP)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Security-Policy"], "frame-ancestors *")
+        self.assertNotIn("X-Frame-Options", response)
+
+    @override_settings(
+        BASE_URL="http://localhost:8000",
+        NEW_FRONTEND_DOMAIN="http://localhost:3000",
+        WEBAPPS_ADDITIONAL_FRAME_ANCESTORS=["http://localhost:3020"],
+    )
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_private_webapp_can_only_be_framed_by_openhexa(self, mock_get_client):
+        mock_get_client.return_value.get_file.return_value = b"<html></html>"
+        self._create_webapp_session(self.PRIVATE_WEBAPP, self.USER_MEMBER)
+
+        response = self._get(self.PRIVATE_WEBAPP)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["Content-Security-Policy"],
+            "frame-ancestors 'self' http://localhost:8000 http://localhost:3000 "
+            "http://localhost:3020",
+        )
+        self.assertNotIn("X-Frame-Options", response)
+
+    @patch("hexa.webapps.views.get_forgejo_client")
     def test_serve_index_html(self, mock_get_client):
         mock_client = MagicMock()
         mock_client.get_file.return_value = b"<h1>Hello World</h1>"
@@ -521,11 +551,11 @@ class GitWebappServeViewTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/auth-token/", response["Location"])
 
-    def test_graphql_blocked_on_subdomain(self):
+    def test_graphql_proxy_on_public_subdomain_only_accepts_post(self):
         response = self.client.get(
             "/graphql/", HTTP_HOST=self._subdomain_host(self.PUBLIC_WEBAPP)
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 405)
 
 
 @override_settings(
@@ -1291,29 +1321,33 @@ class CustomDomainMiddlewareTest(TestCase):
         response = self.client.get("/", HTTP_HOST="unknowndomain.com")
         self.assertNotEqual(response.status_code, 200)
 
-    def test_graphql_blocked_on_custom_domain(self):
+    def test_graphql_proxy_on_public_custom_domain_only_accepts_post(self):
         response = self.client.get("/graphql/", HTTP_HOST="mycustomdomain.com")
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 405)
 
     @patch("hexa.webapps.views.get_forgejo_client")
-    def test_csp_header_set_on_custom_domain(self, mock_get_client):
-        mock_client = MagicMock()
-        mock_client.get_file.return_value = b"<html>custom</html>"
-        mock_get_client.return_value = mock_client
+    def test_public_webapp_on_custom_domain_can_be_framed_by_any_site(
+        self, mock_get_client
+    ):
+        mock_get_client.return_value.get_file.return_value = b"<html>custom</html>"
 
         response = self.client.get("/", HTTP_HOST="mycustomdomain.com")
-        self.assertIn("frame-ancestors", response.get("Content-Security-Policy", ""))
+        self.assertEqual(response["Content-Security-Policy"], "frame-ancestors *")
 
     @override_settings(
         WEBAPPS_ADDITIONAL_FRAME_ANCESTORS=["http://localhost:3020"],
     )
     @patch("hexa.webapps.views.get_forgejo_client")
     def test_csp_header_includes_additional_frame_ancestors(self, mock_get_client):
-        mock_client = MagicMock()
-        mock_client.get_file.return_value = b"<html>custom</html>"
-        mock_get_client.return_value = mock_client
+        mock_get_client.return_value.get_file.return_value = b"<html>custom</html>"
+        session = SessionStore()
+        session["user_id"] = str(self.USER.pk)
+        session["webapp_id"] = str(self.PRIVATE_WEBAPP.pk)
+        session.create()
+        self.client.cookies["hexa_webapp_session"] = session.session_key
 
-        response = self.client.get("/", HTTP_HOST="mycustomdomain.com")
+        response = self.client.get("/", HTTP_HOST="privatecustomdomain.com")
+        self.assertEqual(response.status_code, 200)
         self.assertIn(
             "http://localhost:3020", response.get("Content-Security-Policy", "")
         )

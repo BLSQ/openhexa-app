@@ -60,16 +60,19 @@ def resolve_update_dataset(_, info, **kwargs):
         dataset = Dataset.objects.filter_for_user(request.user).get(
             id=mutation_input["dataset_id"]
         )
+    except Dataset.DoesNotExist:
+        return {"success": False, "errors": ["DATASET_NOT_FOUND"]}
 
+    try:
         dataset.update_if_has_perm(
             principal=request.user,
             **mutation_input,
         )
-        return {"success": True, "errors": [], "dataset": dataset}
-    except Dataset.DoesNotExist:
-        return {"success": False, "errors": ["DATASET_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except ValidationError as e:
+        return {"success": False, "errors": [e.code]}
+    return {"success": True, "errors": [], "dataset": dataset}
 
 
 @mutations.field("deleteDataset")

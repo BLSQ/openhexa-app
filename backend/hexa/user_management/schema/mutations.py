@@ -50,6 +50,7 @@ from ..utils import (
     DEVICE_DEFAULT_NAME,
     accept_pending_invitations,
     default_device,
+    get_organization_invite_url,
     has_configured_two_factor,
     send_organization_add_user_email,
     send_organization_invite,
@@ -984,6 +985,7 @@ def resolve_create_organization(_, info, **kwargs):
     subscription_start_date = create_input["subscription_start_date"]
     subscription_end_date = create_input["subscription_end_date"]
     limits = create_input["limits"]
+    send_invitation_email = create_input.get("send_invitation_email") is not False
 
     if Organization.objects.filter(name=name).exists():
         return {
@@ -1024,6 +1026,7 @@ def resolve_create_organization(_, info, **kwargs):
         notebook_profile=limits.get("notebook_profile"),
     )
 
+    invitation_url = None
     try:
         user = User.objects.get(email__iexact=owner_email)
         OrganizationMembership.objects.create(
@@ -1031,12 +1034,13 @@ def resolve_create_organization(_, info, **kwargs):
             user=user,
             role=OrganizationMembershipRole.OWNER,
         )
-        send_organization_add_user_email(
-            invited_by=principal,
-            organization=organization,
-            invitee=user,
-            role=OrganizationMembershipRole.OWNER,
-        )
+        if send_invitation_email:
+            send_organization_add_user_email(
+                invited_by=principal,
+                organization=organization,
+                invitee=user,
+                role=OrganizationMembershipRole.OWNER,
+            )
     except User.DoesNotExist:
         invitation = OrganizationInvitation.objects.create(
             email=owner_email,
@@ -1045,13 +1049,16 @@ def resolve_create_organization(_, info, **kwargs):
             role=OrganizationMembershipRole.OWNER,
             language=principal.language,
         )
-        send_organization_invite(invitation)
+        invitation_url = get_organization_invite_url(invitation)
+        if send_invitation_email:
+            send_organization_invite(invitation)
         user = None  # User will be created when they accept the invitation
 
     return {
         "success": True,
         "organization": organization,
         "user": user,
+        "invitation_url": invitation_url,
         "errors": [],
     }
 

@@ -392,6 +392,7 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                     "latestVersion",
                     "links",
                     "sharedWithOrganization",
+                    "visibility",
                     "permissions",
                 },
                 "DatasetVersion": {
@@ -405,7 +406,7 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                 "DatasetFileSample": {"sample", "status", "statusReason"},
                 "DatasetLink": {"createdBy", "permissions"},
                 # Resolved through `has_perm`, like `PipelinePermissions`.
-                "DatasetPermissions": {"update", "delete", "createVersion"},
+                "DatasetPermissions": {"update", "delete", "createVersion", "share"},
                 "DatasetVersionPermissions": {"update", "delete", "download"},
                 "DatasetLinkPermissions": {"delete", "pin"},
                 # Only reachable through `Query.workspace`, i.e. with USER_READ too.
@@ -508,10 +509,30 @@ class WebappScopePolicy:
     by the type it is selected on, non-matter how it is reached.
     """
 
-    def __init__(self, scopes: Iterable[str]):
-        self._scopes = frozenset(scopes)
+    def __init__(self, webapp: Webapp):
+        """Visitors of a public web app have no account, so the scopes enabled by its
+        owner don't apply: every public web app gets the same read and run access, and
+        each entry point only returns the resources marked as public. Users are left
+        out so that a public page never shows who created or ran what.
+        """
+        self._is_public = webapp.is_public
+        if self._is_public:
+            self._scopes = frozenset(
+                {
+                    Scope.PIPELINES_READ,
+                    Scope.PIPELINES_RUN,
+                    Scope.FILES_READ,
+                    Scope.DATASETS_READ,
+                    Scope.DATABASE_READ,
+                }
+            )
+        else:
+            self._scopes = frozenset(webapp.allowed_operations)
         grants = [SCOPE_GRANTS[s] for s in self._scopes if s in SCOPE_GRANTS]
         self._allowed = _merge(*(grant.fields for grant in grants))
+        if self._is_public:
+            for type_name in _USER:
+                del self._allowed[type_name]
         self._permissions = frozenset().union(*(grant.permissions for grant in grants))
 
     def allows(self, type_name: str, field_name: str) -> bool:
@@ -528,6 +549,8 @@ class WebappScopePolicy:
         Shared fields such as `User.email` are granted by several scopes, so the
         scopes are picked greedily to suggest a small set rather than all of them.
         """
+        if self._is_public:
+            return set()
         coverage = {
             scope: {
                 type_field

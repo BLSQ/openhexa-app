@@ -40,13 +40,13 @@ Each webapp gets a subdomain under the workspace's webapps domain — e.g. `my-w
 ## Public vs private
 
 - **Private** (default): viewers must be authenticated workspace members. Private static webapps can also call OpenHEXA's GraphQL API through an endpoint on their own URL (see below).
-- **Public**: anyone with the URL can view the webapp. Public webapps **cannot** call the GraphQL proxy — if you need to expose workspace data publicly, generate a static export from a pipeline and serve it as a file inside the webapp.
+- **Public**: anyone with the URL can view the webapp, without an account. Public static webapps can call the GraphQL API too, but only reach the workspace resources marked as public (see [Public webapps](#public-webapps)).
 
 To change visibility, use the **Make public** / **Make private** button in the webapp's header and confirm the dialog. It is available to members who can edit the webapp. The current state is shown as a badge next to the webapp's name.
 
 ## Calling the OpenHEXA GraphQL API
 
-Private static webapps can call the platform's GraphQL API from their JavaScript code, through an endpoint on their own URL, to read workspace data and run pipelines. The rest of this page covers that API in detail — public webapps and iframe webapps cannot use this endpoint.
+Static webapps can call the platform's GraphQL API from their JavaScript code, through an endpoint on their own URL, to read workspace data and run pipelines. The rest of this page covers that API in detail — iframe webapps cannot use this endpoint, and public webapps follow the [rules below](#public-webapps).
 
 ### How it works
 
@@ -58,9 +58,18 @@ Private static webapps can call the platform's GraphQL API from their JavaScript
 - **Own endpoint only**: the main OpenHEXA API refuses requests coming from webapp pages. Always call `/graphql/` on the webapp's own URL.
 - **JSON body**: same as any GraphQL POST — `{"query": "...", "variables": {...}}`.
 
+### Public webapps
+
+A public webapp's visitors have no OpenHEXA account and no session, so its requests run as an anonymous visitor bound to the webapp rather than as a user:
+
+- **No scopes to enable**: the `allowed_operations` list is ignored. Every public webapp can use the entry points of `PIPELINES_READ`, `PIPELINES_RUN`, `FILES_READ`, `DATASETS_READ` and `DATABASE_READ`, and nothing else — `me` and `workspace` are refused.
+- **Public resources only**: these entry points only return what was made public in the webapp's workspace. For now, saved queries are the only resources that can be made public: a public saved query of the webapp's workspace can be run through `executeSavedQuery`. Datasets, pipelines and files cannot be made public yet, so requests on them come back empty or are refused as unauthenticated.
+- **No users**: fields that return a user, such as `Dataset.createdBy` or `PipelineRun.user`, are refused, so a public page never shows who created or ran something.
+- Being signed in to OpenHEXA makes no difference: members get the same anonymous access as any visitor.
+
 ## Enabling the API on a webapp
 
-By default a static webapp has an empty `allowed_operations` list, which means it cannot call the API. Enable scopes from the workspace UI ("Webapp settings → API access") or via the GraphQL `updateWebapp` mutation.
+By default a private static webapp has an empty `allowed_operations` list, which means it cannot call the API. Enable scopes from the workspace UI ("Webapp settings → API access") or via the GraphQL `updateWebapp` mutation.
 
 ## Scope reference
 
