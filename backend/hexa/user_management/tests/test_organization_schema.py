@@ -7,6 +7,7 @@ from urllib.parse import parse_qs, urlparse
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.core import mail
 from django.utils import timezone
 
 from hexa.core.test import GraphQLTestCase
@@ -375,6 +376,81 @@ class OrganizationInvitationTest(GraphQLTestCase, OrganizationTestMixin):
             workspace_invitations.first().role, WorkspaceMembershipRole.VIEWER
         )
         mock_send_invite.assert_called_once()
+
+    INVITE_ORGANIZATION_MEMBER_MUTATION = """
+        mutation InviteOrganizationMember($input: InviteOrganizationMemberInput!) {
+            inviteOrganizationMember(input: $input) {
+                success
+                errors
+            }
+        }
+    """
+
+    def _invite_input(self, **extra):
+        return {
+            "input": {
+                "organizationId": str(self.organization.id),
+                "userEmail": "invitee@blsq.org",
+                "organizationRole": OrganizationMembershipRole.MEMBER.upper(),
+                "workspaceInvitations": [],
+                **extra,
+            }
+        }
+
+    def test_invite_organization_member_with_language(self):
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            self.INVITE_ORGANIZATION_MEMBER_MUTATION,
+            self._invite_input(language="fr"),
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []}, r["data"]["inviteOrganizationMember"]
+        )
+        invitation = OrganizationInvitation.objects.get(email="invitee@blsq.org")
+        self.assertEqual(invitation.language, "fr")
+        self.assertEqual(
+            "Vous êtes invité(e) à rejoindre l'organisation Test Organization sur OpenHEXA",
+            mail.outbox[0].subject,
+        )
+        self.assertIn(
+            'vous invite à rejoindre l\'organisation "Test Organization"',
+            mail.outbox[0].body,
+        )
+
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_invite_organization_member_defaults_to_inviter_language(
+        self, mock_send_invite
+    ):
+        self.owner.language = "fr"
+        self.owner.save()
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            self.INVITE_ORGANIZATION_MEMBER_MUTATION, self._invite_input()
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []}, r["data"]["inviteOrganizationMember"]
+        )
+        invitation = OrganizationInvitation.objects.get(email="invitee@blsq.org")
+        self.assertEqual(invitation.language, "fr")
+
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_invite_organization_member_invalid_language(self, mock_send_invite):
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            self.INVITE_ORGANIZATION_MEMBER_MUTATION,
+            self._invite_input(language="xx"),
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID_LANGUAGE"]},
+            r["data"]["inviteOrganizationMember"],
+        )
+        self.assertFalse(
+            OrganizationInvitation.objects.filter(email="invitee@blsq.org").exists()
+        )
+        mock_send_invite.assert_not_called()
 
     def test_invite_organization_member_unauthorized(self):
         self.client.force_login(self.member)

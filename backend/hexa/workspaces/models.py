@@ -551,6 +551,7 @@ class WorkspaceInvitationManager(InvitationManager):
         workspace: Workspace,
         email: string,
         role: WorkspaceMembershipRole,
+        language: str | None = None,
     ):
         if not principal.has_perm("workspaces.manage_members", workspace):
             raise PermissionDenied
@@ -559,6 +560,7 @@ class WorkspaceInvitationManager(InvitationManager):
             email=email,
             workspace=workspace,
             role=role,
+            language=language or principal.language,
             invited_by=principal,
         )
 

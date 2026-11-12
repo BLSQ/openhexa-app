@@ -1500,6 +1500,91 @@ class WorkspaceTest(GraphQLTestCase):
                 html.unescape(mail.outbox[0].body),
             )
 
+    INVITE_WORKSPACE_MEMBER_MUTATION = """
+        mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+            inviteWorkspaceMember(input: $input) {
+                success
+                errors
+            }
+        }
+    """
+
+    def test_invite_workspace_member_external_user_with_language(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            self.INVITE_WORKSPACE_MEMBER_MUTATION,
+            {
+                "input": {
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "userEmail": "johndoe@foo.com",
+                    "role": WorkspaceMembershipRole.VIEWER,
+                    "language": "fr",
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []}, r["data"]["inviteWorkspaceMember"]
+        )
+        invitation = WorkspaceInvitation.objects.get(
+            workspace=self.WORKSPACE, email="johndoe@foo.com"
+        )
+        self.assertEqual(invitation.language, "fr")
+        self.assertEqual(
+            f"Vous êtes invité(e) à rejoindre le workspace {self.WORKSPACE.name} sur OpenHEXA",
+            mail.outbox[0].subject,
+        )
+        self.assertIn(
+            f'vous invite à rejoindre le workspace "{self.WORKSPACE.name}"',
+            html.unescape(mail.outbox[0].body),
+        )
+
+    def test_invite_workspace_member_external_user_defaults_to_inviter_language(self):
+        self.USER_WORKSPACE_ADMIN.language = "fr"
+        self.USER_WORKSPACE_ADMIN.save()
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            self.INVITE_WORKSPACE_MEMBER_MUTATION,
+            {
+                "input": {
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "userEmail": "johndoe@foo.com",
+                    "role": WorkspaceMembershipRole.VIEWER,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []}, r["data"]["inviteWorkspaceMember"]
+        )
+        invitation = WorkspaceInvitation.objects.get(
+            workspace=self.WORKSPACE, email="johndoe@foo.com"
+        )
+        self.assertEqual(invitation.language, "fr")
+
+    def test_invite_workspace_member_invalid_language(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            self.INVITE_WORKSPACE_MEMBER_MUTATION,
+            {
+                "input": {
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "userEmail": "johndoe@foo.com",
+                    "role": WorkspaceMembershipRole.VIEWER,
+                    "language": "xx",
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID_LANGUAGE"]},
+            r["data"]["inviteWorkspaceMember"],
+        )
+        self.assertFalse(
+            WorkspaceInvitation.objects.filter(email="johndoe@foo.com").exists()
+        )
+        self.assertEqual(len(mail.outbox), 0)
+
     def test_decline_workspace_invitation(self):
         self.client.force_login(self.USER_PENDING)
         r = self.run_query(
@@ -2103,6 +2188,30 @@ class WorkspaceTest(GraphQLTestCase):
                 f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': user_email, 'token': encoded})}",
                 html.unescape(mail.outbox[0].body),
             )
+
+    def test_resend_workspace_member_invitation_keeps_language(self):
+        self.INVITATION_FOO.language = "fr"
+        self.INVITATION_FOO.save()
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            mutation resendWorkspaceInvitation($input: ResendWorkspaceInvitationInput!) {
+                resendWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(self.INVITATION_FOO.id)}},
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []}, r["data"]["resendWorkspaceInvitation"]
+        )
+        self.assertEqual(
+            f"Vous êtes invité(e) à rejoindre le workspace {self.WORKSPACE.name} sur OpenHEXA",
+            mail.outbox[0].subject,
+        )
 
     def test_delete_workspace_database_table_permission_denied(self):
         self.client.force_login(self.USER_REBECCA)

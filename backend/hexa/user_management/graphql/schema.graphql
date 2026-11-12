@@ -2017,6 +2017,11 @@ input InviteOrganizationMemberInput {
     The list of workspaces to invite the user to.
     """
     workspaceInvitations: [WorkspaceInvitationInput!]!
+
+    """
+    The language of the invitation email for users without an account. Defaults to the inviter's language.
+    """
+    language: String
 }
 
 """
@@ -2062,6 +2067,11 @@ enum InviteOrganizationMemberError {
     Indicates that the organization has reached its user limit (SaaS only).
     """
     USERS_LIMIT_REACHED
+
+    """
+    Indicates that the provided language is not supported.
+    """
+    INVALID_LANGUAGE
 }
 
 """

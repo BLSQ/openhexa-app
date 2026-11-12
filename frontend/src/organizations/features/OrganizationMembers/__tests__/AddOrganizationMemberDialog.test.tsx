@@ -71,6 +71,7 @@ jest.mock("../OrganizationMembers.generated", () => ({
 jest.mock("next-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
+    i18n: { language: "fr" },
   }),
   Trans: ({ children }: { children: ReactNode }) => <>{children}</>,
   i18n: {
@@ -304,12 +305,52 @@ describe("AddOrganizationMemberDialog", () => {
                 role: WorkspaceMembershipRole.Admin,
               },
             ],
+            language: "fr",
           },
         },
       });
     });
 
     expect(mockOnClose).toHaveBeenCalled();
+  });
+
+  it("sends the selected invitation language", async () => {
+    const mockInviteMutation = jest.fn().mockResolvedValue({
+      data: { inviteOrganizationMember: { success: true, errors: [] } },
+    });
+    useInviteOrganizationMemberMutationMock.mockReturnValue([
+      mockInviteMutation,
+      {},
+    ]);
+    const user = userEvent.setup();
+
+    render(
+      <TestApp mocks={[]}>
+        <AddOrganizationMemberDialog
+          open={true}
+          onClose={mockOnClose}
+          organization={MOCK_ORGANIZATION}
+        />
+      </TestApp>,
+    );
+
+    const languageSelect = screen.getByLabelText(/Invitation language/);
+    expect(languageSelect).toHaveValue("fr");
+
+    await user.type(
+      screen.getByPlaceholderText("Enter email address"),
+      MOCK_USER.email,
+    );
+    await user.selectOptions(languageSelect, "en");
+    await user.click(screen.getByRole("button", { name: "Invite Member" }));
+
+    await waitFor(() => {
+      expect(mockInviteMutation).toHaveBeenCalledWith({
+        variables: {
+          input: expect.objectContaining({ language: "en" }),
+        },
+      });
+    });
   });
 
   it("handles permission denied error", async () => {

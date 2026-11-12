@@ -246,6 +246,7 @@ def resolve_register(_, info, **kwargs):
             password=mutation_input["password1"],
             first_name=mutation_input["first_name"],
             last_name=mutation_input["last_name"],
+            language=invitation.language,
         )
         accept_pending_invitations(user)
 
@@ -697,6 +698,9 @@ def resolve_invite_organization_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     principal = request.user
     input = kwargs["input"]
+    language = input.get("language")
+    if language and language not in dict(settings.LANGUAGES):
+        return {"success": False, "errors": ["INVALID_LANGUAGE"]}
 
     try:
         organization: Organization = Organization.objects.filter_for_user(
@@ -771,6 +775,7 @@ def resolve_invite_organization_member(_, info, **kwargs):
                     organization=organization,
                     email=input["user_email"],
                     role=input["organization_role"].lower(),
+                    language=language,
                     workspace_invitations=input["workspace_invitations"],
                 )
                 send_organization_invite(invitation)
@@ -1042,6 +1047,7 @@ def resolve_create_organization(_, info, **kwargs):
             organization=organization,
             invited_by=principal,
             role=OrganizationMembershipRole.OWNER,
+            language=principal.language,
         )
         invitation_url = get_organization_invite_url(invitation)
         if send_invitation_email:

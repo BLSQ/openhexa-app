@@ -2908,6 +2908,8 @@ export type IframeSourceInput = {
 export enum InviteOrganizationMemberError {
   /** Indicates that the user is already a member of the organization. */
   AlreadyMember = 'ALREADY_MEMBER',
+  /** Indicates that the provided language is not supported. */
+  InvalidLanguage = 'INVALID_LANGUAGE',
   /** Indicates that the organization was not found. */
   OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
   /** Indicates that the user does not have permission to invite members to the organization. */
@@ -2920,6 +2922,8 @@ export enum InviteOrganizationMemberError {
 
 /** The InviteOrganizationMemberInput type represents the input for the inviteOrganizationMember mutation. */
 export type InviteOrganizationMemberInput = {
+  /** The language of the invitation email for users without an account. Defaults to the inviter's language. */
+  language?: InputMaybe<Scalars['String']['input']>;
   /** The unique identifier of the organization. */
   organizationId: Scalars['UUID']['input'];
   /** The role of the user in the organization. */
@@ -2941,6 +2945,7 @@ export type InviteOrganizationMemberResult = {
 
 /** Represents the input for inviting a member to a workspace. */
 export type InviteWorkspaceMemberInput = {
+  language?: InputMaybe<Scalars['String']['input']>;
   role: WorkspaceMembershipRole;
   userEmail: Scalars['String']['input'];
   workspaceSlug: Scalars['String']['input'];
@@ -2957,6 +2962,7 @@ export type InviteWorkspaceMemberResult = {
 /** Enum representing the possible errors that can occur when inviting a user to a workspace. */
 export enum InviteWorkspaceMembershipError {
   AlreadyExists = 'ALREADY_EXISTS',
+  InvalidLanguage = 'INVALID_LANGUAGE',
   PermissionDenied = 'PERMISSION_DENIED',
   UserNotFound = 'USER_NOT_FOUND',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'

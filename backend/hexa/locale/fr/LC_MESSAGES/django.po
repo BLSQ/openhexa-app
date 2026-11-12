@@ -2345,3 +2345,255 @@ msgstr ""
 
 #~ msgid "Open the Workspace"
 #~ msgstr "Accéder à l'espace de travail"
+
+#: hexa/user_management/templates/user_management/mails/add_existing_user_organization.mjml:58
+#: hexa/user_management/templates/user_management/mails/invite_organization.mjml:59
+msgid "ADMIN"
+msgstr "ADMINISTRATEUR"
+
+#: hexa/user_management/templates/user_management/mails/add_existing_user_organization.mjml:60
+#: hexa/user_management/templates/user_management/mails/invite_organization.mjml:61
+msgid "EDITOR"
+msgstr "ÉDITEUR"
+
+#: hexa/user_management/templates/user_management/mails/add_existing_user_organization.mjml:62
+#: hexa/user_management/templates/user_management/mails/invite_organization.mjml:63
+msgid "VIEWER"
+msgstr "LECTURE SEULE"
+
+#: hexa/user_management/templates/user_management/mails/add_existing_user_organization.mjml:76
+#: hexa/user_management/templates/user_management/mails/invite_organization.mjml:77
+#, python-format
+msgid ""
+"\n"
+"                + %(remaining_count)s more workspace\n"
+"                "
+msgid_plural ""
+"\n"
+"                + %(remaining_count)s more workspaces\n"
+"                "
+msgstr[0] ""
+"\n"
+"                + %(remaining_count)s autre workspace\n"
+"                "
+msgstr[1] ""
+"\n"
+"                + %(remaining_count)s autres workspaces\n"
+"                "
+
+#: hexa/user_management/templates/user_management/mails/add_existing_user_organization.mjml:97
+#: hexa/user_management/templates/user_management/mails/invite_organization.mjml:98
+#: hexa/user_management/templates/user_management/mails/signup_verification.mjml:45
+#: hexa/workspaces/templates/workspaces/mails/add_existing_user.mjml:43
+#: hexa/workspaces/templates/workspaces/mails/invite_new_user.mjml:43
+msgid "Need Help?"
+msgstr "Besoin d'aide ?"
+
+#: hexa/user_management/templates/user_management/mails/add_existing_user_organization.mjml:100
+#: hexa/user_management/templates/user_management/mails/invite_organization.mjml:101
+#: hexa/user_management/templates/user_management/mails/signup_verification.mjml:48
+#: hexa/workspaces/templates/workspaces/mails/add_existing_user.mjml:46
+#: hexa/workspaces/templates/workspaces/mails/invite_new_user.mjml:46
+msgid "Resources to help you get started"
+msgstr "Des ressources pour bien démarrer"
+
+#: hexa/user_management/templates/user_management/mails/add_existing_user_organization.mjml:108
+#: hexa/user_management/templates/user_management/mails/invite_organization.mjml:109
+#: hexa/user_management/templates/user_management/mails/invite_organization.txt:25
+#: hexa/user_management/templates/user_management/mails/signup_verification.mjml:56
+#: hexa/user_management/templates/user_management/mails/signup_verification.txt:14
+#: hexa/workspaces/templates/workspaces/mails/add_existing_user.mjml:54
+#: hexa/workspaces/templates/workspaces/mails/invite_new_user.mjml:54
+msgid "User Manual"
+msgstr "Manuel utilisateur"
+
+#: hexa/user_management/templates/user_management/mails/add_existing_user_organization.mjml:113
+#: hexa/user_management/templates/user_management/mails/invite_organization.mjml:114
+#: hexa/user_management/templates/user_management/mails/invite_organization.txt:26
+#: hexa/user_management/templates/user_management/mails/signup_verification.mjml:61
+#: hexa/user_management/templates/user_management/mails/signup_verification.txt:15
+#: hexa/workspaces/templates/workspaces/mails/add_existing_user.mjml:59
+#: hexa/workspaces/templates/workspaces/mails/invite_new_user.mjml:59
+msgid "Documentation"
+msgstr "Documentation"
+
+#: hexa/user_management/templates/user_management/mails/add_existing_user_organization.txt:20
+#: hexa/user_management/templates/user_management/mails/invite_organization.txt:18
+msgid "as Admin"
+msgstr "en tant qu'administrateur"
+
+#: hexa/user_management/templates/user_management/mails/add_existing_user_organization.txt:20
+#: hexa/user_management/templates/user_management/mails/invite_organization.txt:18
+msgid "as Editor"
+msgstr "en tant qu'éditeur"
+
+#: hexa/user_management/templates/user_management/mails/add_existing_user_organization.txt:20
+#: hexa/user_management/templates/user_management/mails/invite_organization.txt:18
+msgid "as Viewer"
+msgstr "en lecture seule"
+
+#: hexa/user_management/templates/user_management/mails/add_existing_user_organization.txt:21
+#: hexa/user_management/templates/user_management/mails/invite_organization.txt:19
+#, python-format
+msgid "+ %(remaining_count)s more workspace"
+msgid_plural "+ %(remaining_count)s more workspaces"
+msgstr[0] "+ %(remaining_count)s autre workspace"
+msgstr[1] "+ %(remaining_count)s autres workspaces"
+
+#: hexa/user_management/templates/user_management/mails/invite_organization.mjml:25
+msgid "Hello!"
+msgstr "Bonjour !"
+
+#: hexa/user_management/templates/user_management/mails/invite_organization.mjml:29
+#, python-format
+msgid ""
+"\n"
+"          <strong>%(owner_name)s</strong> (%(owner_email)s) has invited you "
+"to join the organization <strong>%(organization)s</strong> on OpenHEXA.\n"
+"          "
+msgstr ""
+"\n"
+"          <strong>%(owner_name)s</strong> (%(owner_email)s) vous invite à rejoindre l'organisation <strong>%(organization)s</strong> sur OpenHEXA.\n"
+"          "
+
+#: hexa/user_management/templates/user_management/mails/invite_organization.mjml:33
+#, python-format
+msgid ""
+"\n"
+"          You've been invited to join the organization "
+"<strong>%(organization)s</strong> on OpenHEXA.\n"
+"          "
+msgstr ""
+"\n"
+"          Vous êtes invité(e) à rejoindre l'organisation <strong>%(organization)s</strong> sur OpenHEXA.\n"
+"          "
+
+#: hexa/user_management/templates/user_management/mails/invite_organization.mjml:39
+msgid "Click the button below to create your account and start collaborating."
+msgstr "Cliquez sur le bouton ci-dessous pour créer votre compte et commencer à collaborer."
+
+#: hexa/user_management/templates/user_management/mails/invite_organization.mjml:43
+#: hexa/user_management/templates/user_management/mails/invite_organization.txt:16
+msgid "You will also be given access to the following workspaces:"
+msgstr "Vous aurez également accès aux workspaces suivants :"
+
+#: hexa/user_management/templates/user_management/mails/invite_organization.mjml:90
+msgid "Join Organization"
+msgstr "Rejoindre l'organisation"
+
+#: hexa/user_management/templates/user_management/mails/invite_organization.txt:4
+#, python-format
+msgid ""
+"\n"
+"%(owner_name)s (%(owner_email)s) has invited you to join the organization "
+"\"%(organization)s\" on OpenHEXA.\n"
+msgstr ""
+"\n"
+"%(owner_name)s (%(owner_email)s) vous invite à rejoindre l'organisation \"%(organization)s\" sur OpenHEXA.\n"
+
+#: hexa/user_management/templates/user_management/mails/invite_organization.txt:8
+#, python-format
+msgid ""
+"\n"
+"You've been invited to join the organization \"%(organization)s\" on "
+"OpenHEXA.\n"
+msgstr ""
+"\n"
+"Vous êtes invité(e) à rejoindre l'organisation \"%(organization)s\" sur OpenHEXA.\n"
+
+#: hexa/user_management/templates/user_management/mails/invite_organization.txt:13
+msgid "Click the link below to create your account and start collaborating:"
+msgstr "Cliquez sur le lien ci-dessous pour créer votre compte et commencer à collaborer :"
+
+#: hexa/user_management/templates/user_management/mails/invite_organization.txt:24
+#: hexa/user_management/templates/user_management/mails/signup_verification.txt:13
+msgid "Need help? Check out our resources:"
+msgstr "Besoin d'aide ? Consultez nos ressources :"
+
+#: hexa/user_management/templates/user_management/mails/invite_organization.txt:28
+#: hexa/user_management/templates/user_management/mails/signup_verification.txt:17
+#: hexa/user_management/templates/user_management/mails/sso_new_account.txt:7
+msgid "The OpenHEXA Team"
+msgstr "L'équipe OpenHEXA"
+
+#: hexa/user_management/utils.py:61
+#, python-format
+msgid ""
+"You've been invited to join the organization %(organization)s on OpenHEXA"
+msgstr "Vous êtes invité(e) à rejoindre l'organisation %(organization)s sur OpenHEXA"
+
+#: hexa/workspaces/templates/workspaces/mails/invite_new_user.mjml:25
+#, python-format
+msgid ""
+"\n"
+"          %(owner)s has invited you to join the workspace "
+"<b>\"%(workspace)s\"</b> on OpenHEXA\n"
+"          "
+msgstr ""
+"\n"
+"          %(owner)s vous invite à rejoindre le workspace <b>\"%(workspace)s\"</b> sur OpenHEXA\n"
+"          "
+
+#: hexa/workspaces/templates/workspaces/mails/invite_new_user.mjml:30
+#, python-format
+msgid ""
+"\n"
+"          Join %(owner)s (%(owner_email)s) to start collaborating.\n"
+"          "
+msgstr ""
+"\n"
+"          Rejoignez %(owner)s (%(owner_email)s) pour commencer à collaborer.\n"
+"          "
+
+#: hexa/workspaces/templates/workspaces/mails/invite_new_user.mjml:35
+msgid "Join Now"
+msgstr "Rejoindre"
+
+#: hexa/workspaces/templates/workspaces/mails/invite_new_user.txt:3
+#, python-format
+msgid ""
+"\n"
+"%(owner)s has invited you to join the workspace \"%(workspace)s\" on "
+"OpenHEXA.\n"
+msgstr ""
+"\n"
+"%(owner)s vous invite à rejoindre le workspace \"%(workspace)s\" sur OpenHEXA.\n"
+
+#: hexa/workspaces/templates/workspaces/mails/invite_new_user.txt:7
+#, python-format
+msgid ""
+"\n"
+"Join %(owner)s (%(owner_email)s) to start collaborating.\n"
+msgstr ""
+"\n"
+"Rejoignez %(owner)s (%(owner_email)s) pour commencer à collaborer.\n"
+
+#: hexa/workspaces/templates/workspaces/mails/invite_new_user.txt:11
+#, python-format
+msgid ""
+"\n"
+"Join now: %(url)s\n"
+msgstr ""
+"\n"
+"Rejoindre maintenant : %(url)s\n"
+
+#: hexa/workspaces/templates/workspaces/mails/invite_new_user.txt:17
+msgid ""
+"\n"
+"\n"
+"Need help? Check out:\n"
+"User Manual: https://docs.openhexa.com/#user-manual\n"
+"Documentation: https://docs.openhexa.com/\n"
+"\n"
+msgstr ""
+"\n"
+"\n"
+"Besoin d'aide ? Consultez :\n"
+"Manuel utilisateur : https://docs.openhexa.com/#user-manual\n"
+"Documentation : https://docs.openhexa.com/\n"
+"\n"
+
+#: hexa/workspaces/utils.py:63
+#, python-format
+msgid "You've been invited to join the workspace %(workspace)s on OpenHEXA"
+msgstr "Vous êtes invité(e) à rejoindre le workspace %(workspace)s sur OpenHEXA"
