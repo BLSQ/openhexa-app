@@ -1,7 +1,7 @@
 import { mergeTests } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 
-import { workspace } from "../config/environment";
+import { BASE_URL, STORAGE_STATE, workspace } from "../config/environment";
 import { test as cleanupTest } from "../fixtures/cleanup";
 import { expect, test as disposableTest } from "../fixtures/disposableWorkspace";
 import { uniqueName } from "../helpers/confirm";
@@ -153,5 +153,36 @@ test.describe("MCP connections", () => {
       // A call in the same instant can still get through; the next is refused.
       await expect.poll(() => client.statusOf(token), { timeout: 10_000 }).toBe(401);
     });
+  });
+
+  test("a client is authorized by a browser holding a second CSRF cookie", async ({
+    page,
+    browser,
+    cleanup,
+  }) => {
+    const account = new AccountSettingsPage(page);
+    const client = await McpClient.register(uniqueName("e2e MCP client"));
+    cleanup.add("the MCP client's requests", () => client.dispose());
+    cleanup.add(`MCP connection ${client.name}`, () =>
+      account.revokeMcpConnectionIfPresent(client.name),
+    );
+
+    // A browser that has used the environment for a while can hold a leftover
+    // `csrftoken` scoped to the host next to the current one on the parent
+    // domain, and sends both. The consent form must not pick the wrong one.
+    const context = await browser.newContext({ storageState: STORAGE_STATE });
+    cleanup.add("the browser with two CSRF cookies", () => context.close());
+    await context.addCookies([
+      { name: "csrftoken", value: "e2eLeftoverCsrfCookie00000000000", url: BASE_URL },
+    ]);
+    const consent = new McpAuthorizePage(await context.newPage());
+
+    await consent.open(client.authorizeUrl);
+    await expect(consent.heading(client.name)).toBeVisible();
+    const code = await consent.authorize(MCP_REDIRECT_URI);
+    await expect(consent.connectedText(client.name)).toBeVisible();
+    expect(await client.listTools(await client.exchangeCode(code))).toContain(
+      "get_help_or_doc",
+    );
   });
 });
