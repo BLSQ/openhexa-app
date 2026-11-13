@@ -97,8 +97,7 @@ npx playwright show-trace test-results/<test-dir>/trace.zip
 
 Failures record a screenshot and a video automatically, and a retried failure
 records a trace — a step-by-step recording with a DOM snapshot, the network log
-and the console at each action. CI uploads all of it as the
-`playwright-report` artifact.
+and the console at each action. None of it is recorded in CI (see [CI](#ci)).
 
 To point at another environment, override `E2E_BASE_URL` and the organization
 variables:
@@ -300,8 +299,9 @@ assert on their values, so reloading that data means updating the expectations.
 
 ## CI
 
-`.github/workflows/e2e.yml` runs the suite on demand (`workflow_dispatch`) and
-nightly. It needs two repository secrets, plus three optional ones:
+`.github/workflows/e2e.yml` runs the suite by hand only (`workflow_dispatch`),
+as a check of demo just before a release. It needs two repository secrets, plus
+three optional ones:
 
 | Secret | Value |
 | --- | --- |
@@ -311,4 +311,8 @@ nightly. It needs two repository secrets, plus three optional ones:
 | `E2E_OUTSIDER_PASSWORD` | Its password |
 | `E2E_MAILGUN_API_KEY` | Optional: a read-only key of the Mailgun account receiving mail for the mailbox domain |
 
-The HTML report and any failure traces are uploaded as a build artifact.
+A failure is read from the job log. No report, trace, video or screenshot is
+kept: the HTML report quotes every value the suite types, the test account's
+password included, traces hold its session cookie, and the artifacts of a public
+repository can be downloaded by anyone signed in to GitHub. To see more, run the
+failing spec locally against the same environment.
