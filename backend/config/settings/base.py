@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 import os
 import re
+from datetime import timedelta
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -314,6 +315,7 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "axes",
     "corsheaders",
     "django_countries",
     "django_ltree",
@@ -513,10 +515,23 @@ AUTH_PASSWORD_VALIDATORS = [
 # Authentication backends
 # https://docs.djangoproject.com/en/4.0/topics/auth/customizing/#authentication-backends
 AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
     "hexa.user_management.backends.PermissionsBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
+
+# Login brute-force protection (django-axes): an email is locked out after
+# AXES_FAILURE_LIMIT failed logins, until AXES_COOLOFF_TIME has passed. The lockout is
+# per email only, as the client IP behind our proxies can be spoofed.
+AXES_FAILURE_LIMIT = 10
+AXES_COOLOFF_TIME = timedelta(minutes=15)
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCKOUT_PARAMETERS = ["username"]
+AXES_USERNAME_CALLABLE = "hexa.user_management.rate_limit.get_username"
+# The login mutation reports the lockout as a GraphQL error itself, so the axes
+# middleware, which would replace the response with a 429 page, is not installed.
+SILENCED_SYSTEM_CHECKS = ["axes.W002"]
 
 # by default users need to login every 2 weeks -> update to 1 year
 SESSION_COOKIE_AGE = 365 * 24 * 3600

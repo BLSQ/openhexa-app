@@ -157,6 +157,9 @@ def resolve_invite_workspace_member(_, info, **kwargs):
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
             slug=input["workspace_slug"]
         )
+        if not request.user.has_perm("workspaces.manage_members", workspace):
+            raise PermissionDenied
+
         user = User.objects.filter(email=input["user_email"]).first()
 
         if user:

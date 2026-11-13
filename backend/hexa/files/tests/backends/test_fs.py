@@ -190,6 +190,21 @@ class FileSystemStorageTest(StorageTestMixin, TestCase):
             )
         self.assertEqual(resp.status_code, 201)
 
+    def test_download_file_is_sandboxed(self):
+        self.storage.create_bucket("default-bucket")
+        self.storage.save_object(
+            "default-bucket", "evil.html", b"<script>alert(1)</script>"
+        )
+        url = self.storage.generate_download_url(
+            bucket_name="default-bucket", target_key="evil.html"
+        )
+
+        with patch("hexa.files.views.storage", self.storage):
+            resp = self.client.get(url)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp["Content-Security-Policy"], "sandbox")
+
     def test_get_mount_config(self):
         self.assertEqual(
             self.storage.get_bucket_mount_config("my_bucket"),

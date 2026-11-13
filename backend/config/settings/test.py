@@ -45,3 +45,7 @@ GIT_PROXY_PASSWORD = "openhexa-proxy"
 AZURITE_TEST_SERVER = os.getenv(
     "AZURITE_TEST_SERVER", "http://host.docker.internal:10000/"
 )
+
+# Django's test client logs in without a request, which django-axes refuses. Tests of
+# the login lockout turn it back on.
+AXES_ENABLED = False

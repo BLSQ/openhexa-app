@@ -159,6 +159,8 @@ def resolve_login(_, info, **kwargs):
     )
 
     if user_candidate is None:
+        if getattr(request, "axes_locked_out", False):
+            return {"success": False, "errors": ["TOO_MANY_ATTEMPTS"]}
         return {"success": False, "errors": ["INVALID_CREDENTIALS"]}
 
     if has_configured_two_factor(user_candidate):
@@ -260,7 +262,7 @@ def resolve_register(_, info, **kwargs):
     )
 
     authenticated_user = authenticate(
-        username=user.email, password=mutation_input["password1"]
+        request, username=user.email, password=mutation_input["password1"]
     )
     login(request, authenticated_user)
     return {"success": True, "errors": []}
@@ -537,6 +539,11 @@ def resolve_update_organization_member(_, info, **kwargs):
 
     try:
         membership = OrganizationMembership.objects.get(id=update_input["id"])
+        if not principal.has_perm(
+            "user_management.manage_members", membership.organization
+        ):
+            raise PermissionDenied
+
         new_role = update_input["role"].lower()
         if new_role != membership.role:
             membership.update_if_has_perm(principal=principal, role=new_role)
@@ -680,10 +687,10 @@ def resolve_delete_organization_member(_, info, **kwargs):
 
     try:
         membership = OrganizationMembership.objects.get(id=delete_input["id"])
+        membership.delete_if_has_perm(principal=principal)
         WorkspaceMembership.objects.filter(
             user=membership.user, workspace__organization=membership.organization
         ).delete()
-        membership.delete_if_has_perm(principal=principal)
 
         return {"success": True, "errors": []}
 

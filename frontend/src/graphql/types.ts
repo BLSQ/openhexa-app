@@ -3097,7 +3097,9 @@ export enum LoginError {
   /** Indicates that the provided OTP is invalid. */
   InvalidOtp = 'INVALID_OTP',
   /** Indicates that an OTP (one-time password) is required for login. */
-  OtpRequired = 'OTP_REQUIRED'
+  OtpRequired = 'OTP_REQUIRED',
+  /** Indicates that too many logins failed for this email; retry later. */
+  TooManyAttempts = 'TOO_MANY_ATTEMPTS'
 }
 
 /** The LoginInput type represents the input for the login mutation. */

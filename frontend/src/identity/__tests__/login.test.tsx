@@ -148,6 +148,85 @@ describe("LoginPage: No Two Factor Authentication", () => {
     });
   });
 
+  it.each(["javascript:alert(document.cookie)", "https://evil.com"])(
+    "ignores an unsafe next param (%s) on success",
+    async (next) => {
+      mockRouter.setCurrentUrl(`/login?next=${encodeURIComponent(next)}`);
+      const pushSpy = jest.spyOn(router, "push");
+      pushSpy.mockClear();
+      const { useLoginMutation } = jest.requireActual(
+        "identity/graphql/mutations.generated",
+      );
+      useLoginMutationMock.mockImplementation(useLoginMutation);
+      const user = userEvent.setup();
+      const mocks = [
+        {
+          request: {
+            query: LoginDocument,
+            variables: {
+              input: {
+                email: "root@openhexa.org",
+                password: "pA$$W0rd",
+              },
+            },
+          },
+          result: {
+            data: { login: { success: true, errors: [] } },
+          },
+        },
+      ];
+      render(
+        <TestApp mocks={mocks}>
+          <LoginPage />
+        </TestApp>,
+      );
+
+      await user.type(screen.getByTestId("email"), "root@openhexa.org");
+      await user.type(screen.getByTestId("password"), "pA$$W0rd");
+      await user.click(screen.getByRole("button", { name: "Sign in" }));
+      await waitFor(() => {
+        expect(pushSpy).toHaveBeenCalled();
+      });
+      expect(pushSpy).toHaveBeenCalledWith("/");
+      expect(pushSpy).not.toHaveBeenCalledWith(next);
+    },
+  );
+
+  it("displays a lockout message after too many failed attempts", async () => {
+    const { useLoginMutation } = jest.requireActual(
+      "identity/graphql/mutations.generated",
+    );
+    useLoginMutationMock.mockImplementation(useLoginMutation);
+    const user = userEvent.setup();
+    const [EMAIL, PWD] = ["root@openhexa.org", "pA$$W0rd"];
+    const mocks = [
+      {
+        request: {
+          query: LoginDocument,
+          variables: { input: { email: EMAIL, password: PWD } },
+        },
+        result: {
+          data: { login: { success: false, errors: ["TOO_MANY_ATTEMPTS"] } },
+        },
+      },
+    ];
+    render(
+      <TestApp mocks={mocks}>
+        <LoginPage />
+      </TestApp>,
+    );
+
+    await user.type(screen.getByTestId("email"), EMAIL);
+    await user.type(screen.getByTestId("password"), PWD);
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+
+    expect(
+      await screen.findByText(
+        "Too many failed attempts. Please try again in 15 minutes.",
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("displays an error message if email/password is incorrect", async () => {
     const { useLoginMutation } = jest.requireActual(
       "identity/graphql/mutations.generated",
@@ -263,6 +342,18 @@ describe("LoginPage: SSO-only (password login disabled)", () => {
       "href",
       `${WHO_PROVIDER.loginUrl}?next=%2Fdashboard`,
     );
+  });
+
+  it("SSO link drops an unsafe next param", () => {
+    mockRouter.setCurrentUrl("/login?next=https%3A%2F%2Fevil.com");
+    render(
+      <TestApp>
+        <LoginPage />
+      </TestApp>,
+    );
+
+    const link = screen.getByRole("link", { name: /sign in with/i });
+    expect(link).toHaveAttribute("href", `${WHO_PROVIDER.loginUrl}?next=%2F`);
   });
 });
 

@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import DisallowedRedirect
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
 from oauth2_provider.models import AccessToken, Application, RefreshToken
@@ -152,6 +153,15 @@ class OAuthAuthorizeRedirectTest(TestCase):
             self.assertIn(b"redirectUri", response.content)
             self.assertIn(b"Authorization successful", response.content)
 
+    def test_redirect_refuses_a_scheme_that_is_not_allowed(self):
+        view = OAuthAuthorizeView()
+        for target in (
+            "javascript://claude.ai/%0aalert(1)//?code=abc",
+            "data://localhost/x?code=abc",
+        ):
+            with self.subTest(target=target), self.assertRaises(DisallowedRedirect):
+                view.redirect(target, self.application)
+
     def test_the_mcp_success_page_points_to_the_connection_settings(self):
         view = OAuthAuthorizeView()
         view.request = RequestFactory().post("/oauth/authorize/", {"scope": MCP_SCOPE})
@@ -237,6 +247,74 @@ class MCPConsentRedirectTest(TestCase):
 
         self.assertEqual(302, response.status_code)
         self.assertIn("/login", response["Location"])
+
+
+class DynamicClientRegistrationTest(TestCase):
+    def register(self, redirect_uris):
+        return self.client.post(
+            "/oauth/register/",
+            {"client_name": "Claude", "redirect_uris": redirect_uris},
+            content_type="application/json",
+        )
+
+    def test_registers_allowed_redirect_uri(self):
+        response = self.register(["https://claude.ai/api/mcp/auth_callback"])
+
+        self.assertEqual(201, response.status_code)
+        application = Application.objects.get(client_id=response.json()["client_id"])
+        self.assertEqual(
+            "https://claude.ai/api/mcp/auth_callback", application.redirect_uris
+        )
+
+    def test_rejects_disallowed_host(self):
+        response = self.register(["https://evil.com/callback"])
+
+        self.assertEqual(400, response.status_code)
+
+    def test_rejects_smuggled_redirect_uris(self):
+        # The host check parses each URI on its own, while the stored value is
+        # split on whitespace, and browsers read `\` as `/`.
+        for uri in (
+            "https://claude.ai/callback https://evil.com/callback",
+            "https://claude.ai/callback\nhttps://evil.com/callback",
+            "https://claude.ai/callback\thttps://evil.com/callback",
+            "https://evil.com\\@claude.ai/callback",
+            "https://user@claude.ai/callback",
+            "https://claude.ai/callback#fragment",
+        ):
+            with self.subTest(uri=uri):
+                response = self.register([uri])
+
+                self.assertEqual(400, response.status_code)
+                self.assertEqual("invalid_redirect_uri", response.json()["error"])
+        self.assertFalse(Application.objects.filter(name="Claude").exists())
+
+    def test_rejects_schemes_other_than_https_and_loopback_http(self):
+        # The success page navigates to the redirect URI from JavaScript.
+        for uri in (
+            "javascript://claude.ai/%0aalert(1)",
+            "data://localhost/x",
+            "myapp://claude.ai/callback",
+            "//claude.ai/callback",
+            "http://claude.ai/callback",
+        ):
+            with self.subTest(uri=uri):
+                response = self.register([uri])
+
+                self.assertEqual(400, response.status_code)
+                self.assertEqual("invalid_redirect_uri", response.json()["error"])
+        self.assertFalse(Application.objects.filter(name="Claude").exists())
+
+    def test_registers_loopback_http_redirect_uri(self):
+        response = self.register(["http://localhost:54321/callback"])
+
+        self.assertEqual(201, response.status_code)
+
+    def test_rejects_non_list_redirect_uris(self):
+        response = self.register("https://claude.ai/callback")
+
+        self.assertEqual(400, response.status_code)
+        self.assertFalse(Application.objects.filter(name="Claude").exists())
 
 
 class OAuthLibraryManagementRoutesTest(TestCase):
