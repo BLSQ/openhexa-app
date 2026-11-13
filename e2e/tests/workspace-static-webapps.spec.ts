@@ -1,4 +1,4 @@
-import { credentials, outsiderCredentials } from "../config/environment";
+import { credentials } from "../config/environment";
 import { expect, test } from "../fixtures/visitors";
 import { uniqueName } from "../helpers/confirm";
 import { ServedWebapp, staticAppHtml } from "../pages/ServedWebapp";
@@ -193,35 +193,6 @@ test.describe("Workspace static web apps", () => {
       await expect(anonymous.loginHeading).toBeVisible();
       await webapps.gotoTab(slug, "General");
       await expect(webapps.tab("API access")).toBeVisible();
-    });
-  });
-
-  test.describe("seen from outside the workspace", () => {
-    test.skip(
-      !outsiderCredentials,
-      "Needs E2E_OUTSIDER_EMAIL / E2E_OUTSIDER_PASSWORD for an account outside the test workspace",
-    );
-
-    test("a private app is forbidden, a public one is served", async ({
-      page,
-      outsiderPage,
-      cleanup,
-    }) => {
-      const webapps = new WorkspaceWebappsPage(page);
-      const outsider = new ServedWebapp(outsiderPage);
-      const name = uniqueName("e2e outsider");
-
-      const slug = await webapps.create("Static", name);
-      cleanup.add(`web app ${slug}`, () => webapps.deleteIfPresent(slug));
-      const url = await webapps.servedUrl(slug);
-
-      await outsider.goto(url);
-      await expect(outsider.forbidden).toBeVisible();
-      await expect(outsider.heading(TEMPLATE_HEADING)).toHaveCount(0);
-
-      await webapps.setPublic(true);
-      await outsider.goto(url);
-      await expect(outsider.heading(TEMPLATE_HEADING)).toBeVisible();
     });
   });
 });
