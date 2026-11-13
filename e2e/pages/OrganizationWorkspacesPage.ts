@@ -1,6 +1,7 @@
 import { Locator, Page, expect } from "@playwright/test";
 
 import { organizationPaths } from "../config/environment";
+import { dialogTitled } from "../helpers/dialog";
 
 /** Provisioning a workspace takes far longer than an ordinary page load. */
 const PROVISIONING_TIMEOUT = 90_000;
@@ -17,9 +18,7 @@ export class OrganizationWorkspacesPage {
   }
 
   get createDialog(): Locator {
-    return this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", { name: "Create a workspace" }),
-    });
+    return dialogTitled(this.page, "Create a workspace");
   }
 
   get nameInput(): Locator {
@@ -34,9 +33,7 @@ export class OrganizationWorkspacesPage {
   }
 
   archiveDialog(name: string): Locator {
-    return this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", { name: `Archive ${name}` }),
-    });
+    return dialogTitled(this.page, `Archive ${name}`);
   }
 
   row(name: string): Locator {

@@ -1,6 +1,8 @@
 import { Locator, Page, expect } from "@playwright/test";
 
 import { workspace, workspacePaths } from "../config/environment";
+import { definition } from "../helpers/definition";
+import { dialogTitled } from "../helpers/dialog";
 import { graphql } from "../helpers/graphql";
 import { toast } from "../helpers/toast";
 
@@ -14,10 +16,7 @@ export class WorkspaceWebappsPage {
    * controls without accessible names, so each one is reached through its term.
    */
   private field(term: string): Locator {
-    return this.page
-      .getByRole("term")
-      .filter({ hasText: term })
-      .locator("xpath=following-sibling::dd");
+    return definition(this.page, term);
   }
 
   get nameInput(): Locator {
@@ -41,9 +40,7 @@ export class WorkspaceWebappsPage {
   }
 
   get deleteDialog(): Locator {
-    return this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", { name: "Delete web app" }),
-    });
+    return dialogTitled(this.page, "Delete web app");
   }
 
   row(name: string): Locator {

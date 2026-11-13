@@ -2,22 +2,18 @@ import { Locator, Page, expect } from "@playwright/test";
 
 import { workspace, workspacePaths } from "../config/environment";
 import { acceptNextConfirm } from "../helpers/confirm";
+import { definition } from "../helpers/definition";
+import { dialogTitled } from "../helpers/dialog";
 
 export class WorkspaceDatasetsPage {
   constructor(private readonly page: Page) {}
-
-  private dialog(heading: string): Locator {
-    return this.page
-      .getByRole("dialog")
-      .filter({ has: this.page.getByRole("heading", { name: heading }) });
-  }
 
   get createButton(): Locator {
     return this.page.getByRole("button", { name: "Create", exact: true });
   }
 
   get createDialog(): Locator {
-    return this.dialog("Create a dataset");
+    return dialogTitled(this.page, "Create a dataset");
   }
 
   get newVersionButton(): Locator {
@@ -25,7 +21,7 @@ export class WorkspaceDatasetsPage {
   }
 
   get newVersionDialog(): Locator {
-    return this.dialog("Upload a new version");
+    return dialogTitled(this.page, "Upload a new version");
   }
 
   /** Deletes the dataset itself; confirms with `window.confirm`. */
@@ -38,7 +34,7 @@ export class WorkspaceDatasetsPage {
   }
 
   get deleteVersionDialog(): Locator {
-    return this.dialog("Delete Version");
+    return dialogTitled(this.page, "Delete Version");
   }
 
   row(name: string): Locator {
@@ -136,11 +132,7 @@ export class WorkspaceDatasetsPage {
 
   /** The <dt>/<dd> pairs of the General tab and a file's details. */
   field(term: string): Locator {
-    return this.page
-      .getByRole("main")
-      .getByRole("term")
-      .filter({ hasText: new RegExp(`^${term}$`) })
-      .locator("xpath=following-sibling::dd")
+    return definition(this.page.getByRole("main"), term, { exact: true })
       .first();
   }
 

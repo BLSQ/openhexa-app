@@ -1,9 +1,11 @@
 import { Locator, Page, expect } from "@playwright/test";
 
 import { organizationPaths } from "../config/environment";
+import { dialogTitled } from "../helpers/dialog";
 import { waitForGrid } from "../helpers/grid";
 import { toast } from "../helpers/toast";
 import { OrganizationRole } from "./OrganizationExternalCollaboratorsPage";
+import { PendingInvitations } from "./PendingInvitations";
 import { WorkspaceRole } from "./WorkspaceSettingsPage";
 
 /** The organization's members and its pending invitations. */
@@ -41,18 +43,12 @@ export class OrganizationMembersPage {
     });
   }
 
-  /** A pending invitation's row; its first cell holds the email over "Invited by …". */
-  invitationRow(email: string): Locator {
-    return this.page
-      .getByRole("row")
-      .filter({ has: this.page.getByText(email, { exact: true }) })
-      .filter({ has: this.page.getByText(/^Invited by/) });
+  private get invitations() {
+    return new PendingInvitations(this.page);
   }
 
-  private dialog(title: string): Locator {
-    return this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", { name: title }),
-    });
+  invitationRow(email: string): Locator {
+    return this.invitations.row(email);
   }
 
   private toast(text: string): Locator {
@@ -70,7 +66,7 @@ export class OrganizationMembersPage {
 
   async setOrganizationRole(email: string, role: OrganizationRole) {
     await this.row(email).getByRole("button", { name: "edit" }).click();
-    const dialog = this.dialog("Update Member Permissions");
+    const dialog = dialogTitled(this.page, "Update Member Permissions");
     await dialog
       .locator('select[name="organizationRole"]')
       .selectOption({ label: role });
@@ -82,7 +78,7 @@ export class OrganizationMembersPage {
   /** Ends their organization membership; their workspace roles stay. */
   async remove(email: string) {
     await this.row(email).getByRole("button", { name: "delete" }).click();
-    const dialog = this.dialog("Remove Member");
+    const dialog = dialogTitled(this.page, "Remove Member");
     await dialog.getByRole("button", { name: "Remove" }).click();
     await expect(this.toast("Member removed")).toBeVisible();
     await expect(this.row(email)).toHaveCount(0);
@@ -112,7 +108,7 @@ export class OrganizationMembersPage {
     // settles, which wipes an address typed before then.
     await waitForGrid(this.page);
     await this.inviteButton.click();
-    const dialog = this.dialog("Invite Member");
+    const dialog = dialogTitled(this.page, "Invite Member");
     await dialog
       .locator('select[name="organizationRole"]')
       .selectOption({ label: role });
@@ -127,28 +123,12 @@ export class OrganizationMembersPage {
     }
   }
 
-  /** The resend and delete buttons are bare icons, in that order. */
-  private invitationAction(email: string, action: "resend" | "delete") {
-    return this.invitationRow(email)
-      .getByRole("button")
-      .nth(action === "resend" ? 0 : 1);
-  }
-
   async resendInvitation(email: string) {
-    await this.invitationAction(email, "resend").click();
-    await this.dialog("Resend invitation")
-      .getByRole("button", { name: "Resend" })
-      .click();
-    await expect(this.toast("Invitation resent")).toBeVisible();
+    await this.invitations.resend(email);
   }
 
   async deleteInvitation(email: string) {
-    await this.invitationAction(email, "delete").click();
-    await this.dialog("Delete invitation")
-      .getByRole("button", { name: "Delete" })
-      .click();
-    await expect(this.toast("Invitation deleted")).toBeVisible();
-    await expect(this.invitationRow(email)).toHaveCount(0);
+    await this.invitations.delete(email);
   }
 
   async deleteInvitationIfPresent(email: string) {

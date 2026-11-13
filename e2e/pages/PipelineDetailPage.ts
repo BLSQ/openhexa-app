@@ -2,6 +2,8 @@ import { Locator, Page, expect } from "@playwright/test";
 
 import { workspacePaths } from "../config/environment";
 import { acceptNextConfirm } from "../helpers/confirm";
+import { definition } from "../helpers/definition";
+import { dialogTitled } from "../helpers/dialog";
 
 export type FunctionalType =
   | "Computation"
@@ -48,11 +50,7 @@ export class PipelineDetailPage {
   }
 
   field(term: string): Locator {
-    return this.page
-      .getByRole("main")
-      .getByRole("term")
-      .filter({ hasText: new RegExp(`^${term}$`) })
-      .locator("xpath=following-sibling::dd");
+    return definition(this.page.getByRole("main"), term, { exact: true });
   }
 
   /** The cards' Edit buttons, in page order. */
@@ -130,9 +128,7 @@ export class PipelineDetailPage {
   // --- default values ------------------------------------------------------
 
   get defaultsDialog(): Locator {
-    return this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", { name: "Set default configuration" }),
-    });
+    return dialogTitled(this.page, "Set default configuration");
   }
 
   async openDefaults() {
@@ -261,16 +257,10 @@ export class PipelineDetailPage {
   async editVersion(version: string, values: { name: string; description: string }) {
     const card = this.versionCard(version);
     await card.getByRole("button", { name: "Edit" }).click();
-    await card
-      .getByRole("term")
-      .filter({ hasText: "Name" })
-      .locator("xpath=following-sibling::dd")
+    await definition(card, "Name")
       .getByRole("textbox")
       .fill(values.name);
-    await card
-      .getByRole("term")
-      .filter({ hasText: "Description" })
-      .locator("xpath=following-sibling::dd")
+    await definition(card, "Description")
       .getByRole("textbox")
       .fill(values.description);
     await card.getByRole("button", { name: "Save" }).click();

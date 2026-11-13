@@ -1,6 +1,7 @@
 import { Locator, Page, expect } from "@playwright/test";
 
 import { workspacePaths } from "../config/environment";
+import { dialogTitled } from "../helpers/dialog";
 import { toast } from "../helpers/toast";
 
 const templatesPath = workspacePaths.home.replace(/\/$/, "/templates/");
@@ -85,9 +86,7 @@ export class WorkspaceTemplatesPage {
   /** Deletion asks for the template's name to be typed back. */
   async delete(name: string) {
     await this.page.getByRole("button", { name: "Delete", exact: true }).click();
-    const dialog = this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", { name: "Delete template" }),
-    });
+    const dialog = dialogTitled(this.page, "Delete template");
     await dialog.getByPlaceholder(name).fill(name);
     await dialog.getByRole("button", { name: "Delete" }).click();
     await expect(this.toast(`Successfully deleted template ${name}`)).toBeVisible();

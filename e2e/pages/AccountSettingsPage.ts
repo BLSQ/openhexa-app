@@ -1,5 +1,7 @@
 import { Locator, Page, expect } from "@playwright/test";
 
+import { definition } from "../helpers/definition";
+import { dialogTitled } from "../helpers/dialog";
 import { graphql } from "../helpers/graphql";
 import { McpPermissionMatrix } from "./McpPermissionMatrix";
 
@@ -28,10 +30,7 @@ export class AccountSettingsPage {
 
   /** The profile and security sections lay out <dt>/<dd> pairs. */
   private value(term: string): Locator {
-    return this.page
-      .getByRole("term")
-      .filter({ hasText: term })
-      .locator("xpath=following-sibling::dd");
+    return definition(this.page, term);
   }
 
   // --- profile -------------------------------------------------------------
@@ -84,11 +83,7 @@ export class AccountSettingsPage {
   }
 
   get enableTwoFactorDialog(): Locator {
-    return this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", {
-        name: "Enable Two-Factor Authentication",
-      }),
-    });
+    return dialogTitled(this.page, "Enable Two-Factor Authentication");
   }
 
   get disableTwoFactorButton(): Locator {
@@ -96,11 +91,7 @@ export class AccountSettingsPage {
   }
 
   get disableTwoFactorDialog(): Locator {
-    return this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", {
-        name: "Disable Two-Factor Authentication",
-      }),
-    });
+    return dialogTitled(this.page, "Disable Two-Factor Authentication");
   }
 
   /** Confirms the enable dialog, which emails a code and then asks for it. */
@@ -232,11 +223,7 @@ export class AccountSettingsPage {
     await this.mcpConnection(name)
       .getByRole("button", { name: "Revoke" })
       .click();
-    await this.page
-      .getByRole("dialog")
-      .filter({
-        has: this.page.getByRole("heading", { name: "Revoke connection" }),
-      })
+    await dialogTitled(this.page, "Revoke connection")
       .getByRole("button", { name: "Revoke" })
       .click();
     await expect(this.mcpConnectionToggle(name)).toHaveCount(0);

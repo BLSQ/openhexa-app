@@ -1,6 +1,8 @@
 import { Locator, Page, expect } from "@playwright/test";
 
 import { workspace, workspacePaths } from "../config/environment";
+import { definition } from "../helpers/definition";
+import { dialogTitled } from "../helpers/dialog";
 import { graphql } from "../helpers/graphql";
 
 export const PIPELINE_TABS = [
@@ -94,9 +96,7 @@ export class WorkspacePipelinesPage {
   }
 
   get deleteDialog(): Locator {
-    return this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", { name: "Delete pipeline" }),
-    });
+    return dialogTitled(this.page, "Delete pipeline");
   }
 
   row(name: string): Locator {
@@ -255,9 +255,7 @@ export class WorkspacePipelinesPage {
   }
 
   get runDialog(): Locator {
-    return this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", { name: "Run pipeline" }),
-    });
+    return dialogTitled(this.page, "Run pipeline");
   }
 
   /** Starts a run and waits for the redirect to its page. */
@@ -325,9 +323,7 @@ export class WorkspacePipelinesPage {
   }
 
   get stopDialog(): Locator {
-    return this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", { name: /^Stop .* execution$/ }),
-    });
+    return dialogTitled(this.page, /^Stop .* execution$/);
   }
 
   async stopRun() {
@@ -359,10 +355,7 @@ export class WorkspacePipelinesPage {
 
   /** A <dt>/<dd> pair on the run page, e.g. "Version" or "Trigger". */
   runDetail(term: string): Locator {
-    return this.page
-      .getByRole("term")
-      .filter({ hasText: term })
-      .locator("xpath=following-sibling::dd");
+    return definition(this.page, term);
   }
 
   get runMessages(): Locator {
