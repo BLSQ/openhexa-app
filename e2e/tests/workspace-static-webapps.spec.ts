@@ -171,18 +171,21 @@ test.describe("Workspace static web apps", () => {
       await expect(webapps.rowAccess(name, "Public")).toBeVisible();
     });
 
-    await test.step("anyone sees a public app, without the API", async () => {
+    await test.step("anyone sees a public app, whose API knows no user", async () => {
+      // A public app reaches the API as an anonymous visitor: what needs a
+      // user is refused outright, with no scope to enable for it.
+      const refusal =
+        "API error 403: Fields not allowed: Me.user, Query.me, User.email";
+
       await anonymous.goto(url);
       await expect(anonymous.heading(marker)).toBeVisible();
       await expect(anonymous.poweredByBanner).toBeVisible();
-      await expect(anonymous.apiResult).toHaveText(
-        "API error 404: Not available",
-      );
+      await expect(anonymous.apiResult).toHaveText(refusal);
 
       await member.goto(url);
       await expect(member.heading(marker)).toBeVisible();
       await expect(member.poweredByBanner).toHaveCount(0);
-      await expect(member.apiResult).toHaveText("API error 404: Not available");
+      await expect(member.apiResult).toHaveText(refusal);
     });
 
     await test.step("a private app again sends visitors to sign in", async () => {
