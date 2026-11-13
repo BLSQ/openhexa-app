@@ -1,6 +1,7 @@
 import { Locator, Page, expect } from "@playwright/test";
 
 import { organizationPaths } from "../config/environment";
+import { waitForGrid } from "../helpers/grid";
 import { toast } from "../helpers/toast";
 import { WorkspaceRole } from "./WorkspaceSettingsPage";
 
@@ -60,6 +61,23 @@ export class OrganizationExternalCollaboratorsPage {
   async search(email: string) {
     await this.searchInput.fill(email);
     await expect(this.row(email)).toBeVisible();
+  }
+
+  /**
+   * Narrows the list to someone who may no longer be on it, and waits for the
+   * filtered list itself, so that a row or a role missing afterwards is
+   * absent rather than not loaded yet or folded behind "+N more".
+   */
+  async searchSettled(email: string) {
+    const filtered = this.page.waitForResponse(
+      (response) =>
+        response.url().includes("/graphql") &&
+        (response.request().postData() ?? "").includes(email),
+    );
+    await this.searchInput.fill(email);
+    await (await filtered).finished();
+    await waitForGrid(this.page);
+    await this.showAllRoles(email);
   }
 
   /** Only the first two roles show until the row's "+N more" is clicked. */

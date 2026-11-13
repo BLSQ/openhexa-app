@@ -99,7 +99,7 @@ test.describe("Seen by another account", () => {
     await test.step("archiving the workspace takes it off the list", async () => {
       await disposableWorkspace.archive();
       await collaborators.goto();
-      await collaborators.searchInput.fill(email);
+      await collaborators.searchSettled(email);
       await expect(
         collaborators.workspaceRole(email, disposableWorkspace.name, "Editor"),
       ).toHaveCount(0);
@@ -275,7 +275,7 @@ test.describe("Seen by another account", () => {
       expect((await outsiderPage.goto(workspacePath))?.status()).toBe(404);
 
       await collaborators.goto();
-      await collaborators.searchInput.fill(email);
+      await collaborators.searchSettled(email);
       await expect(
         collaborators.workspaceRole(email, name, "Viewer"),
       ).toHaveCount(0);
