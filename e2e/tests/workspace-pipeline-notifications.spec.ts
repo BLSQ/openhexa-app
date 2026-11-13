@@ -44,7 +44,7 @@ test.describe("Pipeline run notifications", () => {
     const runId = () => page.url().match(/\/runs\/([0-9a-f-]{36})/)![1];
 
     await pipeline.gotoScheduling();
-    const name = await pipeline.addRecipient("Error", reportRecipientName);
+    await pipeline.addRecipient("Error", reportRecipientName);
     const since = new Date();
 
     await test.step("a successful run sends nothing to an Error-level recipient", async () => {
@@ -85,7 +85,7 @@ test.describe("Pipeline run notifications", () => {
 
     await test.step("at level All, a successful run is reported too", async () => {
       await pipeline.gotoScheduling();
-      await pipeline.removeRecipient(name);
+      await pipeline.removeRecipient(pipeline.recipientRow(reportRecipientName));
       await pipeline.addRecipient("All", reportRecipientName);
       const sinceAll = new Date();
 
