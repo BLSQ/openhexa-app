@@ -248,13 +248,17 @@ export class AccountSettingsPage {
     const data = await graphql(this.page, `{ mcpConnections { id name } }`);
     for (const connection of data.mcpConnections) {
       if (connection.name === name) {
-        await graphql(
+        const revoked = await graphql(
           this.page,
           `mutation ($input: RevokeMCPConnectionInput!) {
             revokeMCPConnection(input: $input) { success errors }
           }`,
           { input: { id: connection.id } },
         );
+        expect(
+          revoked.revokeMCPConnection.success,
+          JSON.stringify(revoked),
+        ).toBe(true);
       }
     }
   }

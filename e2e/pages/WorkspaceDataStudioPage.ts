@@ -254,13 +254,14 @@ export class WorkspaceDataStudioPage {
 
   async deleteWithApi(id: string) {
     await this.page.goto(workspacePaths.savedQueries);
-    await graphql(
+    const data = await graphql(
       this.page,
       `mutation ($input: DeleteSavedQueryInput!) {
         deleteSavedQuery(input: $input) { success errors }
       }`,
       { input: { id } },
     );
+    expect(data.deleteSavedQuery.success, JSON.stringify(data)).toBe(true);
   }
 
   async gotoQuery(slug: string) {
