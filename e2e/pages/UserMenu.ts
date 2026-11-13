@@ -1,5 +1,7 @@
 import { Locator, Page, expect } from "@playwright/test";
 
+import { graphql } from "../helpers/graphql";
+
 export type InterfaceLanguage = "English" | "Français";
 
 /** The few labels the language test reads, as each language renders them. */
@@ -70,19 +72,10 @@ export class UserMenu {
    */
   async resetLanguageToEnglish() {
     await this.page.goto("/");
-    const response = await this.page.evaluate(async () => {
-      const csrf = document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? "";
-      const res = await fetch("/graphql/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
-        body: JSON.stringify({
-          query: `mutation { updateUser(input: { language: "en" }) { success errors } }`,
-        }),
-      });
-      return res.json();
-    });
-    expect(response?.data?.updateUser?.success, JSON.stringify(response)).toBe(
-      true,
+    const data = await graphql(
+      this.page,
+      `mutation { updateUser(input: { language: "en" }) { success errors } }`,
     );
+    expect(data.updateUser.success, JSON.stringify(data)).toBe(true);
   }
 }
