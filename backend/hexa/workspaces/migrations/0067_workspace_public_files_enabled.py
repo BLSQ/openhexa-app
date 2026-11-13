@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("workspaces", "0065_workspacetokenusage"),
+        ("workspaces", "0066_workspaceinvitation_language"),
     ]
 
     operations = [
