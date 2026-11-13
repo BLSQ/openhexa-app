@@ -95,8 +95,8 @@ make re2e                # HTML report of the last run (npm run report)
 npx playwright show-trace test-results/<test-dir>/trace.zip
 ```
 
-Failures record a screenshot and a video automatically, and a retried failure
-records a trace — a step-by-step recording with a DOM snapshot, the network log
+Failures record a screenshot, a video and a trace automatically — the trace is
+a step-by-step recording with a DOM snapshot, the network log
 and the console at each action. None of it is recorded in CI (see [CI](#ci)).
 
 To point at another environment, override `E2E_BASE_URL` and the organization
