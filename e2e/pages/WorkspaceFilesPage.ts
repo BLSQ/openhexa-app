@@ -63,7 +63,9 @@ export class WorkspaceFilesPage {
         buffer: Buffer.from(contents),
       });
     await this.uploadDialog.getByRole("button", { name: "Upload" }).click();
-    await expect(this.uploadDialog).toBeHidden();
+    // The dialog stays open for the transfer itself, which for a file of a few
+    // megabytes, sharing the uplink with the other workers, outlasts the default.
+    await expect(this.uploadDialog).toBeHidden({ timeout: 90_000 });
   }
 
   async delete(name: string) {
