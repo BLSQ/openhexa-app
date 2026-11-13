@@ -160,6 +160,9 @@ test.describe("MCP connections", () => {
     browser,
     cleanup,
   }) => {
+    // The consent form is refused with a 403 in this state. Remove this line
+    // with the fix: the test then reports that it passed unexpectedly.
+    test.fail();
     const account = new AccountSettingsPage(page);
     const client = await McpClient.register(uniqueName("e2e MCP client"));
     cleanup.add("the MCP client's requests", () => client.dispose());
@@ -172,9 +175,25 @@ test.describe("MCP connections", () => {
     // domain, and sends both. The consent form must not pick the wrong one.
     const context = await browser.newContext({ storageState: STORAGE_STATE });
     cleanup.add("the browser with two CSRF cookies", () => context.close());
+    const csrfCookies = async () =>
+      (await context.cookies(BASE_URL)).filter(
+        (cookie) => cookie.name === "csrftoken",
+      );
+    // A cookie on the same domain as the current one would replace it, so the
+    // leftover goes on whichever of the host and its parent domain is free.
+    const { hostname } = new URL(BASE_URL);
+    const [current] = await csrfCookies();
     await context.addCookies([
-      { name: "csrftoken", value: "e2eLeftoverCsrfCookie00000000000", url: BASE_URL },
+      {
+        name: "csrftoken",
+        value: "e2eLeftoverCsrfCookie00000000000",
+        domain: current.domain.startsWith(".")
+          ? hostname
+          : hostname.slice(hostname.indexOf(".")),
+        path: "/",
+      },
     ]);
+    expect(await csrfCookies()).toHaveLength(2);
     const consent = new McpAuthorizePage(await context.newPage());
 
     await consent.open(client.authorizeUrl);
