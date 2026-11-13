@@ -1,6 +1,7 @@
-import { Page, test as base } from "@playwright/test";
+import { Page, expect, test as base } from "@playwright/test";
 import { randomBytes } from "node:crypto";
 
+import { graphql } from "../helpers/graphql";
 import { OrganizationWorkspacesPage } from "../pages/OrganizationWorkspacesPage";
 
 /**
@@ -11,8 +12,8 @@ import { OrganizationWorkspacesPage } from "../pages/OrganizationWorkspacesPage"
  * leave the shared environment as it found it.
  */
 export class DisposableWorkspace {
-  /** Its current name, which cleanup looks it up by. */
-  name: string;
+  /** The name it is created with. */
+  readonly name: string;
   private slug: string | null = null;
   private requested = false;
 
@@ -31,11 +32,7 @@ export class DisposableWorkspace {
     return this.slug;
   }
 
-  /** Records a rename done through the UI, so cleanup still finds it. */
-  renamed(name: string) {
-    this.name = name;
-  }
-
+  /** Archives it from the organization's list, under the name it was created with. */
   async archive() {
     await this.workspaces.archive(this.name);
   }
@@ -56,7 +53,16 @@ export class DisposableWorkspace {
     if (response?.status() === 404) {
       return;
     }
-    await this.archive();
+    // By slug, through the API: the test may have renamed it, or failed
+    // halfway through doing so.
+    const data = await graphql(
+      this.page,
+      `mutation ($input: ArchiveWorkspaceInput!) {
+        archiveWorkspace(input: $input) { success errors }
+      }`,
+      { input: { slug: this.slug } },
+    );
+    expect(data.archiveWorkspace.success, JSON.stringify(data)).toBe(true);
   }
 }
 

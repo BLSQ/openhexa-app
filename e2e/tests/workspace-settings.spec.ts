@@ -58,7 +58,6 @@ test.describe("Workspace settings", () => {
       await settings.addCountry("Senegal");
       await settings.addConfiguration("e2e_key", configValue);
       await settings.save();
-      disposableWorkspace.renamed(newName);
 
       await settings.gotoTab(slug, "General");
       await expect(settings.field("Name")).toHaveText(newName);
