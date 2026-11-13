@@ -21,6 +21,7 @@ const OrganizationLayout = ({
     <BaseLayout
       sidebar={<OrganizationSidebar organization={organization} />}
       organizationId={organization?.id}
+      subscriptionOrganization={organization}
       header={header}
       headerActions={headerActions}
     >

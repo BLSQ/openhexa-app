@@ -2068,6 +2068,7 @@ class OrganizationUsageLimitsTest(GraphQLTestCase, OrganizationTestMixin):
                         planCode
                         startDate
                         endDate
+                        isExpiringSoon
                         limits {
                             users
                             workspaces
@@ -2094,6 +2095,7 @@ class OrganizationUsageLimitsTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertEqual(subscription["planCode"], "openhexa_starter")
         self.assertEqual(subscription["startDate"], start_date.isoformat())
         self.assertEqual(subscription["endDate"], end_date.isoformat())
+        self.assertFalse(subscription["isExpiringSoon"])
         self.assertEqual(subscription["limits"]["users"], 10)
         self.assertEqual(subscription["limits"]["workspaces"], 5)
         self.assertEqual(subscription["limits"]["pipelineRuns"], 1000)

@@ -4,11 +4,16 @@ import Help from "workspaces/layouts/WorkspaceLayout/Help";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 import { useTranslation } from "next-i18next";
 import useSidebarOpen from "core/hooks/useSidebarOpen";
+import SubscriptionBanner, {
+  useSubscriptionBannerOffsetStyle,
+} from "organizations/features/SubscriptionBanner";
+import { SubscriptionBanner_OrganizationFragment } from "organizations/features/SubscriptionBanner/SubscriptionBanner.generated";
 
 type BaseLayoutProps = {
   children: React.ReactNode;
   sidebar: React.ReactNode;
   organizationId?: string;
+  subscriptionOrganization?: SubscriptionBanner_OrganizationFragment | null;
   header?: React.ReactNode;
   headerActions?: React.ReactNode;
 };
@@ -17,18 +22,23 @@ const BaseLayout = ({
   children,
   sidebar,
   organizationId,
+  subscriptionOrganization,
   header,
   headerActions,
 }: BaseLayoutProps) => {
   const { t } = useTranslation();
 
   const [isSidebarOpen] = useSidebarOpen();
+  const subscriptionBannerOffsetStyle = useSubscriptionBannerOffsetStyle(
+    subscriptionOrganization,
+  );
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen" style={subscriptionBannerOffsetStyle}>
+      <SubscriptionBanner organization={subscriptionOrganization} />
       <div
         className={clsx(
-          "fixed h-screen bg-gray-800 transition-all duration-75 z-20",
+          "fixed top-(--subscription-banner-height) h-[calc(100vh-var(--subscription-banner-height))] bg-gray-800 transition-all duration-75 z-20",
           isSidebarOpen ? "w-64 2xl:w-72" : "w-16",
         )}
       >
@@ -37,7 +47,7 @@ const BaseLayout = ({
       {organizationId && (
         <header
           className={clsx(
-            "fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header",
+            "fixed top-(--subscription-banner-height) left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header",
             isSidebarOpen ? "left-64 2xl:left-72" : "left-16",
           )}
         >
@@ -54,7 +64,7 @@ const BaseLayout = ({
       )}
       <main
         className={clsx(
-          "w-full mb-12 transition-all duration-75",
+          "w-full mb-12 mt-(--subscription-banner-height) transition-all duration-75",
           isSidebarOpen ? "pl-64 2xl:pl-72" : "pl-16",
           organizationId && header && "pt-12",
         )}

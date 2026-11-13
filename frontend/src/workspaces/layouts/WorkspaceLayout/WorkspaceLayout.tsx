@@ -10,6 +10,9 @@ import PageContent from "./PageContent";
 import Sidebar from "./Sidebar";
 import { WorkspaceLayout_WorkspaceFragment } from "./WorkspaceLayout.generated";
 import useSidebarOpen from "core/hooks/useSidebarOpen";
+import SubscriptionBanner, {
+  useSubscriptionBannerOffsetStyle,
+} from "organizations/features/SubscriptionBanner";
 
 export type WorkspaceLayoutProps = {
   children: ReactElement | ReactElement[];
@@ -38,6 +41,9 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
   const [_, setLastWorkspace] = useLocalStorage("last-visited-workspace");
 
   const [cookieSidebarOpen] = useSidebarOpen();
+  const subscriptionBannerOffsetStyle = useSubscriptionBannerOffsetStyle(
+    workspace.organization,
+  );
   const isSidebarOpen = forceSidebarOpen ?? cookieSidebarOpen;
 
   useEffect(() => {
@@ -45,10 +51,11 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
   }, [workspace.slug, setLastWorkspace]);
 
   return (
-    <>
+    <div style={subscriptionBannerOffsetStyle}>
+      <SubscriptionBanner organization={workspace.organization} />
       <div
         className={clsx(
-          "fixed h-screen bg-gray-800 transition-all duration-75 z-20",
+          "fixed top-(--subscription-banner-height) h-[calc(100vh-var(--subscription-banner-height))] bg-gray-800 transition-all duration-75 z-20",
           isSidebarOpen ? "w-64 2xl:w-72" : "w-16",
         )}
       >
@@ -61,7 +68,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
       {header && (
         <header
           className={clsx(
-            "fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header",
+            "fixed top-(--subscription-banner-height) left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header",
             isSidebarOpen ? "left-64 2xl:left-72" : "left-16",
           )}
         >
@@ -78,7 +85,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
       )}
       <main
         className={clsx(
-          "w-full",
+          "w-full mt-(--subscription-banner-height)",
           withMarginBottom
             ? "mb-12" // The margin bottom is to avoid the Help button to hide the content of the page while at the bottom
             : "",
@@ -97,7 +104,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
           </div>
         </Help>
       </div>
-    </>
+    </div>
   );
 };
 
@@ -105,9 +112,13 @@ WorkspaceLayout.fragments = {
   workspace: gql`
     fragment WorkspaceLayout_workspace on Workspace {
       slug
+      organization {
+        ...SubscriptionBanner_organization
+      }
       ...Sidebar_workspace
     }
     ${Sidebar.fragments.workspace}
+    ${SubscriptionBanner.fragments.organization}
   `,
 };
 

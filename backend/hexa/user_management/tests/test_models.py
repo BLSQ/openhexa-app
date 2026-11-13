@@ -338,6 +338,35 @@ class OrganizationSubscriptionTest(TestCase):
         )
         self.assertTrue(self.organization.is_users_limit_reached())
 
+    @override_settings(SUBSCRIPTION_EXPIRING_SOON_DAYS=14)
+    def test_is_expiring_soon(self):
+        today = timezone.now().date()
+        self.assertFalse(self.subscription.is_expiring_soon)
+
+        self.subscription.end_date = today + timedelta(days=14)
+        self.subscription.save()
+        self.assertTrue(self.subscription.is_expiring_soon)
+
+        self.subscription.end_date = today
+        self.subscription.save()
+        self.assertTrue(self.subscription.is_expiring_soon)
+
+        self.subscription.end_date = today - timedelta(days=1)
+        self.subscription.save()
+        self.assertFalse(self.subscription.is_expiring_soon)
+
+    @override_settings(SUBSCRIPTION_EXPIRING_SOON_DAYS=14)
+    def test_is_not_expiring_soon_when_renewal_is_booked(self):
+        today = timezone.now().date()
+        self.subscription.end_date = today + timedelta(days=5)
+        self.subscription.save()
+        create_subscription(
+            self.organization,
+            start_date=today + timedelta(days=6),
+            end_date=today + timedelta(days=371),
+        )
+        self.assertFalse(self.subscription.is_expiring_soon)
+
     @override_settings(SUBSCRIPTION_GRACE_PERIOD_DAYS=5)
     def test_expired_past_grace_period_is_frozen(self):
         self.subscription.delete()

@@ -41,6 +41,9 @@ OPENHEXA_JWT_TTL = int(os.environ.get("OPENHEXA_JWT_TTL", "3600"))
 SUBSCRIPTION_GRACE_PERIOD_DAYS = int(
     os.environ.get("SUBSCRIPTION_GRACE_PERIOD_DAYS", "15")
 )
+SUBSCRIPTION_EXPIRING_SOON_DAYS = int(
+    os.environ.get("SUBSCRIPTION_EXPIRING_SOON_DAYS", "14")
+)
 
 # X Frame Options
 # Allow OpenHEXA to embed itself, typical use is a Superset dashboards in a Web App
