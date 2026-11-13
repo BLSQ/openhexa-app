@@ -2,6 +2,7 @@ import { Locator, Page, expect } from "@playwright/test";
 
 import { workspacePaths } from "../config/environment";
 import { acceptNextConfirm } from "../helpers/confirm";
+import { dialogTitled } from "../helpers/dialog";
 
 /** The labels the create dialog shows for each supported integration. */
 export const CONNECTION_TYPES = [
@@ -156,9 +157,7 @@ export class WorkspaceConnectionsPage {
   }
 
   get fieldsDialog(): Locator {
-    return this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", { name: /^Update connection fields for/ }),
-    });
+    return dialogTitled(this.page, /^Update connection fields for/);
   }
 
   /** The Fields card's Edit button is the second on the page. */

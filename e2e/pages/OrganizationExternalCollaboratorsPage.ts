@@ -1,8 +1,10 @@
 import { Locator, Page, expect } from "@playwright/test";
 
 import { organizationPaths } from "../config/environment";
+import { dialogTitled } from "../helpers/dialog";
 import { waitForGrid } from "../helpers/grid";
 import { toast } from "../helpers/toast";
+import { PendingInvitations } from "./PendingInvitations";
 import { WorkspaceRole } from "./WorkspaceSettingsPage";
 
 export type OrganizationRole = "Owner" | "Admin" | "Member";
@@ -27,22 +29,13 @@ export class OrganizationExternalCollaboratorsPage {
    * invitation into one workspace, sent to an email without an account.
    */
   pendingInvitationRow(email: string): Locator {
-    return this.page
-      .getByRole("row")
-      .filter({ has: this.page.getByText(email, { exact: true }) })
-      .filter({ has: this.page.getByText(/^Invited by/) });
+    return new PendingInvitations(this.page).row(email);
   }
 
   /** A badge in the row's "Workspace Roles" column. */
   workspaceRole(email: string, workspaceName: string, role: WorkspaceRole) {
     return this.row(email).getByText(`${workspaceName} · ${role}`, {
       exact: true,
-    });
-  }
-
-  private dialog(title: string): Locator {
-    return this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", { name: title }),
     });
   }
 
@@ -95,7 +88,7 @@ export class OrganizationExternalCollaboratorsPage {
     role: WorkspaceRole | "None",
   ) {
     await this.row(email).getByRole("button", { name: "edit" }).click();
-    const dialog = this.dialog("Update Member Permissions");
+    const dialog = dialogTitled(this.page, "Update Member Permissions");
     await dialog
       .getByRole("radio", {
         name: `${workspaceSlug} ${role.toUpperCase()}`,
@@ -111,7 +104,7 @@ export class OrganizationExternalCollaboratorsPage {
     await this.row(email)
       .getByRole("button", { name: "convert to member" })
       .click();
-    const dialog = this.dialog("Convert to Organization Member");
+    const dialog = dialogTitled(this.page, "Convert to Organization Member");
     await dialog.locator('select[name="role"]').selectOption({ label: role });
     await dialog.getByRole("button", { name: "Convert to member" }).click();
     await expect(this.toast("Converted to member!")).toBeVisible();
@@ -121,7 +114,7 @@ export class OrganizationExternalCollaboratorsPage {
   /** Takes away every workspace membership they hold in the organization. */
   async remove(email: string) {
     await this.row(email).getByRole("button", { name: "delete" }).click();
-    const dialog = this.dialog("Remove External Collaborator");
+    const dialog = dialogTitled(this.page, "Remove External Collaborator");
     await dialog.getByRole("button", { name: "Remove" }).click();
     await expect(this.toast("External collaborator removed")).toBeVisible();
     await expect(this.row(email)).toHaveCount(0);

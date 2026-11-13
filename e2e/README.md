@@ -116,7 +116,7 @@ E2E_BASE_URL=https://app.openhexa.org E2E_ORGANIZATION_ID=... npm test
 | `fixtures/disposableWorkspace.ts` | A uniquely named workspace, archived again in teardown |
 | `fixtures/visitors.ts` | Pages for an anonymous visitor and for the outsider account |
 | `fixtures/mailbox.ts` | The suite's mailbox, opened for the test and closed after it |
-| `helpers/` | Native-confirm handling, unique names, grid-load waiting, the newest toast, GraphQL calls made as the signed-in user, for setting up data a test is not about, an MCP client of the suite's own, and the mailbox: the emails sent to an address, read back from Mailgun |
+| `helpers/` | Native-confirm handling, unique names, grid-load waiting, the newest toast, a dialog by its heading, a `<dt>`/`<dd>` value by its term, GraphQL calls made as the signed-in user, for setting up data a test is not about, an MCP client of the suite's own, and the mailbox: the emails sent to an address, read back from Mailgun |
 | `pages/` | Page objects — the only place selectors live |
 | `tests/` | Specs |
 

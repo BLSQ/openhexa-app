@@ -2,6 +2,7 @@ import { Locator, Page, expect } from "@playwright/test";
 
 import { workspacePaths } from "../config/environment";
 import { acceptNextConfirm } from "../helpers/confirm";
+import { dialogTitled } from "../helpers/dialog";
 import { waitForGrid } from "../helpers/grid";
 
 export class WorkspaceFilesPage {
@@ -15,18 +16,12 @@ export class WorkspaceFilesPage {
     return this.page.getByRole("button", { name: "Upload files" });
   }
 
-  private dialog(heading: string): Locator {
-    return this.page
-      .getByRole("dialog")
-      .filter({ has: this.page.getByRole("heading", { name: heading }) });
-  }
-
   get createFolderDialog(): Locator {
-    return this.dialog("Create a folder");
+    return dialogTitled(this.page, "Create a folder");
   }
 
   get uploadDialog(): Locator {
-    return this.dialog("Upload files in workspace");
+    return dialogTitled(this.page, "Upload files in workspace");
   }
 
   row(name: string): Locator {

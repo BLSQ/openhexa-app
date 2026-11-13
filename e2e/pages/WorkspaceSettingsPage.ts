@@ -1,6 +1,10 @@
 import { Locator, Page, expect } from "@playwright/test";
 
+import { definition } from "../helpers/definition";
+import { dialogTitled } from "../helpers/dialog";
 import { toast } from "../helpers/toast";
+import { PendingInvitations } from "./PendingInvitations";
+
 
 export type WorkspaceRole = "Admin" | "Editor" | "Viewer";
 
@@ -21,11 +25,7 @@ export class WorkspaceSettingsPage {
 
   /** The General card lays out <dt>/<dd> pairs. */
   field(term: "Name" | "Countries" | "Image" | "Configuration"): Locator {
-    return this.page
-      .getByRole("tabpanel", { name: "General" })
-      .getByRole("term")
-      .filter({ hasText: term })
-      .locator("xpath=following-sibling::dd");
+    return definition(this.page.getByRole("tabpanel", { name: "General" }), term);
   }
 
   get editButton(): Locator {
@@ -51,9 +51,7 @@ export class WorkspaceSettingsPage {
       .getByRole("tabpanel", { name: "General" })
       .getByRole("button", { name: "Add Configuration" })
       .click();
-    const dialog = this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", { name: "Add Configuration" }),
-    });
+    const dialog = dialogTitled(this.page, "Add Configuration");
     await dialog.getByPlaceholder("Configuration name").fill(name);
     await dialog.getByPlaceholder("Enter value as text or JSON...").fill(value);
     await dialog.getByRole("button", { name: "Add", exact: true }).click();
@@ -73,13 +71,7 @@ export class WorkspaceSettingsPage {
       .getByRole("button", { name: "Regenerate password" })
       .nth(access === "ro" ? 0 : 1)
       .click();
-    await this.page
-      .getByRole("dialog")
-      .filter({
-        has: this.page.getByRole("heading", {
-          name: "Regenerate database password",
-        }),
-      })
+    await dialogTitled(this.page, "Regenerate database password")
       .getByRole("button", { name: "Replace password" })
       .click();
     await expect(toast(this.page, "Password successfully changed")).toBeVisible();
@@ -90,9 +82,7 @@ export class WorkspaceSettingsPage {
   }
 
   get addMemberDialog(): Locator {
-    return this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", { name: "Add or invite member" }),
-    });
+    return dialogTitled(this.page, "Add or invite member");
   }
 
   /**
@@ -131,46 +121,21 @@ export class WorkspaceSettingsPage {
 
   // --- invitations ---------------------------------------------------------
 
+  private get invitations() {
+    return new PendingInvitations(this.page);
+  }
+
   /** A row of the "Pending & Declined invitations" grid, by the invited email. */
   invitationRow(email: string): Locator {
-    return this.page
-      .getByRole("row")
-      .filter({ has: this.page.getByText(email, { exact: true }) })
-      .filter({ has: this.page.getByText(/^Invited by/) });
-  }
-
-  private invitationDialog(title: string): Locator {
-    return this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", { name: title }),
-    });
-  }
-
-  /** The resend and delete buttons are bare icons, in that order. */
-  private invitationAction(email: string, action: "resend" | "delete"): Locator {
-    return this.invitationRow(email)
-      .getByRole("button")
-      .nth(action === "resend" ? 0 : 1);
+    return this.invitations.row(email);
   }
 
   async resendInvitation(email: string) {
-    await this.invitationAction(email, "resend").click();
-    await this.invitationDialog("Resend invitation")
-      .getByRole("button", { name: "Resend" })
-      .click();
-    await expect(
-      this.page.getByText("Invitation resent", { exact: true }),
-    ).toBeVisible();
+    await this.invitations.resend(email);
   }
 
   async deleteInvitation(email: string) {
-    await this.invitationAction(email, "delete").click();
-    await this.invitationDialog("Delete invitation")
-      .getByRole("button", { name: "Delete" })
-      .click();
-    await expect(
-      this.page.getByText("Invitation deleted", { exact: true }),
-    ).toBeVisible();
-    await expect(this.invitationRow(email)).toHaveCount(0);
+    await this.invitations.delete(email);
   }
 
   async deleteInvitationIfPresent(workspaceSlug: string, email: string) {
@@ -196,9 +161,7 @@ export class WorkspaceSettingsPage {
 
   async changeRole(email: string, role: WorkspaceRole) {
     await this.memberAction(email, "edit").click();
-    const dialog = this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", { name: "Edit member" }),
-    });
+    const dialog = dialogTitled(this.page, "Edit member");
     await dialog.locator('select[name="role"]').selectOption({ label: role });
     await dialog.getByRole("button", { name: "Save" }).click();
     await expect(
@@ -209,9 +172,7 @@ export class WorkspaceSettingsPage {
 
   async removeMember(email: string) {
     await this.memberAction(email, "remove").click();
-    const dialog = this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", { name: "Remove member" }),
-    });
+    const dialog = dialogTitled(this.page, "Remove member");
     await dialog.getByRole("button", { name: "Delete" }).click();
     await expect(
       this.page.getByText("Member removed successfully", { exact: true }),

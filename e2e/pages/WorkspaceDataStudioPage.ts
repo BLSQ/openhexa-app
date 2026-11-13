@@ -1,18 +1,14 @@
 import { Locator, Page, expect } from "@playwright/test";
 
 import { workspace, workspacePaths } from "../config/environment";
+import { definition } from "../helpers/definition";
+import { dialogTitled } from "../helpers/dialog";
 import { graphql } from "../helpers/graphql";
 
 export type Sharing = "Private" | "Workspace";
 
 export class WorkspaceDataStudioPage {
   constructor(private readonly page: Page) {}
-
-  private dialog(heading: string): Locator {
-    return this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("heading", { name: heading }),
-    });
-  }
 
   async goto() {
     await this.page.goto(workspacePaths.dataStudio);
@@ -144,11 +140,7 @@ export class WorkspaceDataStudioPage {
 
   /** The feature popup lists the row's other columns as <dt>/<dd> pairs. */
   mapPopupValue(column: string): Locator {
-    return this.page
-      .locator(".maplibregl-popup")
-      .getByRole("term")
-      .filter({ hasText: column })
-      .locator("xpath=following-sibling::dd");
+    return definition(this.page.locator(".maplibregl-popup"), column);
   }
 
   /**
@@ -177,11 +169,11 @@ export class WorkspaceDataStudioPage {
   }
 
   get saveDialog(): Locator {
-    return this.dialog("Save query");
+    return dialogTitled(this.page, "Save query");
   }
 
   get editDetailsDialog(): Locator {
-    return this.dialog("Edit details");
+    return dialogTitled(this.page, "Edit details");
   }
 
   /** The toolbar shows the saved query's name, followed by its slug. */
@@ -197,7 +189,7 @@ export class WorkspaceDataStudioPage {
   }
 
   get makePrivateDialog(): Locator {
-    return this.dialog("Make this query private?");
+    return dialogTitled(this.page, "Make this query private?");
   }
 
   private async fillDetails(
@@ -306,7 +298,7 @@ export class WorkspaceDataStudioPage {
   }
 
   get deleteDialog(): Locator {
-    return this.dialog("Delete saved query");
+    return dialogTitled(this.page, "Delete saved query");
   }
 
   /** Rows are not links, so a row is found by the slug printed under its name. */

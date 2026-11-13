@@ -1,6 +1,7 @@
 import { Locator, Page } from "@playwright/test";
 
 import { organizationPaths } from "../config/environment";
+import { definition } from "../helpers/definition";
 import { OrganizationSidebar } from "./OrganizationSidebar";
 
 export class OrganizationSettingsPage {
@@ -66,10 +67,7 @@ export class OrganizationSettingsPage {
 
   /** Read-mode value of a `<dt>`/`<dd>` pair in the General card. */
   generalValue(term: string): Locator {
-    return this.generalCard
-      .getByRole("term")
-      .filter({ hasText: term })
-      .locator("xpath=following-sibling::dd");
+    return definition(this.generalCard, term);
   }
 
   get nameInput(): Locator {
