@@ -145,6 +145,17 @@ class ViewsTest(TestCase):
             ).notebooks_server_hash,
         )
 
+    def test_workspace_credentials_404_when_workspace_is_archived(self):
+        self.WORKSPACE.archived = True
+        self.WORKSPACE.save()
+
+        self.client.force_login(self.USER_JULIA)
+        response = self.client.post(
+            reverse("workspaces:credentials"),
+            data={"workspace": self.WORKSPACE.slug},
+        )
+        self.assertEqual(response.status_code, 404)
+
     def test_pipeline_invalid_credentials_404(
         self,
     ):

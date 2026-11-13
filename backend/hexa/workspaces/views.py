@@ -38,7 +38,7 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
         return JsonResponse({"error": "No workspace given"}, status=400)
 
     try:
-        workspace = Workspace.objects.get(slug=workspace_slug)
+        workspace = Workspace.objects.get(slug=workspace_slug, archived=False)
     except Workspace.DoesNotExist:
         return JsonResponse({}, status=404)
 
@@ -54,7 +54,6 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
             # Validate that the token is valid and matches a run of the given workspace
             pipeline_run = PipelineRun.objects.get(
                 pipeline__workspace=workspace,
-                pipeline__workspace__archived=False,
                 access_token=access_token,
                 state=PipelineRunState.RUNNING,
             )
