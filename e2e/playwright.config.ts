@@ -22,7 +22,7 @@ export default defineConfig({
     : [["html", { open: "never" }], ["list"]],
   use: {
     baseURL: BASE_URL,
-    trace: isCI ? "off" : "on-first-retry",
+    trace: isCI ? "off" : "retain-on-failure",
     screenshot: isCI ? "off" : "only-on-failure",
     video: isCI ? "off" : "retain-on-failure",
     actionTimeout: 15_000,
