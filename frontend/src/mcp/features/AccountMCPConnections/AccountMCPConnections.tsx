@@ -87,13 +87,9 @@ const ConnectionCard = ({
           count: draft.tools.length,
           total: grantable,
         }),
-    ...(draft.organizationIds.length > 0
-      ? [
-          t("{{count}} organizations", {
-            count: draft.organizationIds.length,
-          }),
-        ]
-      : []),
+    t("{{count}} organizations", {
+      count: draft.organizationIds.length,
+    }),
     t("{{count}} workspaces", {
       count: workspaces.filter((workspace) =>
         isWorkspaceGranted(draft, workspace),
