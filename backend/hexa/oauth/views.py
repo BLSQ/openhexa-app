@@ -3,12 +3,14 @@ import uuid
 from urllib.parse import urlencode, urlparse
 
 from django.conf import settings
+from django.core.exceptions import DisallowedRedirect
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from oauth2_provider.models import Application
+from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.views import AuthorizationView
 
 from hexa.mcp.server import get_tools_list
@@ -134,11 +136,11 @@ def dynamic_client_registration(request: HttpRequest) -> JsonResponse:
                 },
                 status=400,
             )
-        if scheme == "http" and host not in loopback_hosts:
+        if scheme != "https" and not (scheme == "http" and host in loopback_hosts):
             return JsonResponse(
                 {
                     "error": "invalid_redirect_uri",
-                    "error_description": "HTTP scheme is only allowed for loopback redirect URIs",
+                    "error_description": "Redirect URI must use https, or http for loopback hosts",
                 },
                 status=400,
             )
@@ -226,6 +228,16 @@ class OAuthAuthorizeView(AuthorizationView):
         scope = ""
         if request is not None:
             scope = request.POST.get("scope") or request.GET.get("scope") or ""
+        # The page navigates to `redirect_to` from JavaScript, so a `javascript:` URI
+        # would run on this origin. The base class checks the scheme in its redirect
+        # response, which this override replaces.
+        allowed_schemes = (
+            oauth2_settings.ALLOWED_REDIRECT_URI_SCHEMES
+            if application is None
+            else application.get_allowed_schemes()
+        )
+        if urlparse(redirect_to).scheme not in allowed_schemes:
+            raise DisallowedRedirect("Redirect URI scheme is not allowed")
         context = {"redirect_uri": redirect_to}
         if MCP_SCOPE in scope.split() and application is not None:
             context["client_name"] = application.name

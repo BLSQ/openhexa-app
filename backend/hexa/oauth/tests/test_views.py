@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import DisallowedRedirect
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
 from oauth2_provider.models import AccessToken, Application, RefreshToken
@@ -152,6 +153,15 @@ class OAuthAuthorizeRedirectTest(TestCase):
             self.assertIn(b"redirectUri", response.content)
             self.assertIn(b"Authorization successful", response.content)
 
+    def test_redirect_refuses_a_scheme_that_is_not_allowed(self):
+        view = OAuthAuthorizeView()
+        for target in (
+            "javascript://claude.ai/%0aalert(1)//?code=abc",
+            "data://localhost/x?code=abc",
+        ):
+            with self.subTest(target=target), self.assertRaises(DisallowedRedirect):
+                view.redirect(target, self.application)
+
     def test_the_mcp_success_page_points_to_the_connection_settings(self):
         view = OAuthAuthorizeView()
         view.request = RequestFactory().post("/oauth/authorize/", {"scope": MCP_SCOPE})
@@ -278,6 +288,27 @@ class DynamicClientRegistrationTest(TestCase):
                 self.assertEqual(400, response.status_code)
                 self.assertEqual("invalid_redirect_uri", response.json()["error"])
         self.assertFalse(Application.objects.filter(name="Claude").exists())
+
+    def test_rejects_schemes_other_than_https_and_loopback_http(self):
+        # The success page navigates to the redirect URI from JavaScript.
+        for uri in (
+            "javascript://claude.ai/%0aalert(1)",
+            "data://localhost/x",
+            "myapp://claude.ai/callback",
+            "//claude.ai/callback",
+            "http://claude.ai/callback",
+        ):
+            with self.subTest(uri=uri):
+                response = self.register([uri])
+
+                self.assertEqual(400, response.status_code)
+                self.assertEqual("invalid_redirect_uri", response.json()["error"])
+        self.assertFalse(Application.objects.filter(name="Claude").exists())
+
+    def test_registers_loopback_http_redirect_uri(self):
+        response = self.register(["http://localhost:54321/callback"])
+
+        self.assertEqual(201, response.status_code)
 
     def test_rejects_non_list_redirect_uris(self):
         response = self.register("https://claude.ai/callback")
