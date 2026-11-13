@@ -1,6 +1,6 @@
 import { mergeTests } from "@playwright/test";
 
-import { credentials, mailgun, workspace } from "../config/environment";
+import { credentials, workspace } from "../config/environment";
 import { test as cleanupTest } from "../fixtures/cleanup";
 import { expect, test as disposableTest } from "../fixtures/disposableWorkspace";
 import { test as mailboxTest } from "../fixtures/mailbox";
@@ -95,10 +95,6 @@ test.describe("Workspace settings", () => {
     cleanup,
     mailbox,
   }) => {
-    test.skip(
-      !mailgun,
-      "Needs E2E_MAILGUN_API_KEY for a mailbox the suite can read",
-    );
     const settings = new WorkspaceSettingsPage(page);
     const collaborators = new OrganizationExternalCollaboratorsPage(page);
     // The register page turns a signed-in visitor away, so it is a stranger who opens the link.
