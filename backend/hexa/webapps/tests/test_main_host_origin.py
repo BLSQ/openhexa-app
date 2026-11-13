@@ -1,9 +1,11 @@
+import io
 import json
 from unittest.mock import patch
 
 from django.conf import settings
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
+from hexa.files.backends.dummy import DummyStorageClient
 from hexa.user_management.models import User
 from hexa.workspaces.models import WorkspaceMembership, WorkspaceMembershipRole
 from hexa.workspaces.tests.testutils import create_workspace
@@ -82,6 +84,29 @@ class MainHostFromWebappOriginTest(TestCase):
                 self.assertEqual(
                     response.get("Access-Control-Allow-Origin"), self.webapp_origin
                 )
+
+    @override_settings(PUBLIC_FILES_ENABLED=True)
+    def test_public_file_paths_are_not_refused_for_webapp_origin(self):
+        workspace = create_workspace(
+            name="Public origin WS",
+            slug="public-origin-ws",
+            db_name="public_origin_ws",
+            bucket_name="public-origin-ws-bucket",
+            public_files_enabled=True,
+        )
+        storage = DummyStorageClient()
+        storage.create_bucket(workspace.bucket_name)
+        storage.save_object(
+            workspace.bucket_name, "public/data.csv", io.BytesIO(b"content")
+        )
+
+        with patch("hexa.files.views.storage", storage):
+            response = self.client.get(
+                f"/files/{workspace.slug}/public/data.csv",
+                HTTP_ORIGIN=self.webapp_origin,
+            )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Access-Control-Allow-Origin"], "*")
 
     @patch("hexa.webapps.middlewares.sentry_sdk")
     def test_refused_request_is_reported_to_sentry(self, mock_sentry):

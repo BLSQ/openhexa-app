@@ -13,7 +13,7 @@ const SwitchProperty = (props: SwitchPropertyProps) => {
   return (
     <DataCard.Property property={property}>
       <Switch
-        disabled={!section.isEdited}
+        disabled={!section.isEdited || property.readonly}
         checked={section.isEdited ? property.formValue : property.displayValue}
         onChange={(checked) => {
           property.setValue(checked);

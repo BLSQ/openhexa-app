@@ -6231,6 +6231,7 @@ input UpdateWorkspaceInput {
   description: String
   dockerImage: String
   name: String
+  publicFilesEnabled: Boolean
   slug: String!
   tags: [String!]
 }
@@ -6533,6 +6534,7 @@ type Workspace {
   pipelineLastRunStatuses: [PipelineRunStatus!]!
   pipelineTags: [String!]!
   pipelineTemplateTags: [String!]!
+  publicFiles: WorkspacePublicFiles
 
   """The saved queries of the workspace."""
   savedQueries(orderBy: SavedQueryOrderBy! = UPDATED_AT_DESC, page: Int = 1, perPage: Int = 15, query: String): SavedQueryPage!
@@ -6656,11 +6658,20 @@ type WorkspacePermissions {
   generateToken: Boolean!
   launchNotebookServer: Boolean!
   manageMembers: Boolean!
+  managePublicFiles: Boolean!
   manageTags: Boolean!
 
   """Permission to make one's own saved queries of the workspace public."""
   shareSavedQuery: Boolean!
   update: Boolean!
+}
+
+"""
+The files of the "public" folder at the root of a workspace filesystem, which anyone with their link can download.
+"""
+type WorkspacePublicFiles {
+  folderExists: Boolean!
+  url: String
 }
 
 """Represents a minimal workspace reference in the token payload."""
