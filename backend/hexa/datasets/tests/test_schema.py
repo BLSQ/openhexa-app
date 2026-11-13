@@ -734,6 +734,28 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                 )
                 self.assertEqual(result["success"], expected_success, result)
 
+    def test_get_file_by_name_returns_null_for_invalid_name(self):
+        self.test_create_dataset_version()
+        superuser = User.objects.get(email="superuser@blsq.com")
+        dataset = Dataset.objects.get(name="Dataset")
+        self.client.force_login(superuser)
+
+        r = self.run_query(
+            """
+            query getFileByName($versionId: ID!, $name: String!) {
+                datasetVersion(id: $versionId) {
+                    fileByName(name: $name) {
+                        filename
+                    }
+                }
+            }
+        """,
+            {"versionId": str(dataset.latest_version.id), "name": "../x.csv"},
+        )
+
+        self.assertNotIn("errors", r)
+        self.assertEqual({"datasetVersion": {"fileByName": None}}, r["data"])
+
     def test_get_file_by_name(self):
         self.test_create_dataset_version()
         superuser = User.objects.get(email="superuser@blsq.com")

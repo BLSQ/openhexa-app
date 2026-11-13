@@ -491,7 +491,9 @@ class DatasetVersion(MetadataMixin, Base):
 
     def get_full_uri(self, file_uri):
         relative_uri = file_uri.lstrip("/")
-        if not is_safe_path(relative_uri):
+        # "~" is an ordinary character in an object key, and names such as
+        # "~$report.xlsx" or "data~backup.csv" were accepted before validation existed.
+        if not is_safe_path(relative_uri, allow_tilde=True):
             raise ValidationError(f"Invalid file URI: {file_uri}")
         return f"{self.dataset.id}/{self.id}/{relative_uri}"
 

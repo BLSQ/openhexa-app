@@ -341,7 +341,6 @@ class DatasetVersionTest(BaseTestMixin, TestCase):
         for uri in [
             "../../../other-workspace-bucket/secret.csv",
             "dir/../../escape.csv",
-            "~/file.csv",
             "file\x00.csv",
         ]:
             with self.subTest(uri=uri), self.assertRaises(ValidationError):
@@ -353,6 +352,15 @@ class DatasetVersionTest(BaseTestMixin, TestCase):
             version.get_full_uri("/dir/sub/file.csv"),
             f"{version.dataset.id}/{version.id}/dir/sub/file.csv",
         )
+
+    def test_get_full_uri_accepts_tilde(self):
+        version = self.test_create_dataset_version()
+        for uri in ["data~backup.csv", "~$report.xlsx", "~/file.csv"]:
+            with self.subTest(uri=uri):
+                self.assertEqual(
+                    version.get_full_uri(uri),
+                    f"{version.dataset.id}/{version.id}/{uri}",
+                )
 
     def test_create_version_rejects_path_traversal_in_files(self):
         with self.assertRaises(FileUploadError):
