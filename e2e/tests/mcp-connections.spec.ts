@@ -28,10 +28,12 @@ test.describe("MCP connections", () => {
     );
     const otherSlug = await disposableWorkspace.create();
 
-    await test.step("the consent screen starts read-only, on every workspace", async () => {
+    await test.step("the consent screen starts with every tool, on every workspace", async () => {
       await consent.open(client.authorizeUrl);
       await expect(consent.heading(client.name)).toBeVisible();
-      await expect(consent.matrix.levelRadio("all", "Read")).toBeChecked();
+      await expect(
+        consent.matrix.levelRadio("all", "Read & Write"),
+      ).toBeChecked();
       await expect(
         consent.matrix.workspaceCheckbox(workspace.slug),
       ).toBeChecked();
@@ -94,18 +96,18 @@ test.describe("MCP connections", () => {
       expect(slugs).toContain(workspace.slug);
       expect(slugs).not.toContain(otherSlug);
 
-      const pipelines = JSON.parse(
-        await client.callTool(token, "list_pipelines", {
-          workspace_slug: otherSlug,
-        }),
-      );
-      expect(pipelines.pipelines.totalItems).toBe(0);
+      // Refused by name rather than answered as if the workspace were empty.
+      const refusal = await client.callTool(token, "list_pipelines", {
+        workspace_slug: otherSlug,
+      });
+      expect(refusal).toContain(client.name);
+      expect(refusal).toContain(`access workspace "${otherSlug}"`);
     });
 
     await test.step("the account page lists it, and widens it to writing pipelines", async () => {
       await account.goto();
       await expect(account.mcpConnectionSummary(client.name)).toHaveText(
-        /^\d+ of \d+ tools · 1 workspaces?$/,
+        /^\d+ of \d+ tools · 0 organizations · 1 workspaces?$/,
       );
       await account.expandMcpConnection(client.name);
       const matrix = account.mcpMatrix(client.name);
@@ -135,17 +137,15 @@ test.describe("MCP connections", () => {
       expect(run).not.toContain(client.name);
       expect(run).toContain("PIPELINE_NOT_FOUND");
 
-      const created = JSON.parse(
-        await client.callTool(token, "create_pipeline", {
-          workspace_slug: otherSlug,
-          name: uniqueName("e2e-mcp-sneaky"),
-          files_json: JSON.stringify([
-            { path: "pipeline.py", content: "from openhexa.sdk import pipeline\n" },
-          ]),
-        }),
-      );
-      expect(created.success).toBe(false);
-      expect(created.errors).toContain("WORKSPACE_NOT_FOUND");
+      const refusal = await client.callTool(token, "create_pipeline", {
+        workspace_slug: otherSlug,
+        name: uniqueName("e2e-mcp-sneaky"),
+        files_json: JSON.stringify([
+          { path: "pipeline.py", content: "from openhexa.sdk import pipeline\n" },
+        ]),
+      });
+      expect(refusal).toContain(client.name);
+      expect(refusal).toContain(`access workspace "${otherSlug}"`);
     });
 
     await test.step("revoking it cuts the client off at once", async () => {
