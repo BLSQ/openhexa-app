@@ -1,6 +1,7 @@
 import logging
 
 from ariadne import ObjectType
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.http import HttpRequest
 
@@ -205,7 +206,7 @@ def resolve_version_files(obj: DatasetVersion, info, **kwargs):
 def resolve_file_by_name(obj: DatasetVersion, info, name, **kwargs):
     try:
         return obj.get_file_by_name(name)
-    except DatasetVersionFile.DoesNotExist:
+    except (DatasetVersionFile.DoesNotExist, ValidationError):
         return None
 
 

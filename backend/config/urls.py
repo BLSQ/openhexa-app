@@ -22,7 +22,7 @@ from ariadne_django.views import GraphQLView
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path, re_path
-from oauth2_provider.views import TokenView
+from oauth2_provider.views import AuthorizationView, RevokeTokenView, TokenView
 
 from hexa.app import get_hexa_app_configs
 from hexa.mcp.views import mcp_endpoint
@@ -40,6 +40,18 @@ admin.site.site_header = "OpenHEXA Admin"
 admin.site.site_title = "OpenHEXA Admin"
 admin.site.index_title = "Welcome to OpenHEXA"
 
+# Only the protocol endpoints of django-oauth-toolkit: its default urls also ship
+# application-management and device-flow views that any logged-in user could use
+# to register clients outside our redirect URI and grant type rules.
+oauth2_provider_urlpatterns = (
+    [
+        path("authorize/", AuthorizationView.as_view(), name="authorize"),
+        path("token/", TokenView.as_view(), name="token"),
+        path("revoke_token/", RevokeTokenView.as_view(), name="revoke-token"),
+    ],
+    "oauth2_provider",
+)
+
 # Core URLs
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -54,7 +66,7 @@ urlpatterns = [
     path("analytics/", include("hexa.analytics.urls", namespace="analytics")),
     path("superset/", include("hexa.superset.urls", namespace="superset")),
     path("oauth/", include("hexa.oauth.urls")),
-    path("oauth/", include("oauth2_provider.urls", namespace="oauth2_provider")),
+    path("oauth/", include(oauth2_provider_urlpatterns)),
     path("mcp", mcp_endpoint, name="mcp_endpoint_no_slash"),
     path("mcp/", include("hexa.mcp.urls", namespace="mcp")),
     path(".well-known/", include("hexa.oauth.wellknown_urls")),

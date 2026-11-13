@@ -8,7 +8,7 @@ from django.views.decorators.http import require_POST
 
 from hexa.databases.api import get_db_server_credentials
 from hexa.files import storage
-from hexa.pipelines.models import PipelineRun
+from hexa.pipelines.models import PipelineRun, PipelineRunState
 from hexa.workspaces.authentication import WorkspaceToken
 from hexa.workspaces.models import (
     Workspace,
@@ -38,7 +38,7 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
         return JsonResponse({"error": "No workspace given"}, status=400)
 
     try:
-        workspace = Workspace.objects.get(slug=workspace_slug)
+        workspace = Workspace.objects.get(slug=workspace_slug, archived=False)
     except Workspace.DoesNotExist:
         return JsonResponse({}, status=404)
 
@@ -53,7 +53,9 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
             access_token = Signer().unsign_object(token)
             # Validate that the token is valid and matches a run of the given workspace
             pipeline_run = PipelineRun.objects.get(
-                pipeline__workspace=workspace, access_token=access_token
+                pipeline__workspace=workspace,
+                access_token=access_token,
+                state=PipelineRunState.RUNNING,
             )
             server_hash = str(pipeline_run.id)
             pg_application_name = f"{workspace.slug} - {pipeline_run.pipeline.name} (run {pipeline_run.id})"
