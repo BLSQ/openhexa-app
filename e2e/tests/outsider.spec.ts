@@ -8,14 +8,17 @@ import {
 } from "../config/environment";
 import { test as disposableTest } from "../fixtures/disposableWorkspace";
 import { expect, test as visitorsTest } from "../fixtures/visitors";
+import { uniqueName } from "../helpers/confirm";
 import { Mailbox, linkTo } from "../helpers/mailbox";
 import { AccountSettingsPage } from "../pages/AccountSettingsPage";
 import { OrganizationExternalCollaboratorsPage } from "../pages/OrganizationExternalCollaboratorsPage";
 import { OrganizationMembersPage } from "../pages/OrganizationMembersPage";
 import { OrganizationSidebar } from "../pages/OrganizationSidebar";
+import { ServedWebapp } from "../pages/ServedWebapp";
 import { LABELS, UserMenu } from "../pages/UserMenu";
 import { SECTIONS, Section, WorkspaceSections } from "../pages/WorkspaceSections";
 import { WorkspaceSettingsPage } from "../pages/WorkspaceSettingsPage";
+import { WorkspaceWebappsPage } from "../pages/WorkspaceWebappsPage";
 
 /**
  * Everything seen through the outsider account: a second user, signed in but
@@ -287,5 +290,28 @@ test.describe("Seen by another account", () => {
       await collaborators.remove(email);
       expect((await outsiderPage.goto(workspacePath))?.status()).toBe(404);
     });
+  });
+
+  test("a private web app is forbidden, a public one is served", async ({
+    page,
+    outsiderPage,
+    cleanup,
+  }) => {
+    const webapps = new WorkspaceWebappsPage(page);
+    const outsider = new ServedWebapp(outsiderPage);
+    // What a new static app is created with, from the default template.
+    const templateHeading = "Hello World";
+
+    const slug = await webapps.create("Static", uniqueName("e2e outsider"));
+    cleanup.add(`web app ${slug}`, () => webapps.deleteIfPresent(slug));
+    const url = await webapps.servedUrl(slug);
+
+    await outsider.goto(url);
+    await expect(outsider.forbidden).toBeVisible();
+    await expect(outsider.heading(templateHeading)).toHaveCount(0);
+
+    await webapps.setPublic(true);
+    await outsider.goto(url);
+    await expect(outsider.heading(templateHeading)).toBeVisible();
   });
 });
