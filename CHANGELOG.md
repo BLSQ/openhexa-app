@@ -1,5 +1,30 @@
 # Changelog
 
+## [5.22.0](https://github.com/BLSQ/openhexa-app/compare/5.21.0...5.22.0) (2026-11-13)
+
+
+### Features
+
+* allow profiling pipeline runs with a time heatmap in code + flamegraph (HEXA-1814) ([#2215](https://github.com/BLSQ/openhexa-app/issues/2215)) ([1d584fe](https://github.com/BLSQ/openhexa-app/commit/1d584fe1756d3e9fb93d1014358292dbab994553))
+* data studio cache policy (HEXA-1851) ([#2224](https://github.com/BLSQ/openhexa-app/issues/2224)) ([2a89321](https://github.com/BLSQ/openhexa-app/commit/2a8932140748123776e694e2c86f5f99c8ff748d))
+* **dataset:** making a dataset public via backend/graphql (HEXA-1791) ([#2211](https://github.com/BLSQ/openhexa-app/issues/2211)) ([8cc1d89](https://github.com/BLSQ/openhexa-app/commit/8cc1d898ce02e73e757c4c97f51716ac673bbf32))
+* let the assistant inspect pipeline runs (HEXA-1866) ([#2228](https://github.com/BLSQ/openhexa-app/issues/2228)) ([deaad15](https://github.com/BLSQ/openhexa-app/commit/deaad159e52716b9e7560decdba968bf239a8a72))
+* public folder in the workspace filesystem (HEXA-1792) ([#2222](https://github.com/BLSQ/openhexa-app/issues/2222)) ([1c507a7](https://github.com/BLSQ/openhexa-app/commit/1c507a73304d938efc45af749ec1e20fd3158a86))
+* public saved queries(HEXA-1830) ([#2191](https://github.com/BLSQ/openhexa-app/issues/2191)) ([eed2260](https://github.com/BLSQ/openhexa-app/commit/eed2260a3126b86e97fd394632203a19ebd4dc83))
+* return the owner invitation link from createOrganization (HEXA-1875) ([#2223](https://github.com/BLSQ/openhexa-app/issues/2223)) ([4b7d0b0](https://github.com/BLSQ/openhexa-app/commit/4b7d0b02165094650c539a5a395297789d16de9f))
+* send an invite email in a selected language(HEXA-1633) ([#2229](https://github.com/BLSQ/openhexa-app/issues/2229)) ([a791280](https://github.com/BLSQ/openhexa-app/commit/a7912802d951379840b119c63ba6b86ab0275800))
+
+
+### Bug Fixes
+
+* MCP permission page for organizations (HEXA-1896)([#2235](https://github.com/BLSQ/openhexa-app/issues/2235)) ([baed822](https://github.com/BLSQ/openhexa-app/commit/baed8228d6f5ee04a550a7f670140181b06444cb))
+* MCP permission refusal should show a meaningful message (HEXA-1882) ([#2234](https://github.com/BLSQ/openhexa-app/issues/2234)) ([ccc2f7b](https://github.com/BLSQ/openhexa-app/commit/ccc2f7b637c18253462f347c140e64f91909d46d))
+* permissions and overall auth issue (HEXA-1881)  ([#2230](https://github.com/BLSQ/openhexa-app/issues/2230)) ([d5ee898](https://github.com/BLSQ/openhexa-app/commit/d5ee89824ed118c309a1f55cfa611038ee139f77))
+* permissions and overall auth issue (second pass)(HEXA-1895) ([#2231](https://github.com/BLSQ/openhexa-app/issues/2231)) ([44d2f9d](https://github.com/BLSQ/openhexa-app/commit/44d2f9daa4d0d8b43dad781605f406bb7b5d3771))
+* public web apps can call the GQL proxy (HEXA-1847) ([#2221](https://github.com/BLSQ/openhexa-app/issues/2221)) ([b63c267](https://github.com/BLSQ/openhexa-app/commit/b63c267b415278809f7a772fe9192c15054a3d0a))
+* public web apps should be embeddable (HEXA-1876) ([#2220](https://github.com/BLSQ/openhexa-app/issues/2220)) ([9e52f76](https://github.com/BLSQ/openhexa-app/commit/9e52f76d4669d2f1c7df9b1b2dd8345bca929efa))
+* read write permission scope by default ([#2225](https://github.com/BLSQ/openhexa-app/issues/2225)) ([4b71bfb](https://github.com/BLSQ/openhexa-app/commit/4b71bfb9ddf2bc4445247880b5a7e9623288599b))
+
 ## [5.21.0](https://github.com/BLSQ/openhexa-app/compare/5.20.2...5.21.0) (2026-11-05)
 
 
