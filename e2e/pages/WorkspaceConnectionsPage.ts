@@ -165,10 +165,11 @@ export class WorkspaceConnectionsPage {
   async editFields(values: Record<string, string>) {
     await this.page.getByRole("button", { name: "Edit", exact: true }).nth(1).click();
     for (const [label, value] of Object.entries(values)) {
-      const textbox = this.fieldsDialog.getByRole("textbox", { name: label, exact: true });
-      const control = (await textbox.count())
-        ? textbox
-        : this.fieldsDialog.getByRole("spinbutton", { name: label, exact: true });
+      // The port is a number input. One locator for both, so that `fill` waits
+      // for the dialog instead of a count being read before it has opened.
+      const control = this.fieldsDialog
+        .getByRole("textbox", { name: label, exact: true })
+        .or(this.fieldsDialog.getByRole("spinbutton", { name: label, exact: true }));
       await control.fill(value);
     }
   }
