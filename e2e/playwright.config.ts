@@ -15,14 +15,16 @@ export default defineConfig({
   retries: isCI ? 2 : 0,
   // A single account on a shared environment; keep the load modest.
   workers: isCI ? 2 : undefined,
+  // CI keeps nothing but the job log: the report and the recordings hold
+  // credentials, and the workflow has nowhere private to put them.
   reporter: isCI
-    ? [["github"], ["html", { open: "never" }], ["list"]]
+    ? [["github"], ["list"]]
     : [["html", { open: "never" }], ["list"]],
   use: {
     baseURL: BASE_URL,
-    trace: "on-first-retry",
-    screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    trace: isCI ? "off" : "on-first-retry",
+    screenshot: isCI ? "off" : "only-on-failure",
+    video: isCI ? "off" : "retain-on-failure",
     actionTimeout: 15_000,
     navigationTimeout: 30_000,
     // Headed runs are otherwise too fast to follow; `npm run test:watch` sets
