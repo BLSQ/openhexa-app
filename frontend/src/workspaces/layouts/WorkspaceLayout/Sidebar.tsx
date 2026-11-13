@@ -42,7 +42,6 @@ type NavLink = {
   href: string;
   label: string;
   Icon: any;
-  badge?: string;
 };
 
 const NavItem = (props: {
@@ -51,10 +50,9 @@ const NavItem = (props: {
   href: string;
   isCurrent: boolean;
   compact?: boolean;
-  badge?: string;
   className?: string;
 }) => {
-  const { Icon, compact, label, href, isCurrent, badge, className } = props;
+  const { Icon, compact, label, href, isCurrent, className } = props;
 
   return (
     <Link
@@ -81,11 +79,6 @@ const NavItem = (props: {
       ) : (
         <span className="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200">
           <span className="truncate">{label}</span>
-          {badge && (
-            <span className="ml-auto shrink-0 rounded bg-pink-500/20 px-1.5 py-0.5 text-[9.5px] font-semibold tracking-wide text-pink-300 uppercase">
-              {badge}
-            </span>
-          )}
         </span>
       )}
     </Link>
@@ -131,7 +124,6 @@ const Sidebar = (props: SidebarProps) => {
       href: `/workspaces/${encodeURIComponent(slug)}/data-studio`,
       label: t("Data Studio"),
       Icon: TableCellsIcon,
-      badge: t("New"),
     },
     {
       href: `/workspaces/${encodeURIComponent(slug)}/datasets`,
@@ -209,13 +201,12 @@ const Sidebar = (props: SidebarProps) => {
 
         <div className="mt-5 flex grow flex-col overflow-y-auto scrollbar-visible">
           <nav className="flex-1 space-y-1 px-0 pb-4">
-            {[homeLink, ...links].map(({ href, Icon, label, badge }) => (
+            {[homeLink, ...links].map(({ href, Icon, label }) => (
               <NavItem
                 key={href}
                 href={href}
                 Icon={Icon}
                 label={label}
-                badge={badge}
                 isCurrent={currentLink === href}
                 compact={!isSidebarOpen}
               />

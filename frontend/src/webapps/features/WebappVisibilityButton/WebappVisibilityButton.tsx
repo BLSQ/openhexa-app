@@ -34,8 +34,8 @@ const WebappVisibilityButton = ({ webapp }: WebappVisibilityButtonProps) => {
     return null;
   }
 
-  // Only static apps call the OpenHEXA API (through the proxy that public apps
-  // are denied), so the API consequences only apply to them.
+  // Only static apps call the OpenHEXA API (through their proxy, which serves
+  // public apps anonymously), so the API consequences only apply to them.
   const isStatic = webapp.type === WebappType.Static;
   const publicLink = webapp.serveUrl ?? webapp.url;
 
@@ -116,7 +116,7 @@ const WebappVisibilityButton = ({ webapp }: WebappVisibilityButtonProps) => {
               {isStatic && (
                 <p>
                   {t(
-                    "Public web apps can't call the OpenHEXA API yet, support is in the works. Until then, if this app loads workspace data or runs pipelines, it will stop working, and its API access settings will be hidden.",
+                    "Visitors won't have an account, so the app will only reach the workspace's public resources through the OpenHEXA API, and its API access settings will no longer apply. Anything else it loads or runs will stop working.",
                   )}
                 </p>
               )}

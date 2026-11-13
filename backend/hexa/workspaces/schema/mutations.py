@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from ariadne import MutationType
+from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.http import HttpRequest
@@ -92,6 +93,9 @@ def resolve_update_workspace(_, info, **kwargs):
         if "configuration" in input:
             args["configuration"] = input["configuration"]
 
+        if input.get("public_files_enabled", None) is not None:
+            args["public_files_enabled"] = input["public_files_enabled"]
+
         with transaction.atomic():
             if "tags" in input:
                 args["tags"] = Tag.objects.get_or_create_from_names(
@@ -146,6 +150,9 @@ def resolve_archive_workspace(_, info, **kwargs):
 def resolve_invite_workspace_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
+    language = input.get("language")
+    if language and language not in dict(settings.LANGUAGES):
+        return {"success": False, "errors": ["INVALID_LANGUAGE"]}
     try:
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
             slug=input["workspace_slug"]
@@ -191,6 +198,7 @@ def resolve_invite_workspace_member(_, info, **kwargs):
                     workspace=workspace,
                     email=input["user_email"],
                     role=input["role"],
+                    language=language,
                 )
                 send_workspace_invite_new_user_email(invitation)
 

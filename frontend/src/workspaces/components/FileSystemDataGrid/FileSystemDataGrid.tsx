@@ -47,6 +47,8 @@ export interface FileSystemDataGridProps {
   rowClassName?: string | ((row: BucketObject | object) => string);
   actionsRenderer?: (item: BucketObject) => React.ReactElement | null;
   directoryLinkGenerator?: (item: BucketObject) => string;
+  nameSuffixRenderer?: (item: BucketObject) => React.ReactNode;
+  leadingRow?: React.ReactNode;
   onChangePage: (page: number, perPage: number) => void;
   onDroppingFiles?: (files: FileWithPath[]) => void;
   onRowClick?: (item: BucketObject | object) => void;
@@ -63,6 +65,8 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
   rowClassName,
   actionsRenderer,
   directoryLinkGenerator,
+  nameSuffixRenderer,
+  leadingRow,
   onChangePage,
   onDroppingFiles,
   onRowClick,
@@ -102,6 +106,7 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
         >
           {iconElement}
           {displayText}
+          {nameSuffixRenderer?.(item)}
         </Link>
       );
     }
@@ -116,6 +121,7 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
     return (
       <div className="flex items-center gap-2">
         {iconElement} {textElement}
+        {nameSuffixRenderer?.(item)}
       </div>
     );
   };
@@ -128,6 +134,7 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
       loading={loading}
       rowClassName={rowClassName}
       onRowClick={onRowClick}
+      leadingRow={leadingRow}
     >
       <BaseColumn id="name" label={t("Name")}>
         {renderNameColumn}

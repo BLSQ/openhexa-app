@@ -50,6 +50,7 @@ from ..utils import (
     DEVICE_DEFAULT_NAME,
     accept_pending_invitations,
     default_device,
+    get_organization_invite_url,
     has_configured_two_factor,
     send_organization_add_user_email,
     send_organization_invite,
@@ -247,6 +248,7 @@ def resolve_register(_, info, **kwargs):
             password=mutation_input["password1"],
             first_name=mutation_input["first_name"],
             last_name=mutation_input["last_name"],
+            language=invitation.language,
         )
         accept_pending_invitations(user)
 
@@ -703,6 +705,9 @@ def resolve_invite_organization_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     principal = request.user
     input = kwargs["input"]
+    language = input.get("language")
+    if language and language not in dict(settings.LANGUAGES):
+        return {"success": False, "errors": ["INVALID_LANGUAGE"]}
 
     try:
         organization: Organization = Organization.objects.filter_for_user(
@@ -777,6 +782,7 @@ def resolve_invite_organization_member(_, info, **kwargs):
                     organization=organization,
                     email=input["user_email"],
                     role=input["organization_role"].lower(),
+                    language=language,
                     workspace_invitations=input["workspace_invitations"],
                 )
                 send_organization_invite(invitation)
@@ -986,6 +992,7 @@ def resolve_create_organization(_, info, **kwargs):
     subscription_start_date = create_input["subscription_start_date"]
     subscription_end_date = create_input["subscription_end_date"]
     limits = create_input["limits"]
+    send_invitation_email = create_input.get("send_invitation_email") is not False
 
     if Organization.objects.filter(name=name).exists():
         return {
@@ -1026,6 +1033,7 @@ def resolve_create_organization(_, info, **kwargs):
         notebook_profile=limits.get("notebook_profile"),
     )
 
+    invitation_url = None
     try:
         user = User.objects.get(email__iexact=owner_email)
         OrganizationMembership.objects.create(
@@ -1033,26 +1041,31 @@ def resolve_create_organization(_, info, **kwargs):
             user=user,
             role=OrganizationMembershipRole.OWNER,
         )
-        send_organization_add_user_email(
-            invited_by=principal,
-            organization=organization,
-            invitee=user,
-            role=OrganizationMembershipRole.OWNER,
-        )
+        if send_invitation_email:
+            send_organization_add_user_email(
+                invited_by=principal,
+                organization=organization,
+                invitee=user,
+                role=OrganizationMembershipRole.OWNER,
+            )
     except User.DoesNotExist:
         invitation = OrganizationInvitation.objects.create(
             email=owner_email,
             organization=organization,
             invited_by=principal,
             role=OrganizationMembershipRole.OWNER,
+            language=principal.language,
         )
-        send_organization_invite(invitation)
+        invitation_url = get_organization_invite_url(invitation)
+        if send_invitation_email:
+            send_organization_invite(invitation)
         user = None  # User will be created when they accept the invitation
 
     return {
         "success": True,
         "organization": organization,
         "user": user,
+        "invitation_url": invitation_url,
         "errors": [],
     }
 

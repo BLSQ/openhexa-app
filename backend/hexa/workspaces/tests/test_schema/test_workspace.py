@@ -9,6 +9,7 @@ from django.conf import settings
 from django.core import mail
 from django.core.signing import Signer
 from django.db import connection
+from django.test import override_settings
 from django.test.utils import CaptureQueriesContext
 
 from hexa.core.test import GraphQLTestCase
@@ -692,6 +693,147 @@ class WorkspaceTest(GraphQLTestCase):
             },
             r["data"]["updateWorkspace"],
         )
+
+    UPDATE_PUBLIC_FILES_MUTATION = """
+        mutation updateWorkspace($input:UpdateWorkspaceInput!) {
+            updateWorkspace(input: $input) {
+                success
+                workspace {
+                    publicFiles { url }
+                }
+                errors
+            }
+        }
+    """
+
+    @override_settings(PUBLIC_FILES_ENABLED=True)
+    def test_update_workspace_public_files_as_workspace_admin(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
+        r = self.run_query(
+            self.UPDATE_PUBLIC_FILES_MUTATION,
+            {"input": {"slug": self.WORKSPACE.slug, "publicFilesEnabled": True}},
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "workspace": {
+                    "publicFiles": {
+                        "url": f"{settings.BASE_URL}/files/{self.WORKSPACE.slug}/public/"
+                    },
+                },
+            },
+            r["data"]["updateWorkspace"],
+        )
+        self.WORKSPACE.refresh_from_db()
+        self.assertTrue(self.WORKSPACE.public_files_enabled)
+
+    @override_settings(PUBLIC_FILES_ENABLED=True)
+    def test_update_workspace_public_files_as_editor_is_denied(self):
+        self.client.force_login(self.USER_WORKSPACE_EDITOR_ONLY)
+        r = self.run_query(
+            self.UPDATE_PUBLIC_FILES_MUTATION,
+            {
+                "input": {
+                    "slug": self.WORKSPACE.slug,
+                    "name": "Renamed",
+                    "publicFilesEnabled": True,
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"], "workspace": None},
+            r["data"]["updateWorkspace"],
+        )
+        self.WORKSPACE.refresh_from_db()
+        self.assertFalse(self.WORKSPACE.public_files_enabled)
+        self.assertEqual(self.WORKSPACE.name, "Senegal Workspace")
+
+    @override_settings(PUBLIC_FILES_ENABLED=True)
+    def test_update_workspace_unchanged_public_files_as_editor(self):
+        self.client.force_login(self.USER_WORKSPACE_EDITOR_ONLY)
+        r = self.run_query(
+            self.UPDATE_PUBLIC_FILES_MUTATION,
+            {
+                "input": {
+                    "slug": self.WORKSPACE.slug,
+                    "name": "Renamed",
+                    "publicFilesEnabled": False,
+                }
+            },
+        )
+        self.assertTrue(r["data"]["updateWorkspace"]["success"])
+        self.WORKSPACE.refresh_from_db()
+        self.assertEqual(self.WORKSPACE.name, "Renamed")
+
+    @patch("hexa.workspaces.schema.types.public_folder_exists", return_value=True)
+    def test_public_files_fields(self, _):
+        self.WORKSPACE.public_files_enabled = True
+        self.WORKSPACE.save()
+        query = """
+            query workspace($slug: String!) {
+                workspace(slug: $slug) {
+                    publicFiles { url folderExists }
+                    permissions { managePublicFiles }
+                }
+            }
+        """
+        for user, available, can_manage in [
+            (self.USER_WORKSPACE_ADMIN_ONLY, True, True),
+            (self.USER_WORKSPACE_EDITOR_ONLY, True, False),
+            (self.USER_WORKSPACE_ADMIN_ONLY, False, False),
+        ]:
+            with (
+                self.subTest(user=user.email, available=available),
+                override_settings(PUBLIC_FILES_ENABLED=available),
+            ):
+                self.client.force_login(user)
+                r = self.run_query(query, {"slug": self.WORKSPACE.slug})
+                self.assertEqual(
+                    {
+                        "publicFiles": (
+                            {
+                                "url": f"{settings.BASE_URL}/files/{self.WORKSPACE.slug}/public/",
+                                "folderExists": True,
+                            }
+                            if available
+                            else None
+                        ),
+                        "permissions": {"managePublicFiles": can_manage},
+                    },
+                    r["data"]["workspace"],
+                )
+
+    @override_settings(PUBLIC_FILES_ENABLED=True)
+    @patch("hexa.workspaces.schema.types.public_folder_exists", return_value=False)
+    def test_public_files_url_is_null_while_disabled(self, _):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
+        r = self.run_query(
+            """
+            query workspace($slug: String!) {
+                workspace(slug: $slug) { publicFiles { url folderExists } }
+            }
+            """,
+            {"slug": self.WORKSPACE.slug},
+        )
+        self.assertEqual(
+            {"url": None, "folderExists": False},
+            r["data"]["workspace"]["publicFiles"],
+        )
+
+    @override_settings(PUBLIC_FILES_ENABLED=False)
+    def test_update_workspace_public_files_refused_when_instance_flag_is_off(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
+        r = self.run_query(
+            self.UPDATE_PUBLIC_FILES_MUTATION,
+            {"input": {"slug": self.WORKSPACE.slug, "publicFilesEnabled": True}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"], "workspace": None},
+            r["data"]["updateWorkspace"],
+        )
+        self.WORKSPACE.refresh_from_db()
+        self.assertFalse(self.WORKSPACE.public_files_enabled)
 
     def test_delete_workspace_not_found(self):
         self.client.force_login(self.USER_SABRINA)
@@ -1554,6 +1696,91 @@ class WorkspaceTest(GraphQLTestCase):
                 html.unescape(mail.outbox[0].body),
             )
 
+    INVITE_WORKSPACE_MEMBER_MUTATION = """
+        mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+            inviteWorkspaceMember(input: $input) {
+                success
+                errors
+            }
+        }
+    """
+
+    def test_invite_workspace_member_external_user_with_language(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            self.INVITE_WORKSPACE_MEMBER_MUTATION,
+            {
+                "input": {
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "userEmail": "johndoe@foo.com",
+                    "role": WorkspaceMembershipRole.VIEWER,
+                    "language": "fr",
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []}, r["data"]["inviteWorkspaceMember"]
+        )
+        invitation = WorkspaceInvitation.objects.get(
+            workspace=self.WORKSPACE, email="johndoe@foo.com"
+        )
+        self.assertEqual(invitation.language, "fr")
+        self.assertEqual(
+            f"Vous êtes invité(e) à rejoindre le workspace {self.WORKSPACE.name} sur OpenHEXA",
+            mail.outbox[0].subject,
+        )
+        self.assertIn(
+            f'vous invite à rejoindre le workspace "{self.WORKSPACE.name}"',
+            html.unescape(mail.outbox[0].body),
+        )
+
+    def test_invite_workspace_member_external_user_defaults_to_inviter_language(self):
+        self.USER_WORKSPACE_ADMIN.language = "fr"
+        self.USER_WORKSPACE_ADMIN.save()
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            self.INVITE_WORKSPACE_MEMBER_MUTATION,
+            {
+                "input": {
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "userEmail": "johndoe@foo.com",
+                    "role": WorkspaceMembershipRole.VIEWER,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []}, r["data"]["inviteWorkspaceMember"]
+        )
+        invitation = WorkspaceInvitation.objects.get(
+            workspace=self.WORKSPACE, email="johndoe@foo.com"
+        )
+        self.assertEqual(invitation.language, "fr")
+
+    def test_invite_workspace_member_invalid_language(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            self.INVITE_WORKSPACE_MEMBER_MUTATION,
+            {
+                "input": {
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "userEmail": "johndoe@foo.com",
+                    "role": WorkspaceMembershipRole.VIEWER,
+                    "language": "xx",
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID_LANGUAGE"]},
+            r["data"]["inviteWorkspaceMember"],
+        )
+        self.assertFalse(
+            WorkspaceInvitation.objects.filter(email="johndoe@foo.com").exists()
+        )
+        self.assertEqual(len(mail.outbox), 0)
+
     def test_decline_workspace_invitation(self):
         self.client.force_login(self.USER_PENDING)
         r = self.run_query(
@@ -2157,6 +2384,30 @@ class WorkspaceTest(GraphQLTestCase):
                 f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': user_email, 'token': encoded})}",
                 html.unescape(mail.outbox[0].body),
             )
+
+    def test_resend_workspace_member_invitation_keeps_language(self):
+        self.INVITATION_FOO.language = "fr"
+        self.INVITATION_FOO.save()
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            mutation resendWorkspaceInvitation($input: ResendWorkspaceInvitationInput!) {
+                resendWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(self.INVITATION_FOO.id)}},
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []}, r["data"]["resendWorkspaceInvitation"]
+        )
+        self.assertEqual(
+            f"Vous êtes invité(e) à rejoindre le workspace {self.WORKSPACE.name} sur OpenHEXA",
+            mail.outbox[0].subject,
+        )
 
     def test_delete_workspace_database_table_permission_denied(self):
         self.client.force_login(self.USER_REBECCA)

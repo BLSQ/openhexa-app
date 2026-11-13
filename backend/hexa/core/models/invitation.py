@@ -1,5 +1,6 @@
 import base64
 
+from django.conf import settings
 from django.core.signing import TimestampSigner
 from django.db import models
 from django.db.models import EmailField
@@ -31,6 +32,8 @@ class Invitation(Base):
     """Abstract base model for invitation-like models that can be accepted."""
 
     email = EmailField(db_collation="case_insensitive")
+
+    language = models.CharField(max_length=10, choices=settings.LANGUAGES, default="en")
 
     class Meta:
         abstract = True

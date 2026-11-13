@@ -28,6 +28,7 @@ import { formatOrganizationMembershipRole } from "organizations/helpers/organiza
 import { formatWorkspaceMembershipRole } from "workspaces/helpers/workspace";
 import SearchInput from "core/features/SearchInput";
 import { toast } from "react-toastify";
+import InvitationLanguageField from "identity/features/InvitationLanguageField";
 
 type AddOrganizationMemberDialogProps = {
   onClose(): void;
@@ -39,6 +40,7 @@ type Form = {
   email: string;
   organizationRole: OrganizationMembershipRole;
   workspaceInvitations: WorkspaceInvitationInput[];
+  language: string;
 };
 
 const getDefaultWorkspaceRole = (
@@ -74,7 +76,7 @@ const buildInvitations = (
 const AddOrganizationMemberDialog = (
   props: AddOrganizationMemberDialogProps,
 ) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { open, onClose, organization } = props;
 
   const [inviteOrganizationMember] = useInviteOrganizationMemberMutation({
@@ -98,6 +100,7 @@ const AddOrganizationMemberDialog = (
             organizationId: organization?.id!,
             organizationRole: values.organizationRole,
             workspaceInvitations: values.workspaceInvitations,
+            language: values.language,
           },
         },
       });
@@ -131,6 +134,7 @@ const AddOrganizationMemberDialog = (
       email: "",
       organizationRole: OrganizationMembershipRole.Member,
       workspaceInvitations: [],
+      language: i18n.language,
     },
     validate: (values) => {
       const errors = {} as any;
@@ -260,6 +264,10 @@ const AddOrganizationMemberDialog = (
               ))}
           </SimpleSelect>
         </Field>
+        <InvitationLanguageField
+          value={form.formData.language}
+          onChange={(language) => form.setFieldValue("language", language)}
+        />
 
         <Field name="bulkRole" label={t("Role for all workspaces")} required>
           <SimpleSelect

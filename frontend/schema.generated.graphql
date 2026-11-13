@@ -1,4 +1,4 @@
-directive @loginRequired(withoutTwoFactor: Boolean) on FIELD_DEFINITION
+directive @loginRequired(allowPublicWebapp: Boolean, withoutTwoFactor: Boolean) on FIELD_DEFINITION
 
 type AccessmodAccessRequest {
   acceptedTos: Boolean!
@@ -483,6 +483,7 @@ enum AssistantToolName {
   get_db_table_schema
   get_help_or_doc
   get_pipeline
+  get_pipeline_run
   get_saved_query
   get_workspace
   glob_files
@@ -1065,6 +1066,12 @@ input CreateOrganizationInput {
   planCode: String!
 
   """
+  Whether to email the owner (invitation link for a new user, notification for an existing one).
+  Defaults to true. The caller can pass false and send the owner to invitationUrl itself.
+  """
+  sendInvitationEmail: Boolean
+
+  """
   The short name of the organization (max 5 uppercase letters).
   If not provided, it will be auto-generated from the name.
   """
@@ -1088,6 +1095,11 @@ type CreateOrganizationResult {
   The list of errors that occurred during the createOrganization mutation.
   """
   errors: [CreateOrganizationError!]!
+
+  """
+  The registration link for a new owner (null when the owner already had an account). Valid for 48 hours.
+  """
+  invitationUrl: String
 
   """The created organization object."""
   organization: Organization
@@ -2924,6 +2936,9 @@ enum InviteOrganizationMemberError {
   """Indicates that the user is already a member of the organization."""
   ALREADY_MEMBER
 
+  """Indicates that the provided language is not supported."""
+  INVALID_LANGUAGE
+
   """Indicates that the organization was not found."""
   ORGANIZATION_NOT_FOUND
 
@@ -2945,6 +2960,11 @@ enum InviteOrganizationMemberError {
 The InviteOrganizationMemberInput type represents the input for the inviteOrganizationMember mutation.
 """
 input InviteOrganizationMemberInput {
+  """
+  The language of the invitation email for users without an account. Defaults to the inviter's language.
+  """
+  language: String
+
   """The unique identifier of the organization."""
   organizationId: UUID!
 
@@ -2975,6 +2995,7 @@ type InviteOrganizationMemberResult {
 
 """Represents the input for inviting a member to a workspace."""
 input InviteWorkspaceMemberInput {
+  language: String
   role: WorkspaceMembershipRole!
   userEmail: String!
   workspaceSlug: String!
@@ -2992,6 +3013,7 @@ Enum representing the possible errors that can occur when inviting a user to a w
 """
 enum InviteWorkspaceMembershipError {
   ALREADY_EXISTS
+  INVALID_LANGUAGE
   PERMISSION_DENIED
   USER_NOT_FOUND
   WORKSPACE_NOT_FOUND
@@ -6212,6 +6234,7 @@ input UpdateWorkspaceInput {
   description: String
   dockerImage: String
   name: String
+  publicFilesEnabled: Boolean
   slug: String!
   tags: [String!]
 }
@@ -6514,6 +6537,7 @@ type Workspace {
   pipelineLastRunStatuses: [PipelineRunStatus!]!
   pipelineTags: [String!]!
   pipelineTemplateTags: [String!]!
+  publicFiles: WorkspacePublicFiles
 
   """The saved queries of the workspace."""
   savedQueries(orderBy: SavedQueryOrderBy! = UPDATED_AT_DESC, page: Int = 1, perPage: Int = 15, query: String): SavedQueryPage!
@@ -6637,11 +6661,20 @@ type WorkspacePermissions {
   generateToken: Boolean!
   launchNotebookServer: Boolean!
   manageMembers: Boolean!
+  managePublicFiles: Boolean!
   manageTags: Boolean!
 
   """Permission to make one's own saved queries of the workspace public."""
   shareSavedQuery: Boolean!
   update: Boolean!
+}
+
+"""
+The files of the "public" folder at the root of a workspace filesystem, which anyone with their link can download.
+"""
+type WorkspacePublicFiles {
+  folderExists: Boolean!
+  url: String
 }
 
 """Represents a minimal workspace reference in the token payload."""

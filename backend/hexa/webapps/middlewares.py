@@ -10,7 +10,6 @@ from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.http import (
     HttpRequest,
     HttpResponse,
-    HttpResponseNotFound,
     HttpResponseNotModified,
     HttpResponseRedirect,
     JsonResponse,
@@ -22,11 +21,18 @@ from django.utils import timezone
 from hexa.superset.views import view_superset_dashboard
 from hexa.user_management.models import User
 from hexa.webapps.graphql_proxy import handle_graphql_proxy
-from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp, WebappUser
+from hexa.webapps.models import (
+    GitWebapp,
+    PrivateWebappUser,
+    PublicWebappUser,
+    SupersetWebapp,
+    Webapp,
+)
 from hexa.webapps.utils import (
     PREVIEW_KEY_RE,
     extract_webapp_subdomain,
     is_file_transfer_path,
+    is_public_file_path,
     is_webapp_origin,
     powered_by_url,
     webapp_host_url,
@@ -282,7 +288,9 @@ def get_or_create_preview_url(request: HttpRequest, webapp: Webapp, user: User) 
     return webapp_host_url(get_or_create_preview_session_key(request, webapp, user))
 
 
-def _check_webapp_session(request: HttpRequest, webapp: Webapp) -> WebappUser | None:
+def _check_webapp_session(
+    request: HttpRequest, webapp: Webapp
+) -> PrivateWebappUser | None:
     session_key = request.COOKIES.get(WEBAPP_SESSION_COOKIE)
     if not session_key:
         return None
@@ -298,7 +306,7 @@ def _check_webapp_session(request: HttpRequest, webapp: Webapp) -> WebappUser | 
     except User.DoesNotExist:
         return None
 
-    request.user = WebappUser.from_user(user, webapp)
+    request.user = PrivateWebappUser.from_user(user, webapp)
     request.bypass_two_factor = True
     return request.user
 
@@ -325,9 +333,8 @@ def _handle_webapp_request(
     """Shared auth + serve logic for both webapp middlewares."""
     if request.path.startswith("/graphql/"):
         if webapp.is_public:
-            return HttpResponseNotFound("Not available")
-
-        if not _check_webapp_session(request, webapp):
+            request.user = PublicWebappUser(webapp)
+        elif not _check_webapp_session(request, webapp):
             return JsonResponse(
                 {"errors": [{"message": "Authentication required"}]},
                 status=401,
@@ -390,7 +397,8 @@ def webapp_origin_middleware(
     instead carry the viewer's session cookie without scope checking:
     CORS keeps the page from reading the response, but not from sending a write.
     The token-authenticated file transfer URLs are the exception; we let them go
-    through as they might need access for filesystem-storage backends.
+    through as they might need access for filesystem-storage backends. Public file
+    URLs are an exception too, they serve files to anyone without a session.
     """
 
     def middleware(request: HttpRequest):
@@ -399,6 +407,7 @@ def webapp_origin_middleware(
             not is_webapp_origin(origin)
             or extract_webapp_subdomain(request.get_host())
             or is_file_transfer_path(request.path)
+            or is_public_file_path(request.path)
         ):
             return get_response(request)
 

@@ -2,9 +2,12 @@ import base64
 import uuid
 from datetime import date, timedelta
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlparse
 
+from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.core import mail
 from django.utils import timezone
 
 from hexa.core.test import GraphQLTestCase
@@ -474,6 +477,81 @@ class OrganizationInvitationTest(GraphQLTestCase, OrganizationTestMixin):
             workspace_invitations.first().role, WorkspaceMembershipRole.VIEWER
         )
         mock_send_invite.assert_called_once()
+
+    INVITE_ORGANIZATION_MEMBER_MUTATION = """
+        mutation InviteOrganizationMember($input: InviteOrganizationMemberInput!) {
+            inviteOrganizationMember(input: $input) {
+                success
+                errors
+            }
+        }
+    """
+
+    def _invite_input(self, **extra):
+        return {
+            "input": {
+                "organizationId": str(self.organization.id),
+                "userEmail": "invitee@blsq.org",
+                "organizationRole": OrganizationMembershipRole.MEMBER.upper(),
+                "workspaceInvitations": [],
+                **extra,
+            }
+        }
+
+    def test_invite_organization_member_with_language(self):
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            self.INVITE_ORGANIZATION_MEMBER_MUTATION,
+            self._invite_input(language="fr"),
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []}, r["data"]["inviteOrganizationMember"]
+        )
+        invitation = OrganizationInvitation.objects.get(email="invitee@blsq.org")
+        self.assertEqual(invitation.language, "fr")
+        self.assertEqual(
+            "Vous êtes invité(e) à rejoindre l'organisation Test Organization sur OpenHEXA",
+            mail.outbox[0].subject,
+        )
+        self.assertIn(
+            'vous invite à rejoindre l\'organisation "Test Organization"',
+            mail.outbox[0].body,
+        )
+
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_invite_organization_member_defaults_to_inviter_language(
+        self, mock_send_invite
+    ):
+        self.owner.language = "fr"
+        self.owner.save()
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            self.INVITE_ORGANIZATION_MEMBER_MUTATION, self._invite_input()
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []}, r["data"]["inviteOrganizationMember"]
+        )
+        invitation = OrganizationInvitation.objects.get(email="invitee@blsq.org")
+        self.assertEqual(invitation.language, "fr")
+
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_invite_organization_member_invalid_language(self, mock_send_invite):
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            self.INVITE_ORGANIZATION_MEMBER_MUTATION,
+            self._invite_input(language="xx"),
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID_LANGUAGE"]},
+            r["data"]["inviteOrganizationMember"],
+        )
+        self.assertFalse(
+            OrganizationInvitation.objects.filter(email="invitee@blsq.org").exists()
+        )
+        mock_send_invite.assert_not_called()
 
     def test_invite_organization_member_unauthorized(self):
         self.client.force_login(self.member)
@@ -1235,6 +1313,18 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         )
         self.regular_user = self.create_user("regular@blsq.org")
 
+    @staticmethod
+    def _create_input(owner_email: str, name: str) -> dict:
+        return {
+            "ownerEmail": owner_email,
+            "name": name,
+            "subscriptionId": "12345678-1234-1234-1234-123456789012",
+            "planCode": "openhexa_starter",
+            "subscriptionStartDate": "2026-01-01",
+            "subscriptionEndDate": "2026-12-31",
+            "limits": {"users": 10, "workspaces": 5, "pipelineRuns": 1000},
+        }
+
     @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_create_organization_success(self, mock_send_invite):
         """Test superuser can create organization with new user (invitation flow)."""
@@ -1339,6 +1429,88 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
             org.active_subscription.monthly_ai_budget,
             OrganizationSubscription.DEFAULT_MONTHLY_AI_BUDGET,
         )
+
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_create_organization_returns_invitation_url(self, mock_send_invite):
+        """The registration link is returned alongside the emailed invitation."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) { success invitationUrl }
+            }
+            """,
+            {"input": self._create_input("newowner@example.org", "Org With Link")},
+        )
+
+        self.assertTrue(r["data"]["createOrganization"]["success"])
+        invitation = OrganizationInvitation.objects.get(email="newowner@example.org")
+        invitation_url = r["data"]["createOrganization"]["invitationUrl"]
+        self.assertTrue(
+            invitation_url.startswith(f"{settings.NEW_FRONTEND_DOMAIN}/register?")
+        )
+        token = parse_qs(urlparse(invitation_url).query)["token"][0]
+        self.assertEqual(OrganizationInvitation.objects.get_by_token(token), invitation)
+        mock_send_invite.assert_called_once_with(invitation)
+
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_create_organization_without_invitation_email(self, mock_send_invite):
+        """With sendInvitationEmail false, no email goes out but the registration link is returned."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) { success invitationUrl user { email } }
+            }
+            """,
+            {
+                "input": {
+                    **self._create_input("newowner@example.org", "Org Without Email"),
+                    "sendInvitationEmail": False,
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["createOrganization"]["success"])
+        self.assertIsNone(r["data"]["createOrganization"]["user"])
+        self.assertIn("token=", r["data"]["createOrganization"]["invitationUrl"])
+        self.assertTrue(
+            OrganizationInvitation.objects.filter(
+                email="newowner@example.org", role=OrganizationMembershipRole.OWNER
+            ).exists()
+        )
+        mock_send_invite.assert_not_called()
+
+    @patch("hexa.user_management.schema.mutations.send_organization_add_user_email")
+    def test_create_organization_without_invitation_email_for_existing_user(
+        self, mock_send_email
+    ):
+        """An existing owner gets no email either, and there is no registration link to return."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) { success invitationUrl user { email } }
+            }
+            """,
+            {
+                "input": {
+                    **self._create_input(
+                        self.regular_user.email, "Existing Owner No Email"
+                    ),
+                    "sendInvitationEmail": False,
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["createOrganization"]["success"])
+        self.assertEqual(
+            r["data"]["createOrganization"]["user"]["email"], self.regular_user.email
+        )
+        self.assertIsNone(r["data"]["createOrganization"]["invitationUrl"])
+        org = Organization.objects.get(name="Existing Owner No Email")
+        self.assertTrue(self.regular_user.is_organization_owner(org))
+        mock_send_email.assert_not_called()
 
     @patch("hexa.user_management.schema.mutations.send_organization_add_user_email")
     def test_create_organization_with_existing_user(self, mock_send_email):

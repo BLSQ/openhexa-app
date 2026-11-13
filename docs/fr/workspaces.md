@@ -83,6 +83,7 @@ Pour inviter des utilisateurs :
 - **Pour les utilisateurs existants** : Recherchez par leur nom.
 - **Pour les nouveaux utilisateurs** : Entrez leur adresse e-mail.
 - Sélectionnez leur rôle dans l'espace de travail (**Admin**, **Editor** ou **Viewer**).
+- Sélectionnez la **Langue de l'invitation** (anglais ou français). Les nouveaux utilisateurs reçoivent l'e-mail d'invitation dans cette langue, qui devient aussi la langue par défaut de leur compte. Les utilisateurs existants reçoivent toujours les e-mails dans leur propre langue.
 
 Les utilisateurs invités recevront une invitation par e-mail pour rejoindre l'espace de travail, que vous verrez dans la section **Invitations en attente et refusées**. Une fois qu'ils acceptent, ils auront accès selon leur rôle assigné.
 

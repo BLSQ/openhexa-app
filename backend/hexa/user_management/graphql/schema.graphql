@@ -1491,7 +1491,7 @@ extend type Query {
     organization(id: UUID!): Organization @loginRequired
 }
 
-directive @loginRequired(withoutTwoFactor: Boolean) on FIELD_DEFINITION
+directive @loginRequired(withoutTwoFactor: Boolean, allowPublicWebapp: Boolean) on FIELD_DEFINITION
 
 extend type Me {
     hasTwoFactorEnabled: Boolean!
@@ -2022,6 +2022,11 @@ input InviteOrganizationMemberInput {
     The list of workspaces to invite the user to.
     """
     workspaceInvitations: [WorkspaceInvitationInput!]!
+
+    """
+    The language of the invitation email for users without an account. Defaults to the inviter's language.
+    """
+    language: String
 }
 
 """
@@ -2067,6 +2072,11 @@ enum InviteOrganizationMemberError {
     Indicates that the organization has reached its user limit (SaaS only).
     """
     USERS_LIMIT_REACHED
+
+    """
+    Indicates that the provided language is not supported.
+    """
+    INVALID_LANGUAGE
 }
 
 """
@@ -2274,6 +2284,12 @@ input CreateOrganizationInput {
     The resource limits for the organization.
     """
     limits: ResourceCountsInput!
+
+    """
+    Whether to email the owner (invitation link for a new user, notification for an existing one).
+    Defaults to true. The caller can pass false and send the owner to invitationUrl itself.
+    """
+    sendInvitationEmail: Boolean
 }
 
 """
@@ -2294,6 +2310,11 @@ type CreateOrganizationResult {
     The owner user object (created or existing).
     """
     user: User
+
+    """
+    The registration link for a new owner (null when the owner already had an account). Valid for 48 hours.
+    """
+    invitationUrl: String
 
     """
     The list of errors that occurred during the createOrganization mutation.

@@ -52,6 +52,10 @@ DEBUG = os.environ.get("DEBUG", "false") == "true"
 
 ALLOW_SELF_REGISTRATION = os.environ.get("ALLOW_SELF_REGISTRATION", "false") == "true"
 
+# Off by default so that existing buckets with a top-level "public" folder are never exposed
+# without an explicit opt-in from the instance operator.
+PUBLIC_FILES_ENABLED = os.environ.get("PUBLIC_FILES_ENABLED", "false") == "true"
+
 
 def _load_oidc_providers() -> list[dict]:
     """Parse OIDC provider configs from environment variables.
@@ -208,7 +212,8 @@ if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
 CORS_PATTERNS = [
     r"^/graphql/(\w+/)?",
     r"^/analytics/track/",
-    r"^/files/[\w/]+/?$",
+    # Public files set a wildcard origin themselves, incompatible with credentialed CORS
+    r"^/files/(?![-a-z0-9]+/public/)[\w/]+/?$",
     r"^/mcp/",
     r"^/oauth/",
     r"^/\.well-known/",

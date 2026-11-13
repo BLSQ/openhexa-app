@@ -529,6 +529,7 @@ export enum AssistantToolName {
   GetDbTableSchema = 'get_db_table_schema',
   GetHelpOrDoc = 'get_help_or_doc',
   GetPipeline = 'get_pipeline',
+  GetPipelineRun = 'get_pipeline_run',
   GetSavedQuery = 'get_saved_query',
   GetWorkspace = 'get_workspace',
   GlobFiles = 'glob_files',
@@ -1082,6 +1083,11 @@ export type CreateOrganizationInput = {
   /** The subscription plan code (e.g., "openhexa_starter"). */
   planCode: Scalars['String']['input'];
   /**
+   * Whether to email the owner (invitation link for a new user, notification for an existing one).
+   * Defaults to true. The caller can pass false and send the owner to invitationUrl itself.
+   */
+  sendInvitationEmail?: InputMaybe<Scalars['Boolean']['input']>;
+  /**
    * The short name of the organization (max 5 uppercase letters).
    * If not provided, it will be auto-generated from the name.
    */
@@ -1099,6 +1105,8 @@ export type CreateOrganizationResult = {
   __typename?: 'CreateOrganizationResult';
   /** The list of errors that occurred during the createOrganization mutation. */
   errors: Array<CreateOrganizationError>;
+  /** The registration link for a new owner (null when the owner already had an account). Valid for 48 hours. */
+  invitationUrl?: Maybe<Scalars['String']['output']>;
   /** The created organization object. */
   organization?: Maybe<Organization>;
   /** Indicates whether the createOrganization mutation was successful. */
@@ -2901,6 +2909,8 @@ export type IframeSourceInput = {
 export enum InviteOrganizationMemberError {
   /** Indicates that the user is already a member of the organization. */
   AlreadyMember = 'ALREADY_MEMBER',
+  /** Indicates that the provided language is not supported. */
+  InvalidLanguage = 'INVALID_LANGUAGE',
   /** Indicates that the organization was not found. */
   OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
   /** Indicates that the user does not have permission to invite members to the organization. */
@@ -2913,6 +2923,8 @@ export enum InviteOrganizationMemberError {
 
 /** The InviteOrganizationMemberInput type represents the input for the inviteOrganizationMember mutation. */
 export type InviteOrganizationMemberInput = {
+  /** The language of the invitation email for users without an account. Defaults to the inviter's language. */
+  language?: InputMaybe<Scalars['String']['input']>;
   /** The unique identifier of the organization. */
   organizationId: Scalars['UUID']['input'];
   /** The role of the user in the organization. */
@@ -2934,6 +2946,7 @@ export type InviteOrganizationMemberResult = {
 
 /** Represents the input for inviting a member to a workspace. */
 export type InviteWorkspaceMemberInput = {
+  language?: InputMaybe<Scalars['String']['input']>;
   role: WorkspaceMembershipRole;
   userEmail: Scalars['String']['input'];
   workspaceSlug: Scalars['String']['input'];
@@ -2950,6 +2963,7 @@ export type InviteWorkspaceMemberResult = {
 /** Enum representing the possible errors that can occur when inviting a user to a workspace. */
 export enum InviteWorkspaceMembershipError {
   AlreadyExists = 'ALREADY_EXISTS',
+  InvalidLanguage = 'INVALID_LANGUAGE',
   PermissionDenied = 'PERMISSION_DENIED',
   UserNotFound = 'USER_NOT_FOUND',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
@@ -6995,6 +7009,7 @@ export type UpdateWorkspaceInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   dockerImage?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  publicFilesEnabled?: InputMaybe<Scalars['Boolean']['input']>;
   slug: Scalars['String']['input'];
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
 };
@@ -7305,6 +7320,7 @@ export type Workspace = {
   pipelineLastRunStatuses: Array<PipelineRunStatus>;
   pipelineTags: Array<Scalars['String']['output']>;
   pipelineTemplateTags: Array<Scalars['String']['output']>;
+  publicFiles?: Maybe<WorkspacePublicFiles>;
   /** The saved queries of the workspace. */
   savedQueries: SavedQueryPage;
   shortcuts: Array<ShortcutItem>;
@@ -7452,10 +7468,18 @@ export type WorkspacePermissions = {
   generateToken: Scalars['Boolean']['output'];
   launchNotebookServer: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
+  managePublicFiles: Scalars['Boolean']['output'];
   manageTags: Scalars['Boolean']['output'];
   /** Permission to make one's own saved queries of the workspace public. */
   shareSavedQuery: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
+};
+
+/** The files of the "public" folder at the root of a workspace filesystem, which anyone with their link can download. */
+export type WorkspacePublicFiles = {
+  __typename?: 'WorkspacePublicFiles';
+  folderExists: Scalars['Boolean']['output'];
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 /** Represents a minimal workspace reference in the token payload. */

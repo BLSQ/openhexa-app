@@ -3,7 +3,7 @@ from itertools import chain
 from urllib.parse import urlencode
 
 from django.conf import settings
-from django.utils.translation import gettext_lazy, override
+from django.utils.translation import gettext, gettext_lazy, override
 from django_otp import devices_for_user, user_has_device
 
 from hexa.analytics.api import track
@@ -49,17 +49,22 @@ def is_two_factor_pending(request):
     return is_verified is None or not is_verified()
 
 
+def get_organization_invite_url(invitation: OrganizationInvitation) -> str:
+    """Registration link for an organization invitation (the token is valid for 48 hours)."""
+    token = invitation.generate_token()
+    return f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
+
+
 def send_organization_invite(invitation):
     """Send invitation email to organization"""
-    title = gettext_lazy(
-        f"You've been invited to join the organization {invitation.organization.name} on OpenHEXA"
-    )
-    token = invitation.generate_token()
-    action_url = f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
+    action_url = get_organization_invite_url(invitation)
     invited_by = invitation.invited_by
     invited_by_user = None if isinstance(invited_by, ServiceAccount) else invited_by
 
-    with override(invited_by.language):
+    with override(invitation.language):
+        title = gettext(
+            "You've been invited to join the organization %(organization)s on OpenHEXA"
+        ) % {"organization": invitation.organization.name}
         send_mail(
             title=title,
             template_name="user_management/mails/invite_organization",
