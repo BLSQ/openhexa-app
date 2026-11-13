@@ -74,13 +74,15 @@ test.describe("Pipeline settings", () => {
     });
 
     await test.step("a recipient is added and removed", async () => {
-      const name = await pipeline.addRecipient("Error");
+      // Whoever the picker offers first: the row is the pipeline's only one.
+      await pipeline.addRecipient("Error");
       await pipeline.gotoScheduling();
-      await expect(pipeline.recipientRow(name)).toContainText("Error");
+      await expect(pipeline.recipientRows).toHaveCount(1);
+      await expect(pipeline.recipientRows).toContainText("Error");
 
-      await pipeline.removeRecipient(name);
+      await pipeline.removeRecipient(pipeline.recipientRows);
       await pipeline.gotoScheduling();
-      await expect(pipeline.recipientRow(name)).toHaveCount(0);
+      await expect(pipeline.recipientRows).toHaveCount(0);
     });
   });
 

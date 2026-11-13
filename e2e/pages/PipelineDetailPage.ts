@@ -178,28 +178,43 @@ export class PipelineDetailPage {
     );
   }
 
+  /**
+   * The saved recipients' rows: not the header, nor the row that adds one.
+   * A test that did not choose who its recipient is reads them from here: a
+   * display name is not a stable handle on an account other tests rename.
+   */
+  get recipientRows(): Locator {
+    return this.page
+      .getByRole("table")
+      .filter({ has: this.page.getByRole("columnheader", { name: "Level" }) })
+      .getByRole("row")
+      .filter({
+        has: this.page.getByRole("cell"),
+        hasNot: this.page.getByRole("combobox", { name: "Select member" }),
+      });
+  }
+
   /** A recipient's row, by the user's display name. */
   recipientRow(displayName: string): Locator {
-    return this.page
-      .getByRole("row")
-      .filter({ has: this.page.getByRole("cell", { name: displayName, exact: true }) });
+    return this.recipientRows.filter({
+      has: this.page.getByRole("cell", { name: displayName, exact: true }),
+    });
   }
 
   /**
-   * Adds a member as recipient and returns their display name: the member
-   * with this name (the picker shows names only), or the first one offered.
+   * Adds a member as recipient: the one with this display name (the picker
+   * shows names only), or the first one offered.
    */
-  async addRecipient(
-    level: NotificationLevel,
-    displayName?: string,
-  ): Promise<string> {
-    await this.page.getByRole("combobox", { name: "Select member" }).click();
+  async addRecipient(level: NotificationLevel, displayName?: string) {
+    const picker = this.page.getByRole("combobox", { name: "Select member" });
+    await picker.click();
+    const before = await this.recipientRows.count();
     const options = this.page.getByRole("option");
-    const option = displayName
-      ? options.filter({ hasText: displayName }).first()
-      : options.first();
-    const name = (await option.innerText()).trim().split("\n")[0];
-    await option.click();
+    await (
+      displayName
+        ? options.filter({ hasText: displayName }).first()
+        : options.first()
+    ).click();
     await this.page
       .getByRole("combobox", { name: "Select notification level" })
       .click();
@@ -207,19 +222,22 @@ export class PipelineDetailPage {
     // The new row's only button is the check that saves it.
     await this.page
       .getByRole("row")
-      .filter({ has: this.page.getByRole("combobox", { name: "Select member" }) })
+      .filter({ has: picker })
       .getByRole("button")
       .last()
       .click();
-    await expect(this.recipientRow(name)).toContainText(level);
-    return name;
+    await expect(this.recipientRows).toHaveCount(before + 1);
+    if (displayName) {
+      await expect(this.recipientRow(displayName)).toContainText(level);
+    }
   }
 
-  /** Its buttons are bare icons: edit, then remove. */
-  async removeRecipient(displayName: string) {
+  /** Removes the recipient on this row. Its buttons are bare icons: edit, then remove. */
+  async removeRecipient(row: Locator) {
+    const before = await this.recipientRows.count();
     acceptNextConfirm(this.page);
-    await this.recipientRow(displayName).getByRole("button").nth(1).click();
-    await expect(this.recipientRow(displayName)).toHaveCount(0);
+    await row.getByRole("button").nth(1).click();
+    await expect(this.recipientRows).toHaveCount(before - 1);
   }
 
   // --- runs ----------------------------------------------------------------
