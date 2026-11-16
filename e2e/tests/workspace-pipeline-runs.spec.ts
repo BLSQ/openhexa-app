@@ -54,6 +54,12 @@ test.describe("Pipeline runs", () => {
       ).toBeVisible();
     });
 
+    await test.step("it has no profile, not having been asked for one", async () => {
+      await pipelines.openRunProfile();
+      await expect(pipelines.notProfiledMessage).toBeVisible();
+      await expect(pipelines.profileTab("Timeline")).toHaveCount(0);
+    });
+
     await test.step("it lists the file and the table it wrote", async () => {
       await expect(pipelines.outputRow(fileName)).toContainText("File");
       await expect(pipelines.outputRow(output)).toBeVisible();
@@ -110,6 +116,48 @@ test.describe("Pipeline runs", () => {
       await expect(
         page.getByRole("button", { name: "Run again" }),
       ).toBeVisible();
+    });
+  });
+
+  test("a profiled run shows where its time went", async ({ page, cleanup }) => {
+    const pipelines = new WorkspacePipelinesPage(page);
+
+    const code = await pipelines.createWithSource(
+      uniqueName("e2e-profile"),
+      RUN_PIPELINE_SOURCE,
+    );
+    cleanup.add(`pipeline ${code}`, () => pipelines.deleteIfPresent(code));
+
+    await pipelines.gotoPipeline(code);
+    // One five-second sleep, for the profile to have a line that stands out.
+    await pipelines.runWith({ hold: 5 }, { profile: true });
+    expect(await pipelines.waitForRunToFinish()).toBe("Succeeded");
+
+    await pipelines.openRunProfile();
+    await expect(pipelines.notProfiledMessage).toHaveCount(0);
+    await expect(
+      pipelines.profileTab("Code").or(pipelines.noProfileRecordedMessage),
+    ).toBeVisible();
+    test.skip(
+      await pipelines.noProfileRecordedMessage.isVisible(),
+      "The run was profiled, but the workspace's pipeline image recorded no profile.",
+    );
+
+    await test.step("its code is shown with the slowest lines listed", async () => {
+      await expect(pipelines.profileTab("Code")).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      await pipelines.slowestLinesToggle.click();
+      await expect(pipelines.slowestLines.first()).toContainText(
+        "time.sleep(5)",
+      );
+    });
+
+    await test.step("a timeline is drawn of the run", async () => {
+      await pipelines.profileTab("Timeline").click();
+      await expect(pipelines.resetZoomButton).toBeVisible();
+      await expect(pipelines.timelineCanvas).toBeVisible();
     });
   });
 });

@@ -310,11 +310,25 @@ export class WorkspacePipelinesPage {
     }
   }
 
-  /** Starts a run with these parameters and waits for its page. */
-  async runWith(values: Record<string, string | number | boolean>) {
+  /**
+   * Starts a run with these parameters and waits for its page. Profiling is
+   * asked for per run, among the dialog's advanced settings.
+   */
+  async runWith(
+    values: Record<string, string | number | boolean>,
+    { profile = false }: { profile?: boolean } = {},
+  ) {
     await this.runButton.click();
     await expect(this.runDialog).toBeVisible();
     await this.fillParameters(values);
+    if (profile) {
+      await this.runDialog
+        .getByRole("button", { name: /^Advanced settings/ })
+        .click();
+      await this.runDialog
+        .getByRole("checkbox", { name: "Profile this run" })
+        .check();
+    }
     await this.runDialog
       .getByRole("button", { name: "Run", exact: true })
       .click();
@@ -359,6 +373,57 @@ export class WorkspacePipelinesPage {
   /** A <dt>/<dd> pair on the run page, e.g. "Version" or "Trigger". */
   runDetail(term: string): Locator {
     return definition(this.page, term);
+  }
+
+  // --- run profile -----------------------------------------------------------
+
+  /** The run page's Profile section starts collapsed; its title opens it. */
+  async openRunProfile() {
+    await this.page
+      .getByRole("heading", { name: "Profile", exact: true, level: 4 })
+      .click();
+  }
+
+  /** Why there is no profile to show, for a run that was not profiled. */
+  get notProfiledMessage(): Locator {
+    return this.page.getByText(/^This run was not profiled\./);
+  }
+
+  /**
+   * What a profiled run shows when its image sent no profile: recording one
+   * is the pipeline image's job, and older images do not.
+   */
+  get noProfileRecordedMessage(): Locator {
+    return this.page.getByText(/^No profile was recorded for this run\./);
+  }
+
+  /** A profiled run of a versioned pipeline shows its code and a timeline. */
+  profileTab(name: "Code" | "Timeline"): Locator {
+    return this.page.getByRole("tab", { name, exact: true });
+  }
+
+  /** Opens and closes the list of the lines that took longest. */
+  get slowestLinesToggle(): Locator {
+    return this.page.getByRole("button", { name: "Slowest lines" });
+  }
+
+  /** The entries of that list: a duration, then the line it was spent on. */
+  get slowestLines(): Locator {
+    return this.slowestLinesToggle
+      .locator("xpath=following-sibling::ul")
+      .getByRole("listitem");
+  }
+
+  /** Only the timeline can be zoomed, so this tells that it is the tab shown. */
+  get resetZoomButton(): Locator {
+    return this.page.getByRole("button", { name: "Reset zoom" });
+  }
+
+  /** The timeline is drawn on a canvas, sized once the chart has rendered. */
+  get timelineCanvas(): Locator {
+    return this.resetZoomButton.locator(
+      "xpath=ancestor::div[2]//canvas",
+    );
   }
 
   get runMessages(): Locator {
