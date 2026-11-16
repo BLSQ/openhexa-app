@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.22.1](https://github.com/BLSQ/openhexa-app/compare/5.22.0...5.22.1) (2026-11-16)
+
+
+### Bug Fixes
+
+* CSRF verification failed in MCP demo (HEXA-1899) ([#2239](https://github.com/BLSQ/openhexa-app/issues/2239)) ([0634549](https://github.com/BLSQ/openhexa-app/commit/06345497e469bde751347585ea5f258ecf619264))
+
 ## [5.22.0](https://github.com/BLSQ/openhexa-app/compare/5.21.0...5.22.0) (2026-11-13)
 
 
