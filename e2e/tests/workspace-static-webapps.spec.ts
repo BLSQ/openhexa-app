@@ -260,40 +260,42 @@ test.describe("Workspace static web apps", () => {
     const url = await webapps.servedUrl(slug);
     await webapps.setPublic(true);
 
-    await test.step("a visitor without an account gets the public query's rows", async () => {
-      await anonymous.goto(savedQueryAppUrl(url, published.slug));
+    // Each visitor ends on rows rather than a refusal, for a watched run to be
+    // followed by eye.
+    await test.step("a query shared with the workspace is not there for the app", async () => {
+      await anonymous.goto(savedQueryAppUrl(url, shared.slug));
       await expect(anonymous.heading(marker)).toBeVisible();
-      await expect(anonymous.apiResult).toContainText("Query rows (14): ");
-      await expect(anonymous.apiResult).toContainText("Dakar");
+      await expect(anonymous.apiResult).toHaveText(refusal);
     });
 
     await test.step("a query with parameters is filtered by the values the app passes", async () => {
-      await anonymous.goto(
-        savedQueryAppUrl(url, templated.slug, { names: ["Dakar"] }),
-      );
-      await expect(anonymous.apiResult).toHaveText("Query rows (1): Dakar");
-
-      await anonymous.goto(savedQueryAppUrl(url, templated.slug, { names: [] }));
-      await expect(anonymous.apiResult).toHaveText("Query rows (0): ");
-
       // A required parameter left out is refused rather than run unfiltered.
       await anonymous.goto(savedQueryAppUrl(url, templated.slug));
       await expect(anonymous.apiResult).toHaveText(
         "Query refused: INVALID_PARAMETERS",
       );
+
+      await anonymous.goto(savedQueryAppUrl(url, templated.slug, { names: [] }));
+      await expect(anonymous.apiResult).toHaveText("Query rows (0): ");
+
+      await anonymous.goto(
+        savedQueryAppUrl(url, templated.slug, { names: ["Dakar"] }),
+      );
+      await expect(anonymous.apiResult).toHaveText("Query rows (1): Dakar");
     });
 
-    await test.step("a query shared with the workspace is not there for the app", async () => {
-      await anonymous.goto(savedQueryAppUrl(url, shared.slug));
-      await expect(anonymous.apiResult).toHaveText(refusal);
+    await test.step("a visitor without an account gets the public query's rows", async () => {
+      await anonymous.goto(savedQueryAppUrl(url, published.slug));
+      await expect(anonymous.apiResult).toContainText("Query rows (14): ");
+      await expect(anonymous.apiResult).toContainText("Dakar");
     });
 
     await test.step("being signed in changes nothing", async () => {
-      await member.goto(savedQueryAppUrl(url, published.slug));
-      await expect(member.apiResult).toContainText("Query rows (14): ");
-
       await member.goto(savedQueryAppUrl(url, shared.slug));
       await expect(member.apiResult).toHaveText(refusal);
+
+      await member.goto(savedQueryAppUrl(url, published.slug));
+      await expect(member.apiResult).toContainText("Query rows (14): ");
     });
   });
 });

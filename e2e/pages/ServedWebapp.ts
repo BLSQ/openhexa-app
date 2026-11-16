@@ -58,36 +58,45 @@ export function savedQueryAppHtml(marker: string): string {
   <p id="api">API pending</p>
   <script>
     var search = new URLSearchParams(window.location.search);
-    fetch("/graphql/", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: "query ($input: ExecuteSavedQueryInput!) { executeSavedQuery(input: $input) { success errors rows } }",
-        variables: {
-          input: {
-            slug: search.get("query"),
-            perPage: 100,
-            parameters: JSON.parse(search.get("parameters") || "{}"),
+    var slug = search.get("query");
+    function show(text) {
+      document.getElementById("api").textContent = text;
+    }
+    // The editor previews the app at its bare address, with no query to run.
+    if (!slug) {
+      show("No query asked for");
+    } else {
+      fetch("/graphql/", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: "query ($input: ExecuteSavedQueryInput!) { executeSavedQuery(input: $input) { success errors rows } }",
+          variables: {
+            input: {
+              slug: slug,
+              perPage: 100,
+              parameters: JSON.parse(search.get("parameters") || "{}"),
+            },
           },
-        },
-      }),
-    })
-      .then(function (response) {
-        return response.text().then(function (text) {
-          var body;
-          try { body = JSON.parse(text); } catch (e) { body = { errors: [{ message: text }] }; }
-          var result = body.data && body.data.executeSavedQuery;
-          document.getElementById("api").textContent = !result
-            ? "API error " + response.status + ": " + body.errors[0].message
-            : result.success
-              ? "Query rows (" + result.rows.length + "): " + result.rows.map(function (row) { return row.name; }).join(", ")
-              : "Query refused: " + result.errors.join(", ");
-        });
+        }),
       })
-      .catch(function (error) {
-        document.getElementById("api").textContent = "API failed: " + error;
-      });
+        .then(function (response) {
+          return response.text().then(function (text) {
+            var body;
+            try { body = JSON.parse(text); } catch (e) { body = { errors: [{ message: text }] }; }
+            var result = body.data && body.data.executeSavedQuery;
+            show(!result
+              ? "API error " + response.status + ": " + body.errors[0].message
+              : result.success
+                ? "Query rows (" + result.rows.length + "): " + result.rows.map(function (row) { return row.name; }).join(", ")
+                : "Query refused: " + result.errors.join(", "));
+          });
+        })
+        .catch(function (error) {
+          show("API failed: " + error);
+        });
+    }
   </script>
 </body>
 </html>
