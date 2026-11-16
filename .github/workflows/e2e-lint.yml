@@ -1,6 +1,6 @@
 name: E2E lint
 
-# Static checks only: the suite itself runs by hand, from e2e.yml, against a
+# Static checks only: the suite itself runs by hand, from e2e-suite.yml, against a
 # deployed environment.
 
 on:
@@ -18,6 +18,9 @@ env:
 concurrency:
   group: e2e-lint-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   lint:

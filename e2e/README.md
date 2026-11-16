@@ -307,7 +307,7 @@ assert on their values, so reloading that data means updating the expectations.
 
 ## CI
 
-`.github/workflows/e2e.yml` runs the suite by hand only (`workflow_dispatch`),
+`.github/workflows/e2e-suite.yml` runs the suite by hand only (`workflow_dispatch`),
 as a check of demo just before a release. It needs two repository secrets, plus
 three optional ones:
 
@@ -325,5 +325,5 @@ password included, traces hold its session cookie, and the artifacts of a public
 repository can be downloaded by anyone signed in to GitHub. To see more, run the
 failing spec locally against the same environment.
 
-`.github/workflows/e2e-ci.yml` lints and typechecks the suite on every pull
+`.github/workflows/e2e-lint.yml` lints and typechecks the suite on every pull
 request that touches `e2e/`. It runs no test and needs no secret.

@@ -1,4 +1,4 @@
-name: E2E
+name: E2E suite (manual)
 
 # Regression check against a deployed environment. Run this against demo before
 # promoting a release to production.
