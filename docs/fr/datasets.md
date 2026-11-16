@@ -119,16 +119,17 @@ Le partage de jeux de données est l'une des fonctionnalités de collaboration l
 - Cette approche fournit un contrôle granulaire sur l'accès aux données.
 
 #### Visibilité
-La visibilité d'un jeu de données détermine qui peut y accéder au-delà des espaces de travail avec lesquels il est partagé :
+La visibilité d'un jeu de données détermine qui peut y accéder au-delà des espaces de travail avec lesquels il est partagé. Les membres qui peuvent modifier le jeu de données la choisissent avec le bouton **Partager** dans l'en-tête du jeu de données ou dans l'onglet **Gestion de l'accès**, depuis son espace de travail d'origine. La visibilité actuelle est indiquée par un badge à côté du nom du jeu de données et dans les listes de jeux de données :
 
-- **Espace de travail** (par défaut) : uniquement les espaces de travail avec lesquels le jeu de données est partagé.
-- **Organisation** : tous les espaces de travail au sein de votre organisation. Activez le bouton **Partager avec toute l'organisation** pour la choisir.
+- **Privé** (par défaut) : uniquement les espaces de travail avec lesquels le jeu de données est partagé.
+- **Organisation** : tous les espaces de travail au sein de votre organisation.
 - **Public** : pour l'instant, la même portée que la visibilité organisation.
 
-⚠️ Les visibilités organisation et publique remplacent toutes les permissions d'espace de travail spécifiques.
+⚠️ Les visibilités organisation et publique remplacent toutes les permissions d'espace de travail spécifiques. Tant qu'un jeu de données a l'une d'elles, il ne peut pas être partagé avec d'autres espaces de travail ; ceux avec lesquels il est déjà partagé conservent leur accès s'il redevient privé.
 
 #### Rendre un jeu de données public
 - Seuls l'auteur du jeu de données (s'il est encore éditeur ou administrateur de son espace de travail), les administrateurs de l'espace de travail et les administrateurs et propriétaires de l'organisation peuvent rendre un jeu de données public, ou ramener un jeu de données public à l'organisation ou à l'espace de travail.
+- Lorsque vous rendez un jeu de données public pour la première fois, vous choisissez l'identifiant de son lien public. Il reprend par défaut l'identifiant du jeu de données et ne peut contenir que des lettres minuscules, des chiffres et des tirets simples. Il ne peut plus être modifié une fois défini, même si le jeu de données est de nouveau rendu public plus tard.
 
 ### Permissions de partage
 

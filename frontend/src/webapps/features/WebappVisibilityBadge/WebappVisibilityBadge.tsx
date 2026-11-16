@@ -1,6 +1,6 @@
-import { GlobeAltIcon, LockClosedIcon } from "@heroicons/react/24/outline";
-import clsx from "clsx";
-import Badge, { BadgeProps } from "core/components/Badge";
+import { BadgeProps } from "core/components/Badge";
+import SharingBadge from "core/features/Sharing/SharingBadge";
+import { SHARING_STYLES } from "core/features/Sharing/sharingStyles";
 import { useTranslation } from "next-i18next";
 
 type WebappVisibilityBadgeProps = {
@@ -9,30 +9,15 @@ type WebappVisibilityBadgeProps = {
   className?: string;
 };
 
-// Same colours as the saved query visibility badge, so the lists read alike.
 const WebappVisibilityBadge = ({
   isPublic,
-  size,
-  className,
+  ...props
 }: WebappVisibilityBadgeProps) => {
   const { t } = useTranslation();
-  const Icon = isPublic ? GlobeAltIcon : LockClosedIcon;
-
-  return (
-    <Badge
-      size={size}
-      className={clsx(
-        "gap-1",
-        isPublic
-          ? "bg-blue-100 text-blue-800 ring-blue-600/20"
-          : "bg-gray-100 text-gray-800 ring-gray-500/20",
-        className,
-      )}
-    >
-      <Icon className="h-3.5 w-3.5 shrink-0" />
-      {isPublic ? t("Public") : t("Private")}
-    </Badge>
-  );
+  const option = isPublic
+    ? { ...SHARING_STYLES.public, label: t("Public") }
+    : { ...SHARING_STYLES.private, label: t("Private") };
+  return <SharingBadge option={option} {...props} />;
 };
 
 export default WebappVisibilityBadge;

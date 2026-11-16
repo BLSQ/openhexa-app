@@ -23,6 +23,7 @@ import {
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import CreateDatasetDialog from "datasets/features/CreateDatasetDialog";
 import DatasetCard from "datasets/features/DatasetCard";
+import DatasetVisibilityBadge from "datasets/features/DatasetSharing/DatasetVisibilityBadge";
 import Title from "core/components/Title";
 import PinDatasetButton from "datasets/features/PinDatasetButton";
 import useCacheKey from "core/hooks/useCacheKey";
@@ -158,6 +159,13 @@ const WorkspaceDatasetsPage: NextPageWithLayout = (props: Props) => {
                       {value.dataset.name}
                     </Link>
                   </div>
+                )}
+              </BaseColumn>
+              <BaseColumn id="visibility" label={t("Visibility")}>
+                {(value) => (
+                  <DatasetVisibilityBadge
+                    visibility={value.dataset.visibility}
+                  />
                 )}
               </BaseColumn>
               <DateColumn

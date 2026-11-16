@@ -1,7 +1,6 @@
 import { CheckIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
-import Button from "core/components/Button";
-import Dialog from "core/components/Dialog";
 import Popover from "core/components/Popover";
+import ConfirmSharingDialog from "core/features/Sharing/ConfirmSharingDialog";
 import clsx from "clsx";
 import { SavedQueryVisibility } from "graphql/types";
 import { useTranslation } from "next-i18next";
@@ -156,39 +155,22 @@ const SavedQueryVisibilityButton = ({
         )}
       </Popover>
 
-      <Dialog
+      <ConfirmSharingDialog
         open={pending !== null}
-        onClose={() => !saving && setPending(null)}
-        maxWidth="max-w-md"
+        title={confirmation.title}
+        confirmLabel={confirmation.action}
+        saving={saving}
+        onClose={() => setPending(null)}
+        onConfirm={() => {
+          const next = pending;
+          setPending(null);
+          if (next) {
+            onChange(next);
+          }
+        }}
       >
-        <Dialog.Title onClose={() => setPending(null)}>
-          {confirmation.title}
-        </Dialog.Title>
-        <Dialog.Content>
-          <p className="text-sm text-gray-600">{confirmation.body}</p>
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button
-            variant="outlined"
-            onClick={() => setPending(null)}
-            disabled={saving}
-          >
-            {t("Cancel")}
-          </Button>
-          <Button
-            onClick={() => {
-              const next = pending;
-              setPending(null);
-              if (next) {
-                onChange(next);
-              }
-            }}
-            disabled={saving}
-          >
-            {confirmation.action}
-          </Button>
-        </Dialog.Actions>
-      </Dialog>
+        <p>{confirmation.body}</p>
+      </ConfirmSharingDialog>
     </>
   );
 };

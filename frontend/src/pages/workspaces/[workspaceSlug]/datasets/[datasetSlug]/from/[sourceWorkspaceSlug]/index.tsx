@@ -122,25 +122,6 @@ const WorkspaceDatasetPage: NextPageWithLayout = (
             >
               {(property) => <Badge>{property.displayValue}</Badge>}
             </RenderProperty>
-            {dataset.sharedWithOrganization &&
-              dataset.workspace?.organization && (
-                <RenderProperty
-                  id="organizationSharing"
-                  accessor="sharedWithOrganization"
-                  label={t("Organization sharing")}
-                  readonly
-                >
-                  {() => (
-                    <Badge color="green">
-                      {t("Shared with {{orgName}}", {
-                        orgName:
-                          dataset.workspace?.organization?.name ||
-                          "Organization",
-                      })}
-                    </Badge>
-                  )}
-                </RenderProperty>
-              )}
           </FormSection>
         </ItemProvider>
         {version && (
