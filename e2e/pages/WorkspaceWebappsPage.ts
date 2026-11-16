@@ -220,7 +220,9 @@ export class WorkspaceWebappsPage {
    * on screen, so a long file cannot be read off it.
    */
   async readFile(slug: string, path: string): Promise<string> {
-    const data = await graphql(
+    const data = await graphql<{
+      webapp: { files: { path: string; content: string }[] };
+    }>(
       this.page,
       `query ($workspaceSlug: String!, $slug: String!) {
         webapp(workspaceSlug: $workspaceSlug, slug: $slug) {
@@ -229,8 +231,10 @@ export class WorkspaceWebappsPage {
       }`,
       { workspaceSlug: workspace.slug, slug },
     );
-    const file = data.webapp.files.find((f: { path: string }) => f.path === path);
-    expect(file, `${path} is not among the web app's files`).toBeDefined();
+    const file = data.webapp.files.find((f) => f.path === path);
+    if (!file) {
+      throw new Error(`${path} is not among the web app's files`);
+    }
     return file.content;
   }
 

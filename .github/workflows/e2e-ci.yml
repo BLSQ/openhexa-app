@@ -1,0 +1,42 @@
+name: E2E lint
+
+# Static checks only: the suite itself runs by hand, from e2e.yml, against a
+# deployed environment.
+
+on:
+  pull_request:
+    paths:
+      - 'e2e/**'
+  push:
+    branches: [main]
+    paths:
+      - 'e2e/**'
+
+env:
+  CI: true
+
+concurrency:
+  group: e2e-lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint and typecheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: e2e
+    steps:
+      - uses: actions/checkout@v5
+      - name: Use Node.js v22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck

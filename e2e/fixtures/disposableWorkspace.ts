@@ -1,7 +1,7 @@
 import { Page, expect, test as base } from "@playwright/test";
 import { randomBytes } from "node:crypto";
 
-import { graphql } from "../helpers/graphql";
+import { MutationResult, graphql } from "../helpers/graphql";
 import { OrganizationWorkspacesPage } from "../pages/OrganizationWorkspacesPage";
 
 /**
@@ -55,7 +55,7 @@ export class DisposableWorkspace {
     }
     // By slug, through the API: the test may have renamed it, or failed
     // halfway through doing so.
-    const data = await graphql(
+    const data = await graphql<{ archiveWorkspace: MutationResult }>(
       this.page,
       `mutation ($input: ArchiveWorkspaceInput!) {
         archiveWorkspace(input: $input) { success errors }

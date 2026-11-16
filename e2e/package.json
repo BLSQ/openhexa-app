@@ -12,12 +12,17 @@
     "test:debug": "playwright test --debug",
     "test:ui": "playwright test --ui",
     "postinstall": "playwright install chromium",
-    "report": "playwright show-report"
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.0",
     "@types/node": "^22.5.5",
     "dotenv": "^16.4.5",
-    "typescript": "^5.6.2"
+    "eslint": "^10.15.0",
+    "eslint-plugin-playwright": "^2.12.2",
+    "typescript": "^5.6.2",
+    "typescript-eslint": "^8.72.2"
   }
 }

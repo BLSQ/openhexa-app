@@ -1,6 +1,7 @@
 import { credentials } from "../config/environment";
 import { expect, test } from "../fixtures/visitors";
 import { uniqueName } from "../helpers/confirm";
+import { waitForGrid } from "../helpers/grid";
 import { ServedWebapp, staticAppHtml } from "../pages/ServedWebapp";
 import { ICON_PNG, WorkspaceWebappsPage } from "../pages/WorkspaceWebappsPage";
 
@@ -164,7 +165,7 @@ test.describe("Workspace static web apps", () => {
       await expect(webapps.tab("API access")).toHaveCount(0);
 
       await webapps.gotoTab(slug, "API access");
-      await page.waitForLoadState("networkidle");
+      await waitForGrid(page);
       await expect(webapps.apiScope("Read user info")).toHaveCount(0);
 
       await webapps.goto();

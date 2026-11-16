@@ -3,7 +3,9 @@ import { Locator, Page, expect } from "@playwright/test";
 import { workspace, workspacePaths } from "../config/environment";
 import { definition } from "../helpers/definition";
 import { dialogTitled } from "../helpers/dialog";
-import { graphql } from "../helpers/graphql";
+import { MutationResult, graphql } from "../helpers/graphql";
+import { searchGrid } from "../helpers/grid";
+import { toast } from "../helpers/toast";
 
 export type Sharing = "Private" | "Workspace";
 
@@ -233,7 +235,11 @@ export class WorkspaceDataStudioPage {
     },
   ): Promise<{ id: string; slug: string }> {
     await this.page.goto(workspacePaths.savedQueries);
-    const data = await graphql(
+    const data = await graphql<{
+      createSavedQuery: MutationResult & {
+        savedQuery: { id: string; slug: string };
+      };
+    }>(
       this.page,
       `mutation ($input: CreateSavedQueryInput!) {
         createSavedQuery(input: $input) { success errors savedQuery { id slug } }
@@ -246,7 +252,7 @@ export class WorkspaceDataStudioPage {
 
   async deleteWithApi(id: string) {
     await this.page.goto(workspacePaths.savedQueries);
-    const data = await graphql(
+    const data = await graphql<{ deleteSavedQuery: MutationResult }>(
       this.page,
       `mutation ($input: DeleteSavedQueryInput!) {
         deleteSavedQuery(input: $input) { success errors }
@@ -277,7 +283,9 @@ export class WorkspaceDataStudioPage {
   async saveSql(sql: string) {
     await this.sqlEditor.fill(sql);
     await this.saveButton.click();
-    await expect(this.page.getByText("Query saved")).toBeVisible();
+    await expect(
+      toast(this.page, "Query saved", { exact: false }),
+    ).toBeVisible();
     await expect(this.saveButton).toBeDisabled();
   }
 
@@ -327,8 +335,7 @@ export class WorkspaceDataStudioPage {
       this.page.getByRole("columnheader", { name: "Name" }),
     ).toBeVisible();
     if (search) {
-      await this.searchBox.fill(search);
-      await this.page.waitForLoadState("networkidle");
+      await searchGrid(this.page, this.searchBox, search);
     }
   }
 

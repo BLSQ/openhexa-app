@@ -116,7 +116,7 @@ E2E_BASE_URL=https://app.openhexa.org E2E_ORGANIZATION_ID=... npm test
 | `fixtures/disposableWorkspace.ts` | A uniquely named workspace, archived again in teardown |
 | `fixtures/visitors.ts` | Pages for an anonymous visitor and for the outsider account |
 | `fixtures/mailbox.ts` | The suite's mailbox, opened for the test and closed after it |
-| `helpers/` | Native-confirm handling, unique names, grid-load waiting, the newest toast, a dialog by its heading, a `<dt>`/`<dd>` value by its term, GraphQL calls made as the signed-in user, for setting up data a test is not about, an MCP client of the suite's own, and the mailbox: the emails sent to an address, read back from Mailgun |
+| `helpers/` | Native-confirm handling, unique names, grid-load and grid-search waiting, regular expression escaping, the newest toast, a dialog by its heading, a `<dt>`/`<dd>` value by its term, GraphQL calls made as the signed-in user, for setting up data a test is not about, an MCP client of the suite's own, and the mailbox: the emails sent to an address, read back from Mailgun |
 | `pages/` | Page objects — the only place selectors live |
 | `tests/` | Specs |
 
@@ -141,6 +141,14 @@ unrelated failures.
 - **Decide from a resource, not from a list.** The data grids render their empty
   state while loading, so counting rows to check whether something exists races
   the fetch. Ask for the thing itself: an archived workspace's URL returns 404.
+- **Wait for the request, not for quiet.** `waitForLoadState("networkidle")`
+  only means something right after a navigation: Playwright reports it once per
+  document, so after an in-page action it returns at once. `waitForGrid` is the
+  one place that calls it; after typing into a grid's search box, use
+  `searchGrid`, which waits for the filtered response.
+- **Lint before pushing.** `make le2e` (`npm run lint`, `npm run typecheck`)
+  catches a Playwright call left without `await`, which otherwise passes while
+  checking nothing.
 
 ## Adding coverage
 
@@ -316,3 +324,6 @@ kept: the HTML report quotes every value the suite types, the test account's
 password included, traces hold its session cookie, and the artifacts of a public
 repository can be downloaded by anyone signed in to GitHub. To see more, run the
 failing spec locally against the same environment.
+
+`.github/workflows/e2e-ci.yml` lints and typechecks the suite on every pull
+request that touches `e2e/`. It runs no test and needs no secret.

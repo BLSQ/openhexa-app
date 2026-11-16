@@ -2,7 +2,7 @@ import { Locator, Page, expect } from "@playwright/test";
 
 import { organizationPaths } from "../config/environment";
 import { dialogTitled } from "../helpers/dialog";
-import { waitForGrid } from "../helpers/grid";
+import { searchGrid, waitForGrid } from "../helpers/grid";
 import { toast } from "../helpers/toast";
 import { OrganizationRole } from "./OrganizationExternalCollaboratorsPage";
 import { PendingInvitations } from "./PendingInvitations";
@@ -86,8 +86,7 @@ export class OrganizationMembersPage {
 
   async removeIfMember(email: string) {
     await this.goto();
-    await this.searchInput.fill(email);
-    await waitForGrid(this.page);
+    await searchGrid(this.page, this.searchInput, email);
     if ((await this.row(email).count()) === 0) {
       return;
     }

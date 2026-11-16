@@ -1,5 +1,7 @@
 import { Locator, Page } from "@playwright/test";
 
+import { escapeRegExp } from "./regexp";
+
 /**
  * The `<dd>` of a `<dt>`/`<dd>` pair, by its term: the cards' read-only
  * values, and the form controls that have no accessible name of their own.
@@ -14,7 +16,7 @@ export function definition(
     .getByRole("term")
     .filter({
       hasText: exact
-        ? new RegExp(`^${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`)
+        ? new RegExp(`^${escapeRegExp(term)}$`)
         : term,
     })
     .locator("xpath=following-sibling::dd");

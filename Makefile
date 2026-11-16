@@ -20,7 +20,7 @@ NPM_E2E := npm --prefix e2e
 	tb tests_backend tbc tests_backend_coverage tbclean tests_backend_clean \
 	lb lint_backend mk makemigrations m migrate fx fixtures db database s shell \
 	if install_frontend rf run_frontend tf tests_frontend lf lint_frontend cg codegen i18n \
-	ie2e install_e2e te2e tests_e2e te2ev tests_e2e_visual re2e report_e2e \
+	ie2e install_e2e te2e tests_e2e te2ev tests_e2e_visual re2e report_e2e le2e lint_e2e \
 	dev t tests l lint \
 	worktree worktree-reset-db worktree-remove \
 	e evals \
@@ -125,6 +125,10 @@ te2ev tests_e2e_visual: ## Run the e2e tests in a visible browser, slowed down t
 
 re2e report_e2e: ## Open the HTML report of the last e2e run, with its traces
 	$(NPM_E2E) run report
+
+le2e lint_e2e: ## Lint and typecheck the e2e suite
+	$(NPM_E2E) run lint
+	$(NPM_E2E) run typecheck
 
 ##@ All
 

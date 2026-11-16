@@ -4,6 +4,7 @@ import { workspace, workspacePaths } from "../config/environment";
 import { acceptNextConfirm } from "../helpers/confirm";
 import { definition } from "../helpers/definition";
 import { dialogTitled } from "../helpers/dialog";
+import { escapeRegExp } from "../helpers/regexp";
 
 export class WorkspaceDatasetsPage {
   constructor(private readonly page: Page) {}
@@ -159,11 +160,10 @@ export class WorkspaceDatasetsPage {
   }
 
   async pickVersion(version: string) {
+    const label = new RegExp(`^${escapeRegExp(version)} - `);
     await this.versionPicker.click();
-    await this.page
-      .getByRole("option", { name: new RegExp(`^${version} - `) })
-      .click();
-    await expect(this.versionPicker).toHaveText(new RegExp(`^${version} - `));
+    await this.page.getByRole("option", { name: label }).click();
+    await expect(this.versionPicker).toHaveText(label);
   }
 
   /** The Files tab's preview of the selected file. */

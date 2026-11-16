@@ -54,6 +54,7 @@ test.describe("Pipeline run notifications", () => {
     });
 
     let failedRunId: string;
+
     await test.step("a failed run is reported to them", async () => {
       await pipelines.gotoPipeline(code);
       await pipelines.runWith({ fail: true });

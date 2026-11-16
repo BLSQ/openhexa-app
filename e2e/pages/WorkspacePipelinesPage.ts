@@ -3,7 +3,8 @@ import { Locator, Page, expect } from "@playwright/test";
 import { workspace, workspacePaths } from "../config/environment";
 import { definition } from "../helpers/definition";
 import { dialogTitled } from "../helpers/dialog";
-import { graphql } from "../helpers/graphql";
+import { MutationResult, graphql } from "../helpers/graphql";
+import { escapeRegExp } from "../helpers/regexp";
 
 export const PIPELINE_TABS = [
   "General",
@@ -182,7 +183,9 @@ export class WorkspacePipelinesPage {
     workspaceSlug = workspace.slug,
   ): Promise<string> {
     await this.goto();
-    const data = await graphql(
+    const data = await graphql<{
+      createPipeline: MutationResult & { pipeline: { code: string } };
+    }>(
       this.page,
       `mutation ($input: CreatePipelineInput!) {
         createPipeline(input: $input) { success errors details pipeline { code } }
@@ -205,7 +208,7 @@ export class WorkspacePipelinesPage {
     source: string,
     workspaceSlug = workspace.slug,
   ) {
-    const data = await graphql(
+    const data = await graphql<{ uploadPipeline: MutationResult }>(
       this.page,
       `mutation ($input: UploadPipelineInput!) {
         uploadPipeline(input: $input) { success errors details }
@@ -244,7 +247,7 @@ export class WorkspacePipelinesPage {
   /** A card's heading on the versions page, e.g. "Version v2". */
   versionHeading(version: string): Locator {
     return this.page.getByRole("heading", {
-      name: new RegExp(`Version ${version}\\b`),
+      name: new RegExp(`Version ${escapeRegExp(version)}\\b`),
     });
   }
 
@@ -297,7 +300,7 @@ export class WorkspacePipelinesPage {
       } else if (await field.getByRole("combobox").count()) {
         await field.getByRole("combobox").click();
         // Some options lead with an icon whose alt text joins their name.
-        const escaped = String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const escaped = escapeRegExp(String(value));
         await this.page
           .getByRole("option", { name: new RegExp(`(^|\\s)${escaped}$`) })
           .click();

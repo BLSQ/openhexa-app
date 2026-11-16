@@ -2,6 +2,7 @@ import { Locator, Page, expect } from "@playwright/test";
 
 import { organizationPaths } from "../config/environment";
 import { dialogTitled } from "../helpers/dialog";
+import { toast } from "../helpers/toast";
 
 /** Provisioning a workspace takes far longer than an ordinary page load. */
 const PROVISIONING_TIMEOUT = 90_000;
@@ -79,7 +80,7 @@ export class OrganizationWorkspacesPage {
     // Escape would close the dialog too, so the list is dismissed by clicking away.
     await heading.click();
     await this.page.getByRole("button", { name: "Save", exact: true }).click();
-    await expect(this.page.getByText("Tags updated!", { exact: true })).toBeVisible();
+    await expect(toast(this.page, "Tags updated!")).toBeVisible();
   }
 
   /** The card view hides the per-row actions, so the table view is the one to drive. */
@@ -137,14 +138,21 @@ export class OrganizationWorkspacesPage {
     await this.goto();
     await this.showList();
     await this.searchInput.fill(name);
+    let listed = false;
     try {
       await expect(async () => {
         await this.page.reload();
         await this.showList();
         await this.searchInput.fill(name);
+        listed = true;
         await expect(this.row(name)).toBeVisible({ timeout: 5_000 });
       }).toPass({ timeout });
-    } catch {
+    } catch (error) {
+      // Not turning up is the expected way out; a list that never loaded is
+      // not, and would otherwise hide a workspace left behind.
+      if (!listed) {
+        throw error;
+      }
       return;
     }
     await this.archive(name);

@@ -2,7 +2,7 @@ import { Locator, Page, expect } from "@playwright/test";
 
 import { organizationPaths } from "../config/environment";
 import { dialogTitled } from "../helpers/dialog";
-import { waitForGrid } from "../helpers/grid";
+import { searchGrid } from "../helpers/grid";
 import { toast } from "../helpers/toast";
 import { PendingInvitations } from "./PendingInvitations";
 import { WorkspaceRole } from "./WorkspaceSettingsPage";
@@ -62,14 +62,7 @@ export class OrganizationExternalCollaboratorsPage {
    * absent rather than not loaded yet or folded behind "+N more".
    */
   async searchSettled(email: string) {
-    const filtered = this.page.waitForResponse(
-      (response) =>
-        response.url().includes("/graphql") &&
-        (response.request().postData() ?? "").includes(email),
-    );
-    await this.searchInput.fill(email);
-    await (await filtered).finished();
-    await waitForGrid(this.page);
+    await searchGrid(this.page, this.searchInput, email);
     await this.showAllRoles(email);
   }
 

@@ -111,6 +111,7 @@ test.describe("Workspace files", () => {
       const download = await files.download(name);
       expect(download.suggestedFilename()).toBe(name);
       const body = readFileSync((await download.path())!, "utf8");
+      // eslint-disable-next-line playwright/prefer-to-have-length -- a failure would print the whole file
       expect(body.length, `${name} came back whole`).toBe(contents.length);
     }
 

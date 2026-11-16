@@ -2,6 +2,7 @@ import { Locator, Page, expect } from "@playwright/test";
 
 import { workspacePaths } from "../config/environment";
 import { acceptNextConfirm } from "../helpers/confirm";
+import { escapeRegExp } from "../helpers/regexp";
 
 const databasePath = workspacePaths.home.replace(/\/$/, "/databases/");
 
@@ -28,7 +29,7 @@ export class WorkspaceDatabasePage {
   /** A column header on a table's page reads "<name> <type>". */
   columnHeader(name: string): Locator {
     return this.page.getByRole("columnheader", {
-      name: new RegExp(`^${name} `),
+      name: new RegExp(`^${escapeRegExp(name)} `),
     });
   }
 

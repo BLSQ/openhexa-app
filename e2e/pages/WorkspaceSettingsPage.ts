@@ -2,9 +2,9 @@ import { Locator, Page, expect } from "@playwright/test";
 
 import { definition } from "../helpers/definition";
 import { dialogTitled } from "../helpers/dialog";
+import { waitForGrid } from "../helpers/grid";
 import { toast } from "../helpers/toast";
 import { PendingInvitations } from "./PendingInvitations";
-
 
 export type WorkspaceRole = "Admin" | "Editor" | "Viewer";
 
@@ -107,7 +107,7 @@ export class WorkspaceSettingsPage {
       .getByRole("button", { name: "Invite", exact: true })
       .click();
     await expect(
-      this.page.getByText("Member invited successfully", { exact: true }),
+      toast(this.page, "Member invited successfully"),
     ).toBeVisible();
   }
 
@@ -140,7 +140,7 @@ export class WorkspaceSettingsPage {
 
   async deleteInvitationIfPresent(workspaceSlug: string, email: string) {
     await this.goto(workspaceSlug);
-    await this.page.waitForLoadState("networkidle");
+    await waitForGrid(this.page);
     if ((await this.invitationRow(email).count()) === 0) {
       return;
     }
@@ -165,7 +165,7 @@ export class WorkspaceSettingsPage {
     await dialog.locator('select[name="role"]').selectOption({ label: role });
     await dialog.getByRole("button", { name: "Save" }).click();
     await expect(
-      this.page.getByText("Member role updated successfully", { exact: true }),
+      toast(this.page, "Member role updated successfully"),
     ).toBeVisible();
     await expect(this.memberRole(email)).toHaveText(role);
   }
@@ -175,7 +175,7 @@ export class WorkspaceSettingsPage {
     const dialog = dialogTitled(this.page, "Remove member");
     await dialog.getByRole("button", { name: "Delete" }).click();
     await expect(
-      this.page.getByText("Member removed successfully", { exact: true }),
+      toast(this.page, "Member removed successfully"),
     ).toBeVisible();
     await expect(this.memberRow(email)).toHaveCount(0);
   }

@@ -3,6 +3,7 @@ import { mergeTests } from "@playwright/test";
 import { test as cleanupTest } from "../fixtures/cleanup";
 import { expect, test as disposableTest } from "../fixtures/disposableWorkspace";
 import { uniqueName } from "../helpers/confirm";
+import { waitForGrid } from "../helpers/grid";
 import { OrganizationDatasetsPage } from "../pages/OrganizationDatasetsPage";
 import { WorkspaceDatasetsPage } from "../pages/WorkspaceDatasetsPage";
 
@@ -157,7 +158,7 @@ test.describe("Workspace datasets", () => {
 
       await page.goto(`/workspaces/${otherSlug}/datasets/`);
       await expect(page.getByRole("columnheader", { name: "Name" })).toBeVisible();
-      await page.waitForLoadState("networkidle");
+      await waitForGrid(page);
       await expect(page.getByRole("link", { name, exact: true })).toHaveCount(0);
     });
   });

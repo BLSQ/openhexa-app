@@ -1,5 +1,6 @@
 import { Page, expect } from "@playwright/test";
 
+import { toast } from "../helpers/toast";
 import { AssistantPanel, proposeThenExplainPrompt } from "./AssistantPanel";
 import { CreateWithAIDialog } from "./CreateWithAIDialog";
 
@@ -49,7 +50,7 @@ export class WebappAssistantPanel extends AssistantPanel {
 
   protected async expectSaved() {
     await expect(
-      this.page.getByText("Web app saved successfully", { exact: true }),
+      toast(this.page, "Web app saved successfully"),
     ).toBeVisible();
   }
 }

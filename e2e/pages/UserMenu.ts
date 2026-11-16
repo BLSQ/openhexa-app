@@ -1,6 +1,7 @@
 import { Locator, Page, expect } from "@playwright/test";
 
-import { graphql } from "../helpers/graphql";
+import { MutationResult, graphql } from "../helpers/graphql";
+import { waitForGrid } from "../helpers/grid";
 
 export type InterfaceLanguage = "English" | "Français";
 
@@ -63,7 +64,7 @@ export class UserMenu {
     await this.page.waitForURL(
       (url) => url.pathname === "/" || url.pathname.startsWith("/workspaces/"),
     );
-    await this.page.waitForLoadState("networkidle");
+    await waitForGrid(this.page);
   }
 
   /**
@@ -72,7 +73,7 @@ export class UserMenu {
    */
   async resetLanguageToEnglish() {
     await this.page.goto("/");
-    const data = await graphql(
+    const data = await graphql<{ updateUser: MutationResult }>(
       this.page,
       `mutation { updateUser(input: { language: "en" }) { success errors } }`,
     );

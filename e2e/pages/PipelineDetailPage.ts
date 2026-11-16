@@ -4,6 +4,8 @@ import { workspacePaths } from "../config/environment";
 import { acceptNextConfirm } from "../helpers/confirm";
 import { definition } from "../helpers/definition";
 import { dialogTitled } from "../helpers/dialog";
+import { waitForGrid } from "../helpers/grid";
+import { escapeRegExp } from "../helpers/regexp";
 
 export type FunctionalType =
   | "Computation"
@@ -29,12 +31,12 @@ export class PipelineDetailPage {
 
   async gotoGeneral() {
     await this.page.goto(this.path());
-    await this.page.waitForLoadState("networkidle");
+    await waitForGrid(this.page);
   }
 
   async gotoScheduling() {
     await this.page.goto(this.path("notifications/"));
-    await this.page.waitForLoadState("networkidle");
+    await waitForGrid(this.page);
   }
 
   async gotoRuns() {
@@ -249,7 +251,7 @@ export class PipelineDetailPage {
   versionCard(version: string): Locator {
     return this.page.getByRole("article").filter({
       has: this.page.getByRole("heading", {
-        name: new RegExp(`^Version ${version}\\b`),
+        name: new RegExp(`^Version ${escapeRegExp(version)}\\b`),
       }),
     });
   }

@@ -90,12 +90,20 @@ export class McpClient {
     });
   }
 
+  /** A call's `result`. A JSON-RPC error comes back as a 200 too, and fails here. */
+  private async result<T>(response: APIResponse): Promise<T> {
+    expect(response.status(), await response.text()).toBe(200);
+    const body: { result: T; error?: unknown } = await response.json();
+    expect(body.error, JSON.stringify(body.error)).toBeUndefined();
+    return body.result;
+  }
+
   /** The tools the server advertises to this token, sorted by name. */
   async listTools(token: string): Promise<string[]> {
-    const response = await this.rpc(token, "tools/list");
-    expect(response.status(), await response.text()).toBe(200);
-    const { result } = await response.json();
-    return result.tools.map((tool: { name: string }) => tool.name).sort();
+    const { tools } = await this.result<{ tools: { name: string }[] }>(
+      await this.rpc(token, "tools/list"),
+    );
+    return tools.map((tool) => tool.name).sort();
   }
 
   /** The text a tool call answers: its result, or the refusal. */
@@ -104,13 +112,11 @@ export class McpClient {
     name: string,
     args: Record<string, unknown> = {},
   ): Promise<string> {
-    const response = await this.rpc(token, "tools/call", {
-      name,
-      arguments: args,
-    });
-    expect(response.status(), await response.text()).toBe(200);
-    const { result } = await response.json();
-    return result.content[0].text;
+    const { content } = await this.result<{ content: { text: string }[] }>(
+      await this.rpc(token, "tools/call", { name, arguments: args }),
+    );
+    expect(content, "the tool call answered no content").not.toHaveLength(0);
+    return content[0].text;
   }
 
   /** The status the endpoint answers the token; 401 once revoked. */

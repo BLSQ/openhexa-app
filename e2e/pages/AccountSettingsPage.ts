@@ -2,7 +2,8 @@ import { Locator, Page, expect } from "@playwright/test";
 
 import { definition } from "../helpers/definition";
 import { dialogTitled } from "../helpers/dialog";
-import { graphql } from "../helpers/graphql";
+import { MutationResult, graphql } from "../helpers/graphql";
+import { escapeRegExp } from "../helpers/regexp";
 import { McpPermissionMatrix } from "./McpPermissionMatrix";
 
 export const ACCOUNT_PATH = "/user/account/";
@@ -177,9 +178,8 @@ export class AccountSettingsPage {
    * the inner locator of a filter, which is resolved from the outer element.
    */
   private mcpConnectionToggle(name: string): Locator {
-    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     return this.page.getByRole("button", {
-      name: new RegExp(`^${escaped}\\b`),
+      name: new RegExp(`^${escapeRegExp(name)}\\b`),
     });
   }
 
@@ -232,10 +232,12 @@ export class AccountSettingsPage {
   /** Cleanup by client name, for a test that died before revoking. */
   async revokeMcpConnectionIfPresent(name: string) {
     await this.page.goto(ACCOUNT_PATH);
-    const data = await graphql(this.page, `{ mcpConnections { id name } }`);
+    const data = await graphql<{
+      mcpConnections: { id: string; name: string }[];
+    }>(this.page, `{ mcpConnections { id name } }`);
     for (const connection of data.mcpConnections) {
       if (connection.name === name) {
-        const revoked = await graphql(
+        const revoked = await graphql<{ revokeMCPConnection: MutationResult }>(
           this.page,
           `mutation ($input: RevokeMCPConnectionInput!) {
             revokeMCPConnection(input: $input) { success errors }
