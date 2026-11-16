@@ -232,6 +232,13 @@ export class WorkspaceDataStudioPage {
       name: string;
       description?: string;
       visibility: "PRIVATE" | "WORKSPACE" | "PUBLIC";
+      /** Declared for the `{{ name }}` placeholders in the SQL. */
+      parameters?: {
+        name: string;
+        type: "STRING" | "INTEGER" | "FLOAT" | "BOOLEAN" | "DATE";
+        multiple?: boolean;
+        required?: boolean;
+      }[];
     },
   ): Promise<{ id: string; slug: string }> {
     await this.page.goto(workspacePaths.savedQueries);
@@ -371,7 +378,7 @@ export class WorkspaceDataStudioPage {
     return this.row(slug).getByRole("cell").nth(index);
   }
 
-  /** Opens the list filtered on `search`, which matches names and descriptions. */
+  /** Opens the list filtered on `search`, which matches names, slugs and descriptions. */
   async gotoList(search?: string) {
     await this.page.goto(workspacePaths.savedQueries);
     await expect(

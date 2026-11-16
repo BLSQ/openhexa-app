@@ -99,9 +99,31 @@ export class WorkspaceWebappsPage {
     await expect(this.row(name)).toBeVisible();
   }
 
-  /** The list's "Access" column. */
+  /** The list's "Visibility" column. */
   rowAccess(name: string, access: "Public" | "Private"): Locator {
     return this.row(name).getByText(access, { exact: true });
+  }
+
+  /** Next to a public app's visibility in the list. */
+  copyPublicLinkButton(name: string): Locator {
+    return this.row(name).getByRole("button", { name: "Copy", exact: true });
+  }
+
+  /**
+   * The address a public app is served at, as its row hands it out. The
+   * context needs the clipboard permissions for the page to write it and for
+   * the test to read it back; nothing on the page says when it is written.
+   */
+  async copyPublicLink(name: string): Promise<string> {
+    await this.page
+      .context()
+      .grantPermissions(["clipboard-read", "clipboard-write"]);
+    await this.page.evaluate(() => navigator.clipboard.writeText(""));
+    await this.copyPublicLinkButton(name).click();
+    await expect
+      .poll(() => this.page.evaluate(() => navigator.clipboard.readText()))
+      .not.toBe("");
+    return this.page.evaluate(() => navigator.clipboard.readText());
   }
 
   /** Rendered but hidden while the app has no icon. */

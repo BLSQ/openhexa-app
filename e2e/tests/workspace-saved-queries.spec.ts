@@ -38,6 +38,13 @@ test.describe("Workspace saved queries", () => {
       await expect(studio.cell(slug, "Visibility")).toHaveText("Private");
     });
 
+    await test.step("the list finds it by its slug too", async () => {
+      // The slug is not the name: it has no space in it.
+      expect(slug).not.toBe(name);
+      await studio.gotoList(slug);
+      await expect(studio.row(slug)).toBeVisible();
+    });
+
     await test.step("a row opens the query, and runs it", async () => {
       await studio.openFromList(slug);
       await studio.runButton.click();

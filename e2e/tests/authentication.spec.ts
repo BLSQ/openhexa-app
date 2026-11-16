@@ -1,4 +1,4 @@
-import { credentials, workspacePaths } from "../config/environment";
+import { BASE_URL, credentials, workspacePaths } from "../config/environment";
 import { expect, test } from "../fixtures/visitors";
 import { uniqueName } from "../helpers/confirm";
 import { LoginPage } from "../pages/LoginPage";
@@ -26,6 +26,18 @@ test.describe("Authentication", () => {
 
     await login.login(credentials.email, credentials.password);
     await anonymousPage.waitForURL(`**${workspacePaths.files}`);
+  });
+
+  test("signing in never leads off the app", async ({ anonymousPage }) => {
+    const login = new LoginPage(anonymousPage);
+
+    // A link to the sign-in page can name any address to go to afterwards.
+    await anonymousPage.goto(
+      `/login/?next=${encodeURIComponent("https://example.com/")}`,
+    );
+    await login.login(credentials.email, credentials.password);
+    await anonymousPage.waitForURL((url) => !url.pathname.startsWith("/login"));
+    expect(new URL(anonymousPage.url()).origin).toBe(new URL(BASE_URL).origin);
   });
 
   test("signing out ends the session", async ({ anonymousPage }) => {

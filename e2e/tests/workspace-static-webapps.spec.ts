@@ -12,6 +12,8 @@ import { WorkspaceDataStudioPage } from "../pages/WorkspaceDataStudioPage";
 import { ICON_PNG, WorkspaceWebappsPage } from "../pages/WorkspaceWebappsPage";
 
 const REGIONS_SQL = "SELECT code, name FROM level_2_region ORDER BY code";
+const REGIONS_BY_NAME_SQL =
+  "SELECT code, name FROM level_2_region WHERE name = ANY({{ names }}) ORDER BY code";
 
 /** What a new static app is created with, from the default template. */
 const TEMPLATE_HEADING = "Hello World";
@@ -35,6 +37,7 @@ test.describe("Workspace static web apps", () => {
       await webapps.goto();
       await expect(webapps.row(name)).toBeVisible();
       await expect(webapps.rowAccess(name, "Private")).toBeVisible();
+      await expect(webapps.copyPublicLinkButton(name)).toHaveCount(0);
 
       await webapps.gotoTab(slug, "General");
       for (const tab of ["General", "Code", "History", "API access"] as const) {
@@ -178,6 +181,10 @@ test.describe("Workspace static web apps", () => {
 
       await webapps.goto();
       await expect(webapps.rowAccess(name, "Public")).toBeVisible();
+      // The same address as on the General tab, give or take a closing slash.
+      expect(new URL(await webapps.copyPublicLink(name)).href).toBe(
+        new URL(url).href,
+      );
     });
 
     await test.step("anyone sees a public app, whose API knows no user", async () => {
@@ -236,6 +243,17 @@ test.describe("Workspace static web apps", () => {
       studio.deleteWithApi(shared.id),
     );
 
+    const templated = await studio.createWithApi(REGIONS_BY_NAME_SQL, {
+      name: uniqueName("e2e templated query"),
+      visibility: "PUBLIC",
+      parameters: [
+        { name: "names", type: "STRING", multiple: true, required: true },
+      ],
+    });
+    cleanup.add(`saved query ${templated.slug}`, () =>
+      studio.deleteWithApi(templated.id),
+    );
+
     const slug = await webapps.create("Static", uniqueName("e2e query app"));
     cleanup.add(`web app ${slug}`, () => webapps.deleteIfPresent(slug));
     await webapps.editCode(slug, savedQueryAppHtml(marker));
@@ -247,6 +265,22 @@ test.describe("Workspace static web apps", () => {
       await expect(anonymous.heading(marker)).toBeVisible();
       await expect(anonymous.apiResult).toContainText("Query rows (14): ");
       await expect(anonymous.apiResult).toContainText("Dakar");
+    });
+
+    await test.step("a query with parameters is filtered by the values the app passes", async () => {
+      await anonymous.goto(
+        savedQueryAppUrl(url, templated.slug, { names: ["Dakar"] }),
+      );
+      await expect(anonymous.apiResult).toHaveText("Query rows (1): Dakar");
+
+      await anonymous.goto(savedQueryAppUrl(url, templated.slug, { names: [] }));
+      await expect(anonymous.apiResult).toHaveText("Query rows (0): ");
+
+      // A required parameter left out is refused rather than run unfiltered.
+      await anonymous.goto(savedQueryAppUrl(url, templated.slug));
+      await expect(anonymous.apiResult).toHaveText(
+        "Query refused: INVALID_PARAMETERS",
+      );
     });
 
     await test.step("a query shared with the workspace is not there for the app", async () => {

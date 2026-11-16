@@ -42,7 +42,8 @@ export function staticAppHtml(marker: string): string {
 
 /**
  * Builds an index.html that shows `marker` and runs the saved query named in
- * its own address (`?query=<slug>`) through the web app's /graphql/ proxy,
+ * its own address (`?query=<slug>`, with the query's parameter values as JSON
+ * in `&parameters=` if it takes any) through the web app's /graphql/ proxy,
  * writing the names it got back, or why it got none, into the page.
  */
 export function savedQueryAppHtml(marker: string): string {
@@ -63,7 +64,13 @@ export function savedQueryAppHtml(marker: string): string {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         query: "query ($input: ExecuteSavedQueryInput!) { executeSavedQuery(input: $input) { success errors rows } }",
-        variables: { input: { slug: search.get("query"), perPage: 100 } },
+        variables: {
+          input: {
+            slug: search.get("query"),
+            perPage: 100,
+            parameters: JSON.parse(search.get("parameters") || "{}"),
+          },
+        },
       }),
     })
       .then(function (response) {
@@ -88,9 +95,16 @@ export function savedQueryAppHtml(marker: string): string {
 }
 
 /** The address at which an app built by `savedQueryAppHtml` runs `slug`. */
-export function savedQueryAppUrl(appUrl: string, slug: string): string {
+export function savedQueryAppUrl(
+  appUrl: string,
+  slug: string,
+  parameters?: Record<string, unknown>,
+): string {
   const url = new URL(appUrl);
   url.searchParams.set("query", slug);
+  if (parameters) {
+    url.searchParams.set("parameters", JSON.stringify(parameters));
+  }
   return url.href;
 }
 
