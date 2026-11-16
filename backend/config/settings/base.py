@@ -294,6 +294,10 @@ if SENTRY_DSN:
     setup_sentry(SENTRY_DSN)
 
 
+# Environments sharing a parent cookie domain (e.g. demo under .openhexa.org) need
+# distinct names, or the browser sends both environments' cookies under one name.
+SESSION_COOKIE_NAME = os.environ.get("SESSION_COOKIE_NAME", "sessionid")
+CSRF_COOKIE_NAME = os.environ.get("CSRF_COOKIE_NAME", "csrftoken")
 SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN", None)
 SESSION_COOKIE_SAMESITE = os.environ.get("SESSION_COOKIE_SAMESITE", "Lax")
 SESSION_COOKIE_HTTPONLY = True

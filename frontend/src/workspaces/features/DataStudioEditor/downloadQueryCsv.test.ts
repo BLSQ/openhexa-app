@@ -1,3 +1,4 @@
+import { getCsrfToken } from "core/helpers/csrf";
 import { getCookie } from "cookies-next";
 import { readFileSync } from "fs";
 import { resolve } from "path";
@@ -9,6 +10,9 @@ import {
 
 jest.mock("cookies-next", () => ({
   getCookie: jest.fn(),
+}));
+jest.mock("core/helpers/csrf", () => ({
+  getCsrfToken: jest.fn(),
 }));
 
 const DOWNLOAD_FRAME = 'iframe[name="data-studio-csv-download-frame"]';
@@ -43,7 +47,7 @@ describe("downloadQueryCsv", () => {
       .mockImplementation(function (this: HTMLFormElement) {
         submittedForms.push(this);
       });
-    (getCookie as jest.Mock).mockReturnValue("csrf-token-123");
+    (getCsrfToken as jest.Mock).mockReturnValue("csrf-token-123");
     document.body.innerHTML = "";
   });
 
@@ -99,7 +103,7 @@ describe("downloadQueryCsv", () => {
   });
 
   it("omits the CSRF field when there is no token cookie", () => {
-    (getCookie as jest.Mock).mockReturnValue(undefined);
+    (getCsrfToken as jest.Mock).mockReturnValue(undefined);
     void downloadQueryCsv("ws-1", "SELECT 1");
     expect(
       fieldValue(submittedForms[0], "csrfmiddlewaretoken"),
@@ -115,8 +119,8 @@ describe("downloadQueryCsv", () => {
     // The backend sets a cookie named csvDownloadToken-<token> when streaming
     // begins; presence of that exact name is the "download began" signal.
     const cookies: Record<string, string> = {};
-    (getCookie as jest.Mock).mockImplementation((name: string) =>
-      name === "csrftoken" ? "csrf-token-123" : cookies[name],
+    (getCookie as jest.Mock).mockImplementation(
+      (name: string) => cookies[name],
     );
 
     const promise = downloadQueryCsv("ws-1", "SELECT 1");
@@ -129,8 +133,8 @@ describe("downloadQueryCsv", () => {
 
   it("waits on a per-call cookie so concurrent downloads do not clobber each other", async () => {
     const cookies: Record<string, string> = {};
-    (getCookie as jest.Mock).mockImplementation((name: string) =>
-      name === "csrftoken" ? "csrf-token-123" : cookies[name],
+    (getCookie as jest.Mock).mockImplementation(
+      (name: string) => cookies[name],
     );
 
     const first = downloadQueryCsv("ws-1", "SELECT 1");

@@ -16,7 +16,7 @@ import {
   GetUserQuery,
 } from "identity/graphql/queries.generated";
 import { GetServerSidePropsContext } from "next";
-import { getCookie } from "cookies-next";
+import { getCsrfToken } from "core/helpers/csrf";
 import Router from "next/router";
 
 export async function getMe(ctx?: GetServerSidePropsContext) {
@@ -30,8 +30,8 @@ export async function getMe(ctx?: GetServerSidePropsContext) {
 }
 
 export async function logout() {
-  let csrfToken = getCookie("csrftoken");
-  if (typeof csrfToken !== "string") {
+  const csrfToken = getCsrfToken();
+  if (!csrfToken) {
     throw new Error("Could not find CSRF token in cookies.");
   }
   fetch("/auth/logout/", {

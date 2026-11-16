@@ -188,6 +188,36 @@ class NotebooksTest(GraphQLTestCase):
             self.assertEqual(1, len(r["errors"]))
 
     @responses.activate
+    def test_launch_forwards_the_configured_cookie_names(self):
+        hub_url = "http://localhost:8081"
+        user_url = f"{hub_url}/api/users/{self.USER_JULIA.email}"
+        server_url = f"{user_url}/servers/{self.WORKSPACE.slug}"
+        responses.add(responses.GET, user_url, json={"servers": {}}, status=200)
+        responses.add(responses.POST, server_url, status=202)
+
+        with self.settings(
+            NOTEBOOKS_HUB_URL=hub_url,
+            SESSION_COOKIE_NAME="sessionid_demo",
+            CSRF_COOKIE_NAME="csrftoken_demo",
+        ):
+            self.client.force_login(self.USER_JULIA)
+            self.client.cookies["csrftoken_demo"] = "csrf-secret"
+            self.run_query(
+                """
+                mutation launchNotebookServer($input: LaunchNotebookServerInput!) {
+                    launchNotebookServer(input: $input) { success }
+                }
+                """,
+                {"input": {"workspaceSlug": self.WORKSPACE.slug}},
+            )
+
+        [create_call] = [c for c in responses.calls if c.request.url == server_url]
+        cookie_header = create_call.request.headers["Cookie"]
+        session_key = self.client.cookies["sessionid_demo"].value
+        self.assertIn(f"sessionid_demo={session_key}", cookie_header)
+        self.assertIn("csrftoken_demo=csrf-secret", cookie_header)
+
+    @responses.activate
     def test_launch_workspace_notebook(self):
         with self.settings(
             NOTEBOOKS_HUB_URL="http://localhost:8081",
