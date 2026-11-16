@@ -9,6 +9,7 @@ from hexa.assistant.tools.webapps import (
     propose_webapp_version,
     read_webapp_file,
 )
+from hexa.files.public import public_files_base_url
 from hexa.git.enums import FileEncoding
 from hexa.mcp.tools.connections import list_connections
 from hexa.mcp.tools.databases import get_db_schema, get_db_table_schema
@@ -97,6 +98,17 @@ class EditWebappAgent(BaseAgent):
         ]
         if webapp.description:
             lines.append(f"Description: {webapp.description}")
+        lines.append(
+            "Visibility: public (visitors have no OpenHEXA session)"
+            if webapp.is_public
+            else "Visibility: private (viewers are signed-in workspace members)"
+        )
+        lines.append(
+            "Workspace public files: enabled"
+            if public_files_base_url(webapp.workspace)
+            else "Workspace public files: disabled (a workspace admin can enable them "
+            "in the workspace settings)"
+        )
 
         pending = pending_proposal(self.conversation, "propose_webapp_version")
 

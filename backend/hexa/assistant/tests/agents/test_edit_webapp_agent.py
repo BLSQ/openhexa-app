@@ -1,6 +1,7 @@
 import json
 from unittest.mock import patch
 
+from django.test import override_settings
 from pydantic_ai.messages import ModelRequest, ModelResponse, TextPart, ToolReturnPart
 from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 from pydantic_ai.models.test import TestModel
@@ -121,6 +122,31 @@ class EditWebappAgentExtraInstructionsTest(AgentTestCase):
         )
         agent = self._make_agent(webapp=webapp)
         self.assertNotIn("Description:", agent._extra_instructions())
+
+    def test_webapp_visibility_is_included(self):
+        webapp = self._make_webapp()
+        self.assertIn(
+            "Visibility: private", self._make_agent(webapp)._extra_instructions()
+        )
+        webapp.is_public = True
+        webapp.save()
+        self.assertIn(
+            "Visibility: public", self._make_agent(webapp)._extra_instructions()
+        )
+
+    def test_workspace_public_files_state_is_included(self):
+        webapp = self._make_webapp()
+        self.workspace.public_files_enabled = True
+        self.workspace.save()
+        for enabled, expected in [(False, "disabled"), (True, "enabled")]:
+            with (
+                self.subTest(enabled=enabled),
+                override_settings(PUBLIC_FILES_ENABLED=enabled),
+            ):
+                self.assertIn(
+                    f"Workspace public files: {expected}",
+                    self._make_agent(webapp)._extra_instructions(),
+                )
 
     def test_webapp_is_injected_into_context(self):
         webapp = self._make_webapp(name="Context App", slug="context-app")
