@@ -35,9 +35,10 @@ class PublicFileViewTest(TestCase):
             self.WORKSPACE.bucket_name, "public/.secret", io.BytesIO(b"content")
         )
         self.storage.create_bucket_folder(self.WORKSPACE.bucket_name, "public/maps")
-        patcher = patch("hexa.files.views.storage", self.storage)
-        patcher.start()
-        self.addCleanup(patcher.stop)
+        for module in ["hexa.files.views", "hexa.files.public"]:
+            patcher = patch(f"{module}.storage", self.storage)
+            patcher.start()
+            self.addCleanup(patcher.stop)
 
     def _url(self, path):
         return f"/files/{self.WORKSPACE.slug}/public/{path}"
@@ -141,9 +142,10 @@ class PublicFileViewFileSystemStorageTest(TestCase):
             self.WORKSPACE.bucket_name, "public/data.csv", io.BytesIO(b"a,b\n1,2\n")
         )
         # Both the public view and the download view it redirects to use this storage
-        patcher = patch("hexa.files.views.storage", self.storage)
-        patcher.start()
-        self.addCleanup(patcher.stop)
+        for module in ["hexa.files.views", "hexa.files.public"]:
+            patcher = patch(f"{module}.storage", self.storage)
+            patcher.start()
+            self.addCleanup(patcher.stop)
 
     def test_redirect_can_be_followed_to_the_file(self):
         response = self.client.get(f"/files/{self.WORKSPACE.slug}/public/data.csv")

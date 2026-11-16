@@ -1,6 +1,8 @@
+import io
 import json
 from unittest.mock import patch
 
+from django.conf import settings
 from django.contrib.sessions.backends.db import SessionStore
 from django.core.cache import cache
 from django.test import SimpleTestCase, TestCase, override_settings
@@ -18,6 +20,7 @@ from hexa.datasets.models import (
     DatasetVersionFile,
 )
 from hexa.files.backends.base import StorageObject
+from hexa.files.backends.dummy import DummyStorageClient
 from hexa.pipelines.models import (
     Pipeline,
     PipelineRun,
@@ -1962,6 +1965,91 @@ class PublicWebappGraphQLProxyTest(TestCase):
         self.WORKSPACE.save()
         result = self._execute_saved_query(saved_query.slug)
         self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
+
+    def _enable_public_files(self):
+        self.WORKSPACE.slug = "public-proxy-ws"
+        self.WORKSPACE.bucket_name = "public-proxy-bucket"
+        self.WORKSPACE.public_files_enabled = True
+        self.WORKSPACE.save()
+        storage = DummyStorageClient()
+        storage.create_bucket(self.WORKSPACE.bucket_name)
+        for key in ["public/maps/tiles 1.pmtiles", "public/.secret", "private.csv"]:
+            storage.save_object(self.WORKSPACE.bucket_name, key, io.BytesIO(b"content"))
+        storage.create_bucket_folder(self.WORKSPACE.bucket_name, "public/maps")
+        patcher = patch("hexa.files.public.storage", storage)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def _prepare_download(self, object_key, workspace_slug=None):
+        response = self._graphql_post(
+            "mutation { prepareObjectDownload(input: {"
+            f'workspaceSlug: "{workspace_slug or self.WORKSPACE.slug}", '
+            f'objectKey: "{object_key}"'
+            "}) { success errors downloadUrl } }"
+        )
+        self.assertEqual(response.status_code, 200)
+        return json.loads(response.content)["data"]["prepareObjectDownload"]
+
+    @override_settings(PUBLIC_FILES_ENABLED=True)
+    def test_downloads_a_file_of_the_public_folder(self):
+        self._enable_public_files()
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "downloadUrl": f"{settings.BASE_URL}/files/{self.WORKSPACE.slug}"
+                "/public/maps/tiles%201.pmtiles",
+            },
+            self._prepare_download("public/maps/tiles 1.pmtiles"),
+        )
+
+    @override_settings(PUBLIC_FILES_ENABLED=True)
+    def test_cannot_download_what_the_public_folder_does_not_serve(self):
+        self._enable_public_files()
+        for object_key in [
+            "private.csv",
+            "public/../private.csv",
+            "public/.secret",
+            "public/maps",
+            "public/missing.csv",
+        ]:
+            with self.subTest(object_key=object_key):
+                self.assertEqual(
+                    {"success": False, "errors": ["NOT_FOUND"], "downloadUrl": None},
+                    self._prepare_download(object_key),
+                )
+
+    @override_settings(PUBLIC_FILES_ENABLED=True)
+    def test_cannot_download_a_public_file_of_another_workspace(self):
+        self._enable_public_files()
+        create_workspace(
+            name="Elsewhere",
+            slug="elsewhere",
+            db_name="elsewhere",
+            bucket_name=self.WORKSPACE.bucket_name,
+            public_files_enabled=True,
+        )
+        result = self._prepare_download("public/maps/tiles 1.pmtiles", "elsewhere")
+        self.assertEqual(["NOT_FOUND"], result["errors"])
+
+    def test_cannot_download_a_public_file_while_public_files_are_off(self):
+        self._enable_public_files()
+        for instance_enabled, workspace_enabled, archived in [
+            (False, True, False),
+            (True, False, False),
+            (True, True, True),
+        ]:
+            with self.subTest(
+                instance_enabled=instance_enabled,
+                workspace_enabled=workspace_enabled,
+                archived=archived,
+            ):
+                self.WORKSPACE.public_files_enabled = workspace_enabled
+                self.WORKSPACE.archived = archived
+                self.WORKSPACE.save()
+                with override_settings(PUBLIC_FILES_ENABLED=instance_enabled):
+                    result = self._prepare_download("public/maps/tiles 1.pmtiles")
+                self.assertEqual(["NOT_FOUND"], result["errors"])
 
     def test_origin_is_checked(self):
         response = self._graphql_post(

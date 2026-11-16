@@ -1,11 +1,14 @@
 import io
+from urllib.parse import quote
 
 from ariadne import MutationType
 
 from hexa.analytics.api import track
 from hexa.files import storage
 from hexa.files.backends.exceptions import NotFound
+from hexa.files.public import PUBLIC_FOLDER, find_public_file, public_files_base_url
 from hexa.files.utils import is_safe_path
+from hexa.webapps.models import PublicWebappUser
 from hexa.workspaces.models import Workspace
 
 mutations = MutationType()
@@ -29,10 +32,35 @@ def resolve_delete_bucket_object(_, info, **kwargs):
         return {"success": False, "errors": ["NOT_FOUND"]}
 
 
+def _prepare_public_file_download(principal: PublicWebappUser, mutation_input: dict):
+    """Visitors of a public web app only get the files anyone can already download:
+    those of the public folder of the web app's workspace, at their public URL.
+    """
+    workspace = principal.webapp.workspace
+    base_url = public_files_base_url(workspace)
+    object_key = mutation_input["object_key"]
+    if (
+        base_url is None
+        or workspace.slug != mutation_input["workspace_slug"]
+        or not workspace.bucket_name
+        or not object_key.startswith(PUBLIC_FOLDER)
+    ):
+        return {"success": False, "errors": ["NOT_FOUND"]}
+    path = object_key.removeprefix(PUBLIC_FOLDER)
+    try:
+        find_public_file(workspace.bucket_name, path)
+    except storage.exceptions.NotFound:
+        return {"success": False, "errors": ["NOT_FOUND"]}
+    return {"success": True, "download_url": f"{base_url}{quote(path)}", "errors": []}
+
+
 @mutations.field("prepareObjectDownload")
 def resolve_prepare_download_object(_, info, **kwargs):
     request = info.context["request"]
     mutation_input = kwargs["input"]
+
+    if isinstance(request.user, PublicWebappUser):
+        return _prepare_public_file_download(request.user, mutation_input)
 
     try:
         workspace = Workspace.objects.filter_for_user(request.user).get(
