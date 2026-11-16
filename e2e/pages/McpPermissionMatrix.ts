@@ -27,6 +27,20 @@ export class McpPermissionMatrix {
     return this.root.locator(`input[type="checkbox"][id$="-workspace-${slug}"]`);
   }
 
+  /** Granting an organization grants its workspaces, present and future. */
+  organizationCheckbox(id: string): Locator {
+    return this.root.locator(
+      `input[type="checkbox"][id$="-organization-${id}"]`,
+    );
+  }
+
+  /** Shown on an organization's row while the organization itself is granted. */
+  futureWorkspacesBadge(organizationId: string): Locator {
+    return this.organizationCheckbox(organizationId)
+      .locator("xpath=ancestor::label/..")
+      .getByText("Includes future workspaces", { exact: true });
+  }
+
   get deselectAllWorkspaces(): Locator {
     return this.root.getByRole("button", { name: "Deselect all" });
   }
