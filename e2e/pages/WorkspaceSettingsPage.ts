@@ -24,7 +24,9 @@ export class WorkspaceSettingsPage {
   // --- general -------------------------------------------------------------
 
   /** The General card lays out <dt>/<dd> pairs. */
-  field(term: "Name" | "Countries" | "Image" | "Configuration"): Locator {
+  field(
+    term: "Name" | "Countries" | "Image" | "Configuration" | "Public files",
+  ): Locator {
     return definition(this.page.getByRole("tabpanel", { name: "General" }), term);
   }
 
@@ -56,6 +58,19 @@ export class WorkspaceSettingsPage {
     await dialog.getByPlaceholder("Enter value as text or JSON...").fill(value);
     await dialog.getByRole("button", { name: "Add", exact: true }).click();
     await expect(dialog).toBeHidden();
+  }
+
+  /** Only shown where the instance offers public files. */
+  get publicFilesSwitch(): Locator {
+    return this.field("Public files").getByRole("switch");
+  }
+
+  /** From the General tab: whether the "public" folder's files are served. */
+  async setPublicFiles(enabled: boolean) {
+    await this.editButton.click();
+    await this.publicFilesSwitch.setChecked(enabled);
+    await this.save();
+    await expect(this.publicFilesSwitch).toBeChecked({ checked: enabled });
   }
 
   async save() {

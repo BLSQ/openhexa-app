@@ -1,9 +1,15 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
-import { expect, test } from "../fixtures/cleanup";
+import { mergeTests } from "@playwright/test";
+
+import { test as disposableTest } from "../fixtures/disposableWorkspace";
+import { expect, test as visitorsTest } from "../fixtures/visitors";
 import { uniqueName } from "../helpers/confirm";
 import { WorkspaceFilesPage } from "../pages/WorkspaceFilesPage";
+import { WorkspaceSettingsPage } from "../pages/WorkspaceSettingsPage";
+
+const test = mergeTests(visitorsTest, disposableTest);
 
 test.describe("Workspace files", () => {
   test("a folder can be created and deleted", async ({ page, cleanup }) => {
@@ -117,5 +123,96 @@ test.describe("Workspace files", () => {
 
     await files.delete(accented);
     await files.delete(large);
+  });
+
+  test("the public folder's files are served to anyone, once the workspace allows it", async ({
+    page,
+    anonymousPage,
+    disposableWorkspace,
+  }) => {
+    test.setTimeout(300_000);
+    await page.goto("/");
+    test.skip(
+      !(await new WorkspaceFilesPage(page).publicFilesOffered()),
+      "The instance does not offer public files (PUBLIC_FILES_ENABLED).",
+    );
+
+    const slug = await disposableWorkspace.create();
+    const files = new WorkspaceFilesPage(page, slug);
+    const settings = new WorkspaceSettingsPage(page);
+    const visitor = anonymousPage.request;
+    const fileName = "regions.csv";
+    const contents = "code,name\nDK,Dakar\n";
+    let link = "";
+
+    await test.step("a placeholder offers to create the folder", async () => {
+      await files.goto();
+      await expect(files.publicFolderPlaceholder).toContainText(
+        "Enable public files and create this folder to start sharing files publicly",
+      );
+      await files.createPublicFolder();
+      await files.uploadFile(fileName, contents);
+      await files.uploadFile(".hidden.csv", contents);
+      await expect(files.row(fileName)).toBeVisible();
+    });
+
+    await test.step("nothing is shared while the setting is off", async () => {
+      await expect(files.copyPublicLinkButton(fileName)).toHaveCount(0);
+      const response = await visitor.get(`/files/${slug}/public/${fileName}`);
+      expect(response.status()).toBe(404);
+
+      await files.goto();
+      await expect(files.publicFolderPlaceholder).toHaveCount(0);
+      await expect(files.publicFolderStatus("Not shared publicly")).toBeVisible();
+    });
+
+    await test.step("the folder's lock leads an admin to the setting", async () => {
+      await files.publicFolderStatus("Not shared publicly").click();
+      await page.waitForURL(`**/workspaces/${slug}/settings/`);
+      await expect(settings.publicFilesSwitch).not.toBeChecked();
+      await settings.setPublicFiles(true);
+
+      await files.goto();
+      await expect(files.publicFolderStatus("Shared publicly")).toBeVisible();
+    });
+
+    await test.step("a file's link is copied from its row", async () => {
+      await files.openFolder("public");
+      link = await files.copyPublicLink(fileName);
+      expect(new URL(link).pathname).toBe(`/files/${slug}/public/${fileName}`);
+    });
+
+    await test.step("a visitor without an account downloads it, from any site", async () => {
+      const redirect = await visitor.get(link, { maxRedirects: 0 });
+      expect(redirect.status()).toBe(302);
+      expect(redirect.headers()["access-control-allow-origin"]).toBe("*");
+
+      const response = await visitor.get(link);
+      expect(response.status()).toBe(200);
+      expect(await response.text()).toBe(contents);
+    });
+
+    await test.step("the folder is not listed, and hidden or missing files are not served", async () => {
+      for (const path of ["", ".hidden.csv", "missing.csv"]) {
+        const response = await visitor.get(
+          new URL(`/files/${slug}/public/${path}`, link).href,
+        );
+        expect(response.status(), path || "the folder").toBe(404);
+      }
+    });
+
+    await test.step("turning the setting off locks the folder again", async () => {
+      await settings.gotoTab(slug, "General");
+      await settings.setPublicFiles(false);
+
+      await files.goto();
+      await expect(files.publicFolderStatus("Not shared publicly")).toBeVisible();
+      await files.openFolder("public");
+      await expect(files.row(fileName)).toBeVisible();
+      await expect(files.copyPublicLinkButton(fileName)).toHaveCount(0);
+
+      const response = await visitor.get(link);
+      expect(response.status()).toBe(404);
+    });
   });
 });

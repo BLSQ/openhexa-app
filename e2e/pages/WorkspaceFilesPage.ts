@@ -1,12 +1,22 @@
 import { Locator, Page, expect } from "@playwright/test";
 
-import { workspacePaths } from "../config/environment";
+import { workspace } from "../config/environment";
 import { acceptNextConfirm } from "../helpers/confirm";
 import { dialogTitled } from "../helpers/dialog";
+import { graphql } from "../helpers/graphql";
 import { waitForGrid } from "../helpers/grid";
+import { toast } from "../helpers/toast";
 
+/** The files of the test workspace, or of the workspace with the given slug. */
 export class WorkspaceFilesPage {
-  constructor(private readonly page: Page) {}
+  constructor(
+    private readonly page: Page,
+    private readonly workspaceSlug: string = workspace.slug,
+  ) {}
+
+  private get path() {
+    return `/workspaces/${this.workspaceSlug}/files/`;
+  }
 
   get createFolderButton(): Locator {
     return this.page.getByRole("button", { name: "Create a folder" });
@@ -31,7 +41,7 @@ export class WorkspaceFilesPage {
   }
 
   async goto() {
-    await this.page.goto(workspacePaths.files);
+    await this.page.goto(this.path);
     await expect(
       this.page.getByRole("columnheader", { name: "Name" }),
     ).toBeVisible();
@@ -47,7 +57,7 @@ export class WorkspaceFilesPage {
       .getByRole("button", { name: "Create" })
       .click();
     await this.page.waitForURL(
-      `**${workspacePaths.files}${encodeURIComponent(name)}/`,
+      `**${this.path}${encodeURIComponent(name)}/`,
     );
     await this.goto();
   }
@@ -96,7 +106,12 @@ export class WorkspaceFilesPage {
   }
 
   async openFolder(name: string) {
-    await this.row(name).getByRole("link", { name, exact: true }).click();
+    // By the text in it: the "public" folder's link also holds its status icon,
+    // whose label is part of the link's name.
+    await this.row(name)
+      .getByRole("link")
+      .filter({ has: this.page.getByText(name, { exact: true }) })
+      .click();
     await this.page.waitForURL(`**/${encodeURIComponent(name)}/`);
     await expect(this.breadcrumb(name)).toBeVisible();
   }
@@ -124,5 +139,60 @@ export class WorkspaceFilesPage {
       .setInputFiles(path);
     await this.uploadDialog.getByRole("button", { name: "Upload" }).click();
     await expect(this.uploadDialog).toBeHidden();
+  }
+
+  // --- public files ----------------------------------------------------------
+
+  /**
+   * Whether the instance offers public files at all, which is its operator's
+   * choice. The page must be on the app.
+   */
+  async publicFilesOffered(): Promise<boolean> {
+    const data = await graphql<{ workspace: { publicFiles: object | null } }>(
+      this.page,
+      `query ($slug: String!) { workspace(slug: $slug) { publicFiles { url } } }`,
+      { slug: this.workspaceSlug },
+    );
+    return data.workspace.publicFiles !== null;
+  }
+
+  /** Stands in for the "public" folder at the root while it does not exist. */
+  get publicFolderPlaceholder(): Locator {
+    return this.page.getByRole("row").filter({
+      has: this.page.getByRole("button", { name: "Create folder", exact: true }),
+    });
+  }
+
+  /** Creates the "public" folder from its placeholder, which opens it. */
+  async createPublicFolder() {
+    await this.publicFolderPlaceholder
+      .getByRole("button", { name: "Create folder", exact: true })
+      .click();
+    await this.page.waitForURL(`**${this.path}public/`);
+    await expect(this.breadcrumb("public")).toBeVisible();
+  }
+
+  /** The icon after the "public" folder's name; it leads admins to the settings. */
+  publicFolderStatus(status: "Shared publicly" | "Not shared publicly"): Locator {
+    return this.row("public").getByLabel(status, { exact: true });
+  }
+
+  copyPublicLinkButton(name: string): Locator {
+    return this.row(name).getByRole("button", { name: "Copy public link" });
+  }
+
+  /**
+   * A file's public link, as its row hands it out. The context needs the
+   * clipboard permissions for the page to write it and the test to read it.
+   */
+  async copyPublicLink(name: string): Promise<string> {
+    await this.page
+      .context()
+      .grantPermissions(["clipboard-read", "clipboard-write"]);
+    await this.copyPublicLinkButton(name).click();
+    await expect(
+      toast(this.page, "Public link copied to the clipboard"),
+    ).toBeVisible();
+    return this.page.evaluate(() => navigator.clipboard.readText());
   }
 }
