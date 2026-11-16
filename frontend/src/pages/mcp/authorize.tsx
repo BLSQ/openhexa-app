@@ -2,6 +2,7 @@ import Button from "core/components/Button";
 import Page from "core/components/Page";
 import Spinner from "core/components/Spinner";
 import { createGetServerSideProps } from "core/helpers/page";
+import { getPublicEnv } from "core/helpers/runtimeConfig";
 import { NextPageWithLayout } from "core/helpers/types";
 import CenteredLayout from "core/layouts/centered";
 import { getMCPErrorMessage } from "mcp/helpers";
@@ -180,7 +181,7 @@ export const getServerSideProps = createGetServerSideProps({
     return {
       props: {
         params,
-        csrfToken: ctx.req.cookies["csrftoken"] ?? "",
+        csrfToken: ctx.req.cookies[getPublicEnv().CSRF_COOKIE_NAME] ?? "",
         clientName: request.clientName,
         tools: request.tools,
         organizations: data.organizations,

@@ -11,6 +11,7 @@ export interface RuntimeEnv {
   CONSOLE_URL: string;
   MIXPANEL_TOKEN: string;
   MIXPANEL_API_HOST: string;
+  CSRF_COOKIE_NAME: string;
 }
 
 declare global {
@@ -33,6 +34,7 @@ export function getPublicEnv(): RuntimeEnv {
     MIXPANEL_TOKEN: process.env.MIXPANEL_TOKEN ?? "",
     MIXPANEL_API_HOST:
       process.env.MIXPANEL_API_HOST || DEFAULT_MIXPANEL_API_HOST,
+    CSRF_COOKIE_NAME: process.env.CSRF_COOKIE_NAME || "csrftoken",
   };
 }
 
