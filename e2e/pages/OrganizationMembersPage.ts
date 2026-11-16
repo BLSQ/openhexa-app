@@ -8,6 +8,9 @@ import { OrganizationRole } from "./OrganizationExternalCollaboratorsPage";
 import { PendingInvitations } from "./PendingInvitations";
 import { WorkspaceRole } from "./WorkspaceSettingsPage";
 
+/** The languages an invitation email can be sent in, as the dialog lists them. */
+export type InvitationLanguage = "English" | "Français";
+
 /** The organization's members and its pending invitations. */
 export class OrganizationMembersPage {
   constructor(private readonly page: Page) {}
@@ -101,7 +104,10 @@ export class OrganizationMembersPage {
   async invite(
     email: string,
     role: OrganizationRole,
-    { existing = false }: { existing?: boolean } = {},
+    {
+      existing = false,
+      language,
+    }: { existing?: boolean; language?: InvitationLanguage } = {},
   ) {
     // The dialog clears its form whenever the page's organization query
     // settles, which wipes an address typed before then.
@@ -113,6 +119,12 @@ export class OrganizationMembersPage {
       .selectOption({ label: role });
     await dialog.locator("select#bulkRole").selectOption({ label: "None" });
     await dialog.getByPlaceholder("Enter email address").fill(email);
+    if (language) {
+      // Left alone, it is the language of whoever invites.
+      await dialog
+        .locator('select[name="language"]')
+        .selectOption({ label: language });
+    }
     await dialog.getByRole("button", { name: "Invite Member" }).click();
     await expect(this.toast("Invitation sent!")).toBeVisible();
     if (existing) {
