@@ -231,7 +231,7 @@ export class WorkspaceDataStudioPage {
     details: {
       name: string;
       description?: string;
-      visibility: "PRIVATE" | "WORKSPACE";
+      visibility: "PRIVATE" | "WORKSPACE" | "PUBLIC";
     },
   ): Promise<{ id: string; slug: string }> {
     await this.page.goto(workspacePaths.savedQueries);

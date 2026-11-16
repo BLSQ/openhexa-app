@@ -2,8 +2,16 @@ import { credentials } from "../config/environment";
 import { expect, test } from "../fixtures/visitors";
 import { uniqueName } from "../helpers/confirm";
 import { waitForGrid } from "../helpers/grid";
-import { ServedWebapp, staticAppHtml } from "../pages/ServedWebapp";
+import {
+  ServedWebapp,
+  savedQueryAppHtml,
+  savedQueryAppUrl,
+  staticAppHtml,
+} from "../pages/ServedWebapp";
+import { WorkspaceDataStudioPage } from "../pages/WorkspaceDataStudioPage";
 import { ICON_PNG, WorkspaceWebappsPage } from "../pages/WorkspaceWebappsPage";
+
+const REGIONS_SQL = "SELECT code, name FROM level_2_region ORDER BY code";
 
 /** What a new static app is created with, from the default template. */
 const TEMPLATE_HEADING = "Hello World";
@@ -197,6 +205,61 @@ test.describe("Workspace static web apps", () => {
       await expect(anonymous.loginHeading).toBeVisible();
       await webapps.gotoTab(slug, "General");
       await expect(webapps.tab("API access")).toBeVisible();
+    });
+  });
+
+  test("a public app runs a public saved query, and no other", async ({
+    page,
+    anonymousPage,
+    cleanup,
+  }) => {
+    test.setTimeout(180_000);
+    const webapps = new WorkspaceWebappsPage(page);
+    const studio = new WorkspaceDataStudioPage(page);
+    const member = new ServedWebapp(await page.context().newPage());
+    const anonymous = new ServedWebapp(anonymousPage);
+    const marker = uniqueName("E2E-QUERY");
+    const refusal = "Query refused: SAVED_QUERY_NOT_FOUND";
+
+    const published = await studio.createWithApi(REGIONS_SQL, {
+      name: uniqueName("e2e public query"),
+      visibility: "PUBLIC",
+    });
+    cleanup.add(`saved query ${published.slug}`, () =>
+      studio.deleteWithApi(published.id),
+    );
+    const shared = await studio.createWithApi(REGIONS_SQL, {
+      name: uniqueName("e2e workspace query"),
+      visibility: "WORKSPACE",
+    });
+    cleanup.add(`saved query ${shared.slug}`, () =>
+      studio.deleteWithApi(shared.id),
+    );
+
+    const slug = await webapps.create("Static", uniqueName("e2e query app"));
+    cleanup.add(`web app ${slug}`, () => webapps.deleteIfPresent(slug));
+    await webapps.editCode(slug, savedQueryAppHtml(marker));
+    const url = await webapps.servedUrl(slug);
+    await webapps.setPublic(true);
+
+    await test.step("a visitor without an account gets the public query's rows", async () => {
+      await anonymous.goto(savedQueryAppUrl(url, published.slug));
+      await expect(anonymous.heading(marker)).toBeVisible();
+      await expect(anonymous.apiResult).toContainText("Query rows (14): ");
+      await expect(anonymous.apiResult).toContainText("Dakar");
+    });
+
+    await test.step("a query shared with the workspace is not there for the app", async () => {
+      await anonymous.goto(savedQueryAppUrl(url, shared.slug));
+      await expect(anonymous.apiResult).toHaveText(refusal);
+    });
+
+    await test.step("being signed in changes nothing", async () => {
+      await member.goto(savedQueryAppUrl(url, published.slug));
+      await expect(member.apiResult).toContainText("Query rows (14): ");
+
+      await member.goto(savedQueryAppUrl(url, shared.slug));
+      await expect(member.apiResult).toHaveText(refusal);
     });
   });
 });
