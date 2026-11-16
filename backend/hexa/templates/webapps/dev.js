@@ -112,6 +112,8 @@
       webappSlug: data.webappSlug,
       isPublic: false,
       url: data.url,
+      // Absent from a credential cached before this field existed.
+      publicFilesUrl: data.publicFilesUrl || null,
     });
   }
 
