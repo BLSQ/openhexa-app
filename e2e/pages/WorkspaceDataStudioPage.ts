@@ -7,7 +7,7 @@ import { MutationResult, graphql } from "../helpers/graphql";
 import { searchGrid } from "../helpers/grid";
 import { toast } from "../helpers/toast";
 
-export type Sharing = "Private" | "Workspace";
+export type Sharing = "Private" | "Workspace" | "Public";
 
 export class WorkspaceDataStudioPage {
   constructor(private readonly page: Page) {}
@@ -289,6 +289,44 @@ export class WorkspaceDataStudioPage {
     await expect(this.saveButton).toBeDisabled();
   }
 
+  /** The toolbar button of a public query, which copies its permalink. */
+  get publicLinkButton(): Locator {
+    return this.page.getByRole("button", { name: "Public link", exact: true });
+  }
+
+  /**
+   * The permalink as the toolbar hands it out. The context needs the clipboard
+   * permissions for the page to write it and for the test to read it back.
+   */
+  async copyPublicLink(): Promise<string> {
+    await this.page
+      .context()
+      .grantPermissions(["clipboard-read", "clipboard-write"]);
+    await this.publicLinkButton.click();
+    await expect(toast(this.page, "Public link copied")).toBeVisible();
+    return this.page.evaluate(() => navigator.clipboard.readText());
+  }
+
+  /** Handing a query to anyone with the link asks for confirmation. */
+  async makePublic(current: Sharing) {
+    await this.sharingButton(current).click();
+    await this.page.getByRole("menuitem", { name: /^Public/ }).click();
+    await dialogTitled(this.page, "Make this query public?")
+      .getByRole("button", { name: "Make public" })
+      .click();
+    await expect(this.sharingButton("Public")).toBeVisible();
+  }
+
+  /** Back to the workspace, which breaks the link and so asks first. */
+  async stopSharingPublicly() {
+    await this.sharingButton("Public").click();
+    await this.page.getByRole("menuitem", { name: /^Workspace/ }).click();
+    await dialogTitled(this.page, "Stop sharing this query publicly?")
+      .getByRole("button", { name: "Stop sharing publicly" })
+      .click();
+    await expect(this.sharingButton("Workspace")).toBeVisible();
+  }
+
   /** Switching back to private asks for confirmation; sharing does not. */
   async makePrivate() {
     await this.sharingButton("Workspace").click();
@@ -316,9 +354,14 @@ export class WorkspaceDataStudioPage {
       .filter({ has: this.page.getByText(slug, { exact: true }) });
   }
 
-  /** Only the name in a row is a link to the query. */
+  /** A public query's row links to its permalink, next to its visibility. */
+  publicLink(slug: string): Locator {
+    return this.row(slug).getByRole("link", { name: "Open public link" });
+  }
+
+  /** The name in a row links to the query. */
   async openFromList(slug: string) {
-    await this.row(slug).getByRole("link").click();
+    await this.row(slug).getByRole("link").first().click();
     await this.page.waitForURL(`**/queries/${slug}/`);
   }
 

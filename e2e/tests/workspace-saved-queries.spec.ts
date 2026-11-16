@@ -1,5 +1,7 @@
-import { expect, test } from "../fixtures/cleanup";
+import { BASE_URL, workspacePaths } from "../config/environment";
+import { expect, test } from "../fixtures/visitors";
 import { uniqueName } from "../helpers/confirm";
+import { PublicSavedQueryPage } from "../pages/PublicSavedQueryPage";
 import { WorkspaceDataStudioPage } from "../pages/WorkspaceDataStudioPage";
 
 const REGIONS_SQL = "SELECT code, name FROM level_2_region ORDER BY code";
@@ -99,6 +101,86 @@ test.describe("Workspace saved queries", () => {
 
       await studio.gotoList(renamed);
       await expect(studio.cell(slug, "Visibility")).toHaveText("Private");
+    });
+  });
+
+  test("a public query is read by anyone with its link, until it is taken back", async ({
+    page,
+    anonymousPage,
+    cleanup,
+  }) => {
+    test.setTimeout(180_000);
+    const studio = new WorkspaceDataStudioPage(page);
+    const visitor = new PublicSavedQueryPage(anonymousPage);
+    const name = uniqueName("e2e public query");
+    const description = "Regions of Senegal, for anyone.";
+
+    const slug = await studio.create(REGIONS_SQL, {
+      name,
+      description,
+      sharing: "Workspace",
+    });
+    cleanup.add(`saved query ${slug}`, () => studio.deleteIfPresent(slug));
+    const link = new URL(PublicSavedQueryPage.path(slug), BASE_URL).href;
+
+    await test.step("a query that is not public has no link", async () => {
+      await expect(studio.publicLinkButton).toHaveCount(0);
+
+      await visitor.goto(slug);
+      await expect(anonymousPage).toHaveURL(/\/login\/?\?next=/);
+    });
+
+    await test.step("making it public hands out its link", async () => {
+      await studio.makePublic("Workspace");
+      expect(await studio.copyPublicLink()).toBe(link);
+
+      await studio.gotoList(name);
+      await expect(studio.cell(slug, "Visibility")).toHaveText("Public");
+      await expect(studio.publicLink(slug)).toHaveAttribute("href", link);
+    });
+
+    await test.step("a visitor without an account sees its result, not its SQL", async () => {
+      await visitor.goto(slug);
+      await expect(anonymousPage).toHaveTitle(`OpenHEXA | ${name}`);
+      await expect(visitor.heading(name)).toBeVisible();
+      await expect(visitor.text(description)).toBeVisible();
+      await expect(visitor.resultSummary).toHaveText(/^14 rows/);
+      await expect(visitor.resultRow("Dakar")).toBeVisible();
+
+      await expect(visitor.loginLink).toBeVisible();
+      await expect(visitor.openInDataStudioLink).toHaveCount(0);
+      await expect(visitor.text("level_2_region")).toHaveCount(0);
+    });
+
+    await test.step("the visitor downloads the full result", async () => {
+      const lines = (await visitor.exportCsv()).trim().split(/\r?\n/);
+      expect(lines[0]).toBe("code,name");
+      expect(lines).toHaveLength(15);
+    });
+
+    await test.step("a member is led back to the Data Studio", async () => {
+      const member = new PublicSavedQueryPage(page);
+      await member.goto(slug);
+      await expect(member.resultSummary).toHaveText(/^14 rows/);
+      await expect(member.loginLink).toHaveCount(0);
+
+      await member.openInDataStudioLink.click();
+      await page.waitForURL(`**${workspacePaths.savedQueries}${slug}/`);
+      await expect(studio.sqlEditor).toHaveText(REGIONS_SQL);
+    });
+
+    await test.step("taken back to the workspace, its link stops working", async () => {
+      await studio.stopSharingPublicly();
+      await expect(studio.publicLinkButton).toHaveCount(0);
+
+      await visitor.goto(slug);
+      await expect(anonymousPage).toHaveURL(/\/login\/?\?next=/);
+
+      // A member is sent to where they work with it instead.
+      await page.goto(PublicSavedQueryPage.path(slug));
+      await expect(page).toHaveURL(
+        new RegExp(`${workspacePaths.savedQueries}${slug}/?$`),
+      );
     });
   });
 });
