@@ -20,7 +20,7 @@ const DatasetVisibilityPicker = ({
   disabled = false,
 }: DatasetVisibilityPickerProps) => {
   const { t } = useTranslation();
-  const { onSave, warning, children, ...picker } =
+  const { onSave, warning, children, isSaveDisabled, ...picker } =
     useDatasetShareDialog(dataset);
   const { visibility } = dataset;
   const [pending, setPending] = useState<DatasetVisibility | null>(null);
@@ -71,6 +71,7 @@ const DatasetVisibilityPicker = ({
           makingPublic ? t("Make dataset public") : t("Stop sharing publicly")
         }
         saving={saving}
+        confirmDisabled={Boolean(pending && isSaveDisabled?.(pending))}
         onClose={() => setPending(null)}
         onConfirm={() => pending && save(pending)}
       >

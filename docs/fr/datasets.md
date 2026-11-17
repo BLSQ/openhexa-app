@@ -129,7 +129,7 @@ La visibilité d'un jeu de données détermine qui peut y accéder au-delà des 
 
 #### Rendre un jeu de données public
 - Seuls l'auteur du jeu de données (s'il est encore éditeur ou administrateur de son espace de travail), les administrateurs de l'espace de travail et les administrateurs et propriétaires de l'organisation peuvent rendre un jeu de données public, ou ramener un jeu de données public à l'organisation ou à l'espace de travail.
-- Lorsque vous rendez un jeu de données public pour la première fois, vous choisissez l'identifiant de son lien public. Il reprend par défaut l'identifiant du jeu de données et ne peut contenir que des lettres minuscules, des chiffres et des tirets simples. Il ne peut plus être modifié une fois défini, même si le jeu de données est de nouveau rendu public plus tard.
+- Lorsque vous rendez un jeu de données public pour la première fois, vous choisissez l'identifiant de son lien public. Il reprend par défaut l'identifiant du jeu de données et ne peut contenir que des lettres minuscules et des chiffres, séparés par un seul tiret ou tiret bas. Les majuscules, accents, espaces et points sont convertis pendant la saisie, et quelques mots réservés aux pages de la plateforme, comme `new` ou `search`, ne peuvent pas être utilisés. Il ne peut plus être modifié une fois défini, même si le jeu de données est de nouveau rendu public plus tard.
 
 ### Permissions de partage
 

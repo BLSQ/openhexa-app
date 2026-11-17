@@ -1129,7 +1129,7 @@
   "The pipeline version is not available.": "Cette version de pipeline n'est pas disponible.",
   "The provided URL is invalid or not allowed.": "L'URL fournie est invalide ou non autorisée.",
   "The public link could not be copied to the clipboard": "Le lien public n'a pas pu être copié dans le presse-papiers",
-  "The public link identifier can only contain lowercase letters, numbers and single hyphens.": "L'identifiant du lien public ne peut contenir que des lettres minuscules, des chiffres et des tirets simples.",
+  "The public link identifier can only contain lowercase letters and numbers, separated by single hyphens or underscores.": "L'identifiant du lien public ne peut contenir que des lettres minuscules et des chiffres, séparés par un seul tiret ou tiret bas.",
   "The public link identifier of a dataset cannot be changed once set.": "L'identifiant du lien public d'un jeu de données ne peut plus être modifié une fois défini.",
   "The public link will stop working: visitors without an OpenHEXA account will be asked to sign in. Workspace members keep access, and the app can call the OpenHEXA API again for the operations enabled under API access.": "Le lien public cessera de fonctionner : les visiteurs sans compte OpenHEXA devront se connecter. Les membres de l'espace de travail gardent l'accès, et l'application peut à nouveau appeler l'API OpenHEXA pour les opérations activées dans Accès API.",
   "The public link will stop working: visitors without an OpenHEXA account will be asked to sign in. Workspace members keep access.": "Le lien public cessera de fonctionner : les visiteurs sans compte OpenHEXA devront se connecter. Les membres de l'espace de travail gardent l'accès.",

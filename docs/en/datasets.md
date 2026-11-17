@@ -129,7 +129,7 @@ A dataset's visibility decides who can reach it beyond the workspaces it is shar
 
 #### Making a dataset public
 - Only the dataset's author (if they are still an editor or admin of its workspace), the workspace admins and the organization admins and owners can make a dataset public, or take a public dataset back to the organization or workspace.
-- When making a dataset public for the first time, you choose the identifier of its public link. It defaults to the dataset identifier and can only contain lowercase letters, numbers and single hyphens. It cannot be changed once set, even if the dataset is later made public again.
+- When making a dataset public for the first time, you choose the identifier of its public link. It defaults to the dataset identifier and can only contain lowercase letters and numbers, separated by single hyphens or underscores. Uppercase letters, accents, spaces and dots are converted as you type, and a few words kept for the platform's own pages, such as `new` or `search`, cannot be used. It cannot be changed once set, even if the dataset is later made public again.
 
 ### Sharing permissions
 

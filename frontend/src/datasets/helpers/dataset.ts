@@ -87,7 +87,7 @@ export async function updateDataset(
       "You do not have permission to update this dataset",
     ),
     [UpdateDatasetError.PublicSlugInvalidFormat]: i18n!.t(
-      "The public link identifier can only contain lowercase letters, numbers and single hyphens.",
+      "The public link identifier can only contain lowercase letters and numbers, separated by single hyphens or underscores.",
     ),
     [UpdateDatasetError.PublicSlugReserved]: i18n!.t(
       "This public link identifier is reserved. Please choose another one.",

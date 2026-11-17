@@ -8,6 +8,7 @@ type ConfirmSharingDialogProps = {
   title: ReactNode;
   confirmLabel: ReactNode;
   saving?: boolean;
+  confirmDisabled?: boolean;
   onConfirm: () => void;
   onClose: () => void;
   children?: ReactNode;
@@ -20,6 +21,7 @@ const ConfirmSharingDialog = ({
   title,
   confirmLabel,
   saving = false,
+  confirmDisabled = false,
   onConfirm,
   onClose,
   children,
@@ -37,7 +39,7 @@ const ConfirmSharingDialog = ({
         <Button variant="outlined" onClick={close} disabled={saving}>
           {t("Cancel")}
         </Button>
-        <Button onClick={onConfirm} disabled={saving}>
+        <Button onClick={onConfirm} disabled={saving || confirmDisabled}>
           {confirmLabel}
         </Button>
       </Dialog.Actions>

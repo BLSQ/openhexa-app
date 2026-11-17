@@ -1109,7 +1109,7 @@
   "The pipeline version is not available.": "The pipeline version is not available.",
   "The provided URL is invalid or not allowed.": "The provided URL is invalid or not allowed.",
   "The public link could not be copied to the clipboard": "The public link could not be copied to the clipboard",
-  "The public link identifier can only contain lowercase letters, numbers and single hyphens.": "The public link identifier can only contain lowercase letters, numbers and single hyphens.",
+  "The public link identifier can only contain lowercase letters and numbers, separated by single hyphens or underscores.": "The public link identifier can only contain lowercase letters and numbers, separated by single hyphens or underscores.",
   "The public link identifier of a dataset cannot be changed once set.": "The public link identifier of a dataset cannot be changed once set.",
   "The public link will stop working: visitors without an OpenHEXA account will be asked to sign in. Workspace members keep access, and the app can call the OpenHEXA API again for the operations enabled under API access.": "The public link will stop working: visitors without an OpenHEXA account will be asked to sign in. Workspace members keep access, and the app can call the OpenHEXA API again for the operations enabled under API access.",
   "The public link will stop working: visitors without an OpenHEXA account will be asked to sign in. Workspace members keep access.": "The public link will stop working: visitors without an OpenHEXA account will be asked to sign in. Workspace members keep access.",

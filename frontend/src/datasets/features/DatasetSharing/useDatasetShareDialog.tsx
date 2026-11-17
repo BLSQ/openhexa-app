@@ -2,6 +2,8 @@ import Field from "core/components/forms/Field";
 import { ShareDialogProps } from "core/features/Sharing/ShareDialog";
 import {
   canChangeDatasetVisibility,
+  getPublicSlugError,
+  normalizePublicSlug,
   useDatasetSharingOptions,
 } from "datasets/features/DatasetSharing/datasetSharing";
 import { updateDataset } from "datasets/helpers/dataset";
@@ -22,6 +24,16 @@ const useDatasetShareDialog = (
     dataset.publicSlug ?? dataset.slug,
   );
   const { visibility, permissions } = dataset;
+  const claimsSlug = !dataset.publicSlug;
+  const slugError = claimsSlug && getPublicSlugError(publicSlug);
+  const slugErrorMessage =
+    slugError === "RESERVED"
+      ? t("This public link identifier is reserved. Please choose another one.")
+      : slugError === "INVALID_FORMAT" &&
+        publicSlug !== "" &&
+        t(
+          "The public link identifier can only contain lowercase letters and numbers, separated by single hyphens or underscores.",
+        );
 
   const onSave = async (next: DatasetVisibility) => {
     try {
@@ -29,7 +41,7 @@ const useDatasetShareDialog = (
         visibility: next,
         // Only sent while the dataset has none yet: it is locked once claimed.
         publicSlug:
-          next === DatasetVisibility.Public && !dataset.publicSlug
+          next === DatasetVisibility.Public && claimsSlug
             ? publicSlug
             : undefined,
       });
@@ -48,6 +60,8 @@ const useDatasetShareDialog = (
         canUpdate: permissions.update,
         canShare: permissions.share,
       }),
+    isSaveDisabled: (next) =>
+      next === DatasetVisibility.Public && Boolean(slugError),
     hint:
       !permissions.share &&
       visibility !== DatasetVisibility.Public &&
@@ -68,7 +82,10 @@ const useDatasetShareDialog = (
           name="publicSlug"
           label={t("Public link identifier")}
           value={publicSlug}
-          onChange={(event) => setPublicSlug(event.target.value)}
+          onChange={(event) =>
+            setPublicSlug(normalizePublicSlug(event.target.value))
+          }
+          error={slugErrorMessage}
           disabled={Boolean(dataset.publicSlug)}
           help={t(
             "Part of the dataset's public link. It cannot be changed once set.",

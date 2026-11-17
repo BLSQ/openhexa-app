@@ -74,6 +74,36 @@ describe("DatasetShareButton", () => {
     );
   });
 
+  it("normalizes the public slug as it is typed", async () => {
+    renderButton();
+    await openAndChoose("Public");
+
+    fireEvent.change(screen.getByDisplayValue("my-dataset"), {
+      target: { value: "Données Été.2026" },
+    });
+    expect(screen.getByDisplayValue("donnees-ete-2026")).toBeInTheDocument();
+  });
+
+  it.each([
+    [
+      "my--dataset",
+      "The public link identifier can only contain lowercase letters and numbers, separated by single hyphens or underscores.",
+    ],
+    [
+      "new",
+      "This public link identifier is reserved. Please choose another one.",
+    ],
+  ])("blocks saving the invalid public slug %s", async (slug, message) => {
+    renderButton();
+    await openAndChoose("Public");
+
+    fireEvent.change(screen.getByDisplayValue("my-dataset"), {
+      target: { value: slug },
+    });
+    expect(screen.getByText(message)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  });
+
   it("does not resend a public slug that is already claimed", async () => {
     renderButton({
       visibility: DatasetVisibility.Organization,

@@ -66,3 +66,44 @@ export const canChangeDatasetVisibility = (
   const togglesPublic = [from, to].includes(DatasetVisibility.Public);
   return canUpdate && (!togglesPublic || canShare);
 };
+
+// Mirror validate_public_slug (backend/hexa/core/validators.py) so the slug is
+// checked while typing. The backend stays the authority, and keeps checking
+// whether the slug is already taken.
+const PUBLIC_SLUG_RE = /^[a-z0-9]+(?:[-_][a-z0-9]+)*$/;
+const PUBLIC_SLUG_MAX_LENGTH = 255;
+const RESERVED_PUBLIC_SLUGS = new Set([
+  "new",
+  "search",
+  "create",
+  "edit",
+  "settings",
+  "api",
+  "admin",
+  "static",
+  "assets",
+  "media",
+  "public",
+  "explore",
+  "embed",
+  "download",
+  "export",
+]);
+
+// Applied as the user types: fixes what has a single obvious fix (case, accents,
+// spaces and dots), and leaves anything else for validation to point out.
+export const normalizePublicSlug = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[\s.]/g, "-");
+
+export const getPublicSlugError = (
+  slug: string,
+): "INVALID_FORMAT" | "RESERVED" | null => {
+  if (slug.length > PUBLIC_SLUG_MAX_LENGTH || !PUBLIC_SLUG_RE.test(slug)) {
+    return "INVALID_FORMAT";
+  }
+  return RESERVED_PUBLIC_SLUGS.has(slug) ? "RESERVED" : null;
+};

@@ -12,6 +12,7 @@ export type ShareDialogProps<V extends string> = {
   value: V;
   isOptionDisabled?: (value: V) => boolean;
   hint?: ReactNode;
+  isSaveDisabled?: (next: V) => boolean;
   // Closes the dialog once resolved; a rejection keeps it open, the caller
   // being the one reporting the error.
   onSave: (next: V) => Promise<void>;
@@ -28,6 +29,7 @@ const ShareDialog = <V extends string>({
   value,
   isOptionDisabled,
   hint,
+  isSaveDisabled,
   onSave,
   warning,
   children,
@@ -69,6 +71,7 @@ const ShareDialog = <V extends string>({
       title={t("Share")}
       confirmLabel={t("Save")}
       saving={saving}
+      confirmDisabled={isSaveDisabled?.(selected) ?? false}
       onClose={onClose}
       onConfirm={save}
     >
