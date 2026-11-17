@@ -212,7 +212,7 @@ const DataStudioEditor = ({
                 <PencilIcon className="h-4 w-4" />
               </button>
             )}
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex shrink-0 items-center gap-2 whitespace-nowrap">
               <SaveQueryButton plan={editor.savePlan} />
               {editor.savedQuery && (
                 <SavedQueryVisibilityButton
