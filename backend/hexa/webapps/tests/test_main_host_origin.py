@@ -100,7 +100,10 @@ class MainHostFromWebappOriginTest(TestCase):
             workspace.bucket_name, "public/data.csv", io.BytesIO(b"content")
         )
 
-        with patch("hexa.files.views.storage", storage):
+        with (
+            patch("hexa.files.views.storage", storage),
+            patch("hexa.files.public.storage", storage),
+        ):
             response = self.client.get(
                 f"/files/{workspace.slug}/public/data.csv",
                 HTTP_ORIGIN=self.webapp_origin,
