@@ -118,6 +118,23 @@ class SavedQueryPermissionsTest(SavedQueryTestMixin, TestCase):
         self.assertFalse(delete_saved_query(self.USER_VIEWER, query))
         self.assertFalse(delete_saved_query(self.USER_OUTSIDER, query))
 
+    def test_delete_public_saved_query(self):
+        query = self._create(self.USER_EDITOR, visibility=SavedQueryVisibility.PUBLIC)
+        self.assertTrue(delete_saved_query(self.USER_EDITOR, query))
+        self.assertTrue(delete_saved_query(self.USER_ADMIN, query))
+        self.assertFalse(delete_saved_query(self.USER_VIEWER, query))
+        self.assertFalse(delete_saved_query(self.USER_OUTSIDER, query))
+        admin_query = self._create(
+            self.USER_ADMIN, visibility=SavedQueryVisibility.PUBLIC
+        )
+        self.assertFalse(delete_saved_query(self.USER_EDITOR, admin_query))
+
+    def test_author_can_delete_their_public_saved_query_after_demotion(self):
+        query = self._create(self.USER_VIEWER)
+        query.visibility = SavedQueryVisibility.PUBLIC
+        query.save()
+        self.assertTrue(delete_saved_query(self.USER_VIEWER, query))
+
     def test_delete_private_saved_query(self):
         query = self._create(self.USER_VIEWER, visibility=SavedQueryVisibility.PRIVATE)
         self.assertTrue(delete_saved_query(self.USER_VIEWER, query))
