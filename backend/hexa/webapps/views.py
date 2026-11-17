@@ -16,7 +16,6 @@ from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_GET, require_http_methods
 
-from hexa.files.public import public_files_base_url
 from hexa.files.utils import is_safe_path
 from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
 from hexa.git.forgejo import get_forgejo_client
@@ -292,7 +291,6 @@ def dev_auth(request):
                     "workspaceSlug": webapp.workspace.slug,
                     "webappSlug": webapp.slug,
                     "url": webapp.openhexa_url,
-                    "publicFilesUrl": public_files_base_url(webapp.workspace),
                 },
                 "target_origin": "*" if is_opaque else origin,
             },

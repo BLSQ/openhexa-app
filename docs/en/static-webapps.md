@@ -69,19 +69,30 @@ A public webapp's visitors have no OpenHEXA account and no session, so its reque
 
 ### Files in a public webapp
 
-A public webapp can only read the files of the `public` folder at the root of the workspace filesystem, once [public files](files.md#public-files) are enabled on the workspace. Each of these files has a stable URL that needs no session, so the same code works whether the webapp is public or private:
+A public webapp can only read the files of the `public` folder at the root of the workspace filesystem, once [public files](files.md#public-files) are enabled on the workspace. Ask `prepareObjectDownload` for the URL of a file, with a key that starts with `public/`:
 
 ```js
-// null while public files are disabled on the workspace
-const { publicFilesUrl } = window.OPENHEXA;
+const { workspaceSlug } = window.OPENHEXA;
 
 // Reads public/maps/regions.pmtiles
-const response = await fetch(publicFilesUrl + "maps/regions.pmtiles");
+const response = await fetch("/graphql/", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    query: `
+      mutation ($input: PrepareObjectDownloadInput!) {
+        prepareObjectDownload(input: $input) { success downloadUrl errors }
+      }
+    `,
+    variables: { input: { workspaceSlug, objectKey: "public/maps/regions.pmtiles" } },
+  }),
+});
+const { downloadUrl } = (await response.json()).data.prepareObjectDownload;
 ```
 
-Libraries that take a URL (map tiles, images, CSV parsers) can be given this URL directly; range requests are supported on cloud storage.
+The URL it returns needs no session, and libraries that take a URL (map tiles, images, CSV parsers) can be given it directly; range requests are supported on cloud storage. The same call works in a private webapp that has the `FILES_READ` scope.
 
-`prepareObjectDownload` returns the same URL when a public webapp passes a key that starts with `public/`. Any other file, and the other file entry points (`getFileByPath`, `readFileContent`), are not available to public webapps.
+`prepareObjectDownload` fails with `NOT_FOUND` while public files are disabled on the workspace. Any other file, and the other file entry points (`getFileByPath`, `readFileContent`), are not available to public webapps.
 
 ## Enabling the API on a webapp
 
@@ -149,7 +160,6 @@ window.OPENHEXA = Object.freeze({
   webappSlug: "my-webapp",         // this webapp's own slug
   isPublic: false,                 // true for public webapps
   url: "https://app.openhexa.org/workspaces/my-workspace/webapps/my-webapp", // page of this webapp in OpenHEXA
-  publicFilesUrl: "https://api.openhexa.org/files/my-workspace/public/", // base URL of the workspace's public files, null while they are disabled
 });
 ```
 

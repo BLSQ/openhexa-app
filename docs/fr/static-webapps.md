@@ -69,19 +69,30 @@ Les visiteurs d'une webapp publique n'ont ni compte OpenHEXA ni session : ses re
 
 ### Fichiers dans une webapp publique
 
-Une webapp publique ne peut lire que les fichiers du dossier `public` à la racine du système de fichiers du workspace, une fois les [fichiers publics](files.md#fichiers-publics) activés sur le workspace. Chacun de ces fichiers possède une URL stable qui ne nécessite aucune session : le même code fonctionne donc que la webapp soit publique ou privée :
+Une webapp publique ne peut lire que les fichiers du dossier `public` à la racine du système de fichiers du workspace, une fois les [fichiers publics](files.md#fichiers-publics) activés sur le workspace. Demandez l'URL d'un fichier à `prepareObjectDownload`, avec une clé qui commence par `public/` :
 
 ```js
-// null tant que les fichiers publics sont désactivés sur le workspace
-const { publicFilesUrl } = window.OPENHEXA;
+const { workspaceSlug } = window.OPENHEXA;
 
 // Lit public/maps/regions.pmtiles
-const response = await fetch(publicFilesUrl + "maps/regions.pmtiles");
+const response = await fetch("/graphql/", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    query: `
+      mutation ($input: PrepareObjectDownloadInput!) {
+        prepareObjectDownload(input: $input) { success downloadUrl errors }
+      }
+    `,
+    variables: { input: { workspaceSlug, objectKey: "public/maps/regions.pmtiles" } },
+  }),
+});
+const { downloadUrl } = (await response.json()).data.prepareObjectDownload;
 ```
 
-Les bibliothèques qui prennent une URL (tuiles de carte, images, parseurs CSV) peuvent recevoir cette URL directement ; les requêtes partielles (range) sont prises en charge sur le stockage cloud.
+L'URL renvoyée ne nécessite aucune session, et les bibliothèques qui prennent une URL (tuiles de carte, images, parseurs CSV) peuvent la recevoir directement ; les requêtes partielles (range) sont prises en charge sur le stockage cloud. Le même appel fonctionne dans une webapp privée qui dispose du scope `FILES_READ`.
 
-`prepareObjectDownload` renvoie la même URL lorsqu'une webapp publique passe une clé qui commence par `public/`. Tout autre fichier, ainsi que les autres points d'entrée de fichiers (`getFileByPath`, `readFileContent`), ne sont pas accessibles aux webapps publiques.
+`prepareObjectDownload` échoue avec `NOT_FOUND` tant que les fichiers publics sont désactivés sur le workspace. Tout autre fichier, ainsi que les autres points d'entrée de fichiers (`getFileByPath`, `readFileContent`), ne sont pas accessibles aux webapps publiques.
 
 ## Activer l'API sur une webapp
 
@@ -153,7 +164,6 @@ window.OPENHEXA = Object.freeze({
   webappSlug: "my-webapp",         // slug de cette webapp
   isPublic: false,                 // true pour les webapps publiques
   url: "https://app.openhexa.org/workspaces/my-workspace/webapps/my-webapp", // page de cette webapp dans OpenHEXA
-  publicFilesUrl: "https://api.openhexa.org/files/my-workspace/public/", // URL de base des fichiers publics du workspace, null tant qu'ils sont désactivés
 });
 ```
 

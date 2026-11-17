@@ -2,7 +2,6 @@ from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 import requests_mock
-from django.conf import settings
 from django.contrib.sessions.backends.db import SessionStore
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ValidationError
@@ -419,28 +418,6 @@ class GitWebappServeViewTest(TestCase):
             "sha-published",
             org_slug=self.WORKSPACE.organization.slug,
         )
-
-    @patch("hexa.webapps.views.get_forgejo_client")
-    def test_public_files_url_is_exposed_once_enabled(self, mock_get_client):
-        mock_get_client.return_value.get_file.return_value = (
-            b"<html><head></head></html>"
-        )
-        self.WORKSPACE.public_files_enabled = True
-        self.WORKSPACE.save()
-
-        for enabled, expected in [
-            (False, '"publicFilesUrl": null'),
-            (
-                True,
-                f'"publicFilesUrl": "{settings.BASE_URL}/files/serve-workspace/public/"',
-            ),
-        ]:
-            with (
-                self.subTest(enabled=enabled),
-                override_settings(PUBLIC_FILES_ENABLED=enabled),
-            ):
-                response = self._get(self.PUBLIC_WEBAPP)
-                self.assertIn(expected, response.content.decode())
 
     @patch("hexa.webapps.views.get_forgejo_client")
     def test_serve_css_file(self, mock_get_client):

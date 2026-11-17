@@ -18,7 +18,6 @@ from django.http.response import HttpResponseBase
 from django.template.loader import render_to_string
 from django.utils import timezone
 
-from hexa.files.public import public_files_base_url
 from hexa.superset.views import view_superset_dashboard
 from hexa.user_management.models import User
 from hexa.webapps.graphql_proxy import handle_graphql_proxy
@@ -166,7 +165,6 @@ def _inject_openhexa_context(
         "webappSlug": webapp.slug,
         "isPublic": webapp.is_public,
         "url": webapp.openhexa_url,
-        "publicFilesUrl": public_files_base_url(webapp.workspace),
     }
     snippet = f"<script>window.OPENHEXA=Object.freeze({json.dumps(context)});</script>"
 

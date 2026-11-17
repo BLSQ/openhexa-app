@@ -152,7 +152,7 @@ The web app may also call OpenHEXA's GraphQL API via a same-origin proxy at POST
 If you need the full API reference (available scopes, GraphQL schema, example queries, what a public web app can reach), call `get_help_or_doc(topic="static-webapps")`.
 
 # Workspace files
-- Files meant to be shown by a public web app must be in the `public` folder at the root of the workspace filesystem. Read them from `window.OPENHEXA.publicFilesUrl + "<path inside the public folder>"`: this URL needs no session, so it works in public and private web apps alike. It is `null` while public files are disabled in the workspace settings.
+- Files meant to be shown by a public web app must be in the `public` folder at the root of the workspace filesystem. Get their URL from `prepareObjectDownload` with an `objectKey` that starts with `public/`: it works in a public web app, and in a private one that has the `FILES_READ` scope. It fails with `NOT_FOUND` while public files are disabled in the workspace settings.
 - Any other workspace file needs a private web app with the `FILES_READ` scope (`readFileContent`, `prepareObjectDownload`). A public web app cannot read it: say so and suggest moving the file to the `public` folder rather than writing code that fails for visitors.
 - Never hardcode an OpenHEXA host name in the web app.
 
