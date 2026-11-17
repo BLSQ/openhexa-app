@@ -14,7 +14,7 @@ export default defineConfig({
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
   // A single account on a shared environment; keep the load modest.
-  workers: isCI ? 2 : undefined,
+  workers: isCI ? 2 : 6,
   // CI keeps nothing but the job log: the report and the recordings hold
   // credentials, and the workflow has nowhere private to put them.
   reporter: isCI
