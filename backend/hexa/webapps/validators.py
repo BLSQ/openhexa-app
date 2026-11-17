@@ -29,6 +29,7 @@ def validate_subdomain(value):
             code="SUBDOMAIN_INVALID_FORMAT",
         )
 
+
 # This validates for:
 # RFC 1034 DNS label rules (max 63 chars, valid characters, no leading/trailing hyphens).
 # A little trick: We append ".com" to the subdomain and validate as a full domain
