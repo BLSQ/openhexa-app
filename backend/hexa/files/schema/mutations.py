@@ -42,7 +42,6 @@ def _prepare_public_file_download(principal: PublicWebappUser, mutation_input: d
     if (
         base_url is None
         or workspace.slug != mutation_input["workspace_slug"]
-        or not workspace.bucket_name
         or not object_key.startswith(PUBLIC_FOLDER)
     ):
         return {"success": False, "errors": ["NOT_FOUND"]}

@@ -11,17 +11,23 @@ from hexa.files.utils import is_safe_path
 PUBLIC_FOLDER = "public/"
 
 
-def public_files_base_url(workspace) -> str | None:
-    """URL under which the public files of a workspace are served, ending with a slash.
-
-    None while they are not served: the instance or the workspace has the feature off,
-    or the workspace is archived.
+def public_files_served(workspace) -> bool:
+    """Whether the public folder of a workspace is served: the instance and the workspace
+    have the feature on, and the workspace is active and has a bucket.
     """
-    if (
-        not settings.PUBLIC_FILES_ENABLED
-        or not workspace.public_files_enabled
-        or workspace.archived
-    ):
+    return bool(
+        settings.PUBLIC_FILES_ENABLED
+        and workspace.public_files_enabled
+        and not workspace.archived
+        and workspace.bucket_name
+    )
+
+
+def public_files_base_url(workspace) -> str | None:
+    """URL under which the public files of a workspace are served, ending with a slash,
+    or None while they are not served.
+    """
+    if not public_files_served(workspace):
         return None
     return (
         f"{settings.BASE_URL}{reverse('files:public_file', args=[workspace.slug, ''])}"
@@ -38,6 +44,8 @@ def find_public_file(bucket_name: str, path: str) -> str:
         raise storage.exceptions.NotFound
     if any(part.startswith(".") for part in path.split("/")):
         raise storage.exceptions.NotFound
+    # Not the key of the storage object below: the filesystem backend returns it as a
+    # Path, which can't be signed.
     key = f"{PUBLIC_FOLDER}{path}"
     # Some backends resolve directory keys and sign URLs for any key, so the object
     # has to be an existing file.

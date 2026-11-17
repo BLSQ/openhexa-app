@@ -9,7 +9,7 @@ from django.test import SimpleTestCase, TestCase, override_settings
 
 from hexa.files.backends.dummy import DummyStorageClient
 from hexa.files.backends.fs import FileSystemStorage
-from hexa.files.public import public_folder_exists
+from hexa.files.public import public_files_base_url, public_folder_exists
 from hexa.workspaces.tests.testutils import create_workspace
 
 
@@ -113,6 +113,12 @@ class PublicFileViewTest(TestCase):
         self.WORKSPACE.save()
         response = self.client.get(self._url("data.csv"))
         self.assertEqual(response.status_code, 404)
+
+    def test_workspace_without_bucket(self):
+        self.WORKSPACE.bucket_name = ""
+        self.WORKSPACE.save()
+        self.assertIsNone(public_files_base_url(self.WORKSPACE))
+        self.assertEqual(self.client.get(self._url("data.csv")).status_code, 404)
 
     @override_settings(PUBLIC_FILES_ENABLED=False)
     def test_instance_setting_disabled(self):
