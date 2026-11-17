@@ -54,3 +54,24 @@ jobs:
       # No report is uploaded: it quotes every value the suite types, the
       # password included, and the artifacts of a public repository can be
       # downloaded by anyone signed in to GitHub.
+
+  notify:
+    name: Notify Slack on failure
+    needs: e2e
+    # A job that hits its timeout ends as cancelled, not failed.
+    if: ${{ failure() || cancelled() }}
+    runs-on: ubuntu-latest
+    # A separate job, so the third-party action never sees the test accounts.
+    permissions: {}
+    steps:
+      - uses: rtCamp/action-slack-notify@v2.4.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_CHANNEL: "#openhexa-alerts"
+          SLACK_USERNAME: "E2E suite"
+          SLACK_COLOR: failure
+          SLACK_ICON_EMOJI: ":warning:"
+          SLACK_TITLE: "E2E suite failed"
+          SLACK_MESSAGE: "The end-to-end suite did not pass against ${{ inputs.base_url }}. <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
+          SLACK_FOOTER: "-"
+          MSG_MINIMAL: true
