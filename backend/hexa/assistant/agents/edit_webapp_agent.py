@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.keys import AgentKey
@@ -9,7 +11,7 @@ from hexa.assistant.tools.webapps import (
     propose_webapp_version,
     read_webapp_file,
 )
-from hexa.files.public import public_files_base_url
+from hexa.files.public import public_files_served
 from hexa.git.enums import FileEncoding
 from hexa.mcp.tools.connections import list_connections
 from hexa.mcp.tools.databases import get_db_schema, get_db_table_schema
@@ -103,12 +105,17 @@ class EditWebappAgent(BaseAgent):
             if webapp.is_public
             else "Visibility: private (viewers are signed-in workspace members)"
         )
-        lines.append(
-            "Workspace public files: enabled"
-            if public_files_base_url(webapp.workspace)
-            else "Workspace public files: disabled (a workspace admin can enable them "
-            "in the workspace settings)"
-        )
+        if public_files_served(webapp.workspace):
+            public_files = "enabled"
+        elif (
+            settings.PUBLIC_FILES_ENABLED and not webapp.workspace.public_files_enabled
+        ):
+            public_files = (
+                "disabled (a workspace admin can enable them in the workspace settings)"
+            )
+        else:
+            public_files = "not available for this workspace"
+        lines.append(f"Workspace public files: {public_files}")
 
         pending = pending_proposal(self.conversation, "propose_webapp_version")
 

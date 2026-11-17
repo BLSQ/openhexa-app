@@ -92,6 +92,8 @@ const { downloadUrl } = (await response.json()).data.prepareObjectDownload;
 
 The URL it returns needs no session, and libraries that take a URL (map tiles, images, CSV parsers) can be given it directly; range requests are supported on cloud storage. The same call works in a private webapp that has the `FILES_READ` scope.
 
+In a public webapp the URL always downloads the file: `forceAttachment: false` is ignored, so a file cannot be opened in a new tab or an iframe. `fetch()`, `<img>` and range reads are not affected.
+
 `prepareObjectDownload` fails with `NOT_FOUND` while public files are disabled on the workspace. Any other file, and the other file entry points (`getFileByPath`, `readFileContent`), are not available to public webapps.
 
 ## Enabling the API on a webapp

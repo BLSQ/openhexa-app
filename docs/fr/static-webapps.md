@@ -92,6 +92,8 @@ const { downloadUrl } = (await response.json()).data.prepareObjectDownload;
 
 L'URL renvoyée ne nécessite aucune session, et les bibliothèques qui prennent une URL (tuiles de carte, images, parseurs CSV) peuvent la recevoir directement ; les requêtes partielles (range) sont prises en charge sur le stockage cloud. Le même appel fonctionne dans une webapp privée qui dispose du scope `FILES_READ`.
 
+Dans une webapp publique, l'URL télécharge toujours le fichier : `forceAttachment: false` est ignoré, un fichier ne peut donc pas être ouvert dans un nouvel onglet ou une iframe. `fetch()`, `<img>` et les lectures partielles (range) ne sont pas affectés.
+
 `prepareObjectDownload` échoue avec `NOT_FOUND` tant que les fichiers publics sont désactivés sur le workspace. Tout autre fichier, ainsi que les autres points d'entrée de fichiers (`getFileByPath`, `readFileContent`), ne sont pas accessibles aux webapps publiques.
 
 ## Activer l'API sur une webapp

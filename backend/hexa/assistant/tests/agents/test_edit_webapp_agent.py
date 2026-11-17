@@ -136,12 +136,19 @@ class EditWebappAgentExtraInstructionsTest(AgentTestCase):
 
     def test_workspace_public_files_state_is_included(self):
         webapp = self._make_webapp()
-        self.workspace.public_files_enabled = True
-        self.workspace.save()
-        for enabled, expected in [(False, "disabled"), (True, "enabled")]:
+        for instance_flag, workspace_flag, expected in [
+            (True, True, "enabled"),
+            (True, False, "disabled (a workspace admin can enable them"),
+            (False, True, "not available"),
+            (False, False, "not available"),
+        ]:
+            self.workspace.public_files_enabled = workspace_flag
+            self.workspace.save()
             with (
-                self.subTest(enabled=enabled),
-                override_settings(PUBLIC_FILES_ENABLED=enabled),
+                self.subTest(
+                    instance_flag=instance_flag, workspace_flag=workspace_flag
+                ),
+                override_settings(PUBLIC_FILES_ENABLED=instance_flag),
             ):
                 self.assertIn(
                     f"Workspace public files: {expected}",
