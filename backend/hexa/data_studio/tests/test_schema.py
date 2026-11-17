@@ -634,6 +634,34 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         self.assertTrue(r["data"]["deleteSavedQuery"]["success"])
         self.assertFalse(SavedQuery.objects.filter(id=query_id).exists())
 
+    def test_non_author_editor_cannot_delete_public_saved_query(self):
+        query = self.create_saved_query(
+            user=self.USER_ADMIN, visibility=SavedQueryVisibility.PUBLIC
+        )
+
+        self.client.force_login(self.USER_EDITOR)
+        r = self.run_query(
+            "query ($id: ID!) { savedQuery(id: $id) { permissions { update delete } } }",
+            {"id": str(query.id)},
+        )
+        self.assertEqual(
+            r["data"]["savedQuery"]["permissions"], {"update": True, "delete": False}
+        )
+
+        r = self.run_query(
+            """
+            mutation ($input: DeleteSavedQueryInput!) {
+                deleteSavedQuery(input: $input) { success errors }
+            }
+            """,
+            {"input": {"id": str(query.id)}},
+        )
+        self.assertEqual(
+            r["data"]["deleteSavedQuery"],
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+        )
+        self.assertTrue(SavedQuery.objects.filter(id=query.id).exists())
+
     def test_delete_saved_query_not_found(self):
         self.client.force_login(self.USER_OUTSIDER)
         created = self._create_query(self.USER_EDITOR)

@@ -87,4 +87,11 @@ def manage_public_saved_query(principal: User, saved_query: SavedQuery):
 
 
 def delete_saved_query(principal: User, saved_query: SavedQuery):
+    """Like editing, except that a public query's link may only be taken down by its
+    author or by those who may manage it (`manage_public_saved_query`).
+    """
+    if _is_author(principal, saved_query):
+        return True
+    if saved_query.is_public:
+        return _is_workspace_admin(principal, saved_query.workspace)
     return update_saved_query(principal, saved_query)
