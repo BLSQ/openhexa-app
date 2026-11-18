@@ -7253,6 +7253,7 @@ export enum WebappOperationScope {
 export type WebappPermissions = {
   __typename?: 'WebappPermissions';
   delete: Scalars['Boolean']['output'];
+  share: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
 
