@@ -21,7 +21,7 @@ const buildWebapp = (overrides: any = {}) => ({
   isPublic: false,
   url: null,
   serveUrl: "https://my-app.webapps.openhexa.org/",
-  permissions: { update: true },
+  permissions: { share: true },
   ...overrides,
 });
 
@@ -59,8 +59,8 @@ const renderButton = (webapp: any, mocks: MockedResponse[] = []) =>
 beforeEach(() => jest.clearAllMocks());
 
 describe("WebappVisibilityButton", () => {
-  it("is hidden for members who cannot update the web app", () => {
-    renderButton(buildWebapp({ permissions: { update: false } }));
+  it("is hidden for members who cannot make the web app public", () => {
+    renderButton(buildWebapp({ permissions: { share: false } }));
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
