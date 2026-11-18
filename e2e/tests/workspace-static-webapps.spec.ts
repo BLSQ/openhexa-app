@@ -1,0 +1,301 @@
+import { credentials } from "../config/environment";
+import { expect, test } from "../fixtures/visitors";
+import { uniqueName } from "../helpers/confirm";
+import { waitForGrid } from "../helpers/grid";
+import {
+  ServedWebapp,
+  savedQueryAppHtml,
+  savedQueryAppUrl,
+  staticAppHtml,
+} from "../pages/ServedWebapp";
+import { WorkspaceDataStudioPage } from "../pages/WorkspaceDataStudioPage";
+import { ICON_PNG, WorkspaceWebappsPage } from "../pages/WorkspaceWebappsPage";
+
+const REGIONS_SQL = "SELECT code, name FROM level_2_region ORDER BY code";
+const REGIONS_BY_NAME_SQL =
+  "SELECT code, name FROM level_2_region WHERE name = ANY({{ names }}) ORDER BY code";
+
+/** What a new static app is created with, from the default template. */
+const TEMPLATE_HEADING = "Hello World";
+
+test.describe("Workspace static web apps", () => {
+  test("a static web app is edited, versioned, renamed and deleted", async ({
+    page,
+    cleanup,
+  }) => {
+    test.setTimeout(180_000);
+    const webapps = new WorkspaceWebappsPage(page);
+    const served = new ServedWebapp(await page.context().newPage());
+    const name = uniqueName("e2e static");
+    const marker = uniqueName("E2E-EDITED");
+
+    const slug = await webapps.create("Static", name);
+    cleanup.add(`web app ${slug}`, () => webapps.deleteIfPresent(slug));
+    let url = "";
+
+    await test.step("it is listed, private, with every tab", async () => {
+      await webapps.goto();
+      await expect(webapps.row(name)).toBeVisible();
+      await expect(webapps.rowAccess(name, "Private")).toBeVisible();
+      await expect(webapps.copyPublicLinkButton(name)).toHaveCount(0);
+
+      await webapps.gotoTab(slug, "General");
+      for (const tab of ["General", "Code", "History", "API access"] as const) {
+        await expect(webapps.tab(tab)).toBeVisible();
+      }
+      url = (await webapps.publishedUrl.getAttribute("href"))!;
+    });
+
+    await test.step("it serves the template", async () => {
+      await served.goto(url);
+      await expect(served.heading(TEMPLATE_HEADING)).toBeVisible();
+    });
+
+    await test.step("editing the code publishes it", async () => {
+      await webapps.editCode(slug, staticAppHtml(marker));
+      await served.goto(url);
+      await expect(served.heading(marker)).toBeVisible();
+    });
+
+    await test.step("history lists both commits and their diffs", async () => {
+      await webapps.gotoTab(slug, "History");
+      await expect(webapps.commitLink("Initial content")).toBeVisible();
+      await expect(webapps.commitTitle("Update webapp content")).toContainText(
+        "Published",
+      );
+      await expect(webapps.commitTitle("Initial content")).not.toContainText(
+        "Published",
+      );
+
+      await webapps.commitLink("Update webapp content").click();
+      await expect(webapps.diffLine(marker)).toBeVisible();
+      await webapps.backToHistory.click();
+      await expect(webapps.commitLink("Initial content")).toBeVisible();
+    });
+
+    await test.step("publishing the first commit rolls it back", async () => {
+      const initial = await webapps.commitId("Initial content");
+      await webapps.publishVersion(slug, initial);
+
+      await served.goto(url);
+      await expect(served.heading(TEMPLATE_HEADING)).toBeVisible();
+
+      await webapps.gotoTab(slug, "History");
+      await expect(webapps.commitTitle("Initial content")).toContainText(
+        "Published",
+      );
+      await expect(
+        webapps.commitTitle("Update webapp content"),
+      ).not.toContainText("Published");
+    });
+
+    const renamed = uniqueName("e2e renamed");
+    const subdomain = uniqueName("e2e-sub").toLowerCase();
+
+    await test.step("its name, subdomain and icon change", async () => {
+      await webapps.gotoTab(slug, "General");
+      await webapps.updateDetails({
+        name: renamed,
+        subdomain,
+        icon: ICON_PNG,
+      });
+      await expect(webapps.publishedUrl).toContainText(`//${subdomain}.`);
+
+      const previousUrl = url;
+      url = (await webapps.publishedUrl.getAttribute("href"))!;
+      await served.goto(url);
+      await expect(served.heading(TEMPLATE_HEADING)).toBeVisible();
+      const response = await served.goto(previousUrl);
+      expect(response?.status()).toBe(404);
+
+      await webapps.goto();
+      await expect(webapps.row(renamed)).toBeVisible();
+      await expect(webapps.rowIcon(renamed)).toBeVisible();
+      await expect(webapps.row(name)).toHaveCount(0);
+    });
+
+    await test.step("deleting it takes it offline", async () => {
+      await webapps.gotoWebapp(slug);
+      await webapps.delete();
+      await expect(webapps.row(renamed)).toHaveCount(0);
+
+      const response = await served.goto(url);
+      expect(response?.status()).toBe(404);
+    });
+  });
+
+  test("a private app needs a sign-in and API access; a public one neither", async ({
+    page,
+    anonymousPage,
+    cleanup,
+  }) => {
+    test.setTimeout(180_000);
+    const webapps = new WorkspaceWebappsPage(page);
+    const member = new ServedWebapp(await page.context().newPage());
+    const anonymous = new ServedWebapp(anonymousPage);
+    const name = uniqueName("e2e access");
+    const marker = uniqueName("E2E-ACCESS");
+
+    const slug = await webapps.create("Static", name);
+    cleanup.add(`web app ${slug}`, () => webapps.deleteIfPresent(slug));
+    await webapps.editCode(slug, staticAppHtml(marker));
+    const url = await webapps.servedUrl(slug);
+
+    await test.step("a private app sends visitors to sign in", async () => {
+      await anonymous.goto(url);
+      await expect(anonymousPage).toHaveURL(/\/login/);
+      await expect(anonymous.loginHeading).toBeVisible();
+    });
+
+    await test.step("a member sees it, but not the API by default", async () => {
+      await member.goto(url);
+      await expect(member.heading(marker)).toBeVisible();
+      await expect(member.apiResult).toHaveText(
+        "API error 403: Fields not allowed: Me.user, Query.me, User.email. Enable scope(s): USER_READ",
+      );
+    });
+
+    await test.step("enabling a scope opens that part of the API", async () => {
+      await webapps.enableApiScope(slug, "Read user info");
+      await webapps.gotoTab(slug, "API access");
+      await expect(webapps.apiScope("Read user info")).toBeChecked();
+      await expect(webapps.apiScope("Read datasets")).not.toBeChecked();
+
+      await member.goto(url);
+      await expect(member.apiResult).toHaveText(
+        `API user: ${credentials.email}`,
+      );
+    });
+
+    await test.step("a public app has no API access to configure", async () => {
+      await webapps.gotoTab(slug, "General");
+      await webapps.setPublic(true);
+
+      await webapps.gotoTab(slug, "General");
+      await expect(webapps.tab("Code")).toBeVisible();
+      await expect(webapps.tab("API access")).toHaveCount(0);
+
+      await webapps.gotoTab(slug, "API access");
+      await waitForGrid(page);
+      await expect(webapps.apiScope("Read user info")).toHaveCount(0);
+
+      await webapps.goto();
+      await expect(webapps.rowAccess(name, "Public")).toBeVisible();
+      // The same address as on the General tab, give or take a closing slash.
+      expect(new URL(await webapps.copyPublicLink(name)).href).toBe(
+        new URL(url).href,
+      );
+    });
+
+    await test.step("anyone sees a public app, whose API knows no user", async () => {
+      // A public app reaches the API as an anonymous visitor: what needs a
+      // user is refused outright, with no scope to enable for it.
+      const refusal =
+        "API error 403: Fields not allowed: Me.user, Query.me, User.email";
+
+      await anonymous.goto(url);
+      await expect(anonymous.heading(marker)).toBeVisible();
+      await expect(anonymous.poweredByBanner).toBeVisible();
+      await expect(anonymous.apiResult).toHaveText(refusal);
+
+      await member.goto(url);
+      await expect(member.heading(marker)).toBeVisible();
+      await expect(member.poweredByBanner).toHaveCount(0);
+      await expect(member.apiResult).toHaveText(refusal);
+    });
+
+    await test.step("a private app again sends visitors to sign in", async () => {
+      await webapps.gotoTab(slug, "General");
+      await webapps.setPublic(false);
+
+      await anonymous.goto(url);
+      await expect(anonymous.loginHeading).toBeVisible();
+      await webapps.gotoTab(slug, "General");
+      await expect(webapps.tab("API access")).toBeVisible();
+    });
+  });
+
+  test("a public app runs a public saved query, and no other", async ({
+    page,
+    anonymousPage,
+    cleanup,
+  }) => {
+    test.setTimeout(180_000);
+    const webapps = new WorkspaceWebappsPage(page);
+    const studio = new WorkspaceDataStudioPage(page);
+    const member = new ServedWebapp(await page.context().newPage());
+    const anonymous = new ServedWebapp(anonymousPage);
+    const marker = uniqueName("E2E-QUERY");
+    const refusal = "Query refused: SAVED_QUERY_NOT_FOUND";
+
+    const published = await studio.createWithApi(REGIONS_SQL, {
+      name: uniqueName("e2e public query"),
+      visibility: "PUBLIC",
+    });
+    cleanup.add(`saved query ${published.slug}`, () =>
+      studio.deleteWithApi(published.id),
+    );
+    const shared = await studio.createWithApi(REGIONS_SQL, {
+      name: uniqueName("e2e workspace query"),
+      visibility: "WORKSPACE",
+    });
+    cleanup.add(`saved query ${shared.slug}`, () =>
+      studio.deleteWithApi(shared.id),
+    );
+
+    const templated = await studio.createWithApi(REGIONS_BY_NAME_SQL, {
+      name: uniqueName("e2e templated query"),
+      visibility: "PUBLIC",
+      parameters: [
+        { name: "names", type: "STRING", multiple: true, required: true },
+      ],
+    });
+    cleanup.add(`saved query ${templated.slug}`, () =>
+      studio.deleteWithApi(templated.id),
+    );
+
+    const slug = await webapps.create("Static", uniqueName("e2e query app"));
+    cleanup.add(`web app ${slug}`, () => webapps.deleteIfPresent(slug));
+    await webapps.editCode(slug, savedQueryAppHtml(marker));
+    const url = await webapps.servedUrl(slug);
+    await webapps.setPublic(true);
+
+    // Each visitor ends on rows rather than a refusal, for a watched run to be
+    // followed by eye.
+    await test.step("a query shared with the workspace is not there for the app", async () => {
+      await anonymous.goto(savedQueryAppUrl(url, shared.slug));
+      await expect(anonymous.heading(marker)).toBeVisible();
+      await expect(anonymous.apiResult).toHaveText(refusal);
+    });
+
+    await test.step("a query with parameters is filtered by the values the app passes", async () => {
+      // A required parameter left out is refused rather than run unfiltered.
+      await anonymous.goto(savedQueryAppUrl(url, templated.slug));
+      await expect(anonymous.apiResult).toHaveText(
+        "Query refused: INVALID_PARAMETERS",
+      );
+
+      await anonymous.goto(savedQueryAppUrl(url, templated.slug, { names: [] }));
+      await expect(anonymous.apiResult).toHaveText("Query rows (0): ");
+
+      await anonymous.goto(
+        savedQueryAppUrl(url, templated.slug, { names: ["Dakar"] }),
+      );
+      await expect(anonymous.apiResult).toHaveText("Query rows (1): Dakar");
+    });
+
+    await test.step("a visitor without an account gets the public query's rows", async () => {
+      await anonymous.goto(savedQueryAppUrl(url, published.slug));
+      await expect(anonymous.apiResult).toContainText("Query rows (14): ");
+      await expect(anonymous.apiResult).toContainText("Dakar");
+    });
+
+    await test.step("being signed in changes nothing", async () => {
+      await member.goto(savedQueryAppUrl(url, shared.slug));
+      await expect(member.apiResult).toHaveText(refusal);
+
+      await member.goto(savedQueryAppUrl(url, published.slug));
+      await expect(member.apiResult).toContainText("Query rows (14): ");
+    });
+  });
+});
