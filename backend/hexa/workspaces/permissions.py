@@ -89,7 +89,7 @@ def manage_members(principal: User, workspace: Workspace):
     ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
 
 
-def can_make_public(
+def can_share_publicly(
     principal: User, workspace: Workspace, author_id: UUID | None = None
 ) -> bool:
     """The rule shared by every resource that can be made public (datasets, saved
@@ -116,14 +116,14 @@ def can_make_public(
 
 def manage_public_files(principal: User, workspace: Workspace):
     """Whether the principal may expose the public folder of the workspace
-    (`can_make_public`).
+    (`can_share_publicly`).
 
     Refused while the instance flag is off, so that no workspace sits in an enabled state
     that would silently go live the day the flag is turned on.
     """
     if not settings.PUBLIC_FILES_ENABLED:
         return False
-    return can_make_public(principal, workspace)
+    return can_share_publicly(principal, workspace)
 
 
 def launch_notebooks(principal: User, workspace: Workspace):

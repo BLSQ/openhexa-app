@@ -12,7 +12,7 @@ from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
-from hexa.workspaces.permissions import can_make_public
+from hexa.workspaces.permissions import can_share_publicly
 
 
 def create_dataset(principal: User, workspace: Workspace):
@@ -31,7 +31,7 @@ def delete_dataset(principal: User, dataset: Dataset):
 
 
 def share_dataset(principal: User, dataset: Dataset):
-    return can_make_public(principal, dataset.workspace, dataset.created_by_id)
+    return can_share_publicly(principal, dataset.workspace, dataset.created_by_id)
 
 
 def create_dataset_version(principal: User, dataset: Dataset):

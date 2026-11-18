@@ -1,7 +1,7 @@
 from hexa.user_management.models import User
 from hexa.webapps.models import Webapp
 from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
-from hexa.workspaces.permissions import can_make_public
+from hexa.workspaces.permissions import can_share_publicly
 
 
 def create_webapp(principal: User, workspace: Workspace):
@@ -30,4 +30,4 @@ def update_webapp(principal: User, webapp: Webapp):
 
 
 def share_webapp(principal: User, webapp: Webapp):
-    return can_make_public(principal, webapp.workspace, webapp.created_by_id)
+    return can_share_publicly(principal, webapp.workspace, webapp.created_by_id)
