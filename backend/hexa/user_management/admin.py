@@ -396,6 +396,7 @@ class OrganizationAdmin(GlobalObjectsModelAdmin):
 @admin.register(Team)
 class TeamAdmin(admin.ModelAdmin):
     list_display = ("name", "members_count")
+    search_fields = ("name",)
     inlines = [
         MembershipInline,
     ]
@@ -414,18 +415,30 @@ class FeatureAdmin(admin.ModelAdmin):
 @admin.register(FeatureFlag)
 class FeatureFlagAdmin(admin.ModelAdmin):
     list_display = ("feature", "user")
-    list_filter = ("feature", "user")
+    list_select_related = ("feature", "user")
+    list_filter = ("feature",)
+    search_fields = ("user__email", "user__first_name", "user__last_name")
+    autocomplete_fields = ("user",)
 
 
 @admin.register(OrganizationMembership)
 class OrganizationMembershipAdmin(admin.ModelAdmin):
-    autocomplete_fields = ("user",)
+    autocomplete_fields = ("organization", "user")
     list_display = (
         "organization",
         "user",
         "role",
         "created_at",
         "updated_at",
+    )
+    list_select_related = ("organization", "user")
+    list_filter = ("role", "organization")
+    search_fields = (
+        "user__email",
+        "user__first_name",
+        "user__last_name",
+        "organization__name",
+        "organization__short_name",
     )
 
 
@@ -448,6 +461,15 @@ class OrganizationInvitationAdmin(admin.ModelAdmin):
         "updated_at",
         "role",
     )
+    list_select_related = ("organization", "invited_by")
+    list_filter = ("status", "role", "organization")
+    search_fields = (
+        "email",
+        "invited_by__email",
+        "organization__name",
+        "organization__short_name",
+    )
+    autocomplete_fields = ("organization", "invited_by")
     inlines = [OrganizationWorkspaceInvitationInline]
 
 
