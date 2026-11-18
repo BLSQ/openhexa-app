@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from django.conf import settings
 
 from hexa.user_management.models import User
@@ -87,18 +89,41 @@ def manage_members(principal: User, workspace: Workspace):
     ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
 
 
+def can_make_public(
+    principal: User, workspace: Workspace, author_id: UUID | None = None
+) -> bool:
+    """The rule shared by every resource that can be made public (datasets, saved
+    queries, web apps, public files): organization admins/owners, workspace admins, and
+    the resource's author while they are still a workspace editor.
+
+    Editors are only trusted with their own resources: exposing someone else's to the
+    internet would hand out what its author never meant to publish. Workspace-level
+    settings have no author, so `author_id` is omitted for them.
+    """
+    if principal.is_organization_admin_or_owner(workspace.organization):
+        return True
+    membership = workspace.get_membership(principal)
+    if membership is None:
+        return False
+    if membership.role == WorkspaceMembershipRole.ADMIN:
+        return True
+    return (
+        author_id is not None
+        and author_id == principal.id
+        and membership.role == WorkspaceMembershipRole.EDITOR
+    )
+
+
 def manage_public_files(principal: User, workspace: Workspace):
-    """Only admin users of a workspace can expose its public folder, editors are excluded
-    because enabling it makes files reachable by anyone on the internet.
+    """Whether the principal may expose the public folder of the workspace
+    (`can_make_public`).
 
     Refused while the instance flag is off, so that no workspace sits in an enabled state
     that would silently go live the day the flag is turned on.
     """
     if not settings.PUBLIC_FILES_ENABLED:
         return False
-    return workspace.workspacemembership_set.filter(
-        user=principal, role=WorkspaceMembershipRole.ADMIN
-    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
+    return can_make_public(principal, workspace)
 
 
 def launch_notebooks(principal: User, workspace: Workspace):
