@@ -82,6 +82,8 @@ class WorkspaceMembershipAdmin(admin.ModelAdmin):
         "updated_at",
     )
     readonly_fields = ("notebooks_server_hash",)
+    list_select_related = ("workspace", "user")
+    list_filter = ("role", "workspace__organization")
     search_fields = (
         "user__email",
         "user__first_name",
@@ -112,6 +114,7 @@ class ConnectionAdmin(admin.ModelAdmin):
         "workspace",
         "connection_type",
     )
+    search_fields = ("name", "workspace__name", "workspace__slug")
 
     inlines = [ConnectionFieldInline]
 
@@ -131,10 +134,20 @@ class WorkspaceInvitationAdmin(admin.ModelAdmin):
         "email",
         "invited_by",
         "workspace",
+        "role",
         "status",
         "created_at",
         "updated_at",
     )
+    list_select_related = ("workspace", "invited_by")
+    list_filter = ("status", "role", "workspace__organization")
+    search_fields = (
+        "email",
+        "invited_by__email",
+        "workspace__name",
+        "workspace__slug",
+    )
+    autocomplete_fields = ("workspace", "invited_by")
 
 
 @admin.register(WorkspaceTokenUsage)
