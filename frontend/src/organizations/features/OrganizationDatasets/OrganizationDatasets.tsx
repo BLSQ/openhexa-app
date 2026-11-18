@@ -111,7 +111,7 @@ export default function OrganizationDatasets({
             )}
           </BaseColumn>
           <BaseColumn
-            label={t("Shared With")}
+            label={t("Visibility")}
             id="shared_workspaces"
             minWidth={300}
           >

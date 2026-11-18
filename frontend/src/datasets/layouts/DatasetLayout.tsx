@@ -12,6 +12,8 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
+import DatasetShareButton from "../features/DatasetSharing";
+import DatasetVisibilityBadge from "../features/DatasetSharing/DatasetVisibilityBadge";
 import DatasetVersionPicker from "../features/DatasetVersionPicker";
 import DeleteDatasetTrigger from "../features/DeleteDatasetTrigger";
 import DeleteDatasetVersionDialog from "../features/DeleteDatasetVersionDialog";
@@ -122,6 +124,7 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
       headerActions={
         <>
           <PinDatasetButton link={datasetLink} />
+          {isWorkspaceSource && <DatasetShareButton dataset={dataset} />}
           {dataset.permissions.createVersion && isWorkspaceSource && (
             <Button
               leadingIcon={<PlusIcon className="h-4 w-4" />}
@@ -156,7 +159,10 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
     >
       <WorkspaceLayout.PageContent>
         <Title level={2} className="flex items-center justify-between">
-          {dataset.name}
+          <span className="flex items-center gap-3">
+            {dataset.name}
+            <DatasetVisibilityBadge visibility={dataset.visibility} size="sm" />
+          </span>
           {version && (
             <div className="flex items-center gap-2">
               <DatasetVersionPicker
@@ -252,13 +258,16 @@ DatasetLayout.fragments = {
           slug
         }
         slug
+        visibility
         permissions {
           delete
           createVersion
         }
+        ...DatasetShareButton_dataset
       }
     }
     ${UploadDatasetVersionDialog.fragments.datasetLink}
+    ${DatasetShareButton.fragments.dataset}
     ${PinDatasetButton.fragments.link}
   `,
 

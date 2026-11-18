@@ -56,6 +56,16 @@ const renderButton = (webapp: any, mocks: MockedResponse[] = []) =>
     </TestApp>,
   );
 
+const openAndChoose = async (label: string) => {
+  fireEvent.click(screen.getByRole("button", { name: "Share" }));
+  fireEvent.click(
+    await screen.findByRole("radio", { name: new RegExp(`^${label}`) }),
+  );
+};
+
+const PUBLIC_WARNING =
+  "Anyone with the link will be able to open this web app without an OpenHEXA account. You can make it private again at any time.";
+
 beforeEach(() => jest.clearAllMocks());
 
 describe("WebappVisibilityButton", () => {
@@ -64,14 +74,12 @@ describe("WebappVisibilityButton", () => {
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
-  it("does not change visibility until the user confirms", async () => {
+  it("does not change visibility until the user saves", async () => {
     const mock = updateMock(true);
     renderButton(buildWebapp(), [mock]);
 
-    fireEvent.click(screen.getByRole("button", { name: "Make public" }));
-    expect(
-      await screen.findByText("Make this web app public?"),
-    ).toBeInTheDocument();
+    await openAndChoose("Public");
+    expect(screen.getByText(PUBLIC_WARNING)).toBeInTheDocument();
     expect(
       screen.getByText("https://my-app.webapps.openhexa.org/"),
     ).toBeInTheDocument();
@@ -79,22 +87,17 @@ describe("WebappVisibilityButton", () => {
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
     await waitFor(() =>
-      expect(
-        screen.queryByText("Make this web app public?"),
-      ).not.toBeInTheDocument(),
+      expect(screen.queryByText(PUBLIC_WARNING)).not.toBeInTheDocument(),
     );
     expect(mock.result).not.toHaveBeenCalled();
   });
 
-  it("makes a private web app public after confirmation", async () => {
+  it("makes a private web app public", async () => {
     const mock = updateMock(true);
     renderButton(buildWebapp(), [mock]);
 
-    fireEvent.click(screen.getByRole("button", { name: "Make public" }));
-    const dialogButtons = await screen.findAllByRole("button", {
-      name: "Make public",
-    });
-    fireEvent.click(dialogButtons[dialogButtons.length - 1]);
+    await openAndChoose("Public");
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => expect(mock.result).toHaveBeenCalled());
     await waitFor(() =>
@@ -105,10 +108,8 @@ describe("WebappVisibilityButton", () => {
   it("keeps the dialog content while the new visibility reaches the cache", async () => {
     const { rerender } = renderButton(buildWebapp());
 
-    fireEvent.click(screen.getByRole("button", { name: "Make public" }));
-    expect(
-      await screen.findByText("Make this web app public?"),
-    ).toBeInTheDocument();
+    await openAndChoose("Public");
+    expect(screen.getByText(PUBLIC_WARNING)).toBeInTheDocument();
 
     rerender(
       <TestApp mocks={[]}>
@@ -116,21 +117,18 @@ describe("WebappVisibilityButton", () => {
       </TestApp>,
     );
 
-    expect(screen.getByText("Make this web app public?")).toBeInTheDocument();
-    expect(
-      screen.queryByText("Make this web app private?"),
-    ).not.toBeInTheDocument();
+    expect(screen.getByText(PUBLIC_WARNING)).toBeInTheDocument();
   });
 
-  it("makes a public web app private after confirmation", async () => {
+  it("makes a public web app private", async () => {
     const mock = updateMock(false);
     renderButton(buildWebapp({ isPublic: true }), [mock]);
 
-    fireEvent.click(screen.getByRole("button", { name: "Make private" }));
-    const dialogButtons = await screen.findAllByRole("button", {
-      name: "Make private",
-    });
-    fireEvent.click(dialogButtons[dialogButtons.length - 1]);
+    await openAndChoose("Private");
+    expect(
+      screen.getByText(/The public link will stop working/),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => expect(mock.result).toHaveBeenCalled());
     await waitFor(() =>
@@ -142,8 +140,7 @@ describe("WebappVisibilityButton", () => {
   it("warns about API access only for static web apps", async () => {
     renderButton(buildWebapp({ type: WebappType.Iframe }));
 
-    fireEvent.click(screen.getByRole("button", { name: "Make public" }));
-    await screen.findByText("Make this web app public?");
+    await openAndChoose("Public");
 
     expect(
       screen.queryByText(/only reach the workspace's public resources/),
