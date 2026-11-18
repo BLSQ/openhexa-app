@@ -120,6 +120,8 @@ Example usage:
 	--all-dataset-versions # optional; default copies only each dataset's latest version
 ```
 
+`--disable-ssl-verification` turns off TLS certificate verification for the whole run (both servers and the file transfers). Use it only to get past a server whose certificate is known to be expired or self-signed: tokens and data are then exposed to anyone able to intercept the connection.
+
 Tokens are ServiceAccount tokens (managed under Django admin → Service accounts). Each side, this server included, needs one with permission to read the source workspace / create under the target organization. `--target-workspace-name` is optional and defaults to the same name as the source workspace.
 
 #### Re-running into an existing workspace (idempotency)

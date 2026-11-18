@@ -153,7 +153,9 @@ class DatasetsCopier(ResourceCopier):
         # copier: it reuses connections across files and carries no auth headers
         # (presigned URLs are self-authenticating and some storage backends
         # reject requests that also send an Authorization header).
-        with build_http_client(timeout=FILE_TRANSFER_TIMEOUT) as http_client:
+        with build_http_client(
+            timeout=FILE_TRANSFER_TIMEOUT, verify=options.verify_ssl
+        ) as http_client:
             for dataset_id, src_slug, target_name, target_slug in assignments:
                 if target_slug in existing_slugs:
                     ds_result.skipped.append(src_slug)

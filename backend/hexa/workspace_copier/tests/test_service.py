@@ -165,6 +165,32 @@ class ExistingTargetTest(SimpleTestCase):
         )
 
 
+class VerifySslTest(SimpleTestCase):
+    def _verify_flags(self, mock_build, **overrides):
+        mock_build.side_effect = [MagicMock(), MagicMock()]
+        _verify_endpoints(**_kwargs(**overrides))
+        return [call.kwargs["verify_ssl"] for call in mock_build.call_args_list]
+
+    @patch("hexa.workspace_copier.service.build_client")
+    def test_certificates_are_verified_by_default(self, mock_build):
+        self.assertEqual(self._verify_flags(mock_build), [True, True])
+
+    @patch("hexa.workspace_copier.service.build_client")
+    def test_verification_is_turned_off_on_both_sides(self, mock_build):
+        self.assertEqual(
+            self._verify_flags(mock_build, verify_ssl=False), [False, False]
+        )
+
+    @patch("hexa.workspace_copier.service.build_client")
+    def test_verification_is_turned_off_for_an_existing_target(self, mock_build):
+        self.assertEqual(
+            self._verify_flags(
+                mock_build, verify_ssl=False, target_workspace_slug="live-ws"
+            ),
+            [False, False],
+        )
+
+
 @override_settings(INTERNAL_BASE_URL="http://app:8000")
 class BlankUrlTest(SimpleTestCase):
     @patch("hexa.workspace_copier.service.build_client")

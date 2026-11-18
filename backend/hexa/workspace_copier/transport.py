@@ -74,6 +74,7 @@ def build_client(
     *,
     label: str,
     http_client: httpx.Client | None = None,
+    verify_ssl: bool = True,
 ) -> Client:
     """Build an SDK client authenticated with a Bearer token and verify it.
 
@@ -89,7 +90,9 @@ def build_client(
     # 120s read timeout: createPipelineTemplateVersion can fan out to
     # auto-update every pipeline derived from the template, which is slow
     # on prod and exceeds httpx's 5s default.
-    http = http_client or build_http_client(timeout=httpx.Timeout(120.0))
+    http = http_client or build_http_client(
+        timeout=httpx.Timeout(120.0), verify=verify_ssl
+    )
     http.headers["User-Agent"] = "openhexa-copy/1.0"
     http.headers["Authorization"] = f"Bearer {token}"
 

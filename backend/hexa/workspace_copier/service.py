@@ -52,7 +52,9 @@ class CredentialError(GraphQLError):
         super().__init__("; ".join(errors))
 
 
-def _build_source(url: str | None, token: str | None, slug: str) -> Endpoint:
+def _build_source(
+    url: str | None, token: str | None, slug: str, verify_ssl: bool = True
+) -> Endpoint:
     """Build the source endpoint, verifying the workspace exists.
 
     The lookup is what makes a wrong slug a pre-flight failure: the copiers read
@@ -60,7 +62,12 @@ def _build_source(url: str | None, token: str | None, slug: str) -> Endpoint:
     report a clean run that copied nothing. The workspace is stashed on the
     endpoint, so the copiers reuse it rather than fetching it again.
     """
-    client = build_client(url or this_server_graphql_url(), token, label="source")
+    client = build_client(
+        url or this_server_graphql_url(),
+        token,
+        label="source",
+        verify_ssl=verify_ssl,
+    )
     workspace = client.workspace(slug=slug)
     if workspace is None:
         raise GraphQLError(f"source workspace '{slug}' not found")
@@ -73,17 +80,23 @@ def _build_target(
     organization_id: str | None,
     workspace_name: str | None,
     workspace_slug: str | None,
+    verify_ssl: bool = True,
 ) -> Endpoint:
     if workspace_slug:
-        return _build_existing_target(url, token, workspace_slug)
-    client = build_client(url or this_server_graphql_url(), token, label="target")
+        return _build_existing_target(url, token, workspace_slug, verify_ssl)
+    client = build_client(
+        url or this_server_graphql_url(),
+        token,
+        label="target",
+        verify_ssl=verify_ssl,
+    )
     return Endpoint(
         client, organization_id=organization_id, workspace_name=workspace_name
     )
 
 
 def _build_existing_target(
-    url: str | None, token: str | None, workspace_slug: str
+    url: str | None, token: str | None, workspace_slug: str, verify_ssl: bool = True
 ) -> Endpoint:
     """Build a target endpoint pointing at a pre-existing workspace.
 
@@ -94,7 +107,12 @@ def _build_existing_target(
     copier skips creation and the downstream copiers make the rest of the run
     idempotent by skipping resources that already exist.
     """
-    client = build_client(url or this_server_graphql_url(), token, label="target")
+    client = build_client(
+        url or this_server_graphql_url(),
+        token,
+        label="target",
+        verify_ssl=verify_ssl,
+    )
     workspace = client.workspace(slug=workspace_slug)
     if workspace is None:
         raise GraphQLError(
@@ -227,11 +245,12 @@ def _verify_endpoints(
     target_workspace_name: str | None,
     target_workspace_slug: str | None = None,
     same_server: bool = False,
+    verify_ssl: bool = True,
 ) -> tuple[Endpoint, Endpoint]:
     """Verify and build both endpoints, raising :class:`CredentialError` on failure."""
     source, source_err = _verify_side(
         "source",
-        lambda: _build_source(source_url, source_token, source_slug),
+        lambda: _build_source(source_url, source_token, source_slug, verify_ssl),
     )
     target, target_err = _verify_side(
         "target",
@@ -241,6 +260,7 @@ def _verify_endpoints(
             target_organization_id,
             target_workspace_name,
             target_workspace_slug,
+            verify_ssl,
         ),
     )
     errors = [e for e in (source_err, target_err) if e]
@@ -277,6 +297,7 @@ def run_copy(
         target_workspace_name=target_workspace_name,
         target_workspace_slug=target_workspace_slug,
         same_server=options.same_server,
+        verify_ssl=options.verify_ssl,
     )
     return copy_workspace(
         source,
