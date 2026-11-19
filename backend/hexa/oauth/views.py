@@ -16,6 +16,8 @@ from oauth2_provider.views import AuthorizationView
 from hexa.mcp.server import get_tools_list
 from hexa.oauth.scopes import GIT_SCOPE, MCP_SCOPE
 
+NAVIGATE_CALLBACK_HOSTS = {"callback.mistral.ai"}
+
 
 def mcp_tools() -> list[dict]:
     """The MCP tool list shown on the consent and success pages."""
@@ -238,7 +240,12 @@ class OAuthAuthorizeView(AuthorizationView):
         )
         if urlparse(redirect_to).scheme not in allowed_schemes:
             raise DisallowedRedirect("Redirect URI scheme is not allowed")
-        context = {"redirect_uri": redirect_to}
+        parsed = urlparse(redirect_to)
+        context = {
+            "redirect_uri": redirect_to,
+            "background": parsed.scheme in ("http", "https")
+            and parsed.hostname not in NAVIGATE_CALLBACK_HOSTS,
+        }
         if MCP_SCOPE in scope.split() and application is not None:
             context["client_name"] = application.name
             context[
