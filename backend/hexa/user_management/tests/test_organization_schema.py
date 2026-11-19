@@ -1557,6 +1557,35 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         )
         mock_send_invite.assert_not_called()
 
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_create_organization_invites_owner_with_unreadable_password_hash(
+        self, mock_send_invite
+    ):
+        """A hash OpenHEXA cannot read falls back to inviting the owner, rather than failing."""
+        self.client.force_login(self.superuser)
+        with self.assertLogs("hexa.user_management.schema.mutations", level="WARNING"):
+            r = self.run_query(
+                """
+                mutation CreateOrganization($input: CreateOrganizationInput!) {
+                    createOrganization(input: $input) { success loginUrl invitationUrl user { email } }
+                }
+                """,
+                {
+                    "input": {
+                        **self._create_input("newowner@example.org", "Org Bad Hash"),
+                        "ownerAccount": {"passwordHash": "unknown_hasher$1$abc"},
+                    }
+                },
+            )
+
+        result = r["data"]["createOrganization"]
+        self.assertTrue(result["success"])
+        self.assertIsNone(result["loginUrl"])
+        self.assertIsNone(result["user"])
+        self.assertIn("token=", result["invitationUrl"])
+        self.assertFalse(User.objects.filter(email="newowner@example.org").exists())
+        mock_send_invite.assert_called_once()
+
     @patch("hexa.user_management.schema.mutations.send_organization_add_user_email")
     def test_create_organization_with_owner_account_for_existing_user(
         self, mock_send_email

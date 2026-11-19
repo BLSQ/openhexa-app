@@ -1,8 +1,10 @@
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from itertools import chain
 from urllib.parse import urlencode
 
 from django.conf import settings
+from django.contrib.auth.hashers import identify_hasher
 from django.core import signing
 from django.urls import reverse
 from django.utils.translation import gettext, gettext_lazy, override
@@ -59,6 +61,15 @@ def get_organization_invite_url(invitation: OrganizationInvitation) -> str:
     return f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
 
 
+def is_known_password_hash(password_hash: str) -> bool:
+    """Whether one of OpenHEXA's password hashers can check passwords against ``password_hash``."""
+    try:
+        identify_hasher(password_hash)
+    except ValueError:
+        return False
+    return True
+
+
 def get_login_url(user: User, organization: Organization) -> str:
     """Single-use link that logs ``user`` in and opens ``organization``, valid for ``LOGIN_LINK_MAX_AGE``."""
     token = signing.dumps(
@@ -72,16 +83,28 @@ def get_login_url(user: User, organization: Organization) -> str:
     return f"{settings.NEW_FRONTEND_DOMAIN}{reverse('login_link', args=[token])}"
 
 
-def get_login_link_target(token: str) -> tuple[User, str] | None:
-    """The user to log in and the id of the organization to open, or None if the link is invalid, expired or used."""
+@dataclass(frozen=True)
+class LoginLink:
+    user: User | None
+    organization_id: str
+    usable: bool  # False once the link has expired or been used
+
+
+def read_login_link(token: str) -> LoginLink | None:
+    """The link created by ``get_login_url``, or None if it was not (tampered with or forged)."""
     try:
         payload = signing.loads(token, salt=LOGIN_LINK_SALT, max_age=LOGIN_LINK_MAX_AGE)
+        expired = False
+    except signing.SignatureExpired:
+        payload = signing.loads(token, salt=LOGIN_LINK_SALT)
+        expired = True
     except signing.BadSignature:
         return None
     user = User.objects.filter(id=payload["user"], is_active=True).first()
-    if user is None or _login_link_state(user) != payload["state"]:
-        return None
-    return user, payload["organization"]
+    usable = (
+        not expired and user is not None and _login_link_state(user) == payload["state"]
+    )
+    return LoginLink(user=user, organization_id=payload["organization"], usable=usable)
 
 
 def _login_link_state(user: User) -> str:

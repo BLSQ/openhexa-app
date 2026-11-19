@@ -96,26 +96,59 @@ class LoginLinkViewTest(TestCase):
         )
         self.assertEqual(self.client.session[SESSION_KEY], str(self.OWNER.id))
 
-    def test_link_is_single_use(self):
+    def _assert_redirects_to_login_then_organization(self, response):
+        self.assertRedirects(
+            response,
+            f"{settings.NEW_FRONTEND_DOMAIN}/login?next=%2Forganizations%2F{self.ORGANIZATION.id}",
+            fetch_redirect_response=False,
+        )
+        self.assertNotIn(SESSION_KEY, self.client.session)
+
+    def test_used_link_leads_to_login_then_organization(self):
         url = get_login_url(self.OWNER, self.ORGANIZATION)
         self.client.get(url)
         self.client.logout()
+
+        self._assert_redirects_to_login_then_organization(self.client.get(url))
+
+    def test_used_link_opens_organization_for_its_logged_in_owner(self):
+        url = get_login_url(self.OWNER, self.ORGANIZATION)
+        self.client.get(url)
 
         response = self.client.get(url)
 
         self.assertRedirects(
             response,
-            f"{settings.NEW_FRONTEND_DOMAIN}/login",
+            f"{settings.NEW_FRONTEND_DOMAIN}/organizations/{self.ORGANIZATION.id}",
             fetch_redirect_response=False,
         )
-        self.assertNotIn(SESSION_KEY, self.client.session)
 
-    def test_expired_link(self):
+    def test_used_link_does_not_open_organization_for_another_user(self):
+        url = get_login_url(self.OWNER, self.ORGANIZATION)
+        self.client.get(url)
+        self.client.logout()
+        self.client.force_login(User.objects.create_user("other@example.org", "pw"))
+
+        response = self.client.get(url)
+
+        self.assertRedirects(
+            response,
+            f"{settings.NEW_FRONTEND_DOMAIN}/login?next=%2Forganizations%2F{self.ORGANIZATION.id}",
+            fetch_redirect_response=False,
+        )
+
+    def test_expired_link_leads_to_login_then_organization(self):
         issued_at = time.time() - LOGIN_LINK_MAX_AGE.total_seconds() - 1
         with patch("django.core.signing.time.time", return_value=issued_at):
             url = get_login_url(self.OWNER, self.ORGANIZATION)
 
-        response = self.client.get(url)
+        self._assert_redirects_to_login_then_organization(self.client.get(url))
+
+    def test_tampered_link_leads_to_login(self):
+        url = get_login_url(self.OWNER, self.ORGANIZATION)
+
+        with self.assertLogs("hexa.user_management.views", level="WARNING"):
+            response = self.client.get(url.rstrip("/") + "x/")
 
         self.assertRedirects(
             response,

@@ -1,3 +1,6 @@
+import logging
+from urllib.parse import urlencode
+
 import requests
 from django.conf import settings
 from django.contrib.auth import login
@@ -9,7 +12,9 @@ from sentry_sdk import capture_exception
 
 from hexa.analytics.api import track
 
-from .utils import get_login_link_target
+from .utils import read_login_link
+
+logger = logging.getLogger(__name__)
 
 
 class LogoutView(BaseLogoutView):
@@ -31,11 +36,21 @@ class LogoutView(BaseLogoutView):
 
 
 def login_link(request: HttpRequest, token: str) -> HttpResponse:
-    """Log in the owner created by ``createOrganization`` (see ``get_login_url``) and open their organization."""
-    target = get_login_link_target(token)
-    if target is None:
+    """
+    Log in the owner created by ``createOrganization`` (see ``get_login_url``) and open their organization.
+
+    An expired or used link still leads to the organization, through the login page unless that owner is already
+    logged in: they have the password they chose on the console.
+    """
+    link = read_login_link(token)
+    if link is None:
+        logger.warning("Invalid login link")
         return redirect(f"{settings.NEW_FRONTEND_DOMAIN}/login")
-    user, organization_id = target
-    login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-    track(request, "users.user_logged_in", user=user)
-    return redirect(f"{settings.NEW_FRONTEND_DOMAIN}/organizations/{organization_id}")
+    organization_path = f"/organizations/{link.organization_id}"
+    if link.usable:
+        login(request, link.user, backend="django.contrib.auth.backends.ModelBackend")
+        track(request, "users.user_logged_in", user=link.user)
+    elif request.user != link.user:
+        query = urlencode({"next": organization_path})
+        return redirect(f"{settings.NEW_FRONTEND_DOMAIN}/login?{query}")
+    return redirect(f"{settings.NEW_FRONTEND_DOMAIN}{organization_path}")

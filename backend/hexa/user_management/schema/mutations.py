@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
@@ -53,12 +54,15 @@ from ..utils import (
     get_login_url,
     get_organization_invite_url,
     has_configured_two_factor,
+    is_known_password_hash,
     send_organization_add_user_email,
     send_organization_invite,
     send_signup_email,
 )
 
 identity_mutations = MutationType()
+
+logger = logging.getLogger(__name__)
 
 
 def update_workspace_permissions(
@@ -995,6 +999,13 @@ def resolve_create_organization(_, info, **kwargs):
     limits = create_input["limits"]
     send_invitation_email = create_input.get("send_invitation_email") is not False
     owner_account = create_input.get("owner_account")
+    if owner_account and not is_known_password_hash(owner_account["password_hash"]):
+        # Inviting keeps the owner a way in, where failing would leave the caller with no organization at all
+        logger.warning(
+            "Cannot read the password hash for new owner %s, inviting them instead",
+            owner_email,
+        )
+        owner_account = None
 
     if Organization.objects.filter(name=name).exists():
         return {
