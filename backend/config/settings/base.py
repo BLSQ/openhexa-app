@@ -851,7 +851,7 @@ OAUTH2_PROVIDER = {
     "REFRESH_TOKEN_EXPIRE_SECONDS": int(
         os.environ.get("OAUTH2_REFRESH_TOKEN_EXPIRE_SECONDS", 30 * 24 * 60 * 60)
     ),
-    "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http"],
+    "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http", "cursor"],
     "OAUTH2_VALIDATOR_CLASS": "hexa.oauth.validators.OpenHEXAOAuth2Validator",
 }
 
@@ -879,14 +879,22 @@ GIT_OAUTH_CLIENT_IDS = {FORGEJO_OAUTH_CLIENT_ID, GIT_OAUTH_CLIENT_ID}
 OAUTH2_ALLOWED_REDIRECT_URI_HOSTS = {
     "localhost",
     "127.0.0.1",
+    "::1",
     "claude.ai",
+    "claude.com",
     "chatgpt.com",
     "chat.openai.com",
+    "callback.mistral.ai",
+    "vscode.dev",
 }
 if "OAUTH2_ALLOWED_REDIRECT_URI_HOSTS" in os.environ:
     OAUTH2_ALLOWED_REDIRECT_URI_HOSTS.update(
         os.environ["OAUTH2_ALLOWED_REDIRECT_URI_HOSTS"].split(",")
     )
+
+OAUTH2_ALLOWED_APP_REDIRECT_URIS = {
+    "cursor": {"anysphere.cursor-mcp", "anysphere.cursor-retrieval"},
+}
 
 # django-sql-dashboard additional settings
 # https://django-sql-dashboard.datasette.io/en/stable/setup.html#additional-settings
