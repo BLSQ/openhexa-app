@@ -149,12 +149,26 @@ def send_organization_invite(invitation):
 
 
 def send_organization_add_user_email(
-    invited_by, organization: Organization, invitee, role, workspace_invitations=None
+    invited_by,
+    organization: Organization,
+    invitee,
+    role,
+    workspace_invitations=None,
+    new_account: bool = False,
 ):
-    """Send email to existing user when added to organization"""
-    title = gettext_lazy(
-        f"You've been added to the organization {organization.name} on OpenHEXA"
-    )
+    """
+    Send email to a user added to an organization.
+
+    ``new_account`` is for an owner whose account was just created for them (see ``createOrganization``).
+    """
+    if new_account:
+        title = gettext_lazy(
+            f"Your organization {organization.name} is ready on OpenHEXA"
+        )
+    else:
+        title = gettext_lazy(
+            f"You've been added to the organization {organization.name} on OpenHEXA"
+        )
     action_url = f"{settings.NEW_FRONTEND_DOMAIN}/organizations/{organization.id}"
     invited_by = None if isinstance(invited_by, ServiceAccount) else invited_by
 
@@ -168,6 +182,7 @@ def send_organization_add_user_email(
                 "invitee": invitee.display_name,
                 "url": action_url,
                 "workspace_invitations": workspace_invitations or [],
+                "new_account": new_account,
             },
             recipient_list=[invitee.email],
             attachments=get_email_attachments(),

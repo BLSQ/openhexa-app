@@ -1054,13 +1054,6 @@ def resolve_create_organization(_, info, **kwargs):
             user=user,
             role=OrganizationMembershipRole.OWNER,
         )
-        if send_invitation_email:
-            send_organization_add_user_email(
-                invited_by=principal,
-                organization=organization,
-                invitee=user,
-                role=OrganizationMembershipRole.OWNER,
-            )
     except User.DoesNotExist:
         if owner_account:
             # The hash comes from the console, which shares Django's password hashers with OpenHEXA
@@ -1089,6 +1082,16 @@ def resolve_create_organization(_, info, **kwargs):
             if send_invitation_email:
                 send_organization_invite(invitation)
             user = None  # User will be created when they accept the invitation
+
+    # Also sent to an owner created from ownerAccount: the email is how they find OpenHEXA again later
+    if user and send_invitation_email:
+        send_organization_add_user_email(
+            invited_by=principal,
+            organization=organization,
+            invitee=user,
+            role=OrganizationMembershipRole.OWNER,
+            new_account=login_url is not None,
+        )
 
     return {
         "success": True,

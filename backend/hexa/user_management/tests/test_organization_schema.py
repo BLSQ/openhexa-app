@@ -1513,8 +1513,11 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertTrue(self.regular_user.is_organization_owner(org))
         mock_send_email.assert_not_called()
 
+    @patch("hexa.user_management.schema.mutations.send_organization_add_user_email")
     @patch("hexa.user_management.schema.mutations.send_organization_invite")
-    def test_create_organization_with_owner_account(self, mock_send_invite):
+    def test_create_organization_with_owner_account(
+        self, mock_send_invite, mock_send_email
+    ):
         """A new owner sent with ownerAccount gets an account with the given password and a login link, no invitation."""
         self.client.force_login(self.superuser)
         r = self.run_query(
@@ -1556,6 +1559,41 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
             OrganizationInvitation.objects.filter(email="newowner@example.org").exists()
         )
         mock_send_invite.assert_not_called()
+        mock_send_email.assert_called_once_with(
+            invited_by=self.superuser,
+            organization=Organization.objects.get(name="Org With Account"),
+            invitee=owner,
+            role=OrganizationMembershipRole.OWNER,
+            new_account=True,
+        )
+
+    def test_create_organization_emails_created_owner_how_to_log_in(self):
+        self.client.force_login(self.superuser)
+        self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) { success }
+            }
+            """,
+            {
+                "input": {
+                    **self._create_input("newowner@example.org", "Org Welcome"),
+                    "ownerAccount": {"passwordHash": make_password("console-password")},
+                }
+            },
+        )
+
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+        self.assertEqual(email.to, ["newowner@example.org"])
+        self.assertEqual(
+            email.subject, "Your organization Org Welcome is ready on OpenHEXA"
+        )
+        self.assertIn(
+            "same email address and password as on the Bluesquare Console", email.body
+        )
+        organization = Organization.objects.get(name="Org Welcome")
+        self.assertIn(f"/organizations/{organization.id}", email.body)
 
     @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_create_organization_invites_owner_with_unreadable_password_hash(
