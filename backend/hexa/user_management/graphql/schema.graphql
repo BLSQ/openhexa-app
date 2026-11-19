@@ -2290,6 +2290,24 @@ input CreateOrganizationInput {
     Defaults to true. The caller can pass false and send the owner to invitationUrl itself.
     """
     sendInvitationEmail: Boolean
+
+    """
+    The account to create for an owner who has none yet, instead of inviting them. The caller then sends them to loginUrl.
+    """
+    ownerAccount: OwnerAccountInput
+}
+
+"""
+An OpenHEXA account created directly for a new organization owner.
+"""
+input OwnerAccountInput {
+    firstName: String
+    lastName: String
+
+    """
+    The owner's password, already hashed by a Django password hasher, so that the caller never handles it in clear.
+    """
+    passwordHash: String!
 }
 
 """
@@ -2315,6 +2333,11 @@ type CreateOrganizationResult {
     The registration link for a new owner (null when the owner already had an account). Valid for 48 hours.
     """
     invitationUrl: String
+
+    """
+    A single-use link that logs in the owner created from ownerAccount and opens the organization. Valid for 15 minutes.
+    """
+    loginUrl: String
 
     """
     The list of errors that occurred during the createOrganization mutation.

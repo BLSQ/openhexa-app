@@ -1,9 +1,14 @@
+import time
+from unittest.mock import patch
+
 import responses
 from django.conf import settings
+from django.contrib.auth import SESSION_KEY
 from django.urls import reverse
 
 from hexa.core.test import TestCase
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
+from hexa.user_management.utils import LOGIN_LINK_MAX_AGE, get_login_url
 
 
 class ViewsTest(TestCase):
@@ -73,3 +78,48 @@ class AcceptTosTest(TestCase):
             "john@bluesquarehub.com",
             "regular",
         )
+
+
+class LoginLinkViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.ORGANIZATION = Organization.objects.create(name="Org")
+        cls.OWNER = User.objects.create_user("owner@example.org", "password")
+
+    def test_logs_in_and_opens_organization(self):
+        response = self.client.get(get_login_url(self.OWNER, self.ORGANIZATION))
+
+        self.assertRedirects(
+            response,
+            f"{settings.NEW_FRONTEND_DOMAIN}/organizations/{self.ORGANIZATION.id}",
+            fetch_redirect_response=False,
+        )
+        self.assertEqual(self.client.session[SESSION_KEY], str(self.OWNER.id))
+
+    def test_link_is_single_use(self):
+        url = get_login_url(self.OWNER, self.ORGANIZATION)
+        self.client.get(url)
+        self.client.logout()
+
+        response = self.client.get(url)
+
+        self.assertRedirects(
+            response,
+            f"{settings.NEW_FRONTEND_DOMAIN}/login",
+            fetch_redirect_response=False,
+        )
+        self.assertNotIn(SESSION_KEY, self.client.session)
+
+    def test_expired_link(self):
+        issued_at = time.time() - LOGIN_LINK_MAX_AGE.total_seconds() - 1
+        with patch("django.core.signing.time.time", return_value=issued_at):
+            url = get_login_url(self.OWNER, self.ORGANIZATION)
+
+        response = self.client.get(url)
+
+        self.assertRedirects(
+            response,
+            f"{settings.NEW_FRONTEND_DOMAIN}/login",
+            fetch_redirect_response=False,
+        )
+        self.assertNotIn(SESSION_KEY, self.client.session)

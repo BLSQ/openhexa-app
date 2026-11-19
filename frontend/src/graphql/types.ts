@@ -1078,6 +1078,8 @@ export type CreateOrganizationInput = {
   limits: ResourceCountsInput;
   /** The name of the organization. */
   name: Scalars['String']['input'];
+  /** The account to create for an owner who has none yet, instead of inviting them. The caller then sends them to loginUrl. */
+  ownerAccount?: InputMaybe<OwnerAccountInput>;
   /** The email address of the organization owner. Creates user if doesn't exist. */
   ownerEmail: Scalars['String']['input'];
   /** The subscription plan code (e.g., "openhexa_starter"). */
@@ -1107,6 +1109,8 @@ export type CreateOrganizationResult = {
   errors: Array<CreateOrganizationError>;
   /** The registration link for a new owner (null when the owner already had an account). Valid for 48 hours. */
   invitationUrl?: Maybe<Scalars['String']['output']>;
+  /** A single-use link that logs in the owner created from ownerAccount and opens the organization. Valid for 15 minutes. */
+  loginUrl?: Maybe<Scalars['String']['output']>;
   /** The created organization object. */
   organization?: Maybe<Organization>;
   /** Indicates whether the createOrganization mutation was successful. */
@@ -4384,6 +4388,14 @@ export type OrganizationWorkspaceInvitation = {
   __typename?: 'OrganizationWorkspaceInvitation';
   role: WorkspaceMembershipRole;
   workspace: Workspace;
+};
+
+/** An OpenHEXA account created directly for a new organization owner. */
+export type OwnerAccountInput = {
+  firstName?: InputMaybe<Scalars['String']['input']>;
+  lastName?: InputMaybe<Scalars['String']['input']>;
+  /** The owner's password, already hashed by a Django password hasher, so that the caller never handles it in clear. */
+  passwordHash: Scalars['String']['input'];
 };
 
 /** Represents an input parameter of a pipeline. */

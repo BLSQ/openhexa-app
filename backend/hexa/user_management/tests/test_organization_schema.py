@@ -5,6 +5,7 @@ from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core import mail
@@ -1511,6 +1512,77 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         org = Organization.objects.get(name="Existing Owner No Email")
         self.assertTrue(self.regular_user.is_organization_owner(org))
         mock_send_email.assert_not_called()
+
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_create_organization_with_owner_account(self, mock_send_invite):
+        """A new owner sent with ownerAccount gets an account with the given password and a login link, no invitation."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) { success loginUrl invitationUrl user { email } }
+            }
+            """,
+            {
+                "input": {
+                    **self._create_input("newowner@example.org", "Org With Account"),
+                    "ownerAccount": {
+                        "firstName": "Ada",
+                        "lastName": "Lovelace",
+                        "passwordHash": make_password("console-password"),
+                    },
+                }
+            },
+        )
+
+        result = r["data"]["createOrganization"]
+        self.assertTrue(result["success"])
+        self.assertEqual(result["user"]["email"], "newowner@example.org")
+        self.assertIsNone(result["invitationUrl"])
+        self.assertTrue(
+            result["loginUrl"].startswith(
+                f"{settings.NEW_FRONTEND_DOMAIN}/auth/login-link/"
+            )
+        )
+        owner = User.objects.get(email="newowner@example.org")
+        self.assertEqual((owner.first_name, owner.last_name), ("Ada", "Lovelace"))
+        self.assertTrue(owner.check_password("console-password"))
+        self.assertTrue(
+            owner.is_organization_owner(
+                Organization.objects.get(name="Org With Account")
+            )
+        )
+        self.assertFalse(
+            OrganizationInvitation.objects.filter(email="newowner@example.org").exists()
+        )
+        mock_send_invite.assert_not_called()
+
+    @patch("hexa.user_management.schema.mutations.send_organization_add_user_email")
+    def test_create_organization_with_owner_account_for_existing_user(
+        self, mock_send_email
+    ):
+        """An existing owner keeps their account and password, and gets no login link."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) { success loginUrl user { email } }
+            }
+            """,
+            {
+                "input": {
+                    **self._create_input(self.regular_user.email, "Org Existing Owner"),
+                    "ownerAccount": {"passwordHash": make_password("other-password")},
+                }
+            },
+        )
+
+        result = r["data"]["createOrganization"]
+        self.assertTrue(result["success"])
+        self.assertIsNone(result["loginUrl"])
+        self.regular_user.refresh_from_db()
+        self.assertFalse(self.regular_user.check_password("other-password"))
+        mock_send_email.assert_called_once()
 
     @patch("hexa.user_management.schema.mutations.send_organization_add_user_email")
     def test_create_organization_with_existing_user(self, mock_send_email):

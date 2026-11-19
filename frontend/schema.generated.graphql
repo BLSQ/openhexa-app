@@ -1058,6 +1058,11 @@ input CreateOrganizationInput {
   name: String!
 
   """
+  The account to create for an owner who has none yet, instead of inviting them. The caller then sends them to loginUrl.
+  """
+  ownerAccount: OwnerAccountInput
+
+  """
   The email address of the organization owner. Creates user if doesn't exist.
   """
   ownerEmail: String!
@@ -1100,6 +1105,11 @@ type CreateOrganizationResult {
   The registration link for a new owner (null when the owner already had an account). Valid for 48 hours.
   """
   invitationUrl: String
+
+  """
+  A single-use link that logs in the owner created from ownerAccount and opens the organization. Valid for 15 minutes.
+  """
+  loginUrl: String
 
   """The created organization object."""
   organization: Organization
@@ -3810,6 +3820,17 @@ type OrganizationPermissions {
 type OrganizationWorkspaceInvitation {
   role: WorkspaceMembershipRole!
   workspace: Workspace!
+}
+
+"""An OpenHEXA account created directly for a new organization owner."""
+input OwnerAccountInput {
+  firstName: String
+  lastName: String
+
+  """
+  The owner's password, already hashed by a Django password hasher, so that the caller never handles it in clear.
+  """
+  passwordHash: String!
 }
 
 """Represents an input parameter of a pipeline."""

@@ -1,8 +1,10 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from itertools import chain
 from urllib.parse import urlencode
 
 from django.conf import settings
+from django.core import signing
+from django.urls import reverse
 from django.utils.translation import gettext, gettext_lazy, override
 from django_otp import devices_for_user, user_has_device
 
@@ -21,6 +23,8 @@ from hexa.workspaces.models import WorkspaceInvitation, WorkspaceInvitationStatu
 
 USER_DEFAULT_DEVICE_ATTR_NAME = "_default_device"
 DEVICE_DEFAULT_NAME = "default"
+LOGIN_LINK_SALT = "hexa.user_management.login_link"
+LOGIN_LINK_MAX_AGE = timedelta(minutes=15)
 
 
 def default_device(user, confirmed=True):
@@ -53,6 +57,36 @@ def get_organization_invite_url(invitation: OrganizationInvitation) -> str:
     """Registration link for an organization invitation (the token is valid for 48 hours)."""
     token = invitation.generate_token()
     return f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
+
+
+def get_login_url(user: User, organization: Organization) -> str:
+    """Single-use link that logs ``user`` in and opens ``organization``, valid for ``LOGIN_LINK_MAX_AGE``."""
+    token = signing.dumps(
+        {
+            "user": str(user.id),
+            "organization": str(organization.id),
+            "state": _login_link_state(user),
+        },
+        salt=LOGIN_LINK_SALT,
+    )
+    return f"{settings.NEW_FRONTEND_DOMAIN}{reverse('login_link', args=[token])}"
+
+
+def get_login_link_target(token: str) -> tuple[User, str] | None:
+    """The user to log in and the id of the organization to open, or None if the link is invalid, expired or used."""
+    try:
+        payload = signing.loads(token, salt=LOGIN_LINK_SALT, max_age=LOGIN_LINK_MAX_AGE)
+    except signing.BadSignature:
+        return None
+    user = User.objects.filter(id=payload["user"], is_active=True).first()
+    if user is None or _login_link_state(user) != payload["state"]:
+        return None
+    return user, payload["organization"]
+
+
+def _login_link_state(user: User) -> str:
+    # Logging in updates last_login, which makes every link issued before it unusable
+    return user.last_login.isoformat() if user.last_login else ""
 
 
 def send_organization_invite(invitation):
