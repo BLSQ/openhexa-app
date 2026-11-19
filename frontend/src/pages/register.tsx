@@ -29,8 +29,10 @@ interface RegisterForm {
 const RegisterPage: NextPageWithLayout = (props: {
   token: string;
   email: string;
+  firstName?: string;
+  lastName?: string;
 }) => {
-  const { email, token } = props;
+  const { email, token, firstName, lastName } = props;
   const router = useRouter();
   const [register] = useRegisterMutation();
   const { t } = useTranslation();
@@ -76,7 +78,7 @@ const RegisterPage: NextPageWithLayout = (props: {
         );
       }
     },
-    initialState: {},
+    initialState: { firstName, lastName },
     validate: (values) => {
       const errors = {} as any;
       if (values.password1 !== values.password2) {
@@ -236,10 +238,16 @@ export const getServerSideProps = createGetServerSideProps({
       };
     }
 
+    // The Bluesquare Console passes the names it already knows, so that its customers don't type them twice
+    const queryString = (value: string | string[] | undefined) =>
+      typeof value === "string" ? value : "";
+
     return {
       props: {
         token: ctx.query.token,
         email: ctx.query.email,
+        firstName: queryString(ctx.query.first_name),
+        lastName: queryString(ctx.query.last_name),
       },
     };
   },
