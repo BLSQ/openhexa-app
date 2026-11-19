@@ -1,8 +1,8 @@
 import { ReactNode } from "react";
 import { useTranslation } from "next-i18next";
 
-// TODO(HEXA-1890): `fr` temporarily reuses the English video until the French
-// "Getting started" video is uploaded to YouTube; replace it with its ID.
+// TODO(HEXA-1890): temporary test video for both languages; replace with the
+// EN/FR "Getting started" videos once they are uploaded to YouTube.
 const GETTING_STARTED_VIDEO_IDS: Record<string, string> = {
   en: "MKY2M78uNNE",
   fr: "MKY2M78uNNE",
