@@ -1,4 +1,5 @@
 import io
+import uuid
 import zipfile
 
 from pydantic import BaseModel
@@ -10,7 +11,9 @@ from hexa.assistant.tools.proposals import (
     resolve_commit_message,
     resolve_deleted_paths,
 )
-from hexa.pipelines.models import Pipeline
+from hexa.mcp.tools.pipelines import DEFAULT_RUN_LOG_LINES
+from hexa.mcp.tools.pipelines import get_pipeline_run as mcp_get_pipeline_run
+from hexa.pipelines.models import Pipeline, PipelineRun
 
 
 class ProposedFile(BaseModel):
@@ -88,3 +91,29 @@ def propose_pipeline_version(
     if message:
         output["commit_message"] = message
     return output
+
+
+def get_pipeline_run(
+    user,
+    pipeline: Pipeline | None,
+    run_id: str,
+    max_log_lines: int = DEFAULT_RUN_LOG_LINES,
+) -> dict:
+    """Get a run of the current pipeline: status, parameters used, messages, outputs and logs.
+
+    Take run ids from "Recent Runs" in your context, or from the user. Only runs of the
+    current pipeline can be read. Logs are cut to their last `max_log_lines` lines, and a
+    `logsTruncated` note says when earlier lines were left out: call again with a higher
+    value if the cause is not visible. Secret parameter values are masked.
+    """
+    try:
+        run_uuid = uuid.UUID(run_id)
+    except ValueError:
+        return {"error": f"{run_id!r} is not a valid run id"}
+    if (
+        pipeline is None
+        or not PipelineRun.objects.filter(id=run_uuid, pipeline=pipeline).exists()
+    ):
+        return {"error": "No run with this id belongs to the current pipeline"}
+
+    return mcp_get_pipeline_run(user, run_id, max_log_lines)

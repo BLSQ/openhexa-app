@@ -35,6 +35,7 @@ asgiref==3.9.0
     # via
     #   django
     #   django-allauth
+    #   django-axes
     #   django-cors-headers
     #   django-countries
 attrs==25.3.0
@@ -131,6 +132,7 @@ django==5.2.17
     #   -r requirements.in
     #   ariadne-django
     #   django-allauth
+    #   django-axes
     #   django-cors-headers
     #   django-debug-toolbar
     #   django-ltree
@@ -141,6 +143,8 @@ django==5.2.17
     #   django-sql-dashboard
     #   django-storages
 django-allauth[socialaccount]==65.18.0
+    # via -r requirements.in
+django-axes==9.0.0
     # via -r requirements.in
 django-cors-headers==4.7.0
     # via -r requirements.in

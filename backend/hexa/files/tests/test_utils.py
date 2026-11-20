@@ -43,3 +43,10 @@ class IsSafePathTest(TestCase):
         for path in SAFE_PATHS:
             with self.subTest(path=path):
                 self.assertTrue(is_safe_path(path))
+
+    def test_tilde_is_rejected_unless_allowed(self):
+        for path in ["~/secret", "data~backup.csv", "~$report.xlsx"]:
+            with self.subTest(path=path):
+                self.assertFalse(is_safe_path(path))
+                self.assertTrue(is_safe_path(path, allow_tilde=True))
+        self.assertFalse(is_safe_path("~/../../secret", allow_tilde=True))

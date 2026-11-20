@@ -1,3 +1,4 @@
+import uuid
 from datetime import timedelta
 
 from django.conf import settings
@@ -107,15 +108,20 @@ class MCPUser(User, ServicePrincipal):
         return instance
 
     @cached_property
-    def workspace_ids(self):
-        return list(
+    def granted_workspaces(self) -> dict[str, uuid.UUID]:
+        """The workspaces the connection was granted, by slug, read once per request."""
+        return dict(
             Workspace.objects.filter(
                 Q(mcp_connections=self.connection)
                 | Q(organization__mcp_connections=self.connection)
             )
             .distinct()
-            .values_list("id", flat=True)
+            .values_list("slug", "id")
         )
+
+    @property
+    def workspace_ids(self):
+        return list(self.granted_workspaces.values())
 
     def get_username(self):
         return f"mcp_{self.connection.application_id}_as_{self.email}"

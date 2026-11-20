@@ -1,9 +1,19 @@
 import { gql } from "@apollo/client";
-import { ArrowDownTrayIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowDownTrayIcon,
+  GlobeAltIcon,
+  LinkIcon,
+  LockClosedIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import Spinner from "core/components/Spinner";
+import Tooltip from "core/components/Tooltip";
+import clsx from "clsx";
 import { BucketObject, BucketObjectType } from "graphql/types";
 import { useTranslation } from "next-i18next";
+import { useRouter } from "next/router";
+import { MouseEvent } from "react";
 import DeleteBucketObject from "../DeleteBucketObject";
 import DownloadBucketObject from "../DownloadBucketObject";
 import {
@@ -12,6 +22,21 @@ import {
 } from "./BucketExplorer.generated";
 import FileSystemDataGrid from "workspaces/components/FileSystemDataGrid";
 import { useUploadFiles } from "workspaces/hooks/useUploadFiles";
+import { toast } from "react-toastify";
+import PublicFolderPlaceholder, {
+  shouldShowPublicFolderPlaceholder,
+} from "./PublicFolderPlaceholder";
+
+const PUBLIC_FOLDER = "public/";
+
+const isPublicFolder = (item: BucketObject) =>
+  item.type === BucketObjectType.Directory &&
+  item.key.replace(/\/$/, "") === PUBLIC_FOLDER.slice(0, -1);
+
+// The workspace slug is part of the public URL, the path is relative to the public folder.
+export const getPublicFileUrl = (publicFilesUrl: string, key: string) =>
+  publicFilesUrl +
+  key.slice(PUBLIC_FOLDER.length).split("/").map(encodeURIComponent).join("/");
 
 type BucketExplorerProps = {
   workspace: BucketExplorer_WorkspaceFragment;
@@ -23,14 +48,85 @@ type BucketExplorerProps = {
 
 const BucketExplorer = (props: BucketExplorerProps) => {
   const { t } = useTranslation();
+  const router = useRouter();
   const { workspace, objects, prefix, perPage, onChangePage } = props;
   const uploadFiles = useUploadFiles({ workspaceSlug: workspace.slug, prefix });
 
   const directoryLinkGenerator = (item: BucketObject) =>
     `/workspaces/${encodeURIComponent(workspace.slug)}/files/${item.key}`;
 
+  const publicFilesUrl = workspace.publicFiles?.url;
+
+  const copyPublicLink = async (item: BucketObject) => {
+    try {
+      await navigator.clipboard.writeText(
+        getPublicFileUrl(publicFilesUrl!, item.key),
+      );
+      toast.success(t("Public link copied to the clipboard"));
+    } catch {
+      // The clipboard API is unavailable outside secure contexts (plain http) or when denied
+      toast.error(t("The public link could not be copied to the clipboard"));
+    }
+  };
+
+  const goToSettings = (event: MouseEvent) => {
+    // The icon sits inside the folder link: open the settings instead of the folder
+    event.preventDefault();
+    event.stopPropagation();
+    router.push(`/workspaces/${encodeURIComponent(workspace.slug)}/settings`);
+  };
+
+  // Spans, not the default button: the suffix is rendered inside the folder link
+  const nameSuffixRenderer = (item: BucketObject) => {
+    if (!workspace.publicFiles || !isPublicFolder(item)) {
+      return null;
+    }
+    const canOpenSettings = workspace.permissions.managePublicFiles;
+    const [Icon, label, tooltip, color] = publicFilesUrl
+      ? [
+          GlobeAltIcon,
+          t("Shared publicly"),
+          t(
+            "Shared publicly: anyone with the link of a file in this folder can download it, without signing in.",
+          ),
+          "text-green-600",
+        ]
+      : [
+          LockClosedIcon,
+          t("Not shared publicly"),
+          t(
+            "Not shared publicly: public files are disabled for this workspace.",
+          ),
+          "text-gray-400",
+        ];
+    return (
+      <Tooltip as="span" label={tooltip}>
+        <span
+          role={canOpenSettings ? "button" : undefined}
+          onClick={canOpenSettings ? goToSettings : undefined}
+          aria-label={label}
+          className={clsx("ml-1 block", canOpenSettings && "cursor-pointer")}
+        >
+          <Icon className={clsx("h-4 w-4", color)} />
+        </span>
+      </Tooltip>
+    );
+  };
+
   const actionsRenderer = (item: BucketObject) => (
     <div className="flex flex-1 justify-end gap-2">
+      {publicFilesUrl &&
+        item.type === BucketObjectType.File &&
+        item.key.startsWith(PUBLIC_FOLDER) && (
+          <Button
+            onClick={() => copyPublicLink(item)}
+            variant="secondary"
+            size="sm"
+            title={t("Copy public link")}
+          >
+            <LinkIcon className="h-4 w-4" />
+          </Button>
+        )}
       <DeleteBucketObject workspace={workspace} object={item}>
         {({ onClick }) => (
           <Button
@@ -76,6 +172,14 @@ const BucketExplorer = (props: BucketExplorerProps) => {
       perPage={perPage}
       actionsRenderer={actionsRenderer}
       directoryLinkGenerator={directoryLinkGenerator}
+      nameSuffixRenderer={nameSuffixRenderer}
+      leadingRow={
+        !prefix &&
+        objects.pageNumber === 1 &&
+        shouldShowPublicFolderPlaceholder(workspace) ? (
+          <PublicFolderPlaceholder workspace={workspace} />
+        ) : null
+      }
       onDroppingFiles={uploadFiles}
       onChangePage={onChangePage}
     />
@@ -86,10 +190,18 @@ BucketExplorer.fragments = {
   workspace: gql`
     fragment BucketExplorer_workspace on Workspace {
       slug
+      publicFiles {
+        url
+      }
+      permissions {
+        managePublicFiles
+      }
       ...DownloadBucketObject_workspace
       ...DeleteBucketObject_workspace
+      ...PublicFolderPlaceholder_workspace
     }
 
+    ${PublicFolderPlaceholder.fragments.workspace}
     ${DeleteBucketObject.fragments.workspace}
     ${DownloadBucketObject.fragments.workspace}
   `,

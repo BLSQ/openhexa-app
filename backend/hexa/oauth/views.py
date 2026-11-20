@@ -3,12 +3,14 @@ import uuid
 from urllib.parse import urlencode, urlparse
 
 from django.conf import settings
+from django.core.exceptions import DisallowedRedirect
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from oauth2_provider.models import Application
+from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.views import AuthorizationView
 
 from hexa.mcp.server import get_tools_list
@@ -76,6 +78,21 @@ def openid_configuration(request: HttpRequest) -> JsonResponse:
     return JsonResponse(_server_metadata(request))
 
 
+def is_unambiguous_redirect_uri(uri) -> bool:
+    r"""Whether the host `urlparse` sees is the only host the URI can resolve to.
+
+    The stored redirect URIs are split on whitespace, so whitespace would register
+    extra URIs that skipped the host check. Browsers read `\` as `/`, so
+    `https://evil.com\@claude.ai` parses as claude.ai but opens evil.com.
+    """
+    if not isinstance(uri, str):
+        return False
+    if any(c.isspace() or not c.isprintable() or c == "\\" for c in uri):
+        return False
+    parsed = urlparse(uri)
+    return not (parsed.username or parsed.password or parsed.fragment)
+
+
 @csrf_exempt
 @require_POST
 def dynamic_client_registration(request: HttpRequest) -> JsonResponse:
@@ -88,11 +105,11 @@ def dynamic_client_registration(request: HttpRequest) -> JsonResponse:
     redirect_uris = data.get("redirect_uris", [])
     client_name = data.get("client_name", "MCP Client")
 
-    if not redirect_uris:
+    if not redirect_uris or not isinstance(redirect_uris, list):
         return JsonResponse(
             {
                 "error": "invalid_client_metadata",
-                "error_description": "redirect_uris is required",
+                "error_description": "redirect_uris must be a non-empty list",
             },
             status=400,
         )
@@ -100,6 +117,14 @@ def dynamic_client_registration(request: HttpRequest) -> JsonResponse:
     loopback_hosts = {"localhost", "127.0.0.1"}
     allowed_hosts = settings.OAUTH2_ALLOWED_REDIRECT_URI_HOSTS
     for uri in redirect_uris:
+        if not is_unambiguous_redirect_uri(uri):
+            return JsonResponse(
+                {
+                    "error": "invalid_redirect_uri",
+                    "error_description": "Redirect URI is malformed",
+                },
+                status=400,
+            )
         parsed = urlparse(uri)
         host = parsed.hostname
         scheme = parsed.scheme
@@ -111,11 +136,11 @@ def dynamic_client_registration(request: HttpRequest) -> JsonResponse:
                 },
                 status=400,
             )
-        if scheme == "http" and host not in loopback_hosts:
+        if scheme != "https" and not (scheme == "http" and host in loopback_hosts):
             return JsonResponse(
                 {
                     "error": "invalid_redirect_uri",
-                    "error_description": "HTTP scheme is only allowed for loopback redirect URIs",
+                    "error_description": "Redirect URI must use https, or http for loopback hosts",
                 },
                 status=400,
             )
@@ -203,6 +228,16 @@ class OAuthAuthorizeView(AuthorizationView):
         scope = ""
         if request is not None:
             scope = request.POST.get("scope") or request.GET.get("scope") or ""
+        # The page navigates to `redirect_to` from JavaScript, so a `javascript:` URI
+        # would run on this origin. The base class checks the scheme in its redirect
+        # response, which this override replaces.
+        allowed_schemes = (
+            oauth2_settings.ALLOWED_REDIRECT_URI_SCHEMES
+            if application is None
+            else application.get_allowed_schemes()
+        )
+        if urlparse(redirect_to).scheme not in allowed_schemes:
+            raise DisallowedRedirect("Redirect URI scheme is not allowed")
         context = {"redirect_uri": redirect_to}
         if MCP_SCOPE in scope.split() and application is not None:
             context["client_name"] = application.name

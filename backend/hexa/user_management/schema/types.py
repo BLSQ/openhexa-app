@@ -21,6 +21,7 @@ from hexa.user_management.models import (
     User,
 )
 from hexa.utils.base64_image_encode_decode import encode_base64_image
+from hexa.webapps.models import PublicWebappUser
 from hexa.workspaces.models import (
     WorkspaceInvitation,
     WorkspaceInvitationStatus,
@@ -34,12 +35,15 @@ from ..utils import has_configured_two_factor, is_two_factor_pending
 class LoginRequiredDirective(SchemaDirectiveVisitor):
     def visit_field_definition(self, field, object_type):
         withoutTwoFactor = self.args.get("withoutTwoFactor")
+        allowPublicWebapp = self.args.get("allowPublicWebapp")
         original_resolver = field.resolve or default_field_resolver
 
         def resolve(obj, info, **kwargs):
             request = info.context["request"]
             principal = request.user
-            if not principal.is_authenticated:
+            if not principal.is_authenticated and not (
+                allowPublicWebapp and isinstance(principal, PublicWebappUser)
+            ):
                 raise AuthenticationError
 
             if not withoutTwoFactor and is_two_factor_pending(request):

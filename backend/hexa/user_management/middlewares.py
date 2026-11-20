@@ -39,7 +39,6 @@ def get_anonymous_urls():
     return anonymous_urls
 
 
-@cache
 def is_protected_routes(request: HttpRequest) -> bool:
     """
     Is the URL should be behind login screen? Must the user accept the TOS to get this page?

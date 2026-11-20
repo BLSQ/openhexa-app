@@ -1,3 +1,6 @@
+import gc
+import weakref
+
 from django.test import RequestFactory
 from django_otp import DEVICE_ID_SESSION_KEY
 
@@ -140,3 +143,17 @@ class TwoFactorMiddlewareTest(TestCase):
         request.user = User.objects.get(pk=self.USER_SERENA.pk)
 
         self.assertTrue(is_two_factor_pending(request))
+
+
+class LoginRequiredMiddlewareMemoryTest(TestCase):
+    def test_requests_are_not_retained_after_the_response(self):
+        """Every request object must be freed once handled, or worker memory grows forever."""
+        for path in ["/ready", "/graphql/"]:
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                request_ref = weakref.ref(response.wsgi_request)
+
+                del response
+                gc.collect()
+
+                self.assertIsNone(request_ref())

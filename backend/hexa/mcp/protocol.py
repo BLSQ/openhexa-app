@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 
-from hexa.mcp.models import MCPConnection, MCPResource, ToolCall
+from hexa.mcp.models import MCPConnection, MCPResource, MCPUser, ToolCall
 
 logger = logging.getLogger(__name__)
 
@@ -51,19 +51,35 @@ def tool(func=None, *, write: bool = False, ungated: bool = False):
     return register(func) if func is not None else register
 
 
-def _refusal_message(name: str, connection: MCPConnection | None) -> str:
-    client = (
-        f"The OpenHEXA connection for {connection.application.name}"
-        if connection is not None
-        else "This OpenHEXA connection"
-    )
+def _client_label(connection: MCPConnection | None) -> str:
+    if connection is None:
+        return "This OpenHEXA connection"
+    return f"The OpenHEXA connection for {connection.application.name}"
+
+
+def _permissions_page() -> str:
+    return f"{settings.NEW_FRONTEND_DOMAIN}/user/account#mcp-connections"
+
+
+def scope_refusal_message(connection: MCPConnection | None, action: str) -> str:
+    """The message for anything the connection's grant keeps out, `action` saying what.
+
+    Shared by a disabled tool, an ungranted workspace and a search that only
+    ungranted workspaces match.
+    """
     return (
-        f"{client} is not authorized to call {name}. "
-        f"The person who authorized it can turn this tool on at "
-        f"{settings.NEW_FRONTEND_DOMAIN}/user/account#mcp-connections "
-        f"— the change takes effect on the next call, with no need to "
-        f"authorize the client again."
+        f"{_client_label(connection)} is not authorized to {action}. The person who "
+        f"authorized it can grant tools and workspaces at {_permissions_page()} — the "
+        f"change takes effect on the next call, with no need to authorize the client "
+        f"again."
     )
+
+
+def _workspace_slug(entry: RegisteredTool, arguments: dict) -> str | None:
+    """The workspace a call targets: `slug` in workspace tools, else `workspace_slug`."""
+    if entry.resource == MCPResource.WORKSPACES:
+        return arguments.get("slug")
+    return arguments.get("workspace_slug")
 
 
 def _is_granted(
@@ -159,16 +175,31 @@ def get_tools_catalogue():
     ]
 
 
+def _refuse(user, name: str, arguments: dict, message: str) -> typing.NoReturn:
+    ToolCall.objects.create(
+        user=user, tool_name=name, arguments=arguments, success=False, error=message
+    )
+    raise PermissionDenied(message)
+
+
 def call_tool(name, arguments, user, connection: MCPConnection | None):
     entry = _TOOLS.get(name)
     if not entry:
         raise ValueError(f"Unknown tool: {name}")
     if not _is_granted(name, entry, connection):
-        message = _refusal_message(name, connection)
-        ToolCall.objects.create(
-            user=user, tool_name=name, arguments=arguments, success=False, error=message
+        _refuse(
+            user, name, arguments, scope_refusal_message(connection, f"call {name}")
         )
-        raise PermissionDenied(message)
+    slug = _workspace_slug(entry, arguments)
+    if slug and isinstance(user, MCPUser) and slug not in user.granted_workspaces:
+        _refuse(
+            user,
+            name,
+            arguments,
+            scope_refusal_message(
+                connection, f'access workspace "{slug}" (or it does not exist)'
+            ),
+        )
     try:
         result = entry.func(user=user, **arguments)
         ToolCall.objects.create(

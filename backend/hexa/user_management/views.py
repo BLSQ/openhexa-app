@@ -12,8 +12,8 @@ class LogoutView(BaseLogoutView):
             hub_response = requests.get(
                 f"{settings.NOTEBOOKS_HUB_URL}/logout",
                 cookies={
-                    "sessionid": request.session.session_key,
-                    "csrftoken": get_token(request),
+                    settings.SESSION_COOKIE_NAME: request.session.session_key,
+                    settings.CSRF_COOKIE_NAME: get_token(request),
                 },
                 allow_redirects=False,
             )

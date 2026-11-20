@@ -24,8 +24,9 @@ class Migration0061Test(TransactionTestCase):
     def setUp(self):
         storage.reset()
         self.migrator = Migrator()
-        self.migrator.migrate(*self.migrate_from)
 
+        # The data is created with the current models before migrating back, as they
+        # can't write to the schema of an older migration once new columns are added.
         self.user = User.objects.create_user(
             "migration-test@example.com", "password", is_superuser=True
         )
@@ -50,6 +51,8 @@ class Migration0061Test(TransactionTestCase):
                 )
             )
         conn.close()
+
+        self.migrator.migrate(*self.migrate_from)
 
     def _count_covid_data_as_ro(self):
         conn = get_workspace_database_ro_connection(self.workspace)

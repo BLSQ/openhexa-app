@@ -120,6 +120,13 @@ class GitAuthorizeViewTest(GitAuthMixin, TestCase):
         response = self._get(token=token, uri=self._read_uri())
         self.assertEqual(response.status_code, 401)
 
+    def test_inactive_user_returns_401(self):
+        token = self._token(self.viewer)
+        self.viewer.is_active = False
+        self.viewer.save()
+        response = self._get(token=token, uri=self._read_uri())
+        self.assertEqual(response.status_code, 401)
+
     def test_wrong_scope_returns_401(self):
         """401 so the proxy re-challenges: a wrongly scoped token is unusable,
         and only the 401 path carries `WWW-Authenticate: Basic realm="Gitea"`,

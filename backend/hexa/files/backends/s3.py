@@ -516,18 +516,17 @@ class S3Storage(Storage, SupportsBucketCors):
         }
 
         if self._role_arn:
-            try:
-                creds = self._assume_role_credentials(bucket_name)
-                return {
-                    **base,
-                    "WORKSPACE_STORAGE_ENGINE_S3_ACCESS_KEY_ID": creds["AccessKeyId"],
-                    "WORKSPACE_STORAGE_ENGINE_S3_SECRET_ACCESS_KEY": creds[
-                        "SecretAccessKey"
-                    ],
-                    "WORKSPACE_STORAGE_ENGINE_S3_SESSION_TOKEN": creds["SessionToken"],
-                }
-            except Exception:
-                sentry_sdk.capture_exception()  # fall through to static credentials
+            # No fallback to the static keys on failure: they grant access to every
+            # workspace bucket and would end up in user-controlled notebooks/pipelines.
+            creds = self._assume_role_credentials(bucket_name)
+            return {
+                **base,
+                "WORKSPACE_STORAGE_ENGINE_S3_ACCESS_KEY_ID": creds["AccessKeyId"],
+                "WORKSPACE_STORAGE_ENGINE_S3_SECRET_ACCESS_KEY": creds[
+                    "SecretAccessKey"
+                ],
+                "WORKSPACE_STORAGE_ENGINE_S3_SESSION_TOKEN": creds["SessionToken"],
+            }
 
         return {
             **base,

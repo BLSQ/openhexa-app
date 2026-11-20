@@ -1,0 +1,306 @@
+import { mergeTests } from "@playwright/test";
+import { randomUUID } from "node:crypto";
+
+import {
+  BASE_URL,
+  STORAGE_STATE,
+  organization,
+  workspace,
+} from "../config/environment";
+import { test as cleanupTest } from "../fixtures/cleanup";
+import { expect, test as disposableTest } from "../fixtures/disposableWorkspace";
+import { uniqueName } from "../helpers/confirm";
+import { MCP_REDIRECT_URI, McpClient } from "../helpers/mcpClient";
+import { AccountSettingsPage } from "../pages/AccountSettingsPage";
+import { McpAuthorizePage } from "../pages/McpAuthorizePage";
+
+const test = mergeTests(cleanupTest, disposableTest);
+
+test.describe("MCP connections", () => {
+  test("a client is granted chosen tools and one workspace, widened, then revoked", async ({
+    page,
+    cleanup,
+    disposableWorkspace,
+  }) => {
+    // Provisioning a workspace the grant leaves out.
+    test.setTimeout(300_000);
+    const account = new AccountSettingsPage(page);
+    const consent = new McpAuthorizePage(page);
+    const client = await McpClient.register(uniqueName("e2e MCP client"));
+    cleanup.add("the MCP client's requests", () => client.dispose());
+    cleanup.add(`MCP connection ${client.name}`, () =>
+      account.revokeMcpConnectionIfPresent(client.name),
+    );
+    const otherSlug = await disposableWorkspace.create();
+
+    await test.step("the consent screen starts with every tool, on every workspace", async () => {
+      await consent.open(client.authorizeUrl);
+      await expect(consent.heading(client.name)).toBeVisible();
+      await expect(
+        consent.matrix.levelRadio("all", "Read & Write"),
+      ).toBeChecked();
+      await expect(
+        consent.matrix.workspaceCheckbox(workspace.slug),
+      ).toBeChecked();
+      await expect(consent.matrix.workspaceCheckbox(otherSlug)).toBeChecked();
+    });
+
+    await test.step("only the test workspace, with reading workspaces and pipelines, is granted", async () => {
+      await consent.matrix.deselectAllWorkspaces.click();
+      await consent.matrix.workspaceCheckbox(workspace.slug).check();
+      await consent.matrix.setLevel("all", "No access");
+      await consent.matrix.setLevel("WORKSPACES", "Read");
+      await consent.matrix.setLevel("PIPELINES", "Read");
+      await expect(
+        consent.matrix.levelRadio("DATASETS", "No access"),
+      ).toBeChecked();
+    });
+
+    const token = await test.step("authorizing hands the client a token", async () => {
+      const code = await consent.authorize(MCP_REDIRECT_URI);
+      await expect(consent.connectedText(client.name)).toBeVisible();
+      return client.exchangeCode(code);
+    });
+
+    await test.step("the client sees the granted tools, and only those", async () => {
+      const tools = await client.listTools(token);
+      expect(tools).toContain("list_workspaces");
+      expect(tools).toContain("list_pipelines");
+      expect(tools).toContain("get_pipeline");
+      expect(tools).not.toContain("run_pipeline");
+      expect(tools).not.toContain("list_datasets");
+      // The documentation needs no grant.
+      expect(tools).toContain("get_help_or_doc");
+
+      const refusal = await client.callTool(token, "list_datasets", {
+        workspace_slug: workspace.slug,
+      });
+      expect(refusal).toContain(client.name);
+      const pipelines = await client.callTool(token, "list_pipelines", {
+        workspace_slug: workspace.slug,
+      });
+      expect(pipelines, pipelines).not.toContain(client.name);
+      expect(() => JSON.parse(pipelines)).not.toThrow();
+    });
+
+    await test.step("a write is refused, not just hidden", async () => {
+      const refusal = await client.callTool(token, "run_pipeline", {
+        pipeline_id: randomUUID(),
+      });
+      expect(refusal).toContain(client.name);
+    });
+
+    await test.step("the token is blind to the workspace left out of the grant", async () => {
+      // The account can see both: it has just created the other one.
+      const workspaces = JSON.parse(
+        await client.callTool(token, "list_workspaces", { per_page: 100 }),
+      );
+      const slugs = workspaces.workspaces.items.map(
+        (item: { slug: string }) => item.slug,
+      );
+      expect(slugs).toContain(workspace.slug);
+      expect(slugs).not.toContain(otherSlug);
+
+      // Refused by name rather than answered as if the workspace were empty.
+      const refusal = await client.callTool(token, "list_pipelines", {
+        workspace_slug: otherSlug,
+      });
+      expect(refusal).toContain(client.name);
+      expect(refusal).toContain(`access workspace "${otherSlug}"`);
+    });
+
+    await test.step("the account page lists it, and widens it to writing pipelines", async () => {
+      await account.goto();
+      await expect(account.mcpConnectionSummary(client.name)).toHaveText(
+        /^\d+ of \d+ tools · 0 organizations · 1 workspaces?$/,
+      );
+      await account.expandMcpConnection(client.name);
+      const matrix = account.mcpMatrix(client.name);
+      await expect(matrix.levelRadio("PIPELINES", "Read")).toBeChecked();
+      await expect(matrix.workspaceCheckbox(workspace.slug)).toBeChecked();
+      await expect(matrix.workspaceCheckbox(otherSlug)).not.toBeChecked();
+
+      await matrix.setLevel("PIPELINES", "Read & Write");
+      await expect(account.mcpUnsavedBadge(client.name)).toBeVisible();
+      await account.mcpSaveButton(client.name).click();
+      await expect(account.mcpUnsavedBadge(client.name)).toBeHidden();
+
+      await account.goto();
+      await account.expandMcpConnection(client.name);
+      await expect(
+        account.mcpMatrix(client.name).levelRadio("PIPELINES", "Read & Write"),
+      ).toBeChecked();
+      expect(await client.listTools(token)).toContain("run_pipeline");
+    });
+
+    await test.step("the write now gets through, but not into the other workspace", async () => {
+      // A pipeline that does not exist: the call is let in, then fails on
+      // its own terms, without running anything.
+      const run = await client.callTool(token, "run_pipeline", {
+        pipeline_id: randomUUID(),
+      });
+      expect(run).not.toContain(client.name);
+      expect(run).toContain("PIPELINE_NOT_FOUND");
+
+      const refusal = await client.callTool(token, "create_pipeline", {
+        workspace_slug: otherSlug,
+        name: uniqueName("e2e-mcp-sneaky"),
+        files_json: JSON.stringify([
+          { path: "pipeline.py", content: "from openhexa.sdk import pipeline\n" },
+        ]),
+      });
+      expect(refusal).toContain(client.name);
+      expect(refusal).toContain(`access workspace "${otherSlug}"`);
+    });
+
+    await test.step("revoking it cuts the client off at once", async () => {
+      await account.revokeMcpConnection(client.name);
+      // A call in the same instant can still get through; the next is refused.
+      await expect.poll(() => client.statusOf(token), { timeout: 10_000 }).toBe(401);
+    });
+  });
+
+  test("a client granted an organization reaches the workspaces it gains later", async ({
+    page,
+    cleanup,
+    disposableWorkspace,
+  }) => {
+    // Provisioning a workspace once the grant is made.
+    test.setTimeout(300_000);
+    const account = new AccountSettingsPage(page);
+    const consent = new McpAuthorizePage(page);
+    const client = await McpClient.register(uniqueName("e2e MCP client"));
+    cleanup.add("the MCP client's requests", () => client.dispose());
+    cleanup.add(`MCP connection ${client.name}`, () =>
+      account.revokeMcpConnectionIfPresent(client.name),
+    );
+
+    const listedSlugs = async (token: string): Promise<string[]> => {
+      const workspaces = JSON.parse(
+        await client.callTool(token, "list_workspaces", { per_page: 100 }),
+      );
+      return workspaces.workspaces.items.map(
+        (item: { slug: string }) => item.slug,
+      );
+    };
+
+    const token = await test.step("the organization is granted, rather than its workspaces", async () => {
+      await consent.open(client.authorizeUrl);
+      await consent.matrix.deselectAllWorkspaces.click();
+      await expect(
+        consent.matrix.workspaceCheckbox(workspace.slug),
+      ).not.toBeChecked();
+
+      await consent.matrix.organizationCheckbox(organization.id).check();
+      await expect(
+        consent.matrix.futureWorkspacesBadge(organization.id),
+      ).toBeVisible();
+      // Its workspaces come with it, and can no longer be picked one by one.
+      await expect(
+        consent.matrix.workspaceCheckbox(workspace.slug),
+      ).toBeChecked();
+      await expect(
+        consent.matrix.workspaceCheckbox(workspace.slug),
+      ).toBeDisabled();
+
+      await consent.matrix.setLevel("all", "No access");
+      await consent.matrix.setLevel("WORKSPACES", "Read");
+      await consent.matrix.setLevel("PIPELINES", "Read");
+      const code = await consent.authorize(MCP_REDIRECT_URI);
+      return client.exchangeCode(code);
+    });
+
+    const laterSlug = await disposableWorkspace.create();
+
+    await test.step("a workspace created after the grant is within it", async () => {
+      const slugs = await listedSlugs(token);
+      expect(slugs).toContain(workspace.slug);
+      expect(slugs).toContain(laterSlug);
+
+      const pipelines = await client.callTool(token, "list_pipelines", {
+        workspace_slug: laterSlug,
+      });
+      expect(pipelines, pipelines).not.toContain(client.name);
+      expect(() => JSON.parse(pipelines)).not.toThrow();
+    });
+
+    await test.step("the account page shows the organization as granted", async () => {
+      await account.goto();
+      await expect(account.mcpConnectionSummary(client.name)).toHaveText(
+        /^\d+ of \d+ tools · 1 organizations? · \d+ workspaces?$/,
+      );
+      await account.expandMcpConnection(client.name);
+      const matrix = account.mcpMatrix(client.name);
+      await expect(matrix.organizationCheckbox(organization.id)).toBeChecked();
+      await expect(matrix.futureWorkspacesBadge(organization.id)).toBeVisible();
+      await expect(matrix.workspaceCheckbox(laterSlug)).toBeChecked();
+    });
+
+    await test.step("narrowed to one workspace, it loses the others", async () => {
+      const matrix = account.mcpMatrix(client.name);
+      await matrix.organizationCheckbox(organization.id).uncheck();
+      await expect(matrix.workspaceCheckbox(laterSlug)).not.toBeChecked();
+      await matrix.workspaceCheckbox(workspace.slug).check();
+      await account.mcpSaveButton(client.name).click();
+      await expect(account.mcpUnsavedBadge(client.name)).toBeHidden();
+
+      const slugs = await listedSlugs(token);
+      expect(slugs).toContain(workspace.slug);
+      expect(slugs).not.toContain(laterSlug);
+      const refusal = await client.callTool(token, "list_pipelines", {
+        workspace_slug: laterSlug,
+      });
+      expect(refusal).toContain(`access workspace "${laterSlug}"`);
+    });
+  });
+
+  test("a client is authorized by a browser holding a second CSRF cookie", async ({
+    page,
+    browser,
+    cleanup,
+  }) => {
+    // The consent form is refused with a 403 in this state. Remove this line
+    // with the fix: the test then reports that it passed unexpectedly.
+    test.fail();
+    const account = new AccountSettingsPage(page);
+    const client = await McpClient.register(uniqueName("e2e MCP client"));
+    cleanup.add("the MCP client's requests", () => client.dispose());
+    cleanup.add(`MCP connection ${client.name}`, () =>
+      account.revokeMcpConnectionIfPresent(client.name),
+    );
+
+    // A browser that has used the environment for a while can hold a leftover
+    // `csrftoken` scoped to the host next to the current one on the parent
+    // domain, and sends both. The consent form must not pick the wrong one.
+    const context = await browser.newContext({ storageState: STORAGE_STATE });
+    cleanup.add("the browser with two CSRF cookies", () => context.close());
+    const csrfCookies = async () =>
+      (await context.cookies(BASE_URL)).filter(
+        (cookie) => cookie.name === "csrftoken",
+      );
+    // A cookie on the same domain as the current one would replace it, so the
+    // leftover goes on whichever of the host and its parent domain is free.
+    const { hostname } = new URL(BASE_URL);
+    const [current] = await csrfCookies();
+    await context.addCookies([
+      {
+        name: "csrftoken",
+        value: "e2eLeftoverCsrfCookie00000000000",
+        domain: current.domain.startsWith(".")
+          ? hostname
+          : hostname.slice(hostname.indexOf(".")),
+        path: "/",
+      },
+    ]);
+    expect(await csrfCookies()).toHaveLength(2);
+    const consent = new McpAuthorizePage(await context.newPage());
+
+    await consent.open(client.authorizeUrl);
+    await expect(consent.heading(client.name)).toBeVisible();
+    const code = await consent.authorize(MCP_REDIRECT_URI);
+    await expect(consent.connectedText(client.name)).toBeVisible();
+    expect(await client.listTools(await client.exchangeCode(code))).toContain(
+      "get_help_or_doc",
+    );
+  });
+});

@@ -1,6 +1,7 @@
 import logging
 
 from ariadne import ObjectType
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.http import HttpRequest
 
@@ -162,6 +163,16 @@ def resolve_dataset_permissions_update(obj: Dataset, info, **kwargs):
     )
 
 
+@dataset_permissions.field("share")
+def resolve_dataset_permissions_share(obj: Dataset, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("datasets.share_dataset", obj)
+        if request.user.is_authenticated
+        else False
+    )
+
+
 @dataset_permissions.field("delete")
 def resolve_dataset_permissions_delete(obj: Dataset, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -195,7 +206,7 @@ def resolve_version_files(obj: DatasetVersion, info, **kwargs):
 def resolve_file_by_name(obj: DatasetVersion, info, name, **kwargs):
     try:
         return obj.get_file_by_name(name)
-    except DatasetVersionFile.DoesNotExist:
+    except (DatasetVersionFile.DoesNotExist, ValidationError):
         return None
 
 

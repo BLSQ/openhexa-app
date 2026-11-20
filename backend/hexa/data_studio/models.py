@@ -25,6 +25,7 @@ from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.git.naming import build_repo_name
 from hexa.mcp.models import MCPUser
 from hexa.user_management.models import ServicePrincipal, User, UserInterface
+from hexa.webapps.models import PublicWebappUser
 from hexa.workspaces.models import Workspace
 
 logger = logging.getLogger(__name__)
@@ -71,10 +72,17 @@ WORKSPACE_WIDE_VISIBILITIES = [
 
 class SavedQueryQuerySet(BaseQuerySet, SoftDeleteQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
+        if isinstance(user, PublicWebappUser):
+            return self.filter(
+                workspace_id__in=user.workspace_ids,
+                workspace__archived=False,
+                visibility=SavedQueryVisibility.PUBLIC,
+            )
+
         accessible = models.Q(visibility__in=WORKSPACE_WIDE_VISIBILITIES)
         # Service principals (pipeline runs, webapps) impersonate a workspace rather
         # than a person, so they never own a private query - a deliberate call for
-        # WebappUser, whose real User row `created_by` would match and which
+        # PrivateWebappUser, whose real User row `created_by` would match and which
         # WorkspaceQuerySet does treat as a person. An MCPUser is the exception: it
         # acts for the person who authorized it, who must keep seeing their own
         # private queries (still confined to the connection's workspaces).
@@ -108,7 +116,7 @@ class SavedQueryManager(DefaultSoftDeletedManager.from_queryset(SavedQueryQueryS
         if not principal.has_perm("data_studio.create_saved_query", workspace):
             raise PermissionDenied
         if visibility == SavedQueryVisibility.PUBLIC and not principal.has_perm(
-            "data_studio.create_public_saved_query", workspace
+            "data_studio.share_saved_queries", workspace
         ):
             raise PermissionDenied
 
@@ -289,14 +297,14 @@ class SavedQuery(Base, SoftDeletedModel, GitRepoMixin):
         return raw.decode("utf-8")
 
     def _visibility_change_permission(self, visibility: str) -> str:
-        """Moving a query into or out of public is managing its public link, a wider
-        circle's call than sharing is (see `permissions.manage_public_saved_query`);
-        going private stays the author's alone, whatever the query's current visibility.
+        """Moving a query into or out of public needs `permissions.share_saved_query`,
+        which admins hold too; going private stays the author's alone, whatever the
+        query's current visibility.
         """
         if visibility == SavedQueryVisibility.PUBLIC or (
             self.is_public and visibility == SavedQueryVisibility.WORKSPACE
         ):
-            return "data_studio.manage_public_saved_query"
+            return "data_studio.share_saved_query"
         return "data_studio.update_saved_query_visibility"
 
     def update_if_has_perm(self, principal: User, **kwargs):

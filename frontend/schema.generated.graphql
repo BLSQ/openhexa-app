@@ -1,4 +1,4 @@
-directive @loginRequired(withoutTwoFactor: Boolean) on FIELD_DEFINITION
+directive @loginRequired(allowPublicWebapp: Boolean, withoutTwoFactor: Boolean) on FIELD_DEFINITION
 
 type AccessmodAccessRequest {
   acceptedTos: Boolean!
@@ -483,6 +483,7 @@ enum AssistantToolName {
   get_db_table_schema
   get_help_or_doc
   get_pipeline
+  get_pipeline_run
   get_saved_query
   get_workspace
   glob_files
@@ -1065,6 +1066,12 @@ input CreateOrganizationInput {
   planCode: String!
 
   """
+  Whether to email the owner (invitation link for a new user, notification for an existing one).
+  Defaults to true. The caller can pass false and send the owner to invitationUrl itself.
+  """
+  sendInvitationEmail: Boolean
+
+  """
   The short name of the organization (max 5 uppercase letters).
   If not provided, it will be auto-generated from the name.
   """
@@ -1088,6 +1095,11 @@ type CreateOrganizationResult {
   The list of errors that occurred during the createOrganization mutation.
   """
   errors: [CreateOrganizationError!]!
+
+  """
+  The registration link for a new owner (null when the owner already had an account). Valid for 48 hours.
+  """
+  invitationUrl: String
 
   """The created organization object."""
   organization: Organization
@@ -1625,12 +1637,13 @@ type Dataset implements MetadataObject {
   Slug unique across the whole instance, used for permalinks. Only set once the dataset needs one.
   """
   publicSlug: String
-  sharedWithOrganization: Boolean!
+  sharedWithOrganization: Boolean! @deprecated(reason: "Use `visibility`.")
   slug: String!
   targetId: OpaqueID!
   updatedAt: DateTime!
   version(id: ID!): DatasetVersion
   versions(page: Int = 1, perPage: Int = 15): DatasetVersionPage!
+  visibility: DatasetVisibility!
   workspace: Workspace
 }
 
@@ -1684,6 +1697,11 @@ type DatasetPermissions {
 
   """Permissions to delete the dataset"""
   delete: Boolean!
+
+  """
+  Permission to make the dataset public, or to take a public dataset back to the organization or workspace.
+  """
+  share: Boolean!
 
   """Permissions to edit the dataset"""
   update: Boolean!
@@ -1772,6 +1790,18 @@ type DatasetVersionPermissions {
 
   """Permissions to update the dataset version"""
   update: Boolean!
+}
+
+"""Who a dataset is visible to."""
+enum DatasetVisibility {
+  """Every member of the organization."""
+  ORGANIZATION
+
+  """For now, every member of the organization."""
+  PUBLIC
+
+  """The members of the workspaces the dataset is shared with."""
+  WORKSPACE
 }
 
 scalar Date
@@ -2906,6 +2936,9 @@ enum InviteOrganizationMemberError {
   """Indicates that the user is already a member of the organization."""
   ALREADY_MEMBER
 
+  """Indicates that the provided language is not supported."""
+  INVALID_LANGUAGE
+
   """Indicates that the organization was not found."""
   ORGANIZATION_NOT_FOUND
 
@@ -2927,6 +2960,11 @@ enum InviteOrganizationMemberError {
 The InviteOrganizationMemberInput type represents the input for the inviteOrganizationMember mutation.
 """
 input InviteOrganizationMemberInput {
+  """
+  The language of the invitation email for users without an account. Defaults to the inviter's language.
+  """
+  language: String
+
   """The unique identifier of the organization."""
   organizationId: UUID!
 
@@ -2957,6 +2995,7 @@ type InviteOrganizationMemberResult {
 
 """Represents the input for inviting a member to a workspace."""
 input InviteWorkspaceMemberInput {
+  language: String
   role: WorkspaceMembershipRole!
   userEmail: String!
   workspaceSlug: String!
@@ -2974,6 +3013,7 @@ Enum representing the possible errors that can occur when inviting a user to a w
 """
 enum InviteWorkspaceMembershipError {
   ALREADY_EXISTS
+  INVALID_LANGUAGE
   PERMISSION_DENIED
   USER_NOT_FOUND
   WORKSPACE_NOT_FOUND
@@ -3108,6 +3148,9 @@ enum LoginError {
 
   """Indicates that an OTP (one-time password) is required for login."""
   OTP_REQUIRED
+
+  """Indicates that too many logins failed for this email; retry later."""
+  TOO_MANY_ATTEMPTS
 }
 
 """The LoginInput type represents the input for the login mutation."""
@@ -5498,6 +5541,10 @@ type UpdateDAGResult {
 enum UpdateDatasetError {
   DATASET_NOT_FOUND
   PERMISSION_DENIED
+  PUBLIC_SLUG_INVALID_FORMAT
+  PUBLIC_SLUG_LOCKED
+  PUBLIC_SLUG_RESERVED
+  PUBLIC_SLUG_TAKEN
 }
 
 """Input for updating a dataset."""
@@ -5505,7 +5552,17 @@ input UpdateDatasetInput {
   datasetId: ID!
   description: String
   name: String
-  sharedWithOrganization: Boolean
+
+  """
+  The slug of the dataset's permalink. Requires the `share` permission and cannot be changed once set; derived from the dataset slug when making the dataset public without one.
+  """
+  publicSlug: String
+  sharedWithOrganization: Boolean @deprecated(reason: "Use `visibility`.")
+
+  """
+  Making the dataset PUBLIC, or taking it back, requires the `share` permission.
+  """
+  visibility: DatasetVisibility
 }
 
 """Result of updating a dataset."""
@@ -6180,6 +6237,7 @@ input UpdateWorkspaceInput {
   description: String
   dockerImage: String
   name: String
+  publicFilesEnabled: Boolean
   slug: String!
   tags: [String!]
 }
@@ -6412,6 +6470,7 @@ enum WebappOperationScope {
 """Represents the permissions for a web app."""
 type WebappPermissions {
   delete: Boolean!
+  share: Boolean!
   update: Boolean!
 }
 
@@ -6482,6 +6541,7 @@ type Workspace {
   pipelineLastRunStatuses: [PipelineRunStatus!]!
   pipelineTags: [String!]!
   pipelineTemplateTags: [String!]!
+  publicFiles: WorkspacePublicFiles
 
   """The saved queries of the workspace."""
   savedQueries(orderBy: SavedQueryOrderBy! = UPDATED_AT_DESC, page: Int = 1, perPage: Int = 15, query: String): SavedQueryPage!
@@ -6605,11 +6665,20 @@ type WorkspacePermissions {
   generateToken: Boolean!
   launchNotebookServer: Boolean!
   manageMembers: Boolean!
+  managePublicFiles: Boolean!
   manageTags: Boolean!
 
   """Permission to make one's own saved queries of the workspace public."""
   shareSavedQuery: Boolean!
   update: Boolean!
+}
+
+"""
+The files of the "public" folder at the root of a workspace filesystem, which anyone with their link can download.
+"""
+type WorkspacePublicFiles {
+  folderExists: Boolean!
+  url: String
 }
 
 """Represents a minimal workspace reference in the token payload."""

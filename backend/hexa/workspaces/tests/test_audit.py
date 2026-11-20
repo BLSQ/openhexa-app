@@ -9,6 +9,7 @@ from hexa.datasets.models import (
     DatasetLink,
     DatasetVersion,
     DatasetVersionFile,
+    DatasetVisibility,
 )
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 from hexa.pipelines.models import (
@@ -144,7 +145,9 @@ class WorkspaceScopeAuditTest(GraphQLTestCase):
             name=name,
             slug=name.lower(),
             workspace=cls.OTHER,
-            shared_with_organization=shared,
+            visibility=DatasetVisibility.ORGANIZATION
+            if shared
+            else DatasetVisibility.WORKSPACE,
         )
         DatasetLink.objects.create(dataset=dataset, workspace=cls.OTHER)
         return dataset
@@ -199,6 +202,15 @@ class WorkspaceScopeAuditTest(GraphQLTestCase):
         )
 
     def test_organization_shared_dataset_is_cross_reachable(self):
+        self.query_with_token(DATASET_QUERY, {"id": str(self.SHARED_DATASET.id)})
+        self.assertRecorded(
+            TokenScopeVerdict.CROSS_REACHABLE, {str(self.OTHER.id): "org_shared"}
+        )
+
+    def test_public_dataset_is_cross_reachable(self):
+        Dataset.objects.filter(pk=self.SHARED_DATASET.pk).update(
+            visibility=DatasetVisibility.PUBLIC
+        )
         self.query_with_token(DATASET_QUERY, {"id": str(self.SHARED_DATASET.id)})
         self.assertRecorded(
             TokenScopeVerdict.CROSS_REACHABLE, {str(self.OTHER.id): "org_shared"}

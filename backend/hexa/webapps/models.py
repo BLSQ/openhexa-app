@@ -202,7 +202,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         # Inline import: scopes imports the GraphQL schema, which imports this module.
         from hexa.webapps.scopes import WebappScopePolicy
 
-        return WebappScopePolicy(self.allowed_operations)
+        return WebappScopePolicy(self)
 
     @property
     def serve_url(self):
@@ -518,7 +518,7 @@ class SupersetWebapp(Webapp):
         self.save()
 
 
-class WebappUser(User, ServicePrincipal):
+class PrivateWebappUser(User, ServicePrincipal):
     class Meta:
         proxy = True
 
@@ -526,8 +526,8 @@ class WebappUser(User, ServicePrincipal):
     real_user = None
 
     @classmethod
-    def from_user(cls, user: User, webapp: Webapp) -> "WebappUser":
-        """Cast an existing User row to a WebappUser view tied to `webapp`."""
+    def from_user(cls, user: User, webapp: Webapp) -> "PrivateWebappUser":
+        """Cast an existing User row to a PrivateWebappUser view tied to `webapp`."""
         instance = cls.objects.get(pk=user.pk)
         instance.webapp = webapp
         instance.real_user = user
@@ -546,3 +546,30 @@ class WebappUser(User, ServicePrincipal):
 
     def get_username(self):
         return f"webapp_{self.webapp.id}_as_{self.email}"
+
+
+class PublicWebappUser(AnonymousUser):
+    """The principal of a request sent by a public web app through its GraphQL proxy.
+
+    Public web apps have no session, so the visitor is anonymous, only bound to the
+    web app. It is deliberately not a ServicePrincipal: those reach everything in
+    their workspaces, while this one must only reach what was explicitly made public,
+    each model's `filter_for_user` opting it in for its public resources.
+    """
+
+    def __init__(self, webapp: Webapp):
+        super().__init__()
+        self.webapp = webapp
+
+    @property
+    def workspace_ids(self):
+        return [self.webapp.workspace_id]
+
+    def get_username(self):
+        return f"public_webapp_{self.webapp.id}"
+
+    def has_perm(self, perm, obj=None):
+        return False
+
+    def has_module_perms(self, module):
+        return False

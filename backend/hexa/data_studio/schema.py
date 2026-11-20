@@ -24,6 +24,7 @@ from hexa.databases.query_text import (
 from hexa.databases.schema import database_object
 from hexa.git.exceptions import GitError
 from hexa.user_management.models import ServicePrincipal
+from hexa.webapps.models import PublicWebappUser
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
@@ -177,7 +178,7 @@ def resolve_saved_query_permissions_update_visibility(
 def resolve_saved_query_permissions_share(saved_query: SavedQuery, info, **kwargs):
     request: HttpRequest = info.context["request"]
     return (
-        request.user.has_perm("data_studio.manage_public_saved_query", saved_query)
+        request.user.has_perm("data_studio.share_saved_query", saved_query)
         if request.user.is_authenticated
         else False
     )
@@ -232,7 +233,7 @@ def resolve_workspace_permissions_share_saved_query(
 ):
     request: HttpRequest = info.context["request"]
     return (
-        request.user.has_perm("data_studio.create_public_saved_query", workspace)
+        request.user.has_perm("data_studio.share_saved_queries", workspace)
         if request.user.is_authenticated
         else False
     )
@@ -249,12 +250,12 @@ def _saved_queries_reachable_by_permalink(request: HttpRequest):
     every workspace, for anonymous users too. Archiving a workspace takes its public
     links down, as it already takes the queries away from its members.
 
-    Service principals (web apps, pipeline runs, MCP connections) stay confined to the
-    workspaces they were issued for: opening other workspaces' public queries to them
-    is a decision of its own (HEXA-1847).
+    Service principals (web apps, pipeline runs, MCP connections) and the visitors of
+    public web apps stay confined to the workspaces they were issued for, so that a web
+    app only depends on queries its own workspace controls.
     """
     visible = _visible_saved_queries(request)
-    if isinstance(request.user, ServicePrincipal):
+    if isinstance(request.user, ServicePrincipal | PublicWebappUser):
         return visible
     # `pk__in` rather than `|`: `filter_for_user` returns a distinct queryset, except
     # for superusers, and Django refuses to combine distinct and non-distinct ones.

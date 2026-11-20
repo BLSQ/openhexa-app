@@ -162,6 +162,94 @@ class WebappsTest(GraphQLTestCase):
         self.WEBAPP.refresh_from_db()
         self.assertEqual("http://updatedwebapp.com", self.WEBAPP.url)
 
+    UPDATE_WEBAPP_VISIBILITY_MUTATION = """
+        mutation updateWebapp($input: UpdateWebappInput!) {
+            updateWebapp(input: $input) {
+                success
+                errors
+            }
+        }
+    """
+
+    def _add_editor(self):
+        editor = User.objects.create_user("editor@bluesquarehub.com", "password")
+        WorkspaceMembership.objects.create(
+            user=editor, workspace=self.WS1, role=WorkspaceMembershipRole.EDITOR
+        )
+        return editor
+
+    def test_editor_cannot_make_someone_elses_webapp_public(self):
+        self.client.force_login(self._add_editor())
+        response = self.run_query(
+            self.UPDATE_WEBAPP_VISIBILITY_MUTATION,
+            {"input": {"id": str(self.WEBAPP.id), "isPublic": True}},
+        )
+        self.assertEqual(
+            ["PERMISSION_DENIED"], response["data"]["updateWebapp"]["errors"]
+        )
+        self.WEBAPP.refresh_from_db()
+        self.assertFalse(self.WEBAPP.is_public)
+
+    def test_editor_cannot_make_someone_elses_webapp_private(self):
+        self.WEBAPP.is_public = True
+        self.WEBAPP.save()
+        self.client.force_login(self._add_editor())
+        response = self.run_query(
+            self.UPDATE_WEBAPP_VISIBILITY_MUTATION,
+            {"input": {"id": str(self.WEBAPP.id), "isPublic": False}},
+        )
+        self.assertEqual(
+            ["PERMISSION_DENIED"], response["data"]["updateWebapp"]["errors"]
+        )
+        self.WEBAPP.refresh_from_db()
+        self.assertTrue(self.WEBAPP.is_public)
+
+    def test_editor_can_update_webapp_echoing_its_visibility(self):
+        self.client.force_login(self._add_editor())
+        response = self.run_query(
+            self.UPDATE_WEBAPP_VISIBILITY_MUTATION,
+            {
+                "input": {
+                    "id": str(self.WEBAPP.id),
+                    "name": "Renamed",
+                    "isPublic": False,
+                }
+            },
+        )
+        self.assertTrue(response["data"]["updateWebapp"]["success"])
+
+    def test_author_editor_can_make_webapp_public(self):
+        editor = self._add_editor()
+        self.WEBAPP.created_by = editor
+        self.WEBAPP.save()
+        self.client.force_login(editor)
+        response = self.run_query(
+            self.UPDATE_WEBAPP_VISIBILITY_MUTATION,
+            {"input": {"id": str(self.WEBAPP.id), "isPublic": True}},
+        )
+        self.assertTrue(response["data"]["updateWebapp"]["success"])
+        self.WEBAPP.refresh_from_db()
+        self.assertTrue(self.WEBAPP.is_public)
+
+    def test_webapp_share_permission(self):
+        query = """
+            query webapp($workspaceSlug: String!, $slug: String!) {
+                webapp(workspaceSlug: $workspaceSlug, slug: $slug) {
+                    permissions { update share }
+                }
+            }
+        """
+        variables = {"workspaceSlug": self.WS1.slug, "slug": self.WEBAPP.slug}
+        self.client.force_login(self._add_editor())
+        response = self.run_query(query, variables)
+        self.assertEqual(
+            {"update": True, "share": False},
+            response["data"]["webapp"]["permissions"],
+        )
+        self.client.force_login(self.USER_ROOT)
+        response = self.run_query(query, variables)
+        self.assertTrue(response["data"]["webapp"]["permissions"]["share"])
+
     def test_update_iframe_webapp_url_with_null_subdomain(self):
         """The web app form does not expose the subdomain for iframe webapps and
         sends ``subdomain: null``; this must not block the URL update.

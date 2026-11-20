@@ -68,6 +68,11 @@ export const getServerSideProps = createGetServerSideProps({
       return { notFound: true };
     }
 
+    if (data.webapp.isPublic) {
+      ctx.res.setHeader("Content-Security-Policy", "frame-ancestors *");
+      ctx.res.removeHeader("X-Frame-Options");
+    }
+
     if (data.webapp.pointsToOpenhexaWebapp) {
       return {
         redirect: { permanent: false, destination: data.webapp.url },

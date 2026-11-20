@@ -33,6 +33,34 @@ You can perform common file operations:
     - **Viewers**: Can browse, search, and download files
     - **Editors and Admins**: Can browse, search, download, upload, create folders, and delete files
 
+## Public files
+
+A workspace can make some of its files available to anyone, without signing in. This is useful to feed a public web app, a map (for example `.pmtiles` tiles) or an external tool.
+
+Only files in a folder named `public` at the root of the filesystem are concerned. Each of them is reachable at a stable URL:
+
+```
+https://<your-openhexa-instance>/files/<workspace_slug>/public/<path_inside_public_folder>
+```
+
+For example, `public/maps/regions.pmtiles` is served at `/files/<workspace_slug>/public/maps/regions.pmtiles`.
+
+- The URL redirects to a short-lived download link of the storage backend. On cloud storage (Google Cloud Storage, S3, Azure), range requests are supported. The local filesystem backend always returns the whole file.
+- Files are always sent as downloads: opening a link in a browser tab downloads the file instead of displaying it. Reading them from code (`fetch()`, `<img>`, map libraries) is not affected.
+- Any website can fetch these files (CORS is open to all origins). On Azure, cross-origin access also requires CORS to be configured on the storage account, as OpenHEXA does not set it up.
+- Folder contents are never listed, and files outside the `public` folder, or whose name starts with a ".", are never served.
+- The redirect may be cached for up to 5 minutes, so a file can remain reachable for a few minutes after the setting is turned off.
+
+Public files are disabled by default. To enable them:
+
+1. The instance must have the `PUBLIC_FILES_ENABLED=true` environment variable set.
+2. A workspace admin (or an organization admin or owner) turns on **Public files** in the workspace settings.
+
+Once enabled, the `public` folder shows a globe icon and each file inside it has a button to copy its public link. While the setting is disabled, the folder shows a lock icon instead: nothing in it is shared. Admins can click either icon to open the workspace settings. While the `public` folder does not exist, a greyed-out placeholder at the root of the filesystem offers to create it, along with a link to enable the setting if needed.
+
+!!! warning
+    Anyone who has the link of a public file can download it. Check the content of the `public` folder before enabling the setting, and never put sensitive data in it.
+
 ## Integration with OpenHEXA tools
 
 The workspace filesystem integrates seamlessly with other OpenHEXA components:

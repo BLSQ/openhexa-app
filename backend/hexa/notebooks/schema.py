@@ -57,8 +57,12 @@ def resolve_launch_notebook_server(_, info, input, **kwargs):
             username,
             server_name,
             {
-                "sessionid": request.COOKIES.get("sessionid"),
-                "csrftoken": request.COOKIES.get("csrftoken"),
+                settings.SESSION_COOKIE_NAME: request.COOKIES.get(
+                    settings.SESSION_COOKIE_NAME
+                ),
+                settings.CSRF_COOKIE_NAME: request.COOKIES.get(
+                    settings.CSRF_COOKIE_NAME
+                ),
             },
             profile=notebook_profile,
         )

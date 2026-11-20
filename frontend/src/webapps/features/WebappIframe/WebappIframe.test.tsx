@@ -29,6 +29,20 @@ describe("WebappIframe", () => {
     );
   });
 
+  it.each([
+    "/files/dl/token/#/superset/dashboard/",
+    "/files/dl/token/?next=/superset/dashboard/",
+    "/files/dl/superset/dashboard/",
+  ])(
+    "⚠️ does not allow same origin for a same-origin url that only mentions the Superset path (%s)",
+    (path) => {
+      render(<WebappIframe url={window.location.origin + path} />);
+
+      const iframe = screen.getByTestId("webapp-iframe");
+      expect(iframe).toHaveAttribute("sandbox", BASE_SANDBOX);
+    },
+  );
+
   it("should set sandbox permissions correctly for different origin url", () => {
     const url = "https://different-origin.com/some-path";
     render(<WebappIframe url={url} />);

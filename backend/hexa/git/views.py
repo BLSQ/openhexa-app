@@ -97,7 +97,9 @@ def authorize(request: HttpRequest) -> HttpResponse:
         return HttpResponse(status=401)
 
     try:
-        access_token = AccessToken.objects.select_related("user").get(token=token)
+        access_token = AccessToken.objects.select_related("user").get(
+            token=token, user__is_active=True
+        )
     except AccessToken.DoesNotExist:
         return HttpResponse(status=401)
 

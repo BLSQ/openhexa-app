@@ -80,6 +80,7 @@ interface IDataGridProps {
   spacing?: TableCellProps["spacing"];
   loading?: boolean;
   onRowClick?: (row: object) => void;
+  leadingRow?: ReactNode;
 }
 
 type DataGridProps = IDataGridProps;
@@ -118,6 +119,7 @@ function DataGrid(props: DataGridProps) {
     spacing,
     loading: externalLoading,
     onRowClick,
+    leadingRow,
   } = props;
 
   const [internalLoading, setInternalLoading] = useState(false);
@@ -176,6 +178,7 @@ function DataGrid(props: DataGridProps) {
     getTableProps,
     getTableBodyProps,
     headerGroups,
+    visibleColumns,
     prepareRow,
     page,
     gotoPage,
@@ -347,6 +350,13 @@ function DataGrid(props: DataGridProps) {
             })}
           </TableHead>
           <TableBody {...getTableBodyProps()}>
+            {leadingRow && (
+              <TableRow>
+                <TableCell colSpan={visibleColumns.length} spacing={spacing}>
+                  {leadingRow}
+                </TableCell>
+              </TableRow>
+            )}
             {page.map((row, i) => {
               prepareRow(row);
               const rowProps = row.getRowProps();

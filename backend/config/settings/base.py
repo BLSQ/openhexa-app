@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 import os
 import re
+from datetime import timedelta
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -53,6 +54,10 @@ X_FRAME_OPTIONS = "SAMEORIGIN"
 DEBUG = os.environ.get("DEBUG", "false") == "true"
 
 ALLOW_SELF_REGISTRATION = os.environ.get("ALLOW_SELF_REGISTRATION", "false") == "true"
+
+# Off by default so that existing buckets with a top-level "public" folder are never exposed
+# without an explicit opt-in from the instance operator.
+PUBLIC_FILES_ENABLED = os.environ.get("PUBLIC_FILES_ENABLED", "false") == "true"
 
 
 def _load_oidc_providers() -> list[dict]:
@@ -210,7 +215,8 @@ if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
 CORS_PATTERNS = [
     r"^/graphql/(\w+/)?",
     r"^/analytics/track/",
-    r"^/files/[\w/]+/?$",
+    # Public files set a wildcard origin themselves, incompatible with credentialed CORS
+    r"^/files/(?![-a-z0-9]+/public/)[\w/]+/?$",
     r"^/mcp/",
     r"^/oauth/",
     r"^/\.well-known/",
@@ -291,6 +297,10 @@ if SENTRY_DSN:
     setup_sentry(SENTRY_DSN)
 
 
+# Environments sharing a parent cookie domain (e.g. demo under .openhexa.org) need
+# distinct names, or the browser sends both environments' cookies under one name.
+SESSION_COOKIE_NAME = os.environ.get("SESSION_COOKIE_NAME", "sessionid")
+CSRF_COOKIE_NAME = os.environ.get("CSRF_COOKIE_NAME", "csrftoken")
 SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN", None)
 SESSION_COOKIE_SAMESITE = os.environ.get("SESSION_COOKIE_SAMESITE", "Lax")
 SESSION_COOKIE_HTTPONLY = True
@@ -312,6 +322,7 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "axes",
     "corsheaders",
     "django_countries",
     "django_ltree",
@@ -511,10 +522,23 @@ AUTH_PASSWORD_VALIDATORS = [
 # Authentication backends
 # https://docs.djangoproject.com/en/4.0/topics/auth/customizing/#authentication-backends
 AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
     "hexa.user_management.backends.PermissionsBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
+
+# Login brute-force protection (django-axes): an email is locked out after
+# AXES_FAILURE_LIMIT failed logins, until AXES_COOLOFF_TIME has passed. The lockout is
+# per email only, as the client IP behind our proxies can be spoofed.
+AXES_FAILURE_LIMIT = 10
+AXES_COOLOFF_TIME = timedelta(minutes=15)
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCKOUT_PARAMETERS = ["username"]
+AXES_USERNAME_CALLABLE = "hexa.user_management.rate_limit.get_username"
+# The login mutation reports the lockout as a GraphQL error itself, so the axes
+# middleware, which would replace the response with a 429 page, is not installed.
+SILENCED_SYSTEM_CHECKS = ["axes.W002"]
 
 # by default users need to login every 2 weeks -> update to 1 year
 SESSION_COOKIE_AGE = 365 * 24 * 3600

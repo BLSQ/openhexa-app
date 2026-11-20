@@ -4,6 +4,7 @@ from hexa.core.graphql import result_page
 
 from ...workspaces.models import Workspace
 from ..models import (
+    ORGANIZATION_WIDE_VISIBILITIES,
     Dataset,
     DatasetLink,
     DatasetVersion,
@@ -91,7 +92,7 @@ def resolve_dataset_link_by_slug(_, info, **kwargs):
         return None
     result = user_links.filter(
         dataset__slug=dataset_slug,
-        dataset__shared_with_organization=True,
+        dataset__visibility__in=ORGANIZATION_WIDE_VISIBILITIES,
         dataset__workspace__organization=workspace.organization,
     ).first()
     if result:

@@ -21,7 +21,7 @@ const buildWebapp = (overrides: any = {}) => ({
   isPublic: false,
   url: null,
   serveUrl: "https://my-app.webapps.openhexa.org/",
-  permissions: { update: true },
+  permissions: { share: true },
   ...overrides,
 });
 
@@ -59,8 +59,8 @@ const renderButton = (webapp: any, mocks: MockedResponse[] = []) =>
 beforeEach(() => jest.clearAllMocks());
 
 describe("WebappVisibilityButton", () => {
-  it("is hidden for members who cannot update the web app", () => {
-    renderButton(buildWebapp({ permissions: { update: false } }));
+  it("is hidden for members who cannot make the web app public", () => {
+    renderButton(buildWebapp({ permissions: { share: false } }));
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
@@ -102,6 +102,26 @@ describe("WebappVisibilityButton", () => {
     );
   });
 
+  it("keeps the dialog content while the new visibility reaches the cache", async () => {
+    const { rerender } = renderButton(buildWebapp());
+
+    fireEvent.click(screen.getByRole("button", { name: "Make public" }));
+    expect(
+      await screen.findByText("Make this web app public?"),
+    ).toBeInTheDocument();
+
+    rerender(
+      <TestApp mocks={[]}>
+        <WebappVisibilityButton webapp={buildWebapp({ isPublic: true })} />
+      </TestApp>,
+    );
+
+    expect(screen.getByText("Make this web app public?")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Make this web app private?"),
+    ).not.toBeInTheDocument();
+  });
+
   it("makes a public web app private after confirmation", async () => {
     const mock = updateMock(false);
     renderButton(buildWebapp({ isPublic: true }), [mock]);
@@ -119,14 +139,14 @@ describe("WebappVisibilityButton", () => {
   });
 
   // Only static apps go through the API proxy, so the warning is irrelevant elsewhere.
-  it("warns about losing API access only for static web apps", async () => {
+  it("warns about API access only for static web apps", async () => {
     renderButton(buildWebapp({ type: WebappType.Iframe }));
 
     fireEvent.click(screen.getByRole("button", { name: "Make public" }));
     await screen.findByText("Make this web app public?");
 
     expect(
-      screen.queryByText(/Public web apps can't call the OpenHEXA API/),
+      screen.queryByText(/only reach the workspace's public resources/),
     ).not.toBeInTheDocument();
   });
 });

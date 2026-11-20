@@ -529,6 +529,7 @@ export enum AssistantToolName {
   GetDbTableSchema = 'get_db_table_schema',
   GetHelpOrDoc = 'get_help_or_doc',
   GetPipeline = 'get_pipeline',
+  GetPipelineRun = 'get_pipeline_run',
   GetSavedQuery = 'get_saved_query',
   GetWorkspace = 'get_workspace',
   GlobFiles = 'glob_files',
@@ -1082,6 +1083,11 @@ export type CreateOrganizationInput = {
   /** The subscription plan code (e.g., "openhexa_starter"). */
   planCode: Scalars['String']['input'];
   /**
+   * Whether to email the owner (invitation link for a new user, notification for an existing one).
+   * Defaults to true. The caller can pass false and send the owner to invitationUrl itself.
+   */
+  sendInvitationEmail?: InputMaybe<Scalars['Boolean']['input']>;
+  /**
    * The short name of the organization (max 5 uppercase letters).
    * If not provided, it will be auto-generated from the name.
    */
@@ -1099,6 +1105,8 @@ export type CreateOrganizationResult = {
   __typename?: 'CreateOrganizationResult';
   /** The list of errors that occurred during the createOrganization mutation. */
   errors: Array<CreateOrganizationError>;
+  /** The registration link for a new owner (null when the owner already had an account). Valid for 48 hours. */
+  invitationUrl?: Maybe<Scalars['String']['output']>;
   /** The created organization object. */
   organization?: Maybe<Organization>;
   /** Indicates whether the createOrganization mutation was successful. */
@@ -1655,12 +1663,14 @@ export type Dataset = MetadataObject & {
   permissions: DatasetPermissions;
   /** Slug unique across the whole instance, used for permalinks. Only set once the dataset needs one. */
   publicSlug?: Maybe<Scalars['String']['output']>;
+  /** @deprecated Use `visibility`. */
   sharedWithOrganization: Scalars['Boolean']['output'];
   slug: Scalars['String']['output'];
   targetId: Scalars['OpaqueID']['output'];
   updatedAt: Scalars['DateTime']['output'];
   version?: Maybe<DatasetVersion>;
   versions: DatasetVersionPage;
+  visibility: DatasetVisibility;
   workspace?: Maybe<Workspace>;
 };
 
@@ -1738,6 +1748,8 @@ export type DatasetPermissions = {
   createVersion: Scalars['Boolean']['output'];
   /** Permissions to delete the dataset */
   delete: Scalars['Boolean']['output'];
+  /** Permission to make the dataset public, or to take a public dataset back to the organization or workspace. */
+  share: Scalars['Boolean']['output'];
   /** Permissions to edit the dataset */
   update: Scalars['Boolean']['output'];
 };
@@ -1848,6 +1860,16 @@ export type DatasetVersionPermissions = {
   /** Permissions to update the dataset version */
   update: Scalars['Boolean']['output'];
 };
+
+/** Who a dataset is visible to. */
+export enum DatasetVisibility {
+  /** Every member of the organization. */
+  Organization = 'ORGANIZATION',
+  /** For now, every member of the organization. */
+  Public = 'PUBLIC',
+  /** The members of the workspaces the dataset is shared with. */
+  Workspace = 'WORKSPACE'
+}
 
 /** Represents the error types for declining a workspace invitation. */
 export enum DeclineWorkspaceInvitationError {
@@ -2887,6 +2909,8 @@ export type IframeSourceInput = {
 export enum InviteOrganizationMemberError {
   /** Indicates that the user is already a member of the organization. */
   AlreadyMember = 'ALREADY_MEMBER',
+  /** Indicates that the provided language is not supported. */
+  InvalidLanguage = 'INVALID_LANGUAGE',
   /** Indicates that the organization was not found. */
   OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
   /** Indicates that the user does not have permission to invite members to the organization. */
@@ -2899,6 +2923,8 @@ export enum InviteOrganizationMemberError {
 
 /** The InviteOrganizationMemberInput type represents the input for the inviteOrganizationMember mutation. */
 export type InviteOrganizationMemberInput = {
+  /** The language of the invitation email for users without an account. Defaults to the inviter's language. */
+  language?: InputMaybe<Scalars['String']['input']>;
   /** The unique identifier of the organization. */
   organizationId: Scalars['UUID']['input'];
   /** The role of the user in the organization. */
@@ -2920,6 +2946,7 @@ export type InviteOrganizationMemberResult = {
 
 /** Represents the input for inviting a member to a workspace. */
 export type InviteWorkspaceMemberInput = {
+  language?: InputMaybe<Scalars['String']['input']>;
   role: WorkspaceMembershipRole;
   userEmail: Scalars['String']['input'];
   workspaceSlug: Scalars['String']['input'];
@@ -2936,6 +2963,7 @@ export type InviteWorkspaceMemberResult = {
 /** Enum representing the possible errors that can occur when inviting a user to a workspace. */
 export enum InviteWorkspaceMembershipError {
   AlreadyExists = 'ALREADY_EXISTS',
+  InvalidLanguage = 'INVALID_LANGUAGE',
   PermissionDenied = 'PERMISSION_DENIED',
   UserNotFound = 'USER_NOT_FOUND',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
@@ -3069,7 +3097,9 @@ export enum LoginError {
   /** Indicates that the provided OTP is invalid. */
   InvalidOtp = 'INVALID_OTP',
   /** Indicates that an OTP (one-time password) is required for login. */
-  OtpRequired = 'OTP_REQUIRED'
+  OtpRequired = 'OTP_REQUIRED',
+  /** Indicates that too many logins failed for this email; retry later. */
+  TooManyAttempts = 'TOO_MANY_ATTEMPTS'
 }
 
 /** The LoginInput type represents the input for the login mutation. */
@@ -6420,7 +6450,11 @@ export type UpdateDagResult = {
 /** Errors that can occur when updating a dataset. */
 export enum UpdateDatasetError {
   DatasetNotFound = 'DATASET_NOT_FOUND',
-  PermissionDenied = 'PERMISSION_DENIED'
+  PermissionDenied = 'PERMISSION_DENIED',
+  PublicSlugInvalidFormat = 'PUBLIC_SLUG_INVALID_FORMAT',
+  PublicSlugLocked = 'PUBLIC_SLUG_LOCKED',
+  PublicSlugReserved = 'PUBLIC_SLUG_RESERVED',
+  PublicSlugTaken = 'PUBLIC_SLUG_TAKEN'
 }
 
 /** Input for updating a dataset. */
@@ -6428,7 +6462,12 @@ export type UpdateDatasetInput = {
   datasetId: Scalars['ID']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  /** The slug of the dataset's permalink. Requires the `share` permission and cannot be changed once set; derived from the dataset slug when making the dataset public without one. */
+  publicSlug?: InputMaybe<Scalars['String']['input']>;
+  /** @deprecated Use `visibility`. */
   sharedWithOrganization?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Making the dataset PUBLIC, or taking it back, requires the `share` permission. */
+  visibility?: InputMaybe<DatasetVisibility>;
 };
 
 /** Result of updating a dataset. */
@@ -6972,6 +7011,7 @@ export type UpdateWorkspaceInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   dockerImage?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  publicFilesEnabled?: InputMaybe<Scalars['Boolean']['input']>;
   slug: Scalars['String']['input'];
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
 };
@@ -7215,6 +7255,7 @@ export enum WebappOperationScope {
 export type WebappPermissions = {
   __typename?: 'WebappPermissions';
   delete: Scalars['Boolean']['output'];
+  share: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
 
@@ -7282,6 +7323,7 @@ export type Workspace = {
   pipelineLastRunStatuses: Array<PipelineRunStatus>;
   pipelineTags: Array<Scalars['String']['output']>;
   pipelineTemplateTags: Array<Scalars['String']['output']>;
+  publicFiles?: Maybe<WorkspacePublicFiles>;
   /** The saved queries of the workspace. */
   savedQueries: SavedQueryPage;
   shortcuts: Array<ShortcutItem>;
@@ -7429,10 +7471,18 @@ export type WorkspacePermissions = {
   generateToken: Scalars['Boolean']['output'];
   launchNotebookServer: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
+  managePublicFiles: Scalars['Boolean']['output'];
   manageTags: Scalars['Boolean']['output'];
   /** Permission to make one's own saved queries of the workspace public. */
   shareSavedQuery: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
+};
+
+/** The files of the "public" folder at the root of a workspace filesystem, which anyone with their link can download. */
+export type WorkspacePublicFiles = {
+  __typename?: 'WorkspacePublicFiles';
+  folderExists: Scalars['Boolean']['output'];
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 /** Represents a minimal workspace reference in the token payload. */

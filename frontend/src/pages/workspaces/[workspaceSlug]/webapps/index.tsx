@@ -11,12 +11,7 @@ import React, { useMemo, useState } from "react";
 import Button from "core/components/Button";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import Breadcrumbs from "core/components/Breadcrumbs";
-import {
-  GlobeAltIcon,
-  LockClosedIcon,
-  PlayIcon,
-  PlusIcon,
-} from "@heroicons/react/24/outline";
+import { PlayIcon, PlusIcon } from "@heroicons/react/24/outline";
 import {
   useWorkspaceWebappsPageQuery,
   WorkspaceWebappsPageDocument,
@@ -32,6 +27,8 @@ import LinkColumn from "core/components/DataGrid/LinkColumn";
 import clsx from "clsx";
 import WebappCard from "webapps/features/WebappCard";
 import CreateWebappDialog from "webapps/features/CreateWebappDialog";
+import WebappVisibilityBadge from "webapps/features/WebappVisibilityBadge";
+import Clipboard from "core/components/Clipboard";
 
 type Props = {
   page: number;
@@ -177,30 +174,24 @@ const WebappsPage = (props: Props) => {
                 )}
               </BaseColumn>
               <BaseColumn
-                id="access"
-                label={t("Access")}
+                id="visibility"
+                label={t("Visibility")}
                 className="flex items-center"
-                maxWidth={80}
+                maxWidth={140}
               >
-                {(item) => (
-                  <div className="flex items-center gap-1.5">
-                    {item.isPublic ? (
-                      <>
-                        <GlobeAltIcon className="h-4 w-4 text-green-500" />
-                        <span className="text-sm text-green-700">
-                          {t("Public")}
+                {(item) => {
+                  const publicLink = item.serveUrl ?? item.url;
+                  return (
+                    <div className="flex items-center gap-2">
+                      <WebappVisibilityBadge isPublic={item.isPublic} />
+                      {item.isPublic && publicLink && (
+                        <span className="flex text-gray-400 hover:text-gray-600">
+                          <Clipboard value={publicLink} />
                         </span>
-                      </>
-                    ) : (
-                      <>
-                        <LockClosedIcon className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm text-gray-500">
-                          {t("Private")}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                )}
+                      )}
+                    </div>
+                  );
+                }}
               </BaseColumn>
               <BaseColumn
                 id="type"

@@ -15,6 +15,7 @@ import {
 } from "workspaces/graphql/queries.generated";
 import DataCard from "core/components/DataCard";
 import TextProperty from "core/components/DataCard/TextProperty";
+import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import { OnSaveFn } from "core/components/DataCard/FormSection";
 import { useUpdateWorkspaceMutation } from "workspaces/graphql/mutations.generated";
 import { useState } from "react";
@@ -72,6 +73,9 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
               code,
             }),
           ),
+          ...(workspace.permissions.managePublicFiles && {
+            publicFilesEnabled: values.publicFilesEnabled,
+          }),
         },
       },
     });
@@ -181,6 +185,16 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                     label={t("Configuration")}
                     help={t(
                       "Custom configuration properties for the workspace. Each property has a name (string) and a value (JSON).",
+                    )}
+                  />
+                  <SwitchProperty
+                    id="publicFilesEnabled"
+                    accessor={(item) => Boolean(item.publicFiles?.url)}
+                    label={t("Public files")}
+                    visible={Boolean(workspace.publicFiles)}
+                    readonly={!workspace.permissions.managePublicFiles}
+                    help={t(
+                      'When enabled, every file in the "public" folder at the root of the workspace filesystem can be downloaded by anyone who has its link, without signing in. Folder contents are never listed.',
                     )}
                   />
                 </DataCard.FormSection>

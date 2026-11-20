@@ -30,6 +30,7 @@ export function getToolLabels(t: TFunction): Record<string, string> {
     [TOOL.CreatePipeline]: t("Creating pipeline"),
     [TOOL.CreateStaticWebapp]: t("Creating web app"),
     [TOOL.GetPipeline]: t("Reading pipeline"),
+    [TOOL.GetPipelineRun]: t("Reading pipeline run"),
     [TOOL.ListPipelines]: t("Listing pipelines"),
     [TOOL.GetHelpOrDoc]: t("Reading documentation"),
     [TOOL.ProposePipelineVersion]: t("Proposing pipeline version"),

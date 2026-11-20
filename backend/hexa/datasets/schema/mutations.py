@@ -7,7 +7,7 @@ from hexa.files import storage
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.workspaces.models import Workspace
 
-from ..api import generate_download_url, generate_upload_url, get_blob
+from ..api import generate_download_url, get_blob
 from ..models import (
     Dataset,
     DatasetLink,
@@ -60,16 +60,19 @@ def resolve_update_dataset(_, info, **kwargs):
         dataset = Dataset.objects.filter_for_user(request.user).get(
             id=mutation_input["dataset_id"]
         )
+    except Dataset.DoesNotExist:
+        return {"success": False, "errors": ["DATASET_NOT_FOUND"]}
 
+    try:
         dataset.update_if_has_perm(
             principal=request.user,
             **mutation_input,
         )
-        return {"success": True, "errors": [], "dataset": dataset}
-    except Dataset.DoesNotExist:
-        return {"success": False, "errors": ["DATASET_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except ValidationError as e:
+        return {"success": False, "errors": [e.code]}
+    return {"success": True, "errors": [], "dataset": dataset}
 
 
 @mutations.field("deleteDataset")
@@ -237,13 +240,10 @@ def resolve_generate_upload_url(_, info, **kwargs):
         )
         if version.id != version.dataset.latest_version.id:
             return {"success": False, "errors": ["LOCKED_VERSION"]}
-
-        full_uri = version.get_full_uri(mutation_input["uri"])
-        if get_blob(full_uri) is not None:
-            return {"success": False, "errors": ["ALREADY_EXISTS"]}
-
-        upload_url, headers = generate_upload_url(
-            full_uri, mutation_input["content_type"]
+        upload_url, headers = version.generate_upload_url_if_has_perm(
+            principal=request.user,
+            uri=mutation_input["uri"],
+            content_type=mutation_input["content_type"],
         )
 
         return {
@@ -252,6 +252,8 @@ def resolve_generate_upload_url(_, info, **kwargs):
             "upload_url": upload_url,
             "headers": headers,
         }
+    except FileExistsError:
+        return {"success": False, "errors": ["ALREADY_EXISTS"]}
     except ValidationError:
         return {"success": False, "errors": ["INVALID_URI"]}
     except DatasetVersion.DoesNotExist:

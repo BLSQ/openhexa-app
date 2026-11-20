@@ -304,22 +304,20 @@ class S3StorageTest(StorageTestMixin, TestCase):
             config["WORKSPACE_STORAGE_ENGINE_S3_SESSION_TOKEN"], "STS-SESSION-TOKEN"
         )
 
-    def test_get_bucket_mount_config_sts_falls_back_to_static(self):
+    def test_get_bucket_mount_config_sts_failure_does_not_leak_static_credentials(self):
+        """The static keys reach every bucket: an STS outage must not hand them to user code."""
         storage_with_role = S3Storage(
             access_key_id="fake-access-key",
             secret_access_key="fake-secret-key",
             region=REGION,
             role_arn="arn:aws:iam::123456789012:role/test-role",
         )
-        with patch.object(
-            storage_with_role,
-            "_assume_role_credentials",
-            side_effect=Exception("STS unavailable"),
-        ), patch("sentry_sdk.capture_exception") as mock_capture:
-            config = storage_with_role.get_bucket_mount_config(BUCKET)
-
-        mock_capture.assert_called_once()
-        self.assertEqual(
-            config["WORKSPACE_STORAGE_ENGINE_S3_ACCESS_KEY_ID"], "fake-access-key"
-        )
-        self.assertNotIn("WORKSPACE_STORAGE_ENGINE_S3_SESSION_TOKEN", config)
+        with (
+            patch.object(
+                storage_with_role,
+                "_assume_role_credentials",
+                side_effect=Exception("STS unavailable"),
+            ),
+            self.assertRaisesMessage(Exception, "STS unavailable"),
+        ):
+            storage_with_role.get_bucket_mount_config(BUCKET)

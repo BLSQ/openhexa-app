@@ -67,12 +67,12 @@ def get_workspace(user: User, workspace_slug: str) -> Workspace | None:
         return None
 
 
-def get_source_pipeline(user: User, pipeline_id: str) -> Pipeline | None:
+def get_source_pipeline(workspace: Workspace, pipeline_id: str) -> Pipeline | None:
     """
-    Get a pipeline that the user has access to, regardless of whether it has been deleted or not.
+    Get a pipeline of the given workspace, regardless of whether it has been deleted or not.
     """
     try:
-        return Pipeline.all_objects.filter_for_user(user).get(id=pipeline_id)
+        return Pipeline.all_objects.filter(workspace=workspace).get(id=pipeline_id)
     except Pipeline.DoesNotExist:
         return None
 
@@ -100,7 +100,7 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
     ):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
-    source_pipeline = get_source_pipeline(request.user, input["pipeline_id"])
+    source_pipeline = get_source_pipeline(workspace, input["pipeline_id"])
     if not source_pipeline:
         return {"success": False, "errors": ["PIPELINE_NOT_FOUND"]}
 

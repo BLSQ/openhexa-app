@@ -64,10 +64,10 @@ const WebappIframe = ({
       return false;
     }
     try {
-      const { origin } = new URL(safeUrl);
+      const { origin, pathname } = new URL(safeUrl);
       return (
         origin === window.location.origin &&
-        safeUrl.includes("/superset/dashboard/")
+        pathname.startsWith("/superset/dashboard/")
       );
     } catch {
       return false;

@@ -66,6 +66,13 @@ class FileSystemStorageTest(StorageTestMixin, TestCase):
             os.path.lexists(self.data_directory / "my-bucket/my-second-dir")
         )
 
+    def test_object_key_cannot_escape_its_bucket(self):
+        self.storage.create_bucket("my-bucket")
+        self.storage.create_bucket("other-bucket")
+        with self.assertRaises(self.storage.exceptions.SuspiciousFileOperation):
+            self.storage.save_object("my-bucket", "../other-bucket/x.txt", b"data")
+        self.assertFalse((self.data_directory / "other-bucket/x.txt").exists())
+
     def test_valid_filenames(self):
         self.storage.create_bucket("default-bucket")
         dir_obj = self.storage.create_bucket_folder("default-bucket", "éà_?_d 1")
@@ -182,6 +189,21 @@ class FileSystemStorageTest(StorageTestMixin, TestCase):
                 HTTP_X_METHOD_OVERRIDE="PUT",
             )
         self.assertEqual(resp.status_code, 201)
+
+    def test_download_file_is_sandboxed(self):
+        self.storage.create_bucket("default-bucket")
+        self.storage.save_object(
+            "default-bucket", "evil.html", b"<script>alert(1)</script>"
+        )
+        url = self.storage.generate_download_url(
+            bucket_name="default-bucket", target_key="evil.html"
+        )
+
+        with patch("hexa.files.views.storage", self.storage):
+            resp = self.client.get(url)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp["Content-Security-Policy"], "sandbox")
 
     def test_get_mount_config(self):
         self.assertEqual(

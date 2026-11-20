@@ -1,3 +1,4 @@
+import { InMemoryCache } from "@apollo/client";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -168,5 +169,24 @@ describe("DataStudioSchemaBrowser", () => {
     expect(
       screen.getByText("Showing the first {{count}} tables."),
     ).toBeInTheDocument();
+  });
+
+  it("refetches the schema on remount so newly created tables appear", async () => {
+    // A shared cache mimics client-side navigation, where Apollo's cache
+    // outlives the page: tables created meanwhile (e.g. by a pipeline) must
+    // still show up when the user comes back.
+    const cache = new InMemoryCache();
+    const browser = (mocks: MockedResponse[]) => (
+      <MockedProvider cache={cache} mocks={mocks}>
+        <DataStudioSchemaBrowser workspaceSlug="ws-1" onInsert={jest.fn()} />
+      </MockedProvider>
+    );
+
+    const { unmount } = render(browser([schemaMock([{ name: "patients" }])]));
+    await screen.findByText("patients");
+    unmount();
+
+    render(browser([schemaMock([{ name: "patients" }, { name: "visits" }])]));
+    expect(await screen.findByText("visits")).toBeInTheDocument();
   });
 });

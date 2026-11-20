@@ -13,6 +13,9 @@ query WorkspacePage($slug: String!) {
     description
     dockerImage
     configuration
+    publicFiles {
+      url
+    }
     countries {
       code
       flag
@@ -22,6 +25,7 @@ query WorkspacePage($slug: String!) {
       delete
       update
       manageMembers
+      managePublicFiles
     }
     ...ArchiveWorkspace_workspace
     ...InviteMemberWorkspace_workspace

@@ -202,6 +202,65 @@ describe("WebappsPage", () => {
     expect(screen.getAllByText("View").length).toBeGreaterThan(0);
   });
 
+  it("shows the visibility and copies the link of public webapps", async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    render(
+      <TestApp
+        mocks={[
+          sidebarMenuMock,
+          {
+            request: {
+              query: WorkspaceWebappsPageDocument,
+              variables: {
+                workspaceSlug: "test-workspace",
+                page: 1,
+                perPage: 15,
+              },
+            },
+            result: {
+              data: {
+                workspace: mockWorkspace,
+                webapps: {
+                  pageNumber: 1,
+                  totalPages: 1,
+                  totalItems: 2,
+                  items: [
+                    {
+                      ...webapp("1"),
+                      isPublic: true,
+                      serveUrl: "https://app1.webapps.example.com/",
+                    },
+                    { ...webapp("2"), isPublic: false, serveUrl: null },
+                  ],
+                },
+                favoriteWebapps: {
+                  items: [],
+                  totalPages: 0,
+                  totalItems: 0,
+                },
+              },
+            },
+          },
+        ]}
+      >
+        <WebappsPage workspaceSlug="test-workspace" page={1} perPage={15} />
+      </TestApp>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Webapp 1")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Visibility")).toBeInTheDocument();
+    expect(screen.getByText("Public")).toBeInTheDocument();
+    expect(screen.getByText("Private")).toBeInTheDocument();
+
+    const copyButtons = screen.getAllByRole("button", { name: "Copy" });
+    expect(copyButtons).toHaveLength(1);
+    fireEvent.click(copyButtons[0]);
+    expect(writeText).toHaveBeenCalledWith("https://app1.webapps.example.com/");
+  });
+
   it("adds a webapp to favorites", async () => {
     render(
       <TestApp

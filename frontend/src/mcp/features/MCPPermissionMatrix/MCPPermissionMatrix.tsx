@@ -206,6 +206,9 @@ const MCPPermissionMatrix = ({
   const isWorkspaceSelected = (workspace: MCPWorkspace) =>
     isWorkspaceGranted(grant, workspace);
   const selectedWorkspaces = workspaces.filter(isWorkspaceSelected);
+  const selectedOrganizationCount = organizations.filter((organization) =>
+    grantedOrganizations.has(organization.id),
+  ).length;
 
   const groupLabels: Record<McpResource, string> = {
     [McpResource.Workspaces]: t("Workspaces"),
@@ -387,6 +390,11 @@ const MCPPermissionMatrix = ({
           </h5>
           <div className="flex items-baseline gap-4">
             <span className="text-sm text-gray-500">
+              {t("{{count}} of {{total}} organizations", {
+                count: selectedOrganizationCount,
+                total: organizations.length,
+              })}
+              {" · "}
               {t("{{count}} of {{total}} workspaces selected", {
                 count: selectedWorkspaces.length,
                 total: workspaces.length,
@@ -421,10 +429,15 @@ const MCPPermissionMatrix = ({
                 value={workspaceQuery}
                 disabled={disabled}
                 onChange={(event) => setWorkspaceQuery(event.target.value)}
-                placeholder={t("Filter workspaces")}
+                placeholder={t("Filter organizations and workspaces")}
                 className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm placeholder-gray-400 focus:border-gray-400 focus:ring-0 focus:outline-hidden"
               />
             </div>
+          )}
+          {matchingGroups.length > 0 && (
+            <p className="border-b border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium tracking-wide text-gray-500 uppercase">
+              {t("Organizations")}
+            </p>
           )}
           <div className="max-h-[28rem] divide-y divide-gray-100 overflow-y-auto">
             {matchingGroups.map(({ organization, workspaces: members }) => {
@@ -578,7 +591,7 @@ const MCPPermissionMatrix = ({
           )}
           {organizations.length > 0 && matchingGroups.length === 0 && (
             <p className="p-4 text-sm text-gray-500">
-              {t("No workspace matches that filter.")}
+              {t("No organization or workspace matches that filter.")}
             </p>
           )}
         </div>

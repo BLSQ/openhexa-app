@@ -82,6 +82,7 @@ enum AssistantToolName {
   get_db_table_schema
   get_help_or_doc
   get_pipeline
+  get_pipeline_run
   get_saved_query
   get_workspace
   glob_files

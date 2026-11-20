@@ -171,7 +171,7 @@ class WorkspaceQuerySet(BaseQuerySet):
         if not user.is_authenticated:
             return self.none()
 
-        # A service principal that also subclasses User (WebappUser, MCPUser)
+        # A service principal that also subclasses User (PrivateWebappUser, MCPUser)
         # falls through to the User branch below, where its own workspaces are
         # intersected with the person's memberships: it can narrow their access,
         # never widen it. One that doesn't (PipelineRunUser) replaces it.
@@ -276,6 +276,7 @@ class Workspace(Base):
         help_text="Custom configuration properties for the workspace as key-value pairs",
     )
     tags = models.ManyToManyField("tags.Tag", blank=True, related_name="workspaces")
+    public_files_enabled = models.BooleanField(default=False)
 
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 
@@ -377,6 +378,16 @@ class Workspace(Base):
             if not principal.has_perm("workspaces.manage_tags", self):
                 raise PermissionDenied
             self.tags.set(kwargs["tags"])
+
+        # Only an actual change is checked, so that a form sending back the current value
+        # can still be saved by members who cannot manage public files.
+        if (
+            "public_files_enabled" in kwargs
+            and kwargs["public_files_enabled"] != self.public_files_enabled
+        ):
+            if not principal.has_perm("workspaces.manage_public_files", self):
+                raise PermissionDenied
+            self.public_files_enabled = kwargs["public_files_enabled"]
 
         return self.save()
 
@@ -551,6 +562,7 @@ class WorkspaceInvitationManager(InvitationManager):
         workspace: Workspace,
         email: string,
         role: WorkspaceMembershipRole,
+        language: str | None = None,
     ):
         if not principal.has_perm("workspaces.manage_members", workspace):
             raise PermissionDenied
@@ -559,6 +571,7 @@ class WorkspaceInvitationManager(InvitationManager):
             email=email,
             workspace=workspace,
             role=role,
+            language=language or principal.language,
             invited_by=principal,
         )
 
@@ -687,7 +700,7 @@ class Connection(models.Model):
             )
         ]
 
-    def set_fields(self, user: User, fields: typing.List[dict]):
+    def set_fields(self, user: User, fields: list[dict]):
         fields_map = {str(f.code): f for f in self.fields.all()}
         for field in fields:
             if field["code"] not in fields_map:

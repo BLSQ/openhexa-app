@@ -6,7 +6,7 @@ from django.utils import timezone
 from oauth2_provider.models import AccessToken, Application
 
 from hexa.core.middlewares import oauth2_token_authentication_middleware
-from hexa.datasets.models import Dataset
+from hexa.datasets.models import Dataset, DatasetVisibility
 from hexa.mcp.models import MCPConnection, MCPUser
 from hexa.mcp.tests.testutils import all_tool_names
 from hexa.user_management.models import (
@@ -76,6 +76,7 @@ class MCPUserFilteringTest(TestCase):
         with self.assertNumQueries(1):
             mcp_user.workspace_ids
             mcp_user.workspace_ids
+            mcp_user.granted_workspaces
 
     def test_grant_narrows_to_the_granted_workspaces(self):
         connection = self.connection_for(self.USER, self.GRANTED)
@@ -116,7 +117,7 @@ class MCPUserFilteringTest(TestCase):
         dataset = Dataset.objects.create_if_has_perm(
             self.SUPERUSER, self.STRANGER, name="Org-wide", description=""
         )
-        dataset.shared_with_organization = True
+        dataset.visibility = DatasetVisibility.ORGANIZATION
         dataset.save()
         mcp_user = MCPUser.from_user(
             self.USER, self.connection_for(self.USER, self.GRANTED)

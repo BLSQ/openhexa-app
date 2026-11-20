@@ -75,8 +75,10 @@ class FileSystemStorage(Storage):
         except self.exceptions.SuspiciousFileOperation:
             raise
 
-    def path(self, *paths):
-        return safe_join(self.data_dir, *paths)
+    def path(self, bucket_name, *paths):
+        """Resolve a path under data_dir; the trailing paths cannot escape the bucket."""
+        bucket_path = safe_join(self.data_dir, bucket_name)
+        return safe_join(bucket_path, *paths)
 
     def size(self, name):
         return os.path.getsize(name)

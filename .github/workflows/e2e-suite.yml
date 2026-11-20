@@ -1,0 +1,77 @@
+name: E2E suite (manual)
+
+# Regression check against a deployed environment. Run this against demo before
+# promoting a release to production.
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Environment to test"
+        required: true
+        default: "https://app.demo.openhexa.org"
+        type: string
+
+concurrency:
+  # A single shared test account: never run two suites against it at once.
+  group: e2e-${{ inputs.base_url }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: Playwright
+    runs-on: ubuntu-latest
+    # The email specs add a few minutes of waiting on mail and on runs.
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: e2e
+    env:
+      CI: true
+      E2E_BASE_URL: ${{ inputs.base_url }}
+      E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+      E2E_OUTSIDER_EMAIL: ${{ secrets.E2E_OUTSIDER_EMAIL }}
+      E2E_OUTSIDER_PASSWORD: ${{ secrets.E2E_OUTSIDER_PASSWORD }}
+      E2E_MAILGUN_API_KEY: ${{ secrets.E2E_MAILGUN_API_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Use Node.js v22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Run the suite
+        run: npx playwright test
+      # No report is uploaded: it quotes every value the suite types, the
+      # password included, and the artifacts of a public repository can be
+      # downloaded by anyone signed in to GitHub.
+
+  notify:
+    name: Notify Slack on failure
+    needs: e2e
+    # A job that hits its timeout ends as cancelled, not failed.
+    if: ${{ failure() || cancelled() }}
+    runs-on: ubuntu-latest
+    # A separate job, so the third-party action never sees the test accounts.
+    permissions: {}
+    steps:
+      - uses: rtCamp/action-slack-notify@v2.4.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_CHANNEL: "#openhexa-alerts"
+          SLACK_USERNAME: "E2E suite"
+          SLACK_COLOR: failure
+          SLACK_ICON_EMOJI: ":warning:"
+          SLACK_TITLE: "E2E suite failed"
+          SLACK_MESSAGE: "The end-to-end suite did not pass against ${{ inputs.base_url }}. <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
+          SLACK_FOOTER: "-"
+          MSG_MINIMAL: true

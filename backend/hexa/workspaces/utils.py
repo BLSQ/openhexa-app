@@ -5,7 +5,7 @@ from enum import StrEnum
 from urllib.parse import urlencode
 
 from django.conf import settings
-from django.utils.translation import gettext_lazy, override
+from django.utils.translation import gettext, gettext_lazy, override
 from openhexa.toolbox.dhis2 import DHIS2
 from openhexa.toolbox.iaso import IASO
 
@@ -54,14 +54,14 @@ def send_workspace_add_user_email(
 
 
 def send_workspace_invite_new_user_email(invitation: WorkspaceInvitation):
-    title = gettext_lazy(
-        f"You've been invited to join the workspace {invitation.workspace.name} on OpenHEXA"
-    )
     token = invitation.generate_token()
     action_url = f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
     invited_by = invitation.invited_by
 
-    with override(invited_by.language):
+    with override(invitation.language):
+        title = gettext(
+            "You've been invited to join the workspace %(workspace)s on OpenHEXA"
+        ) % {"workspace": invitation.workspace.name}
         send_mail(
             title=title,
             template_name="workspaces/mails/invite_new_user",
