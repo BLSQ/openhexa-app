@@ -46,6 +46,10 @@ from hexa.webapps.schema import (
     webapps_bindables,
     webapps_type_defs,
 )
+from hexa.workspace_copier.schema import (
+    workspace_copier_bindables,
+    workspace_copier_type_defs,
+)
 from hexa.workspaces.schema import workspaces_bindables, workspaces_type_def
 
 uuid_scalar = ScalarType("UUID")
@@ -111,6 +115,7 @@ schema = make_executable_schema(
         datasets_type_defs,
         assistant_type_defs,
         mcp_type_defs,
+        workspace_copier_type_defs,
     ],
     [
         uuid_scalar,
@@ -136,6 +141,7 @@ schema = make_executable_schema(
         *config_bindables,
         *assistant_bindables,
         *mcp_bindables,
+        *workspace_copier_bindables,
         snake_case_fallback_resolvers,
     ],
     convert_names_case=True,

@@ -115,3 +115,18 @@ def delete_database_table(principal: User, workspace: Workspace):
         user=principal,
         role__in=[WorkspaceMembershipRole.EDITOR, WorkspaceMembershipRole.ADMIN],
     ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
+
+
+def duplicate_workspace(principal: User, workspace: Workspace):
+    """Editors and above can duplicate a workspace, if they may create one.
+
+    Viewers are excluded: a duplicate would hand them, as its admin, the
+    connection secrets and everything else they cannot edit in the source.
+    """
+    return (
+        workspace.organization is not None
+        and principal.has_perm(
+            "user_management.create_workspace", workspace.organization
+        )
+        and principal.has_perm("workspaces.update_workspace", workspace)
+    )

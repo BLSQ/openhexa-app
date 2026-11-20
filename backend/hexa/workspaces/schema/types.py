@@ -105,6 +105,16 @@ def resolve_workspace_permission_delete(workspace: Workspace, info):
     )
 
 
+@workspace_permissions.field("duplicate")
+def resolve_workspace_permission_duplicate(workspace: Workspace, info):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("workspaces.duplicate_workspace", workspace)
+        if request.user.is_authenticated
+        else False
+    )
+
+
 @workspace_permissions.field("manageMembers")
 def resolve_workspace_permission_manage(workspace: Workspace, info):
     request: HttpRequest = info.context["request"]

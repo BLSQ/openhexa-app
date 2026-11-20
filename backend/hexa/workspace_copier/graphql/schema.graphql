@@ -1,0 +1,68 @@
+"""
+A resource that can be copied when duplicating a workspace. The workspace
+itself is always created.
+"""
+enum WorkspaceCopyResource {
+  FILES
+  DATABASE
+  CONNECTIONS
+  PIPELINES
+  DATASETS
+  WEBAPPS
+}
+
+enum WorkspaceCopyRunStatus {
+  QUEUED
+  RUNNING
+  SUCCESS
+  SUCCESS_WITH_ERRORS
+  FAILED
+}
+
+"""
+A workspace duplication, run in the background.
+"""
+type WorkspaceCopyRun {
+  id: UUID!
+  status: WorkspaceCopyRunStatus!
+  "Timestamped progress lines, appended while the run is going."
+  logs: String!
+  "Why the run failed, if it did."
+  error: String
+  createdAt: DateTime!
+  startedAt: DateTime
+  finishedAt: DateTime
+  "The workspace created by the run, once it exists."
+  workspace: Workspace
+}
+
+input DuplicateWorkspaceInput {
+  workspaceSlug: String!
+  name: String!
+  "Countries of the new workspace. Omitted, the source workspace's are kept."
+  countries: [CountryInput!]
+  resources: [WorkspaceCopyResource!]!
+  includeConnectionSecrets: Boolean!
+}
+
+enum DuplicateWorkspaceError {
+  WORKSPACE_NOT_FOUND
+  PERMISSION_DENIED
+  WORKSPACES_LIMIT_REACHED
+  INVALID_COUNTRY
+}
+
+type DuplicateWorkspaceResult {
+  success: Boolean!
+  errors: [DuplicateWorkspaceError!]!
+  run: WorkspaceCopyRun
+}
+
+extend type Query {
+  workspaceCopyRun(id: UUID!): WorkspaceCopyRun @loginRequired
+}
+
+extend type Mutation {
+  duplicateWorkspace(input: DuplicateWorkspaceInput!): DuplicateWorkspaceResult!
+    @loginRequired
+}

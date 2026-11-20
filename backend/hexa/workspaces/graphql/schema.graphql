@@ -145,6 +145,9 @@ type WorkspacePermissions {
     # Indicates whether the workspace can be deleted.
     delete: Boolean!
 
+    # Indicates whether the workspace can be duplicated into its organization.
+    duplicate: Boolean!
+
     # Indicates whether the workspace members can be managed.
     manageMembers: Boolean!
 
