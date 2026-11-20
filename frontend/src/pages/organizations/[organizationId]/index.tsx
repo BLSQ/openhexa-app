@@ -13,6 +13,7 @@ import {
   useOrganizationWorkspacesQuery,
 } from "organizations/graphql/queries.generated";
 import ManageWorkspaceTagsDialog from "organizations/features/ManageWorkspaceTagsDialog";
+import GettingStartedPlaceholder from "organizations/features/GettingStartedPlaceholder";
 import { CreateWorkspacePermissionReason } from "graphql/types";
 import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
 import ArchiveWorkspaceDialog from "workspaces/features/ArchiveWorkspaceDialog";
@@ -92,6 +93,26 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
     setIsArchiveDialogOpen(true);
   };
 
+  const createWorkspaceButton = (
+    <SubscriptionLimitTooltip
+      isLimitReached={organization.permissions.createWorkspace.reasons.includes(
+        CreateWorkspacePermissionReason.WorkspacesLimitReached,
+      )}
+      title={t(
+        "You have reached the maximum number of workspaces for your plan.",
+      )}
+    >
+      <Button
+        variant="primary"
+        onClick={() => setIsCreateDialogOpen(true)}
+        leadingIcon={<PlusIcon className="w-4" />}
+        disabled={!organization.permissions.createWorkspace.isAllowed}
+      >
+        {t("Create Workspace")}
+      </Button>
+    </SubscriptionLimitTooltip>
+  );
+
   return (
     <Page title={t("Organization")}>
       <OrganizationLayout
@@ -105,67 +126,55 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
             </p>
           </div>
         }
-        headerActions={
-          <SubscriptionLimitTooltip
-            isLimitReached={organization.permissions.createWorkspace.reasons.includes(
-              CreateWorkspacePermissionReason.WorkspacesLimitReached,
-            )}
-            title={t(
-              "You have reached the maximum number of workspaces for your plan.",
-            )}
-          >
-            <Button
-              variant="primary"
-              onClick={() => setIsCreateDialogOpen(true)}
-              leadingIcon={<PlusIcon className="w-4" />}
-              disabled={!organization.permissions.createWorkspace.isAllowed}
-            >
-              {t("Create Workspace")}
-            </Button>
-          </SubscriptionLimitTooltip>
-        }
+        headerActions={createWorkspaceButton}
       >
-        <WorkspacesHeader
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          view={view}
-          setView={setView}
-          availableTags={organization.workspaceTags}
-          tagsFilter={tagsFilter}
-          setTagsFilter={setTagsFilter}
-        />
+        {totalWorkspaces === 0 ? (
+          <GettingStartedPlaceholder action={createWorkspaceButton} />
+        ) : (
+          <>
+            <WorkspacesHeader
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              view={view}
+              setView={setView}
+              availableTags={organization.workspaceTags}
+              tagsFilter={tagsFilter}
+              setTagsFilter={setTagsFilter}
+            />
 
-        <div className="relative min-h-[200px]">
-          {loading && (
-            <div className="absolute inset-0 flex items-center justify-center  backdrop-blur-sm z-10 rounded-lg">
-              <Spinner />
+            <div className="relative min-h-[200px]">
+              {loading && (
+                <div className="absolute inset-0 flex items-center justify-center  backdrop-blur-sm z-10 rounded-lg">
+                  <Spinner />
+                </div>
+              )}
+              {view === "card" ? (
+                <WorkspacesCardView
+                  items={workspaces}
+                  page={page}
+                  setPage={setPage}
+                  perPage={perPage}
+                  totalPages={data?.workspaces?.totalPages || 0}
+                  totalItems={data?.workspaces?.totalItems || 0}
+                  onArchiveClick={handleArchiveClick}
+                  onManageTagsClick={handleManageTagsClick}
+                />
+              ) : (
+                <WorkspacesListView
+                  items={workspaces}
+                  page={page}
+                  setPage={setPage}
+                  perPage={perPage}
+                  totalPages={data?.workspaces?.totalPages || 0}
+                  totalItems={data?.workspaces?.totalItems || 0}
+                  onArchiveClick={handleArchiveClick}
+                  onManageTagsClick={handleManageTagsClick}
+                  canManageMembers={organization.permissions.manageMembers}
+                />
+              )}
             </div>
-          )}
-          {view === "card" ? (
-            <WorkspacesCardView
-              items={workspaces}
-              page={page}
-              setPage={setPage}
-              perPage={perPage}
-              totalPages={data?.workspaces?.totalPages || 0}
-              totalItems={data?.workspaces?.totalItems || 0}
-              onArchiveClick={handleArchiveClick}
-              onManageTagsClick={handleManageTagsClick}
-            />
-          ) : (
-            <WorkspacesListView
-              items={workspaces}
-              page={page}
-              setPage={setPage}
-              perPage={perPage}
-              totalPages={data?.workspaces?.totalPages || 0}
-              totalItems={data?.workspaces?.totalItems || 0}
-              onArchiveClick={handleArchiveClick}
-              onManageTagsClick={handleManageTagsClick}
-              canManageMembers={organization.permissions.manageMembers}
-            />
-          )}
-        </div>
+          </>
+        )}
       </OrganizationLayout>
 
       <CreateWorkspaceDialog
