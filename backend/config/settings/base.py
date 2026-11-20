@@ -838,6 +838,7 @@ if GIT_PUBLIC_URL and GIT_PUBLIC_URL not in CSRF_TRUSTED_ORIGINS:
 
 # OAuth2 Provider (django-oauth-toolkit)
 OAUTH2_PROVIDER_APPLICATION_MODEL = "oauth2_provider.Application"
+OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL = "oauth2_provider.AccessToken"
 OAUTH2_PROVIDER = {
     "PKCE_REQUIRED": True,
     "SCOPES": {
@@ -864,6 +865,13 @@ GIT_ACCESS_TOKEN_EXPIRE_SECONDS = int(
 # expiry is the only bound on a leaked one.
 WORKSPACE_IDENTITY_TOKEN_EXPIRE_SECONDS = int(
     os.environ.get("WORKSPACE_IDENTITY_TOKEN_EXPIRE_SECONDS", 24 * 60 * 60)
+)
+
+# Lifetime of the token a workspace copy run requested from the app acts with.
+# It is revoked when the run ends; expiry only bounds a run whose worker died
+# without the cleanup running, so it must outlast the longest copy.
+WORKSPACE_COPY_TOKEN_EXPIRE_SECONDS = int(
+    os.environ.get("WORKSPACE_COPY_TOKEN_EXPIRE_SECONDS", 2 * 24 * 60 * 60)
 )
 
 # Public OAuth2 clients used by git credential helpers. FORGEJO_OAUTH_CLIENT_ID
