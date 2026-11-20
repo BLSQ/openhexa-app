@@ -3,7 +3,7 @@ from datetime import timedelta
 from logging import getLogger
 
 from django.conf import settings
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import (
     CharField,
     Exists,
@@ -37,6 +37,60 @@ logger = getLogger(__name__)
 
 INTERRUPTED_MESSAGE = "Interrupted: the worker stopped before this run could finish."
 
+REFUSAL_MESSAGES = {
+    "WORKSPACE_NOT_FOUND": "The source workspace is no longer available to you.",
+    "PERMISSION_DENIED": "You are no longer allowed to duplicate this workspace.",
+    "WORKSPACES_LIMIT_REACHED": "The organization has reached its workspace limit.",
+}
+
+
+class DuplicateRefused(Exception):
+    """The requester may not (or may no longer) duplicate the source workspace."""
+
+    def __init__(self, code: str):
+        self.code = code
+        super().__init__(REFUSAL_MESSAGES[code])
+
+
+class CopyAlreadyRunning(Exception):
+    """The requester already has a duplication queued or running."""
+
+
+def check_can_duplicate(user: User, slug: str, organization_id=None) -> Workspace:
+    """Return the workspace ``user`` may duplicate now, or raise DuplicateRefused.
+
+    Checked when the copy is requested and again when it starts, since the
+    requester's rights or the organization's plan may change while it waits.
+    """
+    workspaces = Workspace.objects.filter_for_user(user).filter(slug=slug)
+    if organization_id is not None:
+        workspaces = workspaces.filter(organization_id=organization_id)
+    workspace = workspaces.select_related("organization").first()
+    if workspace is None:
+        raise DuplicateRefused("WORKSPACE_NOT_FOUND")
+    if not user.has_perm("workspaces.duplicate_workspace", workspace):
+        raise DuplicateRefused("PERMISSION_DENIED")
+    if workspace.organization.is_workspaces_limit_reached():
+        raise DuplicateRefused("WORKSPACES_LIMIT_REACHED")
+    return workspace
+
+
+def _issue_requester_token(run: WorkspaceCopyRun) -> str:
+    """Re-check the requester's rights, then give the run a token acting as them."""
+    user = run.created_by
+    if user is None or not user.is_active:
+        raise DuplicateRefused("PERMISSION_DENIED")
+    check_can_duplicate(user, run.source_slug, run.target_organization_id)
+    run.access_token = AccessToken.objects.create(
+        user=user,
+        token=secrets.token_urlsafe(32),
+        scope=WORKSPACE_COPY_SCOPE,
+        expires=timezone.now()
+        + timedelta(seconds=settings.WORKSPACE_COPY_TOKEN_EXPIRE_SECONDS),
+    )
+    run.save(update_fields=["access_token", "updated_at"])
+    return run.access_token.token
+
 
 def execute_copy_run(run_id: str) -> None:
     """Run one queued workspace copy, recording its outcome on the run.
@@ -45,7 +99,7 @@ def execute_copy_run(run_id: str) -> None:
     its tokens erased, whatever happens during the copy.
     """
     try:
-        run = WorkspaceCopyRun.objects.select_related("access_token").get(id=run_id)
+        run = WorkspaceCopyRun.objects.select_related("created_by").get(id=run_id)
     except WorkspaceCopyRun.DoesNotExist:
         logger.warning("Workspace copy run %s not found, skipping.", run_id)
         return
@@ -60,9 +114,11 @@ def execute_copy_run(run_id: str) -> None:
     # Created here rather than returned by run_copy, so it survives a copier
     # raising midway: a failed run still records the workspace it created.
     result = CopyResult()
-    user_token = run.access_token.token if run.access_token else None
+    user_token = None
     try:
         run.mark_running()
+        if run.acts_as_requester:
+            user_token = _issue_requester_token(run)
         run_copy(
             source_url=run.source_url or None,
             source_token=run.source_token or user_token,
@@ -77,6 +133,9 @@ def execute_copy_run(run_id: str) -> None:
                 all_dataset_versions=run.all_dataset_versions,
                 include_connection_secrets=run.include_connection_secrets,
                 same_server=run.same_server,
+                created_by_id=(
+                    str(run.created_by_id) if run.acts_as_requester else None
+                ),
                 target_countries=(
                     tuple(run.target_countries)
                     if run.target_countries is not None
@@ -91,6 +150,9 @@ def execute_copy_run(run_id: str) -> None:
             if result.has_failures
             else WorkspaceCopyRunStatus.SUCCESS
         )
+    except DuplicateRefused as exc:
+        reporter.error(str(exc))
+        run.error = str(exc)
     except CredentialError as exc:
         for err in exc.errors:
             reporter.error(err)
@@ -186,17 +248,12 @@ def queue_duplicate_workspace(
 ) -> WorkspaceCopyRun:
     """Duplicate a workspace into its own organization, acting as ``user``.
 
-    The copy runs as a same-server copy through this server's GraphQL API,
-    authenticated with an access token issued to ``user`` for this run only.
+    The copy runs as a same-server copy through this server's GraphQL API. Its
+    token is issued by the worker when the run starts, not here, so time spent
+    queued neither shortens it nor leaves a live token waiting in the database.
+    Raises CopyAlreadyRunning if ``user`` already has a copy queued or running.
     """
-    with transaction.atomic():
-        access_token = AccessToken.objects.create(
-            user=user,
-            token=secrets.token_urlsafe(32),
-            scope=WORKSPACE_COPY_SCOPE,
-            expires=timezone.now()
-            + timedelta(seconds=settings.WORKSPACE_COPY_TOKEN_EXPIRE_SECONDS),
-        )
+    try:
         return queue_copy_run(
             created_by=user,
             source_slug=workspace.slug,
@@ -206,5 +263,9 @@ def queue_duplicate_workspace(
             resources=sorted(resources),
             include_connection_secrets=include_connection_secrets,
             same_server=True,
-            access_token=access_token,
+            acts_as_requester=True,
         )
+    except IntegrityError as exc:
+        # The only constraint an insert can break here is one active run per
+        # requester; checking it in the database closes the double-click race.
+        raise CopyAlreadyRunning from exc

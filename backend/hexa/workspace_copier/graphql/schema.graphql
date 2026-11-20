@@ -25,8 +25,14 @@ A workspace duplication, run in the background.
 type WorkspaceCopyRun {
   id: UUID!
   status: WorkspaceCopyRunStatus!
-  "Timestamped progress lines, appended while the run is going."
-  logs: String!
+  "Name requested for the new workspace."
+  targetWorkspaceName: String!
+  sourceWorkspaceSlug: String!
+  """
+  Timestamped progress lines, appended while the run is going. Pass the
+  previous `nextOffset` as `offset` to get only the lines added since.
+  """
+  logs(offset: Int = 0): WorkspaceCopyRunLogs!
   "Why the run failed, if it did."
   error: String
   createdAt: DateTime!
@@ -34,6 +40,13 @@ type WorkspaceCopyRun {
   finishedAt: DateTime
   "The workspace created by the run, once it exists."
   workspace: Workspace
+}
+
+type WorkspaceCopyRunLogs {
+  "Log text from the requested offset onwards, in whole lines."
+  text: String!
+  "Offset to pass next time to receive only newer lines."
+  nextOffset: Int!
 }
 
 input DuplicateWorkspaceInput {
@@ -50,6 +63,8 @@ enum DuplicateWorkspaceError {
   PERMISSION_DENIED
   WORKSPACES_LIMIT_REACHED
   INVALID_COUNTRY
+  "The user already has a duplication queued or running."
+  COPY_ALREADY_RUNNING
 }
 
 type DuplicateWorkspaceResult {
@@ -60,6 +75,8 @@ type DuplicateWorkspaceResult {
 
 extend type Query {
   workspaceCopyRun(id: UUID!): WorkspaceCopyRun @loginRequired
+  "The current user's duplication that is still queued or running, if any."
+  activeWorkspaceCopyRun: WorkspaceCopyRun @loginRequired
 }
 
 extend type Mutation {

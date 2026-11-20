@@ -2,8 +2,12 @@ from ariadne import MutationType
 from django.http import HttpRequest
 
 from hexa.countries.models import Country
-from hexa.workspace_copier.queue import queue_duplicate_workspace
-from hexa.workspaces.models import Workspace
+from hexa.workspace_copier.queue import (
+    CopyAlreadyRunning,
+    DuplicateRefused,
+    check_can_duplicate,
+    queue_duplicate_workspace,
+)
 
 workspace_copier_mutations = MutationType()
 
@@ -12,18 +16,10 @@ workspace_copier_mutations = MutationType()
 def resolve_duplicate_workspace(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
-    workspace = (
-        Workspace.objects.filter_for_user(request.user)
-        .filter(slug=input["workspace_slug"])
-        .select_related("organization")
-        .first()
-    )
-    if workspace is None:
-        return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
-    if not request.user.has_perm("workspaces.duplicate_workspace", workspace):
-        return {"success": False, "errors": ["PERMISSION_DENIED"]}
-    if workspace.organization.is_workspaces_limit_reached():
-        return {"success": False, "errors": ["WORKSPACES_LIMIT_REACHED"]}
+    try:
+        workspace = check_can_duplicate(request.user, input["workspace_slug"])
+    except DuplicateRefused as exc:
+        return {"success": False, "errors": [exc.code]}
 
     countries = None
     if input.get("countries") is not None:
@@ -34,14 +30,17 @@ def resolve_duplicate_workspace(_, info, **kwargs):
         if known.count() != len(countries):
             return {"success": False, "errors": ["INVALID_COUNTRY"]}
 
-    run = queue_duplicate_workspace(
-        request.user,
-        workspace,
-        name=input["name"].strip(),
-        countries=countries,
-        resources=input["resources"],
-        include_connection_secrets=input["include_connection_secrets"],
-    )
+    try:
+        run = queue_duplicate_workspace(
+            request.user,
+            workspace,
+            name=input["name"].strip(),
+            countries=countries,
+            resources=input["resources"],
+            include_connection_secrets=input["include_connection_secrets"],
+        )
+    except CopyAlreadyRunning:
+        return {"success": False, "errors": ["COPY_ALREADY_RUNNING"]}
     return {"success": True, "errors": [], "run": run}
 
 

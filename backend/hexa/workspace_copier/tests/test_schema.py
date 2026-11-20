@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
-from hexa.oauth.scopes import WORKSPACE_COPY_SCOPE
 from hexa.user_management.models import (
     Feature,
     FeatureFlag,
@@ -10,7 +9,11 @@ from hexa.user_management.models import (
     OrganizationMembershipRole,
     User,
 )
-from hexa.workspace_copier.models import WorkspaceCopyJob, WorkspaceCopyRun
+from hexa.workspace_copier.models import (
+    WorkspaceCopyJob,
+    WorkspaceCopyRun,
+    WorkspaceCopyRunStatus,
+)
 from hexa.workspaces.models import WorkspaceMembership, WorkspaceMembershipRole
 from hexa.workspaces.tests.testutils import create_workspace
 
@@ -25,15 +28,21 @@ mutation duplicate($input: DuplicateWorkspaceInput!) {
 """
 
 COPY_RUN = """
-query run($id: UUID!) {
+query run($id: UUID!, $offset: Int) {
   workspaceCopyRun(id: $id) {
     id
     status
-    logs
+    targetWorkspaceName
+    sourceWorkspaceSlug
+    logs(offset: $offset) { text nextOffset }
     error
     workspace { slug }
   }
 }
+"""
+
+ACTIVE_RUN = """
+query { activeWorkspaceCopyRun { id } }
 """
 
 PERMISSIONS = """
@@ -104,8 +113,9 @@ class DuplicateWorkspaceTest(GraphQLTestCase):
         self.assertTrue(run.same_server)
         self.assertIsNone(run.target_countries)
         self.assertIsNone(run.source_token)
-        self.assertEqual(self.EDITOR, run.access_token.user)
-        self.assertEqual(WORKSPACE_COPY_SCOPE, run.access_token.scope)
+        self.assertTrue(run.acts_as_requester)
+        # The worker issues the token when the run starts.
+        self.assertIsNone(run.access_token)
         self.assertTrue(
             WorkspaceCopyJob.objects.filter(args__run_id=str(run.id)).exists()
         )
@@ -138,6 +148,23 @@ class DuplicateWorkspaceTest(GraphQLTestCase):
 
         self.assertEqual(["WORKSPACES_LIMIT_REACHED"], result["errors"])
         self.assertFalse(WorkspaceCopyRun.objects.exists())
+
+    def test_a_second_copy_waits_for_the_first_to_finish(self):
+        first = self.duplicate(self.EDITOR)
+
+        second = self.duplicate(self.EDITOR)
+
+        self.assertEqual(["COPY_ALREADY_RUNNING"], second["errors"])
+        self.assertEqual(1, WorkspaceCopyRun.objects.count())
+        WorkspaceCopyRun.objects.filter(id=first["run"]["id"]).update(
+            status=WorkspaceCopyRunStatus.SUCCESS
+        )
+        self.assertTrue(self.duplicate(self.EDITOR)["success"])
+
+    def test_other_users_can_copy_while_one_is_running(self):
+        self.duplicate(self.EDITOR)
+
+        self.assertTrue(self.duplicate(self.ORG_ADMIN)["success"])
 
     def test_countries_override_the_source_ones(self):
         result = self.duplicate(self.EDITOR, countries=[{"code": "BE"}, {"code": "FR"}])
@@ -180,35 +207,64 @@ class WorkspaceCopyRunQueryTest(GraphQLTestCase):
         cls.RUN = WorkspaceCopyRun.objects.create(
             created_by=cls.OWNER,
             source_slug="source",
-            logs="10:00:00 => Copying files ...\n",
+            target_workspace_name="Copy",
+            logs="10:00:00 => Copying files ...\n10:00:01 [1] copied a.csv\n",
             result_workspace_slug=cls.WORKSPACE.slug,
+            acts_as_requester=True,
         )
 
-    def test_the_requester_follows_their_run(self):
-        self.client.force_login(self.OWNER)
+    def query_run(self, user, offset=0):
+        self.client.force_login(user)
+        return self.run_query(COPY_RUN, {"id": str(self.RUN.id), "offset": offset})[
+            "data"
+        ]["workspaceCopyRun"]
 
-        run = self.run_query(COPY_RUN, {"id": str(self.RUN.id)})["data"][
-            "workspaceCopyRun"
-        ]
+    def test_the_requester_follows_their_run(self):
+        run = self.query_run(self.OWNER)
 
         self.assertEqual("QUEUED", run["status"])
-        self.assertEqual("10:00:00 => Copying files ...\n", run["logs"])
+        self.assertEqual("Copy", run["targetWorkspaceName"])
+        self.assertEqual("source", run["sourceWorkspaceSlug"])
+        self.assertEqual(
+            "10:00:00 => Copying files ...\n10:00:01 [1] copied a.csv\n",
+            run["logs"]["text"],
+        )
         self.assertIsNone(run["error"])
         self.assertEqual(self.WORKSPACE.slug, run["workspace"]["slug"])
 
-    def test_nobody_else_sees_it(self):
+    def test_logs_from_an_offset_return_only_newer_lines(self):
+        first = self.query_run(self.OWNER)["logs"]
+        WorkspaceCopyRun.objects.filter(id=self.RUN.id).update(
+            logs=self.RUN.logs + "10:00:02 [2] copied b.csv\n"
+        )
+
+        newer = self.query_run(self.OWNER, offset=first["nextOffset"])["logs"]
+
+        self.assertEqual("10:00:02 [2] copied b.csv\n", newer["text"])
+        self.assertEqual(len(self.RUN.logs) + 26, newer["nextOffset"])
+        caught_up = self.query_run(self.OWNER, offset=newer["nextOffset"])["logs"]
+        self.assertEqual("", caught_up["text"])
+
+    def test_the_active_run_is_found_until_it_finishes(self):
+        self.client.force_login(self.OWNER)
+        data = self.run_query(ACTIVE_RUN)["data"]["activeWorkspaceCopyRun"]
+        self.assertEqual(str(self.RUN.id), data["id"])
+
+        WorkspaceCopyRun.objects.filter(id=self.RUN.id).update(
+            status=WorkspaceCopyRunStatus.FAILED
+        )
+
+        self.assertIsNone(self.run_query(ACTIVE_RUN)["data"]["activeWorkspaceCopyRun"])
+
+    def test_another_users_active_run_is_not_theirs(self):
         self.client.force_login(self.OTHER)
 
-        data = self.run_query(COPY_RUN, {"id": str(self.RUN.id)})
+        self.assertIsNone(self.run_query(ACTIVE_RUN)["data"]["activeWorkspaceCopyRun"])
 
-        self.assertIsNone(data["data"]["workspaceCopyRun"])
+    def test_nobody_else_sees_it(self):
+        self.assertIsNone(self.query_run(self.OTHER))
 
     def test_the_workspace_is_null_until_created(self):
         WorkspaceCopyRun.objects.filter(id=self.RUN.id).update(result_workspace_slug="")
-        self.client.force_login(self.OWNER)
 
-        run = self.run_query(COPY_RUN, {"id": str(self.RUN.id)})["data"][
-            "workspaceCopyRun"
-        ]
-
-        self.assertIsNone(run["workspace"])
+        self.assertIsNone(self.query_run(self.OWNER)["workspace"])

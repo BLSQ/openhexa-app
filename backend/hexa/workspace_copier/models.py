@@ -50,7 +50,9 @@ class WorkspaceCopyRun(Base):
     source_token = EncryptedTextField(null=True, blank=True)
     target_token = EncryptedTextField(null=True, blank=True)
     # Runs requested from the app have no ServiceAccount token: they act as
-    # their requester through this token, revoked as soon as the run ends.
+    # their requester. The worker issues this token when the run starts, and
+    # it is revoked as soon as the run ends.
+    acts_as_requester = models.BooleanField(default=False)
     access_token = models.OneToOneField(
         settings.OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL,
         null=True,
@@ -68,6 +70,18 @@ class WorkspaceCopyRun(Base):
 
     class Meta:
         ordering = ["-created_at"]
+        constraints = [
+            # The worker runs one copy at a time for the whole server, so a
+            # user queueing several would hold up everyone else's.
+            models.UniqueConstraint(
+                fields=["created_by"],
+                condition=models.Q(
+                    acts_as_requester=True,
+                    status__in=["QUEUED", "RUNNING"],
+                ),
+                name="workspace_copy_one_active_run_per_requester",
+            )
+        ]
 
     def __str__(self):
         return f"{self.source_slug} ({self.get_status_display()})"
