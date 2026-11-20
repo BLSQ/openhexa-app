@@ -153,6 +153,7 @@ class WebappsCopier(ResourceCopier):
                     target_slug = _copy_static(
                         GitWebapp.objects.get(workspace=source_ws, slug=src_slug),
                         target_ws,
+                        options.created_by_id,
                     ).slug
                 else:
                     target_slug = _create_on_target(
@@ -187,12 +188,15 @@ class WebappsCopier(ResourceCopier):
 # ---------------------------------------------------------------------------
 
 
-def _copy_static(webapp: GitWebapp, target_ws: Workspace) -> GitWebapp:
+def _copy_static(
+    webapp: GitWebapp, target_ws: Workspace, created_by_id: str | None = None
+) -> GitWebapp:
     """Copy a static web app's row and repository, keeping its published version.
 
     The row is written with the ORM rather than ``create_if_has_perm``: pre-flight
-    already checked that the token can edit the target, and on the same server
-    the original author still exists, so the copy keeps it.
+    already checked that the token can edit the target. The copy belongs to
+    ``created_by_id`` when given; otherwise it keeps the original author, who
+    still exists on the same server.
 
     The repository is created first: a failed clone leaves nothing behind
     (Forgejo deletes it), while a row without its repository would be broken.
@@ -211,7 +215,7 @@ def _copy_static(webapp: GitWebapp, target_ws: Workspace) -> GitWebapp:
         url=webapp.url,
         is_public=webapp.is_public,
         allowed_operations=webapp.allowed_operations,
-        created_by=webapp.created_by,
+        created_by_id=created_by_id or webapp.created_by_id,
         repository=build_repo_name(f"{target_ws.slug}-webapp-{slug}"),
         published_commit=webapp.published_commit,
     )
