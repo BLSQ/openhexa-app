@@ -1,10 +1,10 @@
 from hexa.core.test import TestCase
 from hexa.data_studio.models import SavedQuery, SavedQueryVisibility
 from hexa.data_studio.permissions import (
-    create_public_saved_query,
     create_saved_query,
     delete_saved_query,
-    manage_public_saved_query,
+    share_saved_queries,
+    share_saved_query,
     update_saved_query,
     update_saved_query_visibility,
 )
@@ -77,39 +77,39 @@ class SavedQueryPermissionsTest(SavedQueryTestMixin, TestCase):
         self.assertTrue(delete_saved_query(self.USER_ADMIN, query))
         self.assertFalse(update_saved_query(self.USER_OUTSIDER, query))
 
-    def test_create_public_saved_query(self):
-        self.assertTrue(create_public_saved_query(self.USER_ADMIN, self.WORKSPACE))
-        self.assertTrue(create_public_saved_query(self.USER_EDITOR, self.WORKSPACE))
+    def test_share_saved_queries(self):
+        self.assertTrue(share_saved_queries(self.USER_ADMIN, self.WORKSPACE))
+        self.assertTrue(share_saved_queries(self.USER_EDITOR, self.WORKSPACE))
         # Viewers may save queries, not expose what they read
-        self.assertFalse(create_public_saved_query(self.USER_VIEWER, self.WORKSPACE))
-        self.assertFalse(create_public_saved_query(self.USER_OUTSIDER, self.WORKSPACE))
+        self.assertFalse(share_saved_queries(self.USER_VIEWER, self.WORKSPACE))
+        self.assertFalse(share_saved_queries(self.USER_OUTSIDER, self.WORKSPACE))
 
-    def test_manage_public_saved_query(self):
+    def test_share_saved_query(self):
         query = self._create(self.USER_EDITOR)
-        self.assertTrue(manage_public_saved_query(self.USER_EDITOR, query))
-        self.assertTrue(manage_public_saved_query(self.USER_ADMIN, query))
-        self.assertFalse(manage_public_saved_query(self.USER_VIEWER, query))
-        self.assertFalse(manage_public_saved_query(self.USER_OUTSIDER, query))
+        self.assertTrue(share_saved_query(self.USER_EDITOR, query))
+        self.assertTrue(share_saved_query(self.USER_ADMIN, query))
+        self.assertFalse(share_saved_query(self.USER_VIEWER, query))
+        self.assertFalse(share_saved_query(self.USER_OUTSIDER, query))
         # Editing rights are not public sharing rights
         admin_query = self._create(self.USER_ADMIN)
-        self.assertFalse(manage_public_saved_query(self.USER_EDITOR, admin_query))
+        self.assertFalse(share_saved_query(self.USER_EDITOR, admin_query))
 
     def test_viewer_cannot_share_their_own_query_publicly(self):
         query = self._create(self.USER_VIEWER)
-        self.assertFalse(manage_public_saved_query(self.USER_VIEWER, query))
+        self.assertFalse(share_saved_query(self.USER_VIEWER, query))
 
     def test_share_private_saved_query_publicly(self):
         # Nobody but its author may expose what only its author can see.
         query = self._create(self.USER_EDITOR, visibility=SavedQueryVisibility.PRIVATE)
-        self.assertTrue(manage_public_saved_query(self.USER_EDITOR, query))
-        self.assertFalse(manage_public_saved_query(self.USER_ADMIN, query))
+        self.assertTrue(share_saved_query(self.USER_EDITOR, query))
+        self.assertFalse(share_saved_query(self.USER_ADMIN, query))
 
-    def test_manage_public_saved_query_without_author(self):
+    def test_share_saved_query_without_author(self):
         query = self._create(self.USER_VIEWER)
         query.created_by = None
         query.save()
-        self.assertTrue(manage_public_saved_query(self.USER_ADMIN, query))
-        self.assertFalse(manage_public_saved_query(self.USER_VIEWER, query))
+        self.assertTrue(share_saved_query(self.USER_ADMIN, query))
+        self.assertFalse(share_saved_query(self.USER_VIEWER, query))
 
     def test_delete_saved_query(self):
         query = self._create(self.USER_EDITOR)
@@ -251,18 +251,10 @@ class SavedQueryOrganizationPermissionsTest(TestCase):
         self.assertNotIn(self.PRIVATE_SAVED_QUERY, visible)
 
     def test_share_publicly_via_organization_role(self):
-        self.assertTrue(
-            manage_public_saved_query(self.USER_ORG_OWNER, self.SAVED_QUERY)
-        )
-        self.assertTrue(
-            manage_public_saved_query(self.USER_ORG_ADMIN, self.SAVED_QUERY)
-        )
+        self.assertTrue(share_saved_query(self.USER_ORG_OWNER, self.SAVED_QUERY))
+        self.assertTrue(share_saved_query(self.USER_ORG_ADMIN, self.SAVED_QUERY))
+        self.assertFalse(share_saved_query(self.USER_ORG_MEMBER, self.SAVED_QUERY))
+        self.assertFalse(share_saved_query(self.USER_NON_MEMBER, self.SAVED_QUERY))
         self.assertFalse(
-            manage_public_saved_query(self.USER_ORG_MEMBER, self.SAVED_QUERY)
-        )
-        self.assertFalse(
-            manage_public_saved_query(self.USER_NON_MEMBER, self.SAVED_QUERY)
-        )
-        self.assertFalse(
-            manage_public_saved_query(self.USER_ORG_ADMIN, self.PRIVATE_SAVED_QUERY)
+            share_saved_query(self.USER_ORG_ADMIN, self.PRIVATE_SAVED_QUERY)
         )

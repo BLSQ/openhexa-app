@@ -1,7 +1,7 @@
 import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
-export type WebappVisibilityButton_WebappFragment = { __typename?: 'Webapp', id: string, type: Types.WebappType, isPublic: boolean, url: string, serveUrl: string, permissions: { __typename?: 'WebappPermissions', update: boolean } };
+export type WebappVisibilityButton_WebappFragment = { __typename?: 'Webapp', id: string, type: Types.WebappType, isPublic: boolean, url: string, serveUrl: string, permissions: { __typename?: 'WebappPermissions', share: boolean } };
 
 export const WebappVisibilityButton_WebappFragmentDoc = gql`
     fragment WebappVisibilityButton_webapp on Webapp {
@@ -11,7 +11,7 @@ export const WebappVisibilityButton_WebappFragmentDoc = gql`
   url
   serveUrl
   permissions {
-    update
+    share
   }
 }
     `;

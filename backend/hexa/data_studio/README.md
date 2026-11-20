@@ -38,9 +38,9 @@ workspace are not shown there: like a web app, the visitor gets the result, not 
   `databases.run_query` for a public query (and only for one): the SQL was vetted by whoever
   made it public, and the visitor supplies none of their own. The permission still applies to
   everything else, including a member running raw SQL.
-- **Who shares publicly** (`permissions.manage_public_saved_query`): the author, a workspace admin or an
+- **Who shares publicly** (`permissions.share_saved_query`): the author, a workspace admin or an
   organization admin/owner — the rule shared by every public resource (HEXA-1848). The author
-  must also be allowed to share publicly in the workspace at all (`create_public_saved_query`:
+  must also be allowed to share publicly in the workspace at all (`share_saved_queries`:
   editor, admin or organization admin/owner): a viewer may save queries, but must not be able
   to hand what they read to anyone on the internet. The same
   people can take a public query back to `WORKSPACE`; making it `PRIVATE` stays the author's

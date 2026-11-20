@@ -102,6 +102,7 @@ Represents the permissions for a web app.
 type WebappPermissions {
   update: Boolean!  # Indicates if the webapp can be updated.
   delete: Boolean!  # Indicates if the webapp can be deleted.
+  share: Boolean!
 }
 
 """

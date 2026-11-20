@@ -1,6 +1,7 @@
 from hexa.data_studio.models import SavedQuery, SavedQueryVisibility
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
+from hexa.workspaces.permissions import can_share_publicly
 
 
 def _is_author(principal: User, saved_query: SavedQuery) -> bool:
@@ -50,48 +51,39 @@ def update_saved_query_visibility(principal: User, saved_query: SavedQuery):
     return _is_author(principal, saved_query)
 
 
-def _is_workspace_admin(principal: User, workspace: Workspace) -> bool:
-    return workspace.workspacemembership_set.filter(
-        user=principal, role=WorkspaceMembershipRole.ADMIN
-    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
-
-
-def create_public_saved_query(principal: User, workspace: Workspace):
-    """Whether the principal may make their own queries of this workspace public:
-    a workspace editor or admin, or an organization admin/owner.
+def share_saved_queries(principal: User, workspace: Workspace):
+    """Whether the principal may make their own queries of this workspace public
+    (`can_share_publicly` as the author).
 
     Viewers may save queries, but sharing one publicly would hand whatever they can read
     to anyone on the internet, which a read-only role must not be able to do.
     """
-    return workspace.workspacemembership_set.filter(
-        user=principal,
-        role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
+    return can_share_publicly(principal, workspace, principal.id)
 
 
-def manage_public_saved_query(principal: User, saved_query: SavedQuery):
-    """The author (if they may share publicly in the workspace at all), a workspace admin or
-    an organization admin/owner manage a query's public link: make the query public
-    and take it back to the workspace.
+def share_saved_query(principal: User, saved_query: SavedQuery):
+    """Making a query public, and taking it back to the workspace (`can_share_publicly`).
 
     A private query stays the author's alone: nobody else may expose what only its
     author can see. Taking a public query back to private is not covered here either
     (`update_saved_query_visibility`): a non-author doing it would hand the query to
     the author and lock themselves out of it.
     """
-    if _is_author(principal, saved_query):
-        return create_public_saved_query(principal, saved_query.workspace)
-    if saved_query.visibility == SavedQueryVisibility.PRIVATE:
+    if saved_query.visibility == SavedQueryVisibility.PRIVATE and not _is_author(
+        principal, saved_query
+    ):
         return False
-    return _is_workspace_admin(principal, saved_query.workspace)
+    return can_share_publicly(
+        principal, saved_query.workspace, saved_query.created_by_id
+    )
 
 
 def delete_saved_query(principal: User, saved_query: SavedQuery):
     """Like editing, except that a public query's link may only be taken down by its
-    author or by those who may manage it (`manage_public_saved_query`).
+    author or by those who may share it (`share_saved_query`).
     """
     if _is_author(principal, saved_query):
         return True
     if saved_query.is_public:
-        return _is_workspace_admin(principal, saved_query.workspace)
+        return share_saved_query(principal, saved_query)
     return update_saved_query(principal, saved_query)

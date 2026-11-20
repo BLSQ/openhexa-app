@@ -6467,6 +6467,7 @@ enum WebappOperationScope {
 """Represents the permissions for a web app."""
 type WebappPermissions {
   delete: Boolean!
+  share: Boolean!
   update: Boolean!
 }
 
