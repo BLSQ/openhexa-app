@@ -2402,6 +2402,30 @@ type DisableTwoFactorResult {
   success: Boolean!
 }
 
+enum DuplicateWorkspaceError {
+  INVALID_COUNTRY
+  PERMISSION_DENIED
+  WORKSPACES_LIMIT_REACHED
+  WORKSPACE_NOT_FOUND
+}
+
+input DuplicateWorkspaceInput {
+  """
+  Countries of the new workspace. Omitted, the source workspace's are kept.
+  """
+  countries: [CountryInput!]
+  includeConnectionSecrets: Boolean!
+  name: String!
+  resources: [WorkspaceCopyResource!]!
+  workspaceSlug: String!
+}
+
+type DuplicateWorkspaceResult {
+  errors: [DuplicateWorkspaceError!]!
+  run: WorkspaceCopyRun
+  success: Boolean!
+}
+
 """Represents the error message for a web app file edit."""
 enum EditWebappFileError {
   BINARY_FILE
@@ -3453,6 +3477,7 @@ type Mutation {
   Disables two-factor authentication for the currently authenticated user.
   """
   disableTwoFactor(input: DisableTwoFactorInput): DisableTwoFactorResult!
+  duplicateWorkspace(input: DuplicateWorkspaceInput!): DuplicateWorkspaceResult!
   editWebappFile(input: EditWebappFileInput!): EditWebappFileResult!
 
   """
@@ -4619,6 +4644,7 @@ type Query {
   webapp(slug: String!, workspaceSlug: String!): Webapp
   webapps(favorite: Boolean, page: Int, perPage: Int, workspaceSlug: String): WebappsPage!
   workspace(slug: String!): Workspace
+  workspaceCopyRun(id: UUID!): WorkspaceCopyRun
   workspaces(organizationId: UUID, page: Int, perPage: Int, query: String, tags: [String!]): WorkspacePage!
 }
 
@@ -6549,6 +6575,45 @@ type Workspace {
   webappsEnabled: Boolean!
 }
 
+"""
+A resource that can be copied when duplicating a workspace. The workspace
+itself is always created.
+"""
+enum WorkspaceCopyResource {
+  CONNECTIONS
+  DATABASE
+  DATASETS
+  FILES
+  PIPELINES
+  WEBAPPS
+}
+
+"""A workspace duplication, run in the background."""
+type WorkspaceCopyRun {
+  createdAt: DateTime!
+
+  """Why the run failed, if it did."""
+  error: String
+  finishedAt: DateTime
+  id: UUID!
+
+  """Timestamped progress lines, appended while the run is going."""
+  logs: String!
+  startedAt: DateTime
+  status: WorkspaceCopyRunStatus!
+
+  """The workspace created by the run, once it exists."""
+  workspace: Workspace
+}
+
+enum WorkspaceCopyRunStatus {
+  FAILED
+  QUEUED
+  RUNNING
+  SUCCESS
+  SUCCESS_WITH_ERRORS
+}
+
 """Represents an invitation to join a workspace."""
 type WorkspaceInvitation {
   createdAt: DateTime!
@@ -6659,6 +6724,7 @@ type WorkspacePermissions {
 
   """User can download objects from the workspace's bucket."""
   downloadObject: Boolean!
+  duplicate: Boolean!
   generateToken: Boolean!
   launchNotebookServer: Boolean!
   manageMembers: Boolean!

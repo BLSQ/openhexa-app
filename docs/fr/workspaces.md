@@ -19,6 +19,18 @@ Vous pouvez créer de nouveaux espaces de travail si vous êtes :
 - **Admin ou Owner de l'organisation** : Cliquez sur le bouton ⊕ dans le menu de sélection d'espace de travail
 - **Admin d'espace de travail** : Les utilisateurs qui sont Admins d'au moins un espace de travail existant peuvent également créer de nouveaux espaces de travail
 
+## Dupliquer un espace de travail
+
+Depuis la page **Espaces de travail** de votre organisation, cliquez sur **Dupliquer** sur un espace de travail pour en créer une copie dans la même organisation. Vous pouvez dupliquer un espace de travail si vous pouvez créer des espaces de travail dans l'organisation et que vous êtes **Editor** ou **Admin** de l'espace de travail (ou Admin ou Owner de l'organisation).
+
+Dans la fenêtre, choisissez le nom et les pays du nouvel espace de travail, ainsi que les ressources à copier : fichiers, base de données de l'espace de travail, jeux de données, connexions (avec ou sans leurs secrets), pipelines et applications web. La copie s'exécute en arrière-plan et affiche sa progression ; vous pouvez fermer la fenêtre et revenir plus tard au nouvel espace de travail.
+
+Certains éléments ne sont pas copiés :
+
+- **Membres** : vous êtes le seul membre du nouvel espace de travail, et le créateur de tout ce qui y est copié.
+- **Planifications des pipelines** : les pipelines copiés doivent être planifiés à nouveau, afin qu'ils ne s'exécutent pas avant que vous les ayez vérifiés.
+- **Sous-domaines et domaines personnalisés des applications web** : les URL publiques des applications web changent.
+
 ## Page d'accueil de l'espace de travail
 
 Vous pouvez utiliser la page d'accueil de l'espace de travail pour expliquer l'objectif de l'espace de travail, documenter les données et les processus de l'espace de travail, ou ajouter des liens utiles vers des ressources externes. 

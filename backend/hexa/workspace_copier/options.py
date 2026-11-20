@@ -12,3 +12,6 @@ class CopyOptions:
     same_server: bool = False
     """Both workspaces are on this server: also copy the database and static web
     apps, which need its database and git server directly."""
+
+    target_countries: tuple[str, ...] | None = None
+    """Country codes of a new target workspace; None copies the source's."""

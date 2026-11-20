@@ -70,7 +70,8 @@ NEVER_GRANTED = {
     "User": {"lastLogin", "dateJoined", "analyticsEnabled"},
     "Me": {"hasTwoFactorEnabled"},
     # Whether web apps get any part in public resources is HEXA-1847's call.
-    "WorkspacePermissions": {"shareSavedQuery", "managePublicFiles"},
+    # No scope grants duplicateWorkspace, so a web app must not be told it may.
+    "WorkspacePermissions": {"shareSavedQuery", "managePublicFiles", "duplicate"},
 }
 
 

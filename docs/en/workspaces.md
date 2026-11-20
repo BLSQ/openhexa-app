@@ -19,6 +19,18 @@ You can create new workspaces if you're:
 - **Organization Admin or Owner**: Click the ⊕ button in the workspace selector menu
 - **Workspace Admin**: Users who are Admins of at least one existing workspace can also create new workspaces
 
+## Duplicate a workspace
+
+From your organization's **Workspaces** page, click **Duplicate** on a workspace to create a copy of it in the same organization. You can duplicate a workspace if you can create workspaces in the organization and you are an **Editor** or **Admin** of the workspace (or an Admin or Owner of the organization).
+
+In the dialog, choose the new workspace's name and countries, and which resources to copy: files, the workspace database, datasets, connections (with or without their secrets), pipelines and web apps. The copy runs in the background and shows its progress; you can close the dialog and come back to the new workspace later.
+
+Some things are not copied:
+
+- **Members**: you are the only member of the new workspace, and the creator of everything copied into it.
+- **Pipeline schedules**: copied pipelines must be scheduled again, so they don't start running before you've checked them.
+- **Web app subdomains and custom domains**: public web app URLs change.
+
 ## Workspace home
 
 You can use the workspace home page to explain the workspace purpose, document the data and processes of the workspace, or add useful links to external resources. 

@@ -12,10 +12,12 @@ import {
   GlobeAltIcon,
   UsersIcon,
   TagIcon,
+  DocumentDuplicateIcon,
 } from "@heroicons/react/24/outline";
 import Flag from "react-world-flags";
 import { OrganizationWorkspace_WorkspaceFragment } from "organizations/graphql/queries.generated";
 import { ArchiveWorkspace_WorkspaceFragment } from "workspaces/features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated";
+import { DuplicateWorkspace_WorkspaceFragment } from "workspaces/features/DuplicateWorkspaceDialog/DuplicateWorkspaceDialog.generated";
 import router from "next/router";
 import UserAvatar from "identity/features/UserAvatar";
 
@@ -27,6 +29,7 @@ type WorkspacesListViewProps = {
   totalPages: number;
   totalItems: number;
   onArchiveClick: (workspace: ArchiveWorkspace_WorkspaceFragment) => void;
+  onDuplicateClick: (workspace: DuplicateWorkspace_WorkspaceFragment) => void;
   onManageTagsClick: (
     workspace: OrganizationWorkspace_WorkspaceFragment,
   ) => void;
@@ -40,6 +43,7 @@ const WorkspacesListView = ({
   perPage,
   totalItems,
   onArchiveClick,
+  onDuplicateClick,
   onManageTagsClick,
   canManageMembers = false,
 }: WorkspacesListViewProps) => {
@@ -129,6 +133,18 @@ const WorkspacesListView = ({
                 disabled={!workspace.permissions.manageTags}
               >
                 {t("Tags")}
+              </Button>
+              <Button
+                variant="outlined"
+                size="sm"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onDuplicateClick(workspace);
+                }}
+                leadingIcon={<DocumentDuplicateIcon className="h-4 w-4" />}
+                disabled={!workspace.permissions.duplicate}
+              >
+                {t("Duplicate")}
               </Button>
               <Button
                 variant="outlined"

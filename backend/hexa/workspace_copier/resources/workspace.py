@@ -43,7 +43,7 @@ class WorkspaceMetadataCopier(ResourceCopier):
         src_ws = source.get_workspace("source")
         result.workspace_name = target.workspace_name or src_ws.name
 
-        target_slug = self._create(target, src_ws, result)
+        target_slug = self._create(target, src_ws, result, options)
 
         target.slug = target_slug
         result.workspace_slug = target_slug
@@ -66,7 +66,13 @@ class WorkspaceMetadataCopier(ResourceCopier):
         result.workspace_name = ws.name
         reporter.info(f"   using existing workspace {ws.name!r} (slug '{target.slug}')")
 
-    def _create(self, target: Endpoint, src_ws: Any, result: CopyResult) -> str:
+    def _create(
+        self,
+        target: Endpoint,
+        src_ws: Any,
+        result: CopyResult,
+        options: CopyOptions,
+    ) -> str:
         """Create the workspace on the target, returning the server slug.
 
         The server (see resolve_create_workspace + create_workspace_slug in
@@ -74,10 +80,13 @@ class WorkspaceMetadataCopier(ResourceCopier):
         slug from the name with a random suffix. So we never pass a slug and
         always read the actual slug back from the response.
         """
-        countries = [
-            CountryInput(code=c.code, alpha3=c.alpha_3, name=c.name, flag=c.flag)
-            for c in (src_ws.countries or [])
-        ]
+        if options.target_countries is not None:
+            countries = [CountryInput(code=code) for code in options.target_countries]
+        else:
+            countries = [
+                CountryInput(code=c.code, alpha3=c.alpha_3, name=c.name, flag=c.flag)
+                for c in (src_ws.countries or [])
+            ]
         created = target.client.create_workspace(
             input=CreateWorkspaceInput(
                 name=target.workspace_name or src_ws.name,
