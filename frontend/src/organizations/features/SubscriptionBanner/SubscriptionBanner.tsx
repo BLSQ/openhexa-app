@@ -13,6 +13,7 @@ import { CSSProperties } from "react";
 import Link from "core/components/Link";
 import { Classes as ButtonClasses } from "core/components/Button/Button";
 import { usePublicEnv } from "core/helpers/runtimeConfig";
+import { formatPlanName } from "organizations/helpers/organization";
 import useCookieState from "core/hooks/useCookieState";
 import { SubscriptionBanner_OrganizationFragment } from "./SubscriptionBanner.generated";
 
@@ -90,22 +91,27 @@ const SubscriptionBanner = ({ organization }: SubscriptionBannerProps) => {
   const { state, dismiss } = useSubscriptionBanner(organization);
   if (!state || !organization?.subscription) return null;
 
-  const endDate = DateTime.fromISO(
-    organization.subscription.endDate,
-  ).toLocaleString(DateTime.DATE_MED);
+  const { subscription } = organization;
+  const values = {
+    plan: formatPlanName(subscription.planCode),
+    organization: organization.name,
+    date: DateTime.fromISO(subscription.endDate).toLocaleString(
+      DateTime.DATE_MED,
+    ),
+  };
 
   const message = {
     expiringSoon: t(
-      "Your subscription for {{organization}} expires on {{date}}. Renew or upgrade your plan to avoid any interruption.",
-      { organization: organization.name, date: endDate },
+      "Your {{plan}} plan for {{organization}} ends on {{date}}. Renew or upgrade to avoid any interruption.",
+      values,
     ),
     gracePeriod: t(
-      "Your subscription for {{organization}} expired on {{date}}. Renew soon to avoid service interruption.",
-      { organization: organization.name, date: endDate },
+      "Your {{plan}} plan for {{organization}} expired on {{date}}. Renew soon to avoid restrictions.",
+      values,
     ),
     frozen: t(
-      "Your subscription for {{organization}} has expired. Limits are frozen until you renew.",
-      { organization: organization.name },
+      "Your {{plan}} plan for {{organization}} expired on {{date}}. New members, workspaces, pipeline runs and the AI assistant are paused until you renew.",
+      values,
     ),
   }[state];
 
@@ -169,6 +175,7 @@ SubscriptionBanner.fragments = {
         manageMembers
       }
       subscription {
+        planCode
         endDate
         isExpired
         isInGracePeriod

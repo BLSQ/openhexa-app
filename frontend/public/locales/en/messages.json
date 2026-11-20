@@ -1347,10 +1347,10 @@
   "You're about to archive the {{workspaceName}} workspace and all its content.": "You're about to archive the {{workspaceName}} workspace and all its content.",
   "You're about to remove {{name}} from this workspace.": "You're about to remove {{name}} from this workspace.",
   "You've reached the limit for your subscription plan.": "You've reached the limit for your subscription plan.",
+  "Your {{plan}} plan for {{organization}} ends on {{date}}. Renew or upgrade to avoid any interruption.": "Your {{plan}} plan for {{organization}} ends on {{date}}. Renew or upgrade to avoid any interruption.",
+  "Your {{plan}} plan for {{organization}} expired on {{date}}. New members, workspaces, pipeline runs and the AI assistant are paused until you renew.": "Your {{plan}} plan for {{organization}} expired on {{date}}. New members, workspaces, pipeline runs and the AI assistant are paused until you renew.",
+  "Your {{plan}} plan for {{organization}} expired on {{date}}. Renew soon to avoid restrictions.": "Your {{plan}} plan for {{organization}} expired on {{date}}. Renew soon to avoid restrictions.",
   "Your account": "Your account",
-  "Your subscription for {{organization}} expired on {{date}}. Renew soon to avoid service interruption.": "Your subscription for {{organization}} expired on {{date}}. Renew soon to avoid service interruption.",
-  "Your subscription for {{organization}} expires on {{date}}. Renew or upgrade your plan to avoid any interruption.": "Your subscription for {{organization}} expires on {{date}}. Renew or upgrade your plan to avoid any interruption.",
-  "Your subscription for {{organization}} has expired. Limits are frozen until you renew.": "Your subscription for {{organization}} has expired. Limits are frozen until you renew.",
   "Your tokens for all workspaces are available in your <2>account settings</2>.": "Your tokens for all workspaces are available in your <2>account settings</2>.",
   "Your web app can query the OpenHEXA GraphQL API on behalf of the connected user. Requests are scoped to the permissions you enable below.": "Your web app can query the OpenHEXA GraphQL API on behalf of the connected user. Requests are scoped to the permissions you enable below."
 }

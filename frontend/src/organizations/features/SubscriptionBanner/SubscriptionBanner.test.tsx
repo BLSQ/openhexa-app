@@ -28,6 +28,7 @@ const buildOrganization = (
   name: "Acme",
   permissions: { manageMembers },
   subscription: subscription && {
+    planCode: "openhexa_starter",
     endDate: "2026-11-20",
     isExpired: false,
     isInGracePeriod: false,
@@ -132,7 +133,7 @@ describe("SubscriptionBanner", () => {
 
   it("renders the expiring soon banner with both CTAs", () => {
     renderBanner(buildOrganization({ isExpiringSoon: true }));
-    expect(screen.getByRole("alert")).toHaveTextContent(/expires on/);
+    expect(screen.getByRole("alert")).toHaveTextContent(/ends on/);
     expect(screen.getByRole("link", { name: /Upgrade plan/ })).toHaveAttribute(
       "href",
       "https://console.example.com",
@@ -146,7 +147,7 @@ describe("SubscriptionBanner", () => {
   it("renders the frozen banner", () => {
     renderBanner(buildOrganization({ isExpired: true }));
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "Limits are frozen until you renew",
+      "New members, workspaces, pipeline runs and the AI assistant are paused until you renew",
     );
   });
 
