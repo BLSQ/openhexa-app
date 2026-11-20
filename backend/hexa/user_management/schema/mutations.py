@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
@@ -50,14 +51,18 @@ from ..utils import (
     DEVICE_DEFAULT_NAME,
     accept_pending_invitations,
     default_device,
+    get_login_url,
     get_organization_invite_url,
     has_configured_two_factor,
+    is_known_password_hash,
     send_organization_add_user_email,
     send_organization_invite,
     send_signup_email,
 )
 
 identity_mutations = MutationType()
+
+logger = logging.getLogger(__name__)
 
 
 def update_workspace_permissions(
@@ -993,6 +998,14 @@ def resolve_create_organization(_, info, **kwargs):
     subscription_end_date = create_input["subscription_end_date"]
     limits = create_input["limits"]
     send_invitation_email = create_input.get("send_invitation_email") is not False
+    owner_account = create_input.get("owner_account")
+    if owner_account and not is_known_password_hash(owner_account["password_hash"]):
+        # Inviting keeps the owner a way in, where failing would leave the caller with no organization at all
+        logger.warning(
+            "Cannot read the password hash for new owner %s, inviting them instead",
+            owner_email,
+        )
+        owner_account = None
 
     if Organization.objects.filter(name=name).exists():
         return {
@@ -1033,7 +1046,7 @@ def resolve_create_organization(_, info, **kwargs):
         notebook_profile=limits.get("notebook_profile"),
     )
 
-    invitation_url = None
+    invitation_url = login_url = None
     try:
         user = User.objects.get(email__iexact=owner_email)
         OrganizationMembership.objects.create(
@@ -1041,31 +1054,51 @@ def resolve_create_organization(_, info, **kwargs):
             user=user,
             role=OrganizationMembershipRole.OWNER,
         )
-        if send_invitation_email:
-            send_organization_add_user_email(
-                invited_by=principal,
+    except User.DoesNotExist:
+        if owner_account:
+            # The hash comes from the console, which shares Django's password hashers with OpenHEXA
+            user = User.objects.create(
+                email=owner_email,
+                password=owner_account["password_hash"],
+                first_name=owner_account.get("first_name") or "",
+                last_name=owner_account.get("last_name") or "",
+                language=principal.language,
+            )
+            OrganizationMembership.objects.create(
                 organization=organization,
-                invitee=user,
+                user=user,
                 role=OrganizationMembershipRole.OWNER,
             )
-    except User.DoesNotExist:
-        invitation = OrganizationInvitation.objects.create(
-            email=owner_email,
-            organization=organization,
+            login_url = get_login_url(user, organization)
+        else:
+            invitation = OrganizationInvitation.objects.create(
+                email=owner_email,
+                organization=organization,
+                invited_by=principal,
+                role=OrganizationMembershipRole.OWNER,
+                language=principal.language,
+            )
+            invitation_url = get_organization_invite_url(invitation)
+            if send_invitation_email:
+                send_organization_invite(invitation)
+            user = None  # User will be created when they accept the invitation
+
+    # Also sent to an owner created from ownerAccount: the email is how they find OpenHEXA again later
+    if user and send_invitation_email:
+        send_organization_add_user_email(
             invited_by=principal,
+            organization=organization,
+            invitee=user,
             role=OrganizationMembershipRole.OWNER,
-            language=principal.language,
+            new_account=login_url is not None,
         )
-        invitation_url = get_organization_invite_url(invitation)
-        if send_invitation_email:
-            send_organization_invite(invitation)
-        user = None  # User will be created when they accept the invitation
 
     return {
         "success": True,
         "organization": organization,
         "user": user,
         "invitation_url": invitation_url,
+        "login_url": login_url,
         "errors": [],
     }
 
