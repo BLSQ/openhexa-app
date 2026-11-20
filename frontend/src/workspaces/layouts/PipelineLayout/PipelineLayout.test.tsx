@@ -66,10 +66,12 @@ describe("PipelineLayout", () => {
       shortName: null,
       logo: null,
       permissions: {
+        manageMembers: false,
         createWorkspace: {
           isAllowed: true,
         },
       },
+      subscription: null,
     },
   };
 

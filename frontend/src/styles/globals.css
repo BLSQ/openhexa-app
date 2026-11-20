@@ -41,7 +41,28 @@
   }
 }
 
+/*
+  The sidebar and header are `position: fixed`, so they cannot be pushed down by the
+  subscription banner in the document flow. Layouts set `--subscription-banner-height`
+  to the banner height and these utilities offset the fixed elements by it.
+*/
+@utility top-banner {
+  top: var(--subscription-banner-height);
+}
+
+@utility mt-banner {
+  margin-top: var(--subscription-banner-height);
+}
+
+@utility h-screen-below-banner {
+  height: calc(100vh - var(--subscription-banner-height));
+}
+
 @layer base {
+  :root {
+    --subscription-banner-height: 0px;
+  }
+
   html {
     @apply text-gray-800;
   }

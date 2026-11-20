@@ -584,6 +584,22 @@ class OrganizationSubscription(Base):
         )
         return today <= grace_end_date
 
+    @property
+    def is_expiring_soon(self) -> bool:
+        """
+        Check if the subscription ends within SUBSCRIPTION_EXPIRING_SOON_DAYS
+        and no follow-up subscription has been booked yet.
+        """
+        if self.is_expired:
+            return False
+        days_left = (self.end_date - timezone.now().date()).days
+        if days_left > settings.SUBSCRIPTION_EXPIRING_SOON_DAYS:
+            return False
+        # A renewal or plan change booked by the Console starts after this one ends.
+        return not self.organization.subscriptions.filter(
+            start_date__gt=self.end_date
+        ).exists()
+
     def is_users_limit_reached(self) -> bool:
         """Check if the organization has reached its user limit."""
         return self.organization.get_users_count() >= self.users_limit
