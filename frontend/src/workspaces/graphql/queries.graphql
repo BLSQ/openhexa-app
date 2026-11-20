@@ -1041,3 +1041,15 @@ query WorkspaceConnectionPicker($slug: String!) {
     ...WorkspaceConnectionPicker_workspace
   }
 }
+
+query WorkspaceCopyRun($id: UUID!) {
+  workspaceCopyRun(id: $id) {
+    id
+    status
+    logs
+    error
+    workspace {
+      slug
+    }
+  }
+}

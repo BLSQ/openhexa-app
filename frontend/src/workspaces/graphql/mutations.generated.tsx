@@ -180,6 +180,13 @@ export type TestConnectionMutationVariables = Types.Exact<{
 
 export type TestConnectionMutation = { __typename?: 'Mutation', testConnection: { __typename?: 'TestConnectionResult', success: boolean, errors?: string | null } };
 
+export type DuplicateWorkspaceMutationVariables = Types.Exact<{
+  input: Types.DuplicateWorkspaceInput;
+}>;
+
+
+export type DuplicateWorkspaceMutation = { __typename?: 'Mutation', duplicateWorkspace: { __typename?: 'DuplicateWorkspaceResult', success: boolean, errors: Array<Types.DuplicateWorkspaceError>, run?: { __typename?: 'WorkspaceCopyRun', id: string, status: Types.WorkspaceCopyRunStatus } | null } };
+
 
 export const CreateWorkspaceDocument = gql`
     mutation createWorkspace($input: CreateWorkspaceInput!) {
@@ -1109,3 +1116,41 @@ export function useTestConnectionMutation(baseOptions?: Apollo.MutationHookOptio
 export type TestConnectionMutationHookResult = ReturnType<typeof useTestConnectionMutation>;
 export type TestConnectionMutationResult = Apollo.MutationResult<TestConnectionMutation>;
 export type TestConnectionMutationOptions = Apollo.BaseMutationOptions<TestConnectionMutation, TestConnectionMutationVariables>;
+export const DuplicateWorkspaceDocument = gql`
+    mutation DuplicateWorkspace($input: DuplicateWorkspaceInput!) {
+  duplicateWorkspace(input: $input) {
+    success
+    errors
+    run {
+      id
+      status
+    }
+  }
+}
+    `;
+export type DuplicateWorkspaceMutationFn = Apollo.MutationFunction<DuplicateWorkspaceMutation, DuplicateWorkspaceMutationVariables>;
+
+/**
+ * __useDuplicateWorkspaceMutation__
+ *
+ * To run a mutation, you first call `useDuplicateWorkspaceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDuplicateWorkspaceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [duplicateWorkspaceMutation, { data, loading, error }] = useDuplicateWorkspaceMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDuplicateWorkspaceMutation(baseOptions?: Apollo.MutationHookOptions<DuplicateWorkspaceMutation, DuplicateWorkspaceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DuplicateWorkspaceMutation, DuplicateWorkspaceMutationVariables>(DuplicateWorkspaceDocument, options);
+      }
+export type DuplicateWorkspaceMutationHookResult = ReturnType<typeof useDuplicateWorkspaceMutation>;
+export type DuplicateWorkspaceMutationResult = Apollo.MutationResult<DuplicateWorkspaceMutation>;
+export type DuplicateWorkspaceMutationOptions = Apollo.BaseMutationOptions<DuplicateWorkspaceMutation, DuplicateWorkspaceMutationVariables>;

@@ -3,11 +3,17 @@ import Button from "core/components/Button";
 import Card from "core/components/Card";
 import { useTranslation } from "next-i18next";
 import { GearIcon } from "@radix-ui/react-icons";
-import { TrashIcon, GlobeAltIcon, TagIcon } from "@heroicons/react/24/outline";
+import {
+  TrashIcon,
+  GlobeAltIcon,
+  TagIcon,
+  DocumentDuplicateIcon,
+} from "@heroicons/react/24/outline";
 import Flag from "react-world-flags";
 import Tag from "core/features/Tag";
 import { OrganizationWorkspace_WorkspaceFragment } from "organizations/graphql/queries.generated";
 import { ArchiveWorkspace_WorkspaceFragment } from "workspaces/features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated";
+import { DuplicateWorkspace_WorkspaceFragment } from "workspaces/features/DuplicateWorkspaceDialog/DuplicateWorkspaceDialog.generated";
 import router from "next/router";
 import Pagination from "core/components/Pagination";
 
@@ -19,6 +25,7 @@ type WorkspacesCardViewProps = {
   totalPages: number;
   totalItems: number;
   onArchiveClick: (workspace: ArchiveWorkspace_WorkspaceFragment) => void;
+  onDuplicateClick: (workspace: DuplicateWorkspace_WorkspaceFragment) => void;
   onManageTagsClick: (
     workspace: OrganizationWorkspace_WorkspaceFragment,
   ) => void;
@@ -32,6 +39,7 @@ const WorkspacesCardView = ({
   totalPages,
   totalItems,
   onArchiveClick,
+  onDuplicateClick,
   onManageTagsClick,
 }: WorkspacesCardViewProps) => {
   const { t } = useTranslation();
@@ -98,6 +106,18 @@ const WorkspacesCardView = ({
                 disabled={!ws.permissions.manageMembers}
               >
                 {t("Settings")}
+              </Button>
+              <Button
+                variant="outlined"
+                className="static"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onDuplicateClick(ws);
+                }}
+                leadingIcon={<DocumentDuplicateIcon className="w-4" />}
+                disabled={!ws.permissions.duplicate}
+              >
+                {t("Duplicate")}
               </Button>
               <Button
                 variant="outlined"

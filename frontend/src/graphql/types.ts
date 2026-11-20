@@ -2414,6 +2414,29 @@ export type DisableTwoFactorResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export enum DuplicateWorkspaceError {
+  InvalidCountry = 'INVALID_COUNTRY',
+  PermissionDenied = 'PERMISSION_DENIED',
+  WorkspacesLimitReached = 'WORKSPACES_LIMIT_REACHED',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+export type DuplicateWorkspaceInput = {
+  /** Countries of the new workspace. Omitted, the source workspace's are kept. */
+  countries?: InputMaybe<Array<CountryInput>>;
+  includeConnectionSecrets: Scalars['Boolean']['input'];
+  name: Scalars['String']['input'];
+  resources: Array<WorkspaceCopyResource>;
+  workspaceSlug: Scalars['String']['input'];
+};
+
+export type DuplicateWorkspaceResult = {
+  __typename?: 'DuplicateWorkspaceResult';
+  errors: Array<DuplicateWorkspaceError>;
+  run?: Maybe<WorkspaceCopyRun>;
+  success: Scalars['Boolean']['output'];
+};
+
 /** Represents the error message for a web app file edit. */
 export enum EditWebappFileError {
   BinaryFile = 'BINARY_FILE',
@@ -3363,6 +3386,7 @@ export type Mutation = {
   denyAccessmodAccessRequest: DenyAccessmodAccessRequestResult;
   /** Disables two-factor authentication for the currently authenticated user. */
   disableTwoFactor: DisableTwoFactorResult;
+  duplicateWorkspace: DuplicateWorkspaceResult;
   editWebappFile: EditWebappFileResult;
   /** Enables two-factor authentication for the currently authenticated user. */
   enableTwoFactor: EnableTwoFactorResult;
@@ -3785,6 +3809,11 @@ export type MutationDenyAccessmodAccessRequestArgs = {
 
 export type MutationDisableTwoFactorArgs = {
   input?: InputMaybe<DisableTwoFactorInput>;
+};
+
+
+export type MutationDuplicateWorkspaceArgs = {
+  input: DuplicateWorkspaceInput;
 };
 
 
@@ -5197,6 +5226,7 @@ export type Query = {
   webapp?: Maybe<Webapp>;
   webapps: WebappsPage;
   workspace?: Maybe<Workspace>;
+  workspaceCopyRun?: Maybe<WorkspaceCopyRun>;
   workspaces: WorkspacePage;
 };
 
@@ -5576,6 +5606,11 @@ export type QueryWebappsArgs = {
 
 export type QueryWorkspaceArgs = {
   slug: Scalars['String']['input'];
+};
+
+
+export type QueryWorkspaceCopyRunArgs = {
+  id: Scalars['UUID']['input'];
 };
 
 
@@ -7363,6 +7398,43 @@ export type WorkspaceSavedQueriesArgs = {
   query?: InputMaybe<Scalars['String']['input']>;
 };
 
+/**
+ * A resource that can be copied when duplicating a workspace. The workspace
+ * itself is always created.
+ */
+export enum WorkspaceCopyResource {
+  Connections = 'CONNECTIONS',
+  Database = 'DATABASE',
+  Datasets = 'DATASETS',
+  Files = 'FILES',
+  Pipelines = 'PIPELINES',
+  Webapps = 'WEBAPPS'
+}
+
+/** A workspace duplication, run in the background. */
+export type WorkspaceCopyRun = {
+  __typename?: 'WorkspaceCopyRun';
+  createdAt: Scalars['DateTime']['output'];
+  /** Why the run failed, if it did. */
+  error?: Maybe<Scalars['String']['output']>;
+  finishedAt?: Maybe<Scalars['DateTime']['output']>;
+  id: Scalars['UUID']['output'];
+  /** Timestamped progress lines, appended while the run is going. */
+  logs: Scalars['String']['output'];
+  startedAt?: Maybe<Scalars['DateTime']['output']>;
+  status: WorkspaceCopyRunStatus;
+  /** The workspace created by the run, once it exists. */
+  workspace?: Maybe<Workspace>;
+};
+
+export enum WorkspaceCopyRunStatus {
+  Failed = 'FAILED',
+  Queued = 'QUEUED',
+  Running = 'RUNNING',
+  Success = 'SUCCESS',
+  SuccessWithErrors = 'SUCCESS_WITH_ERRORS'
+}
+
 /** Represents an invitation to join a workspace. */
 export type WorkspaceInvitation = {
   __typename?: 'WorkspaceInvitation';
@@ -7465,6 +7537,7 @@ export type WorkspacePermissions = {
   deleteObject: Scalars['Boolean']['output'];
   /** User can download objects from the workspace's bucket. */
   downloadObject: Scalars['Boolean']['output'];
+  duplicate: Scalars['Boolean']['output'];
   generateToken: Scalars['Boolean']['output'];
   launchNotebookServer: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];

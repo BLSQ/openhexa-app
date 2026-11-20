@@ -16,6 +16,8 @@ import ManageWorkspaceTagsDialog from "organizations/features/ManageWorkspaceTag
 import { CreateWorkspacePermissionReason } from "graphql/types";
 import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
 import ArchiveWorkspaceDialog from "workspaces/features/ArchiveWorkspaceDialog";
+import DuplicateWorkspaceDialog from "workspaces/features/DuplicateWorkspaceDialog";
+import { DuplicateWorkspace_WorkspaceFragment } from "workspaces/features/DuplicateWorkspaceDialog/DuplicateWorkspaceDialog.generated";
 import { ArchiveWorkspace_WorkspaceFragment } from "workspaces/features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated";
 import { useState, useEffect } from "react";
 import Button from "core/components/Button";
@@ -45,6 +47,9 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
   const [taggedWorkspace, setTaggedWorkspace] =
     useState<OrganizationWorkspace_WorkspaceFragment | null>(null);
   const [isTagsDialogOpen, setIsTagsDialogOpen] = useState(false);
+  const [duplicatedWorkspace, setDuplicatedWorkspace] =
+    useState<DuplicateWorkspace_WorkspaceFragment | null>(null);
+  const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const perPage = 15;
 
@@ -83,6 +88,13 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
   ) => {
     setTaggedWorkspace(workspace);
     setIsTagsDialogOpen(true);
+  };
+
+  const handleDuplicateClick = (
+    workspace: DuplicateWorkspace_WorkspaceFragment,
+  ) => {
+    setDuplicatedWorkspace(workspace);
+    setIsDuplicateDialogOpen(true);
   };
 
   const handleArchiveClick = (
@@ -150,6 +162,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
               totalPages={data?.workspaces?.totalPages || 0}
               totalItems={data?.workspaces?.totalItems || 0}
               onArchiveClick={handleArchiveClick}
+              onDuplicateClick={handleDuplicateClick}
               onManageTagsClick={handleManageTagsClick}
             />
           ) : (
@@ -161,6 +174,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
               totalPages={data?.workspaces?.totalPages || 0}
               totalItems={data?.workspaces?.totalItems || 0}
               onArchiveClick={handleArchiveClick}
+              onDuplicateClick={handleDuplicateClick}
               onManageTagsClick={handleManageTagsClick}
               canManageMembers={organization.permissions.manageMembers}
             />
@@ -182,6 +196,16 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
         organizationId={organization.id}
         availableTags={organization.workspaceTags}
         onClose={() => setIsTagsDialogOpen(false)}
+      />
+
+      {/* Kept on close, like `taggedWorkspace`, for the leave transition. */}
+      <DuplicateWorkspaceDialog
+        open={isDuplicateDialogOpen}
+        workspace={duplicatedWorkspace}
+        onClose={() => {
+          setIsDuplicateDialogOpen(false);
+          refetch().then();
+        }}
       />
 
       {selectedWorkspace && (

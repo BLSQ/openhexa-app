@@ -370,6 +370,13 @@ export type WorkspaceConnectionPickerQueryVariables = Types.Exact<{
 
 export type WorkspaceConnectionPickerQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, connections: Array<{ __typename?: 'CustomConnection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'DHIS2Connection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'GCSConnection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'IASOConnection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'PostgreSQLConnection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'S3Connection', id: string, name: string, slug: string, type: Types.ConnectionType }> } | null };
 
+export type WorkspaceCopyRunQueryVariables = Types.Exact<{
+  id: Types.Scalars['UUID']['input'];
+}>;
+
+
+export type WorkspaceCopyRunQuery = { __typename?: 'Query', workspaceCopyRun?: { __typename?: 'WorkspaceCopyRun', id: string, status: Types.WorkspaceCopyRunStatus, logs: string, error?: string | null, workspace?: { __typename?: 'Workspace', slug: string } | null } | null };
+
 
 export const WorkspacesPageDocument = gql`
     query WorkspacesPage {
@@ -2696,3 +2703,49 @@ export type WorkspaceConnectionPickerQueryHookResult = ReturnType<typeof useWork
 export type WorkspaceConnectionPickerLazyQueryHookResult = ReturnType<typeof useWorkspaceConnectionPickerLazyQuery>;
 export type WorkspaceConnectionPickerSuspenseQueryHookResult = ReturnType<typeof useWorkspaceConnectionPickerSuspenseQuery>;
 export type WorkspaceConnectionPickerQueryResult = Apollo.QueryResult<WorkspaceConnectionPickerQuery, WorkspaceConnectionPickerQueryVariables>;
+export const WorkspaceCopyRunDocument = gql`
+    query WorkspaceCopyRun($id: UUID!) {
+  workspaceCopyRun(id: $id) {
+    id
+    status
+    logs
+    error
+    workspace {
+      slug
+    }
+  }
+}
+    `;
+
+/**
+ * __useWorkspaceCopyRunQuery__
+ *
+ * To run a query within a React component, call `useWorkspaceCopyRunQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWorkspaceCopyRunQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWorkspaceCopyRunQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useWorkspaceCopyRunQuery(baseOptions: Apollo.QueryHookOptions<WorkspaceCopyRunQuery, WorkspaceCopyRunQueryVariables> & ({ variables: WorkspaceCopyRunQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WorkspaceCopyRunQuery, WorkspaceCopyRunQueryVariables>(WorkspaceCopyRunDocument, options);
+      }
+export function useWorkspaceCopyRunLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkspaceCopyRunQuery, WorkspaceCopyRunQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WorkspaceCopyRunQuery, WorkspaceCopyRunQueryVariables>(WorkspaceCopyRunDocument, options);
+        }
+export function useWorkspaceCopyRunSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkspaceCopyRunQuery, WorkspaceCopyRunQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<WorkspaceCopyRunQuery, WorkspaceCopyRunQueryVariables>(WorkspaceCopyRunDocument, options);
+        }
+export type WorkspaceCopyRunQueryHookResult = ReturnType<typeof useWorkspaceCopyRunQuery>;
+export type WorkspaceCopyRunLazyQueryHookResult = ReturnType<typeof useWorkspaceCopyRunLazyQuery>;
+export type WorkspaceCopyRunSuspenseQueryHookResult = ReturnType<typeof useWorkspaceCopyRunSuspenseQuery>;
+export type WorkspaceCopyRunQueryResult = Apollo.QueryResult<WorkspaceCopyRunQuery, WorkspaceCopyRunQueryVariables>;

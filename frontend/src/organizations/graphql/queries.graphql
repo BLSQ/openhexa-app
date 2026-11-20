@@ -173,6 +173,7 @@ fragment OrganizationWorkspace_workspace on Workspace {
     manageTags
     delete
   }
+  ...DuplicateWorkspace_workspace
 }
 
 query OrganizationWorkspaces(
