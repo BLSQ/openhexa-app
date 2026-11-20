@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from dpq.models import BaseJob
+from oauth2_provider.models import AccessToken
 
 from hexa.core.models.base import Base
 from hexa.core.models.cryptography import EncryptedTextField
@@ -41,11 +42,22 @@ class WorkspaceCopyRun(Base):
     all_dataset_versions = models.BooleanField(default=False)
     include_connection_secrets = models.BooleanField(default=True)
     same_server = models.BooleanField(default=False)
+    # Country codes for a new target workspace; null copies the source's.
+    target_countries = models.JSONField(null=True, blank=True)
 
     # The worker runs after the admin request is gone, so it can only get the
     # tokens from here. They are erased as soon as the run ends.
     source_token = EncryptedTextField(null=True, blank=True)
     target_token = EncryptedTextField(null=True, blank=True)
+    # Runs requested from the app have no ServiceAccount token: they act as
+    # their requester through this token, revoked as soon as the run ends.
+    access_token = models.OneToOneField(
+        settings.OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="workspace_copy_run",
+    )
 
     started_at = models.DateTimeField(null=True, blank=True)
     finished_at = models.DateTimeField(null=True, blank=True)
@@ -91,6 +103,23 @@ class WorkspaceCopyRun(Base):
                 "updated_at",
             ]
         )
+        revoke_finished_run_tokens()
+
+
+def revoke_finished_run_tokens() -> None:
+    """Delete the access tokens of every run that is no longer queued or running.
+
+    Swept rather than deleted per run so that the bulk failure of interrupted
+    runs, which never loads them, revokes their tokens too.
+    """
+    AccessToken.objects.filter(
+        workspace_copy_run__isnull=False,
+    ).exclude(
+        workspace_copy_run__status__in=[
+            WorkspaceCopyRunStatus.QUEUED,
+            WorkspaceCopyRunStatus.RUNNING,
+        ]
+    ).delete()
 
 
 class WorkspaceCopyJob(BaseJob):

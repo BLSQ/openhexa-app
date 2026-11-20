@@ -12,7 +12,6 @@ The template copy view stays synchronous: it is small and remote→remote only.
 
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
-from django.db import transaction
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.html import format_html
@@ -20,33 +19,10 @@ from django.utils.html import format_html
 from hexa.workspace_copier.forms import CopyTemplatesForm, CopyWorkspaceForm
 from hexa.workspace_copier.models import WorkspaceCopyRun
 from hexa.workspace_copier.progress import BufferReporter
-from hexa.workspace_copier.queue import workspace_copy_queue
+from hexa.workspace_copier.queue import queue_copy_run
 from hexa.workspace_copier.results import format_templates_summary
 from hexa.workspace_copier.service import CredentialError, run_template_copy
 from hexa.workspace_copier.transport import GraphQLError
-
-
-def _queue_copy_run(user, data) -> WorkspaceCopyRun:
-    # One transaction: the run and its job exist together or not at all, and
-    # the worker is only notified on commit, once the run is readable.
-    with transaction.atomic():
-        run = WorkspaceCopyRun.objects.create(
-            created_by=user,
-            source_url=data["source_url"],
-            source_token=data["source_token"] or None,
-            source_slug=data["source_slug"],
-            target_url=data["target_url"],
-            target_token=data["target_token"] or None,
-            target_organization_id=data["target_organization"],
-            target_workspace_name=data["target_workspace_name"],
-            target_workspace_slug=data["target_workspace_slug"],
-            resources=sorted(data["resources"]),
-            all_dataset_versions=data["all_dataset_versions"],
-            include_connection_secrets=data["include_connection_secrets"],
-            same_server=data["same_server"],
-        )
-        workspace_copy_queue.enqueue("run_workspace_copy", {"run_id": str(run.id)})
-    return run
 
 
 def copy_workspace_view(request):
@@ -56,7 +32,22 @@ def copy_workspace_view(request):
     if request.method == "POST":
         form = CopyWorkspaceForm(request.POST)
         if form.is_valid():
-            run = _queue_copy_run(request.user, form.cleaned_data)
+            data = form.cleaned_data
+            run = queue_copy_run(
+                created_by=request.user,
+                source_url=data["source_url"],
+                source_token=data["source_token"] or None,
+                source_slug=data["source_slug"],
+                target_url=data["target_url"],
+                target_token=data["target_token"] or None,
+                target_organization_id=data["target_organization"],
+                target_workspace_name=data["target_workspace_name"],
+                target_workspace_slug=data["target_workspace_slug"],
+                resources=sorted(data["resources"]),
+                all_dataset_versions=data["all_dataset_versions"],
+                include_connection_secrets=data["include_connection_secrets"],
+                same_server=data["same_server"],
+            )
             messages.success(
                 request, "Workspace copy queued. This page refreshes while it runs."
             )

@@ -165,10 +165,18 @@ On the workspaces list page, there's a button "Copy workspace". Submitting its f
 
 The view is Superuser-only. Entered credentials are stored encrypted on the run and erased when it ends.
 
+### App (`duplicateWorkspace` mutation)
+
+Organization members duplicate a workspace from the organization's workspaces page. The `duplicateWorkspace` mutation (`schema/mutations.py`) checks `workspaces.duplicate_workspace` (the user may create a workspace in the organization *and* edit the source), then queues an async run through `queue.queue_duplicate_workspace`: always a same-server copy into the source's organization, optionally with other countries.
+
+There is no ServiceAccount token here. The run acts as its requester through an OAuth access token issued for it alone, with the `openhexa:workspace_copy` scope. That scope is not in `OAUTH2_PROVIDER["SCOPES"]`, so no OAuth client can request it, and `oauth2_token_authentication_middleware` only accepts it on `/graphql/`. Because the copy acts as the user, they are the creator of every copied resource and the copy cannot reach anything they cannot. The token is deleted as soon as the run ends (including runs failed as interrupted); `WORKSPACE_COPY_TOKEN_EXPIRE_SECONDS` (default 2 days) only bounds one whose cleanup never ran.
+
+The frontend polls `workspaceCopyRun(id)`, visible to its requester only, for status and logs.
+
 ## Async execution
 
 ```
-admin form ──> WorkspaceCopyRun (QUEUED) + WorkspaceCopyJob  (one transaction)
+admin form / duplicateWorkspace ──> WorkspaceCopyRun (QUEUED) + WorkspaceCopyJob  (one transaction)
                        │
 workspace_copy_worker ─┴─> queue.execute_copy_run(run_id)
                              └─ service.run_copy(..., reporter=DatabaseReporter(run))
