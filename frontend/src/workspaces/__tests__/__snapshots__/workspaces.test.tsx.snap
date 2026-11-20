@@ -10,7 +10,7 @@ exports[`Workspaces renders the workspace page 1`] = `
     style="--subscription-banner-height: 0px;"
   >
     <div
-      class="fixed top-(--subscription-banner-height) h-[calc(100vh-var(--subscription-banner-height))] bg-gray-800 transition-all duration-75 z-20 w-64 2xl:w-72"
+      class="fixed top-banner h-screen-below-banner bg-gray-800 transition-all duration-75 z-20 w-64 2xl:w-72"
     >
       <div
         class="relative z-20 flex h-full flex-col"
@@ -425,7 +425,7 @@ exports[`Workspaces renders the workspace page 1`] = `
       </div>
     </div>
     <header
-      class="fixed top-(--subscription-banner-height) left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
+      class="fixed top-banner left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
     >
       <div
         class="flex items-center h-full gap-2 px-4 md:px-6 xl:px-10 2xl:px-12"
@@ -483,7 +483,7 @@ exports[`Workspaces renders the workspace page 1`] = `
       </div>
     </header>
     <main
-      class="w-full mt-(--subscription-banner-height) mb-12 pl-64 2xl:pl-72 pt-16"
+      class="w-full mt-banner mb-12 pl-64 2xl:pl-72 pt-16"
     >
       <div
         class="py-6 xl:py-8"
@@ -543,7 +543,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
     style="--subscription-banner-height: 0px;"
   >
     <div
-      class="fixed top-(--subscription-banner-height) h-[calc(100vh-var(--subscription-banner-height))] bg-gray-800 transition-all duration-75 z-20 w-64 2xl:w-72"
+      class="fixed top-banner h-screen-below-banner bg-gray-800 transition-all duration-75 z-20 w-64 2xl:w-72"
     >
       <div
         class="relative z-20 flex h-full flex-col"
@@ -992,7 +992,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
       </div>
     </div>
     <header
-      class="fixed top-(--subscription-banner-height) left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
+      class="fixed top-banner left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
     >
       <div
         class="flex items-center h-full gap-2 px-4 md:px-6 xl:px-10 2xl:px-12"
@@ -1050,7 +1050,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
       </div>
     </header>
     <main
-      class="w-full mt-(--subscription-banner-height) mb-12 pl-64 2xl:pl-72 pt-16"
+      class="w-full mt-banner mb-12 pl-64 2xl:pl-72 pt-16"
     >
       <div
         class="py-6 xl:py-8"

@@ -105,7 +105,7 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
             width="100%"
             style={{
               height:
-                "calc(100vh - 4rem - var(--subscription-banner-height, 0px))",
+                "calc(100vh - 4rem - var(--subscription-banner-height))",
             }}
             src={serverUrl}
           ></iframe>

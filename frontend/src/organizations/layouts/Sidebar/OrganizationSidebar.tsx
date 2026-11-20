@@ -40,7 +40,7 @@ const OrganizationSidebar = ({ organization }: OrganizationSidebarProps) => {
   return (
     <div
       className={clsx(
-        "fixed h-[calc(100vh-var(--subscription-banner-height,0px))] bg-gray-800 transition-all duration-75",
+        "fixed h-screen-below-banner bg-gray-800 transition-all duration-75",
         isSidebarOpen ? "w-64 2xl:w-72" : "w-16",
       )}
     >

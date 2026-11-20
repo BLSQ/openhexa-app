@@ -55,7 +55,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
       <SubscriptionBanner organization={workspace.organization} />
       <div
         className={clsx(
-          "fixed top-(--subscription-banner-height) h-[calc(100vh-var(--subscription-banner-height))] bg-gray-800 transition-all duration-75 z-20",
+          "fixed top-banner h-screen-below-banner bg-gray-800 transition-all duration-75 z-20",
           isSidebarOpen ? "w-64 2xl:w-72" : "w-16",
         )}
       >
@@ -68,7 +68,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
       {header && (
         <header
           className={clsx(
-            "fixed top-(--subscription-banner-height) left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header",
+            "fixed top-banner left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header",
             isSidebarOpen ? "left-64 2xl:left-72" : "left-16",
           )}
         >
@@ -85,7 +85,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
       )}
       <main
         className={clsx(
-          "w-full mt-(--subscription-banner-height)",
+          "w-full mt-banner",
           withMarginBottom
             ? "mb-12" // The margin bottom is to avoid the Help button to hide the content of the page while at the bottom
             : "",
