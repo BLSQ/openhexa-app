@@ -7,7 +7,10 @@ import {
   WorkspaceCopyRunStatus,
 } from "graphql/types";
 import { DuplicateWorkspaceDocument } from "workspaces/graphql/mutations.generated";
-import { WorkspaceCopyRunDocument } from "workspaces/graphql/queries.generated";
+import {
+  ActiveWorkspaceCopyRunDocument,
+  WorkspaceCopyRunDocument,
+} from "workspaces/graphql/queries.generated";
 import DuplicateWorkspaceDialog from "./DuplicateWorkspaceDialog";
 
 // The real picker fetches every country; the dialog only needs to pass its value through.
@@ -28,6 +31,20 @@ const WORKSPACE = {
 };
 
 const ALL_RESOURCES = Object.values(WorkspaceCopyResource);
+
+const run = (status: WorkspaceCopyRunStatus, slug: string | null = null) => ({
+  __typename: "WorkspaceCopyRun",
+  id: "run-1",
+  status,
+  targetWorkspaceName: "Malaria (copy)",
+  error: null,
+  workspace: slug ? { __typename: "Workspace", slug } : null,
+});
+
+const activeRunMock = (active: ReturnType<typeof run> | null) => ({
+  request: { query: ActiveWorkspaceCopyRunDocument },
+  result: { data: { activeWorkspaceCopyRun: active } },
+});
 
 const duplicateMock = (
   input: Record<string, any>,
@@ -59,30 +76,28 @@ const duplicateMock = (
   },
 });
 
-const runMock = (status: WorkspaceCopyRunStatus, logs: string) => ({
-  request: { query: WorkspaceCopyRunDocument, variables: { id: "run-1" } },
+const pollMock = (
+  status: WorkspaceCopyRunStatus,
+  text: string,
+  slug: string | null = null,
+) => ({
+  request: {
+    query: WorkspaceCopyRunDocument,
+    variables: { id: "run-1", logsOffset: 0 },
+  },
   result: {
     data: {
       workspaceCopyRun: {
-        __typename: "WorkspaceCopyRun",
-        id: "run-1",
-        status,
-        logs,
-        error: null,
-        workspace:
-          status === WorkspaceCopyRunStatus.Success
-            ? { __typename: "Workspace", slug: "copy-of-malaria-ab12" }
-            : null,
+        ...run(status, slug),
+        logs: {
+          __typename: "WorkspaceCopyRunLogs",
+          text,
+          nextOffset: text.length,
+        },
       },
     },
   },
 });
-
-const RUN = {
-  __typename: "WorkspaceCopyRun",
-  id: "run-1",
-  status: WorkspaceCopyRunStatus.Queued,
-};
 
 const renderDialog = (mocks: any[]) =>
   render(
@@ -97,7 +112,7 @@ const renderDialog = (mocks: any[]) =>
 
 // The test `t` does not interpolate, so the prefilled "Copy of {{name}}" is replaced.
 const typeName = async (user: ReturnType<typeof userEvent.setup>) => {
-  const input = screen.getByLabelText("New workspace name");
+  const input = await screen.findByLabelText("New workspace name");
   await user.clear(input);
   await user.type(input, "Malaria (copy)");
 };
@@ -106,14 +121,16 @@ describe("DuplicateWorkspaceDialog", () => {
   it("duplicates every resource by default, then follows the run", async () => {
     const user = userEvent.setup();
     renderDialog([
-      duplicateMock({}, { run: RUN }),
-      runMock(
+      activeRunMock(null),
+      duplicateMock({}, { run: run(WorkspaceCopyRunStatus.Queued) }),
+      pollMock(
         WorkspaceCopyRunStatus.Success,
         "10:00:00 => Copying files ...\n10:00:01 [WARNING] skipped one\n",
+        "malaria-copy",
       ),
     ]);
 
-    expect(screen.getByLabelText("New workspace name")).toHaveValue(
+    expect(await screen.findByLabelText("New workspace name")).toHaveValue(
       "Copy of {{name}}",
     );
     for (const label of ["Files", "Workspace database", "Web apps"]) {
@@ -134,6 +151,7 @@ describe("DuplicateWorkspaceDialog", () => {
   it("does not copy secrets when connections are left out", async () => {
     const user = userEvent.setup();
     renderDialog([
+      activeRunMock(null),
       duplicateMock(
         {
           resources: ALL_RESOURCES.filter(
@@ -141,12 +159,9 @@ describe("DuplicateWorkspaceDialog", () => {
           ),
           includeConnectionSecrets: false,
         },
-        { run: RUN },
+        { run: run(WorkspaceCopyRunStatus.Queued) },
       ),
-      runMock(
-        WorkspaceCopyRunStatus.Running,
-        "10:00:00 => Copying files ...\n",
-      ),
+      pollMock(WorkspaceCopyRunStatus.Queued, ""),
     ]);
 
     await typeName(user);
@@ -157,16 +172,60 @@ describe("DuplicateWorkspaceDialog", () => {
     await user.click(screen.getByRole("button", { name: "Duplicate" }));
 
     expect(
-      await screen.findByText("10:00:00 => Copying files ..."),
+      await screen.findByText("Waiting for the copy to start…"),
     ).toBeVisible();
     expect(
       screen.queryByRole("button", { name: "Open workspace" }),
     ).not.toBeInTheDocument();
   });
 
+  it("shows a copy still running when opened again", async () => {
+    renderDialog([
+      activeRunMock(run(WorkspaceCopyRunStatus.Running)),
+      pollMock(
+        WorkspaceCopyRunStatus.Running,
+        "10:00:00 => Copying files ...\n",
+      ),
+    ]);
+
+    expect(
+      await screen.findByText("10:00:00 => Copying files ..."),
+    ).toBeVisible();
+    expect(
+      screen.queryByLabelText("New workspace name"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("switches to the copy already running instead of starting another", async () => {
+    const user = userEvent.setup();
+    renderDialog([
+      activeRunMock(null),
+      duplicateMock(
+        {},
+        {
+          success: false,
+          errors: [DuplicateWorkspaceError.CopyAlreadyRunning],
+        },
+      ),
+      activeRunMock(run(WorkspaceCopyRunStatus.Running)),
+      pollMock(
+        WorkspaceCopyRunStatus.Running,
+        "10:00:00 => Copying files ...\n",
+      ),
+    ]);
+
+    await typeName(user);
+    await user.click(screen.getByRole("button", { name: "Duplicate" }));
+
+    expect(
+      await screen.findByText("10:00:00 => Copying files ..."),
+    ).toBeVisible();
+  });
+
   it("shows why a duplication is refused", async () => {
     const user = userEvent.setup();
     renderDialog([
+      activeRunMock(null),
       duplicateMock(
         {},
         {

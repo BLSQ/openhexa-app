@@ -3,6 +3,7 @@ import * as Types from '../../graphql/types';
 import { gql } from '@apollo/client';
 import { User_UserFragmentDoc } from '../../core/features/User/User.generated';
 import { PipelineVersionPicker_VersionFragmentDoc } from '../features/PipelineVersionPicker/PipelineVersionPicker.generated';
+import { DuplicateWorkspaceDialog_RunFragmentDoc } from '../features/DuplicateWorkspaceDialog/DuplicateWorkspaceDialog.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type CreateWorkspaceMutationVariables = Types.Exact<{
@@ -185,7 +186,7 @@ export type DuplicateWorkspaceMutationVariables = Types.Exact<{
 }>;
 
 
-export type DuplicateWorkspaceMutation = { __typename?: 'Mutation', duplicateWorkspace: { __typename?: 'DuplicateWorkspaceResult', success: boolean, errors: Array<Types.DuplicateWorkspaceError>, run?: { __typename?: 'WorkspaceCopyRun', id: string, status: Types.WorkspaceCopyRunStatus } | null } };
+export type DuplicateWorkspaceMutation = { __typename?: 'Mutation', duplicateWorkspace: { __typename?: 'DuplicateWorkspaceResult', success: boolean, errors: Array<Types.DuplicateWorkspaceError>, run?: { __typename?: 'WorkspaceCopyRun', id: string, status: Types.WorkspaceCopyRunStatus, targetWorkspaceName: string, error?: string | null, workspace?: { __typename?: 'Workspace', slug: string } | null } | null } };
 
 
 export const CreateWorkspaceDocument = gql`
@@ -1122,12 +1123,11 @@ export const DuplicateWorkspaceDocument = gql`
     success
     errors
     run {
-      id
-      status
+      ...DuplicateWorkspaceDialog_run
     }
   }
 }
-    `;
+    ${DuplicateWorkspaceDialog_RunFragmentDoc}`;
 export type DuplicateWorkspaceMutationFn = Apollo.MutationFunction<DuplicateWorkspaceMutation, DuplicateWorkspaceMutationVariables>;
 
 /**

@@ -49,6 +49,7 @@ import { WebappApiAccess_WebappFragmentDoc } from '../../webapps/features/Webapp
 import { WorkspacePicker_ValueFragmentDoc } from '../features/WorkspacePicker/WorkspacePicker.generated';
 import { WorkspaceMemberPicker_WorkspaceFragmentDoc } from '../features/WorkspaceMemberPicker/WorkspaceMemberPicker.generated';
 import { WorkspaceConnectionPicker_WorkspaceFragmentDoc } from '../features/WorkspaceConnectionPicker/WorkspaceConnectionPicker.generated';
+import { DuplicateWorkspaceDialog_RunFragmentDoc } from '../features/DuplicateWorkspaceDialog/DuplicateWorkspaceDialog.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type WorkspacesPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
@@ -372,10 +373,16 @@ export type WorkspaceConnectionPickerQuery = { __typename?: 'Query', workspace?:
 
 export type WorkspaceCopyRunQueryVariables = Types.Exact<{
   id: Types.Scalars['UUID']['input'];
+  logsOffset: Types.Scalars['Int']['input'];
 }>;
 
 
-export type WorkspaceCopyRunQuery = { __typename?: 'Query', workspaceCopyRun?: { __typename?: 'WorkspaceCopyRun', id: string, status: Types.WorkspaceCopyRunStatus, logs: string, error?: string | null, workspace?: { __typename?: 'Workspace', slug: string } | null } | null };
+export type WorkspaceCopyRunQuery = { __typename?: 'Query', workspaceCopyRun?: { __typename?: 'WorkspaceCopyRun', id: string, status: Types.WorkspaceCopyRunStatus, targetWorkspaceName: string, error?: string | null, logs: { __typename?: 'WorkspaceCopyRunLogs', text: string, nextOffset: number }, workspace?: { __typename?: 'Workspace', slug: string } | null } | null };
+
+export type ActiveWorkspaceCopyRunQueryVariables = Types.Exact<{ [key: string]: never; }>;
+
+
+export type ActiveWorkspaceCopyRunQuery = { __typename?: 'Query', activeWorkspaceCopyRun?: { __typename?: 'WorkspaceCopyRun', id: string, status: Types.WorkspaceCopyRunStatus, targetWorkspaceName: string, error?: string | null, workspace?: { __typename?: 'Workspace', slug: string } | null } | null };
 
 
 export const WorkspacesPageDocument = gql`
@@ -2704,18 +2711,16 @@ export type WorkspaceConnectionPickerLazyQueryHookResult = ReturnType<typeof use
 export type WorkspaceConnectionPickerSuspenseQueryHookResult = ReturnType<typeof useWorkspaceConnectionPickerSuspenseQuery>;
 export type WorkspaceConnectionPickerQueryResult = Apollo.QueryResult<WorkspaceConnectionPickerQuery, WorkspaceConnectionPickerQueryVariables>;
 export const WorkspaceCopyRunDocument = gql`
-    query WorkspaceCopyRun($id: UUID!) {
+    query WorkspaceCopyRun($id: UUID!, $logsOffset: Int!) {
   workspaceCopyRun(id: $id) {
-    id
-    status
-    logs
-    error
-    workspace {
-      slug
+    ...DuplicateWorkspaceDialog_run
+    logs(offset: $logsOffset) {
+      text
+      nextOffset
     }
   }
 }
-    `;
+    ${DuplicateWorkspaceDialog_RunFragmentDoc}`;
 
 /**
  * __useWorkspaceCopyRunQuery__
@@ -2730,6 +2735,7 @@ export const WorkspaceCopyRunDocument = gql`
  * const { data, loading, error } = useWorkspaceCopyRunQuery({
  *   variables: {
  *      id: // value for 'id'
+ *      logsOffset: // value for 'logsOffset'
  *   },
  * });
  */
@@ -2749,3 +2755,42 @@ export type WorkspaceCopyRunQueryHookResult = ReturnType<typeof useWorkspaceCopy
 export type WorkspaceCopyRunLazyQueryHookResult = ReturnType<typeof useWorkspaceCopyRunLazyQuery>;
 export type WorkspaceCopyRunSuspenseQueryHookResult = ReturnType<typeof useWorkspaceCopyRunSuspenseQuery>;
 export type WorkspaceCopyRunQueryResult = Apollo.QueryResult<WorkspaceCopyRunQuery, WorkspaceCopyRunQueryVariables>;
+export const ActiveWorkspaceCopyRunDocument = gql`
+    query ActiveWorkspaceCopyRun {
+  activeWorkspaceCopyRun {
+    ...DuplicateWorkspaceDialog_run
+  }
+}
+    ${DuplicateWorkspaceDialog_RunFragmentDoc}`;
+
+/**
+ * __useActiveWorkspaceCopyRunQuery__
+ *
+ * To run a query within a React component, call `useActiveWorkspaceCopyRunQuery` and pass it any options that fit your needs.
+ * When your component renders, `useActiveWorkspaceCopyRunQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useActiveWorkspaceCopyRunQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useActiveWorkspaceCopyRunQuery(baseOptions?: Apollo.QueryHookOptions<ActiveWorkspaceCopyRunQuery, ActiveWorkspaceCopyRunQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ActiveWorkspaceCopyRunQuery, ActiveWorkspaceCopyRunQueryVariables>(ActiveWorkspaceCopyRunDocument, options);
+      }
+export function useActiveWorkspaceCopyRunLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ActiveWorkspaceCopyRunQuery, ActiveWorkspaceCopyRunQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ActiveWorkspaceCopyRunQuery, ActiveWorkspaceCopyRunQueryVariables>(ActiveWorkspaceCopyRunDocument, options);
+        }
+export function useActiveWorkspaceCopyRunSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ActiveWorkspaceCopyRunQuery, ActiveWorkspaceCopyRunQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ActiveWorkspaceCopyRunQuery, ActiveWorkspaceCopyRunQueryVariables>(ActiveWorkspaceCopyRunDocument, options);
+        }
+export type ActiveWorkspaceCopyRunQueryHookResult = ReturnType<typeof useActiveWorkspaceCopyRunQuery>;
+export type ActiveWorkspaceCopyRunLazyQueryHookResult = ReturnType<typeof useActiveWorkspaceCopyRunLazyQuery>;
+export type ActiveWorkspaceCopyRunSuspenseQueryHookResult = ReturnType<typeof useActiveWorkspaceCopyRunSuspenseQuery>;
+export type ActiveWorkspaceCopyRunQueryResult = Apollo.QueryResult<ActiveWorkspaceCopyRunQuery, ActiveWorkspaceCopyRunQueryVariables>;

@@ -2403,6 +2403,8 @@ type DisableTwoFactorResult {
 }
 
 enum DuplicateWorkspaceError {
+  """The user already has a duplication queued or running."""
+  COPY_ALREADY_RUNNING
   INVALID_COUNTRY
   PERMISSION_DENIED
   WORKSPACES_LIMIT_REACHED
@@ -4495,6 +4497,11 @@ type Query {
   accessmodFilesets(mode: AccessmodFilesetMode, page: Int, perPage: Int, projectId: String!, roleId: String, term: String): AccessmodFilesetPage!
   accessmodProject(id: String): AccessmodProject
   accessmodProjects(countries: [String!], orderBy: AccessmodProjectOrder, page: Int, perPage: Int, teams: [String!], term: String): AccessmodProjectPage!
+
+  """
+  The current user's duplication that is still queued or running, if any.
+  """
+  activeWorkspaceCopyRun: WorkspaceCopyRun
   aiLabels: AiLabels!
   assistantConversation(id: UUID!): AssistantConversation
   boundaries(country_code: String!, level: String!): [WHOBoundary!]!
@@ -6596,13 +6603,28 @@ type WorkspaceCopyRun {
   finishedAt: DateTime
   id: UUID!
 
-  """Timestamped progress lines, appended while the run is going."""
-  logs: String!
+  """
+  Timestamped progress lines, appended while the run is going. Pass the
+  previous `nextOffset` as `offset` to get only the lines added since.
+  """
+  logs(offset: Int = 0): WorkspaceCopyRunLogs!
+  sourceWorkspaceSlug: String!
   startedAt: DateTime
   status: WorkspaceCopyRunStatus!
 
+  """Name requested for the new workspace."""
+  targetWorkspaceName: String!
+
   """The workspace created by the run, once it exists."""
   workspace: Workspace
+}
+
+type WorkspaceCopyRunLogs {
+  """Offset to pass next time to receive only newer lines."""
+  nextOffset: Int!
+
+  """Log text from the requested offset onwards, in whole lines."""
+  text: String!
 }
 
 enum WorkspaceCopyRunStatus {

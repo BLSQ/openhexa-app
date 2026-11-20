@@ -259,8 +259,7 @@ mutation DuplicateWorkspace($input: DuplicateWorkspaceInput!) {
     success
     errors
     run {
-      id
-      status
+      ...DuplicateWorkspaceDialog_run
     }
   }
 }

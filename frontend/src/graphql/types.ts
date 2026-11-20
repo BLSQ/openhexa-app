@@ -2415,6 +2415,8 @@ export type DisableTwoFactorResult = {
 };
 
 export enum DuplicateWorkspaceError {
+  /** The user already has a duplication queued or running. */
+  CopyAlreadyRunning = 'COPY_ALREADY_RUNNING',
   InvalidCountry = 'INVALID_COUNTRY',
   PermissionDenied = 'PERMISSION_DENIED',
   WorkspacesLimitReached = 'WORKSPACES_LIMIT_REACHED',
@@ -5115,6 +5117,8 @@ export type Query = {
   accessmodFilesets: AccessmodFilesetPage;
   accessmodProject?: Maybe<AccessmodProject>;
   accessmodProjects: AccessmodProjectPage;
+  /** The current user's duplication that is still queued or running, if any. */
+  activeWorkspaceCopyRun?: Maybe<WorkspaceCopyRun>;
   aiLabels: AiLabels;
   assistantConversation?: Maybe<AssistantConversation>;
   boundaries: Array<WhoBoundary>;
@@ -7419,12 +7423,32 @@ export type WorkspaceCopyRun = {
   error?: Maybe<Scalars['String']['output']>;
   finishedAt?: Maybe<Scalars['DateTime']['output']>;
   id: Scalars['UUID']['output'];
-  /** Timestamped progress lines, appended while the run is going. */
-  logs: Scalars['String']['output'];
+  /**
+   * Timestamped progress lines, appended while the run is going. Pass the
+   * previous `nextOffset` as `offset` to get only the lines added since.
+   */
+  logs: WorkspaceCopyRunLogs;
+  sourceWorkspaceSlug: Scalars['String']['output'];
   startedAt?: Maybe<Scalars['DateTime']['output']>;
   status: WorkspaceCopyRunStatus;
+  /** Name requested for the new workspace. */
+  targetWorkspaceName: Scalars['String']['output'];
   /** The workspace created by the run, once it exists. */
   workspace?: Maybe<Workspace>;
+};
+
+
+/** A workspace duplication, run in the background. */
+export type WorkspaceCopyRunLogsArgs = {
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type WorkspaceCopyRunLogs = {
+  __typename?: 'WorkspaceCopyRunLogs';
+  /** Offset to pass next time to receive only newer lines. */
+  nextOffset: Scalars['Int']['output'];
+  /** Log text from the requested offset onwards, in whole lines. */
+  text: Scalars['String']['output'];
 };
 
 export enum WorkspaceCopyRunStatus {
