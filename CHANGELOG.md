@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.23.0](https://github.com/BLSQ/openhexa-app/compare/5.22.2...5.23.0) (2026-11-21)
+
+
+### Features
+
+* Add a Playwright test suite to test demo ahead of a release ([#2237](https://github.com/BLSQ/openhexa-app/issues/2237)) ([1b415eb](https://github.com/BLSQ/openhexa-app/commit/1b415ebecabacb0243175159bd2edb3124b6aa1e))
+* plan expiration banners for organisation admins(HEXA-1981) ([#2233](https://github.com/BLSQ/openhexa-app/issues/2233)) ([b2dc678](https://github.com/BLSQ/openhexa-app/commit/b2dc6784f57c95b85976213c2ff34bddce12de00))
+
+
+### Bug Fixes
+
+* making a resource public requires the same permission everywhere (HEXA-1848) ([#2248](https://github.com/BLSQ/openhexa-app/issues/2248)) ([ebc24a3](https://github.com/BLSQ/openhexa-app/commit/ebc24a38df324d54bc18887d9bafb0adcf068edc))
+* save as new button fix ([#2244](https://github.com/BLSQ/openhexa-app/issues/2244)) ([c2403b3](https://github.com/BLSQ/openhexa-app/commit/c2403b3dd7e29666146689df22d257f976384b39))
+
 ## [5.22.2](https://github.com/BLSQ/openhexa-app/compare/5.22.1...5.22.2) (2026-11-17)
 
 
