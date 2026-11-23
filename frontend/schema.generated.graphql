@@ -6615,6 +6615,9 @@ type WorkspaceCopyRun {
   previous `nextOffset` as `offset` to get only the lines added since.
   """
   logs(offset: Int = 0): WorkspaceCopyRunLogs!
+
+  """The workspace being copied, if the user can still see it."""
+  sourceWorkspace: Workspace
   sourceWorkspaceSlug: String!
   startedAt: DateTime
   status: WorkspaceCopyRunStatus!

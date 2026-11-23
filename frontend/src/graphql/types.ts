@@ -7433,6 +7433,8 @@ export type WorkspaceCopyRun = {
    * previous `nextOffset` as `offset` to get only the lines added since.
    */
   logs: WorkspaceCopyRunLogs;
+  /** The workspace being copied, if the user can still see it. */
+  sourceWorkspace?: Maybe<Workspace>;
   sourceWorkspaceSlug: Scalars['String']['output'];
   startedAt?: Maybe<Scalars['DateTime']['output']>;
   status: WorkspaceCopyRunStatus;

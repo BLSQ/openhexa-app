@@ -32,6 +32,7 @@ import {
 type DuplicateWorkspaceDialogProps = {
   open: boolean;
   onClose(): void;
+  // Null when opened only to follow the running copy, e.g. from its banner.
   workspace: DuplicateWorkspace_WorkspaceFragment | null;
 };
 
@@ -108,20 +109,25 @@ const DuplicateWorkspaceDialog = ({
   }, [client, followRun]);
 
   useEffect(() => {
-    if (open && workspace) {
+    if (!open) return;
+    if (workspace) {
       setName(t("Copy of {{name}}", { name: workspace.name }));
       setCountries(workspace.countries);
       setResources(ALL_RESOURCES);
       setIncludeSecrets(true);
-      setSubmitError(null);
-      loadActiveRun();
     }
+    setSubmitError(null);
+    loadActiveRun();
     // Only opening the dialog resets it: `t` is left out so that a change of
     // its identity never wipes what the user typed.
   }, [open, workspace, loadActiveRun]);
 
   const runId = run?.id;
   const isFinished = !!run && FINISHED_STATUSES.includes(run.status);
+  const sourceName = run?.sourceWorkspace?.name ?? run?.sourceWorkspaceSlug;
+  // Opened from another workspace's Duplicate button while a copy runs.
+  const isOtherWorkspaceCopy =
+    !!run && !!workspace && run.sourceWorkspaceSlug !== workspace.slug;
 
   // Polls only while the dialog is open, and asks each time for the log lines
   // added since the previous answer.
@@ -256,11 +262,26 @@ const DuplicateWorkspaceDialog = ({
       onSubmit={run ? undefined : onSubmit}
       maxWidth="max-w-xl"
     >
-      <Dialog.Title onClose={onClose}>{t("Duplicate workspace")}</Dialog.Title>
+      <Dialog.Title onClose={onClose}>
+        {run && !isFinished ? t("Copy in progress") : t("Duplicate workspace")}
+      </Dialog.Title>
       {isLoadingActiveRun ? (
         <Dialog.Content className="flex justify-center py-10">
           <Spinner />
         </Dialog.Content>
+      ) : !run && !workspace ? (
+        <>
+          <Dialog.Content>
+            <p className="text-sm text-gray-600">
+              {t("No copy is running anymore.")}
+            </p>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button variant="white" onClick={onClose}>
+              {t("Close")}
+            </Button>
+          </Dialog.Actions>
+        </>
       ) : !run ? (
         <>
           <Dialog.Content className="space-y-4">
@@ -351,13 +372,21 @@ const DuplicateWorkspaceDialog = ({
       ) : (
         <>
           <Dialog.Content className="space-y-3">
+            {isOtherWorkspaceCopy && !isFinished && (
+              <p className="rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-800">
+                {t(
+                  "You can run one copy at a time. You can duplicate {{name}} once this one is done.",
+                  { name: workspace?.name },
+                )}
+              </p>
+            )}
             <div className="flex items-center gap-2 text-sm">
               {!isFinished && <Spinner size="xs" />}
               <span className="text-gray-700">
                 {!isFinished
                   ? t(
-                      "Copying resources into {{name}}. You can close this dialog, the copy continues in the background.",
-                      { name: run.targetWorkspaceName },
+                      "Copying {{source}} into {{name}}. You can close this dialog, the copy continues in the background.",
+                      { source: sourceName, name: run.targetWorkspaceName },
                     )
                   : run.status === WorkspaceCopyRunStatus.Failed
                     ? t("The duplication failed.")
@@ -423,6 +452,11 @@ DuplicateWorkspaceDialog.fragments = {
       id
       status
       targetWorkspaceName
+      sourceWorkspaceSlug
+      sourceWorkspace {
+        slug
+        name
+      }
       error
       workspace {
         slug

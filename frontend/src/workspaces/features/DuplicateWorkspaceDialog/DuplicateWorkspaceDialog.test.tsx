@@ -1,5 +1,7 @@
+import { InMemoryCache } from "@apollo/client";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { CACHE_CONFIG } from "core/helpers/apollo";
 import { TestApp } from "core/helpers/testutils";
 import {
   DuplicateWorkspaceError,
@@ -37,6 +39,12 @@ const run = (status: WorkspaceCopyRunStatus, slug: string | null = null) => ({
   id: "run-1",
   status,
   targetWorkspaceName: "Malaria (copy)",
+  sourceWorkspaceSlug: "malaria",
+  sourceWorkspace: {
+    __typename: "Workspace",
+    slug: "malaria",
+    name: "Malaria",
+  },
   error: null,
   workspace: slug ? { __typename: "Workspace", slug } : null,
 });
@@ -99,12 +107,15 @@ const pollMock = (
   },
 });
 
-const renderDialog = (mocks: any[]) =>
+const renderDialog = (
+  mocks: any[],
+  workspace: typeof WORKSPACE | null = WORKSPACE,
+) =>
   render(
-    <TestApp mocks={mocks}>
+    <TestApp mocks={mocks} cache={new InMemoryCache(CACHE_CONFIG)}>
       <DuplicateWorkspaceDialog
         open={true}
-        workspace={WORKSPACE}
+        workspace={workspace}
         onClose={jest.fn()}
       />
     </TestApp>,
@@ -283,5 +294,33 @@ describe("DuplicateWorkspaceDialog", () => {
       await screen.findByText("An unexpected error occurred."),
     ).toBeVisible();
     expect(screen.getByRole("button", { name: "Duplicate" })).toBeEnabled();
+  });
+
+  it("explains that another workspace's copy is still running", async () => {
+    renderDialog(
+      [
+        activeRunMock(run(WorkspaceCopyRunStatus.Running)),
+        pollMock(WorkspaceCopyRunStatus.Running, ""),
+      ],
+      { ...WORKSPACE, slug: "cholera", name: "Cholera" },
+    );
+
+    expect(await screen.findByText("Copy in progress")).toBeVisible();
+    expect(
+      screen.getByText(
+        "You can run one copy at a time. You can duplicate {{name}} once this one is done.",
+      ),
+    ).toBeVisible();
+  });
+
+  it("says when the copy it was opened for has already ended", async () => {
+    renderDialog([activeRunMock(null)], null);
+
+    expect(
+      await screen.findByText("No copy is running anymore."),
+    ).toBeVisible();
+    expect(
+      screen.queryByLabelText("New workspace name"),
+    ).not.toBeInTheDocument();
   });
 });

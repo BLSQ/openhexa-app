@@ -1057,3 +1057,9 @@ query ActiveWorkspaceCopyRun {
     ...DuplicateWorkspaceDialog_run
   }
 }
+
+query FinishedWorkspaceCopyRun($id: UUID!) {
+  workspaceCopyRun(id: $id) {
+    ...DuplicateWorkspaceDialog_run
+  }
+}
