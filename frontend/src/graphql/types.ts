@@ -2418,6 +2418,8 @@ export enum DuplicateWorkspaceError {
   /** The user already has a duplication queued or running. */
   CopyAlreadyRunning = 'COPY_ALREADY_RUNNING',
   InvalidCountry = 'INVALID_COUNTRY',
+  /** The name is blank or longer than 255 characters. */
+  InvalidName = 'INVALID_NAME',
   PermissionDenied = 'PERMISSION_DENIED',
   WorkspacesLimitReached = 'WORKSPACES_LIMIT_REACHED',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'

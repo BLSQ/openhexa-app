@@ -210,19 +210,31 @@ const DuplicateWorkspaceDialog = ({
       ) {
         // Started in another tab meanwhile: show that copy instead.
         await loadActiveRun();
-      } else if (
-        result?.errors.includes(DuplicateWorkspaceError.WorkspacesLimitReached)
-      ) {
-        setSubmitError(
-          t("You have reached the maximum number of workspaces for your plan."),
-        );
-      } else if (
-        result?.errors.includes(DuplicateWorkspaceError.PermissionDenied)
-      ) {
-        setSubmitError(t("You are not authorized to perform this action"));
       } else {
-        setSubmitError(t("An unexpected error occurred."));
+        const refusals: Partial<Record<DuplicateWorkspaceError, string>> = {
+          [DuplicateWorkspaceError.WorkspacesLimitReached]: t(
+            "You have reached the maximum number of workspaces for your plan.",
+          ),
+          [DuplicateWorkspaceError.PermissionDenied]: t(
+            "You are not authorized to perform this action",
+          ),
+          [DuplicateWorkspaceError.WorkspaceNotFound]: t(
+            "This workspace no longer exists or you no longer have access to it.",
+          ),
+          [DuplicateWorkspaceError.InvalidCountry]: t(
+            "One of the selected countries is not recognized.",
+          ),
+          [DuplicateWorkspaceError.InvalidName]: t(
+            "Enter a name of at most 255 characters.",
+          ),
+        };
+        const error = result?.errors.find((code) => code in refusals);
+        setSubmitError(
+          error ? refusals[error]! : t("An unexpected error occurred."),
+        );
       }
+    } catch {
+      setSubmitError(t("An unexpected error occurred."));
     } finally {
       setIsSubmitting(false);
     }
@@ -264,6 +276,7 @@ const DuplicateWorkspaceDialog = ({
               label={t("New workspace name")}
               value={name}
               onChange={(e) => setName(e.target.value)}
+              maxLength={255}
               autoComplete="off"
               fullWidth
             />

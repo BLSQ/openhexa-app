@@ -244,4 +244,44 @@ describe("DuplicateWorkspaceDialog", () => {
       ),
     ).toBeVisible();
   });
+
+  it("explains that a country was refused", async () => {
+    const user = userEvent.setup();
+    renderDialog([
+      activeRunMock(null),
+      duplicateMock(
+        {},
+        { success: false, errors: [DuplicateWorkspaceError.InvalidCountry] },
+      ),
+    ]);
+
+    await typeName(user);
+    await user.click(screen.getByRole("button", { name: "Duplicate" }));
+
+    expect(
+      await screen.findByText(
+        "One of the selected countries is not recognized.",
+      ),
+    ).toBeVisible();
+  });
+
+  it("shows an error instead of failing silently when the request fails", async () => {
+    const user = userEvent.setup();
+    renderDialog([
+      activeRunMock(null),
+      {
+        ...duplicateMock({}, {}),
+        result: undefined,
+        error: new Error("Network error"),
+      },
+    ]);
+
+    await typeName(user);
+    await user.click(screen.getByRole("button", { name: "Duplicate" }));
+
+    expect(
+      await screen.findByText("An unexpected error occurred."),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Duplicate" })).toBeEnabled();
+  });
 });
