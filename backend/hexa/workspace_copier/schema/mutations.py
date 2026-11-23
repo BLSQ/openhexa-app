@@ -2,12 +2,15 @@ from ariadne import MutationType
 from django.http import HttpRequest
 
 from hexa.countries.models import Country
-from hexa.workspace_copier.queue import (
+from hexa.workspace_copier.duplicate import (
     CopyAlreadyRunning,
     DuplicateRefused,
     check_can_duplicate,
-    queue_duplicate_workspace,
 )
+from hexa.workspace_copier.models import WorkspaceCopyRun
+from hexa.workspace_copier.queue import queue_duplicate_workspace
+
+NAME_MAX_LENGTH = WorkspaceCopyRun._meta.get_field("target_workspace_name").max_length
 
 workspace_copier_mutations = MutationType()
 
@@ -16,6 +19,11 @@ workspace_copier_mutations = MutationType()
 def resolve_duplicate_workspace(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
+    # A blank name would make the copier silently reuse the source's.
+    name = input["name"].strip()
+    if not name or len(name) > NAME_MAX_LENGTH:
+        return {"success": False, "errors": ["INVALID_NAME"]}
+
     try:
         workspace = check_can_duplicate(request.user, input["workspace_slug"])
     except DuplicateRefused as exc:
@@ -34,7 +42,7 @@ def resolve_duplicate_workspace(_, info, **kwargs):
         run = queue_duplicate_workspace(
             request.user,
             workspace,
-            name=input["name"].strip(),
+            name=name,
             countries=countries,
             resources=input["resources"],
             include_connection_secrets=input["include_connection_secrets"],

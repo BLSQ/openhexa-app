@@ -51,6 +51,14 @@ query ws($slug: String!) {
 }
 """
 
+ORGANIZATION_PERMISSIONS = """
+query ws($organizationId: UUID!) {
+  workspaces(organizationId: $organizationId) {
+    items { permissions { duplicate } }
+  }
+}
+"""
+
 
 class DuplicateWorkspaceTest(GraphQLTestCase):
     @classmethod
@@ -178,6 +186,14 @@ class DuplicateWorkspaceTest(GraphQLTestCase):
         self.assertEqual(["INVALID_COUNTRY"], result["errors"])
         self.assertFalse(WorkspaceCopyRun.objects.exists())
 
+    def test_a_blank_or_too_long_name_is_refused(self):
+        for name in ("   ", "x" * 256):
+            with self.subTest(name=name):
+                result = self.duplicate(self.EDITOR, name=name)
+
+                self.assertEqual(["INVALID_NAME"], result["errors"])
+        self.assertFalse(WorkspaceCopyRun.objects.exists())
+
     def test_permissions_duplicate(self):
         for user, expected in (
             (self.EDITOR, True),
@@ -190,6 +206,30 @@ class DuplicateWorkspaceTest(GraphQLTestCase):
                 self.assertEqual(
                     expected, data["data"]["workspace"]["permissions"]["duplicate"]
                 )
+
+    def test_listing_workspaces_checks_the_organization_once(self):
+        for name in ("Second", "Third"):
+            workspace = create_workspace(
+                self.ROOT, name=name, organization=self.ORGANIZATION
+            )
+            WorkspaceMembership.objects.create(
+                user=self.EDITOR,
+                workspace=workspace,
+                role=WorkspaceMembershipRole.EDITOR,
+            )
+        self.client.force_login(self.EDITOR)
+
+        with patch(
+            "hexa.user_management.permissions.create_workspace", return_value=True
+        ) as create_workspace_rule:
+            data = self.run_query(
+                ORGANIZATION_PERMISSIONS, {"organizationId": str(self.ORGANIZATION.id)}
+            )
+
+        items = data["data"]["workspaces"]["items"]
+        self.assertEqual(3, len(items))
+        self.assertTrue(all(item["permissions"]["duplicate"] for item in items))
+        create_workspace_rule.assert_called_once()
 
 
 class WorkspaceCopyRunQueryTest(GraphQLTestCase):

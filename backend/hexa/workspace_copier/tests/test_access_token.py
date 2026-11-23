@@ -4,6 +4,7 @@ from unittest.mock import patch
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
+from django_otp.plugins.otp_email.models import EmailDevice
 from oauth2_provider.models import AccessToken
 
 from hexa.core.middlewares import oauth2_token_authentication_middleware
@@ -13,10 +14,11 @@ from hexa.user_management.models import (
     OrganizationMembershipRole,
     User,
 )
+from hexa.user_management.utils import is_two_factor_pending
+from hexa.workspace_copier.duplicate import REFUSAL_MESSAGES, CopyAlreadyRunning
 from hexa.workspace_copier.models import WorkspaceCopyRun, WorkspaceCopyRunStatus
 from hexa.workspace_copier.queue import (
-    REFUSAL_MESSAGES,
-    CopyAlreadyRunning,
+    UNEXPECTED_FAILURE_MESSAGE,
     execute_copy_run,
     fail_interrupted_runs,
     queue_duplicate_workspace,
@@ -39,16 +41,28 @@ class CopyTokenAuthenticationTest(TestCase):
             expires=timezone.now() + expires_in,
         )
 
-    def call(self, path="/graphql/"):
+    def authenticate(self, path="/graphql/"):
         request = RequestFactory().post(path, HTTP_AUTHORIZATION="Bearer copy-token")
         request.user = AnonymousUser()
         oauth2_token_authentication_middleware(lambda r: r)(request)
-        return request.user
+        return request
+
+    def call(self, path="/graphql/"):
+        return self.authenticate(path).user
 
     def test_authenticates_graphql_as_the_token_user(self):
         self.token()
 
         self.assertEqual(self.USER, self.call())
+
+    def test_a_requester_with_two_factor_is_not_asked_for_it(self):
+        EmailDevice.objects.create(user=self.USER, name="default", confirmed=True)
+        self.token()
+
+        request = self.authenticate()
+
+        self.assertEqual(self.USER, request.user)
+        self.assertFalse(is_two_factor_pending(request))
 
     def test_is_refused_outside_graphql(self):
         self.token()
@@ -114,7 +128,7 @@ class CopyTokenLifecycleTest(TestCase):
         self.assertEqual(kwargs["source_token"], kwargs["target_token"])
         self.assertEqual(self.USER, seen["token"].user)
         self.assertEqual(WORKSPACE_COPY_SCOPE, seen["token"].scope)
-        self.assertGreater(seen["expires_in"], timedelta(days=1, hours=23))
+        self.assertGreater(seen["expires_in"], timedelta(hours=23))
         self.assertIsNone(kwargs["source_url"])
         self.assertEqual(("BE",), kwargs["options"].target_countries)
         self.assertEqual(str(self.USER.id), kwargs["options"].created_by_id)
@@ -139,14 +153,20 @@ class CopyTokenLifecycleTest(TestCase):
         self.assertIn(REFUSAL_MESSAGES["PERMISSION_DENIED"], run.logs)
         self.assertFalse(AccessToken.objects.exists())
 
-    @patch("hexa.workspace_copier.queue.run_copy", side_effect=RuntimeError("boom"))
-    def test_a_failed_run_revokes_its_token(self, _):
+    @patch(
+        "hexa.workspace_copier.queue.run_copy",
+        side_effect=RuntimeError("could not reach db.internal:5432"),
+    )
+    def test_a_failed_run_hides_the_error_and_revokes_its_token(self, _):
         run = self.queue()
 
-        execute_copy_run(str(run.id))
+        with self.assertLogs("hexa.workspace_copier.queue", level="ERROR"):
+            execute_copy_run(str(run.id))
 
         run.refresh_from_db()
         self.assertEqual(WorkspaceCopyRunStatus.FAILED, run.status)
+        self.assertEqual(UNEXPECTED_FAILURE_MESSAGE, run.error)
+        self.assertNotIn("db.internal", run.logs)
         self.assertFalse(AccessToken.objects.exists())
 
     def test_an_interrupted_run_revokes_its_token(self):

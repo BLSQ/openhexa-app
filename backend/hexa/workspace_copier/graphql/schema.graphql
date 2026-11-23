@@ -63,6 +63,8 @@ enum DuplicateWorkspaceError {
   PERMISSION_DENIED
   WORKSPACES_LIMIT_REACHED
   INVALID_COUNTRY
+  "The name is blank or longer than 255 characters."
+  INVALID_NAME
   "The user already has a duplication queued or running."
   COPY_ALREADY_RUNNING
 }

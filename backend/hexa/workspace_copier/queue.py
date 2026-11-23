@@ -1,8 +1,5 @@
-import secrets
-from datetime import timedelta
 from logging import getLogger
 
-from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.db.models import (
     CharField,
@@ -17,10 +14,13 @@ from django.db.models.fields.json import KeyTextTransform
 from django.db.models.functions import Cast, Concat
 from django.utils import timezone
 from dpq.queue import AtMostOnceQueue
-from oauth2_provider.models import AccessToken
 
-from hexa.oauth.scopes import WORKSPACE_COPY_SCOPE
 from hexa.user_management.models import User
+from hexa.workspace_copier.duplicate import (
+    CopyAlreadyRunning,
+    DuplicateRefused,
+    issue_requester_token,
+)
 from hexa.workspace_copier.models import (
     WorkspaceCopyJob,
     WorkspaceCopyRun,
@@ -37,59 +37,9 @@ logger = getLogger(__name__)
 
 INTERRUPTED_MESSAGE = "Interrupted: the worker stopped before this run could finish."
 
-REFUSAL_MESSAGES = {
-    "WORKSPACE_NOT_FOUND": "The source workspace is no longer available to you.",
-    "PERMISSION_DENIED": "You are no longer allowed to duplicate this workspace.",
-    "WORKSPACES_LIMIT_REACHED": "The organization has reached its workspace limit.",
-}
-
-
-class DuplicateRefused(Exception):
-    """The requester may not (or may no longer) duplicate the source workspace."""
-
-    def __init__(self, code: str):
-        self.code = code
-        super().__init__(REFUSAL_MESSAGES[code])
-
-
-class CopyAlreadyRunning(Exception):
-    """The requester already has a duplication queued or running."""
-
-
-def check_can_duplicate(user: User, slug: str, organization_id=None) -> Workspace:
-    """Return the workspace ``user`` may duplicate now, or raise DuplicateRefused.
-
-    Checked when the copy is requested and again when it starts, since the
-    requester's rights or the organization's plan may change while it waits.
-    """
-    workspaces = Workspace.objects.filter_for_user(user).filter(slug=slug)
-    if organization_id is not None:
-        workspaces = workspaces.filter(organization_id=organization_id)
-    workspace = workspaces.select_related("organization").first()
-    if workspace is None:
-        raise DuplicateRefused("WORKSPACE_NOT_FOUND")
-    if not user.has_perm("workspaces.duplicate_workspace", workspace):
-        raise DuplicateRefused("PERMISSION_DENIED")
-    if workspace.organization.is_workspaces_limit_reached():
-        raise DuplicateRefused("WORKSPACES_LIMIT_REACHED")
-    return workspace
-
-
-def _issue_requester_token(run: WorkspaceCopyRun) -> str:
-    """Re-check the requester's rights, then give the run a token acting as them."""
-    user = run.created_by
-    if user is None or not user.is_active:
-        raise DuplicateRefused("PERMISSION_DENIED")
-    check_can_duplicate(user, run.source_slug, run.target_organization_id)
-    run.access_token = AccessToken.objects.create(
-        user=user,
-        token=secrets.token_urlsafe(32),
-        scope=WORKSPACE_COPY_SCOPE,
-        expires=timezone.now()
-        + timedelta(seconds=settings.WORKSPACE_COPY_TOKEN_EXPIRE_SECONDS),
-    )
-    run.save(update_fields=["access_token", "updated_at"])
-    return run.access_token.token
+UNEXPECTED_FAILURE_MESSAGE = (
+    "The copy failed unexpectedly. Contact your administrator if it keeps failing."
+)
 
 
 def execute_copy_run(run_id: str) -> None:
@@ -118,7 +68,7 @@ def execute_copy_run(run_id: str) -> None:
     try:
         run.mark_running()
         if run.acts_as_requester:
-            user_token = _issue_requester_token(run)
+            user_token = issue_requester_token(run)
         run_copy(
             source_url=run.source_url or None,
             source_token=run.source_token or user_token,
@@ -159,8 +109,14 @@ def execute_copy_run(run_id: str) -> None:
         run.error = "\n".join(exc.errors)
     except Exception as exc:
         logger.exception("Workspace copy run %s failed", run_id)
-        reporter.error(f"Copy failed: {exc}")
-        run.error = str(exc)
+        if run.acts_as_requester:
+            # Any member can read their own app run, and the exception may name
+            # internal hosts or queries: the details stay in the server log.
+            run.error = UNEXPECTED_FAILURE_MESSAGE
+            reporter.error(run.error)
+        else:
+            run.error = str(exc)
+            reporter.error(f"Copy failed: {exc}")
     finally:
         run.result_workspace_slug = result.workspace_slug or ""
         if result.started_at:
@@ -227,12 +183,45 @@ workspace_copy_queue = WorkspaceCopyQueue(
 )
 
 
-def queue_copy_run(**fields) -> WorkspaceCopyRun:
+def queue_copy_run(
+    *,
+    created_by: User,
+    source_slug: str,
+    resources: list[str],
+    source_url: str = "",
+    source_token: str | None = None,
+    target_url: str = "",
+    target_token: str | None = None,
+    target_organization_id: str = "",
+    target_workspace_name: str = "",
+    target_workspace_slug: str = "",
+    target_countries: list[str] | None = None,
+    all_dataset_versions: bool = False,
+    include_connection_secrets: bool = True,
+    same_server: bool = False,
+    acts_as_requester: bool = False,
+) -> WorkspaceCopyRun:
     """Create a run and its job, so the worker picks it up."""
     # One transaction: the run and its job exist together or not at all, and
     # the worker is only notified on commit, once the run is readable.
     with transaction.atomic():
-        run = WorkspaceCopyRun.objects.create(**fields)
+        run = WorkspaceCopyRun.objects.create(
+            created_by=created_by,
+            source_slug=source_slug,
+            resources=resources,
+            source_url=source_url,
+            source_token=source_token,
+            target_url=target_url,
+            target_token=target_token,
+            target_organization_id=target_organization_id,
+            target_workspace_name=target_workspace_name,
+            target_workspace_slug=target_workspace_slug,
+            target_countries=target_countries,
+            all_dataset_versions=all_dataset_versions,
+            include_connection_secrets=include_connection_secrets,
+            same_server=same_server,
+            acts_as_requester=acts_as_requester,
+        )
         workspace_copy_queue.enqueue("run_workspace_copy", {"run_id": str(run.id)})
     return run
 

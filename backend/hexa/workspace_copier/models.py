@@ -117,14 +117,16 @@ class WorkspaceCopyRun(Base):
                 "updated_at",
             ]
         )
-        revoke_finished_run_tokens()
+        if self.access_token_id:
+            AccessToken.objects.filter(id=self.access_token_id).delete()
+            self.access_token = None
 
 
 def revoke_finished_run_tokens() -> None:
     """Delete the access tokens of every run that is no longer queued or running.
 
-    Swept rather than deleted per run so that the bulk failure of interrupted
-    runs, which never loads them, revokes their tokens too.
+    For runs ended in bulk, like interrupted ones, which never go through
+    ``finish()``.
     """
     AccessToken.objects.filter(
         workspace_copy_run__isnull=False,

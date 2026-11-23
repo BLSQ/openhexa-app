@@ -871,7 +871,7 @@ WORKSPACE_IDENTITY_TOKEN_EXPIRE_SECONDS = int(
 # It is revoked when the run ends; expiry only bounds a run whose worker died
 # without the cleanup running, so it must outlast the longest copy.
 WORKSPACE_COPY_TOKEN_EXPIRE_SECONDS = int(
-    os.environ.get("WORKSPACE_COPY_TOKEN_EXPIRE_SECONDS", 2 * 24 * 60 * 60)
+    os.environ.get("WORKSPACE_COPY_TOKEN_EXPIRE_SECONDS", 24 * 60 * 60)
 )
 
 # Public OAuth2 clients used by git credential helpers. FORGEJO_OAUTH_CLIENT_ID
