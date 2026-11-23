@@ -108,10 +108,18 @@ def resolve_workspace_permission_delete(workspace: Workspace, info):
 @workspace_permissions.field("duplicate")
 def resolve_workspace_permission_duplicate(workspace: Workspace, info):
     request: HttpRequest = info.context["request"]
-    return (
-        request.user.has_perm("workspaces.duplicate_workspace", workspace)
-        if request.user.is_authenticated
-        else False
+    if not request.user.is_authenticated or workspace.organization_id is None:
+        return False
+    # Same rule as the workspaces.duplicate_workspace permission, but its
+    # organization half is the same for every workspace of a list, so it is
+    # computed once per request instead of once per workspace.
+    can_create_in = info.context.setdefault("can_create_workspace_in", {})
+    if workspace.organization_id not in can_create_in:
+        can_create_in[workspace.organization_id] = request.user.has_perm(
+            "user_management.create_workspace", workspace.organization
+        )
+    return can_create_in[workspace.organization_id] and request.user.has_perm(
+        "workspaces.update_workspace", workspace
     )
 
 

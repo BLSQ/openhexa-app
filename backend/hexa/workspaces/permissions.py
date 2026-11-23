@@ -6,7 +6,7 @@ from .models import Connection, Workspace, WorkspaceMembershipRole
 
 
 def update_workspace(principal: User, workspace: Workspace):
-    """Only workspace admin can update a workspace"""
+    """Workspace admins and editors, and organization admins and owners."""
     return workspace.workspacemembership_set.filter(
         user=principal,
         role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
@@ -122,6 +122,8 @@ def duplicate_workspace(principal: User, workspace: Workspace):
 
     Viewers are excluded: a duplicate would hand them, as its admin, the
     connection secrets and everything else they cannot edit in the source.
+    Organization admins and owners can duplicate any workspace of their
+    organization, secrets included, without being a member of it.
     """
     return (
         workspace.organization is not None
