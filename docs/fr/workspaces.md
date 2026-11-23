@@ -25,7 +25,7 @@ Depuis la page **Espaces de travail** de votre organisation, cliquez sur **Dupli
 
 Les Admins et Owners d'une organisation peuvent dupliquer n'importe quel espace de travail de celle-ci, secrets des connexions compris, même s'ils n'en sont pas membres.
 
-Dans la fenêtre, choisissez le nom et les pays du nouvel espace de travail, ainsi que les ressources à copier : fichiers, base de données de l'espace de travail, jeux de données, connexions (avec ou sans leurs secrets), pipelines et applications web. La copie s'exécute en arrière-plan et affiche sa progression ; vous pouvez fermer la fenêtre, et la rouvrir affiche à nouveau la copie jusqu'à ce qu'elle se termine. Vous ne pouvez avoir qu'une copie en cours à la fois : lancez la suivante une fois la copie actuelle terminée.
+Dans la fenêtre, choisissez le nom et les pays du nouvel espace de travail, ainsi que les ressources à copier : fichiers, base de données de l'espace de travail, jeux de données, connexions (avec ou sans leurs secrets), pipelines et applications web. La copie s'exécute en arrière-plan et affiche sa progression ; vous pouvez fermer la fenêtre : un bandeau au-dessus de la liste des espaces de travail affiche la copie jusqu'à ce qu'elle se termine, et **Voir la progression** la rouvre. Vous ne pouvez avoir qu'une copie en cours à la fois : lancez la suivante une fois la copie actuelle terminée.
 
 Certains éléments ne sont pas copiés :
 
