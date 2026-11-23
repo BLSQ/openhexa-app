@@ -178,7 +178,7 @@ def resolve_saved_query_permissions_update_visibility(
 def resolve_saved_query_permissions_share(saved_query: SavedQuery, info, **kwargs):
     request: HttpRequest = info.context["request"]
     return (
-        request.user.has_perm("data_studio.manage_public_saved_query", saved_query)
+        request.user.has_perm("data_studio.share_saved_query", saved_query)
         if request.user.is_authenticated
         else False
     )
@@ -233,7 +233,7 @@ def resolve_workspace_permissions_share_saved_query(
 ):
     request: HttpRequest = info.context["request"]
     return (
-        request.user.has_perm("data_studio.create_public_saved_query", workspace)
+        request.user.has_perm("data_studio.share_saved_queries", workspace)
         if request.user.is_authenticated
         else False
     )

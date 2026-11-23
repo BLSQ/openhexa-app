@@ -13,6 +13,7 @@ import {
   useOrganizationWorkspacesQuery,
 } from "organizations/graphql/queries.generated";
 import ManageWorkspaceTagsDialog from "organizations/features/ManageWorkspaceTagsDialog";
+import GettingStartedPlaceholder from "organizations/features/GettingStartedPlaceholder";
 import { CreateWorkspacePermissionReason } from "graphql/types";
 import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
 import ArchiveWorkspaceDialog from "workspaces/features/ArchiveWorkspaceDialog";
@@ -137,49 +138,59 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
           </SubscriptionLimitTooltip>
         }
       >
-        <WorkspacesHeader
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          view={view}
-          setView={setView}
-          availableTags={organization.workspaceTags}
-          tagsFilter={tagsFilter}
-          setTagsFilter={setTagsFilter}
-        />
+        {totalWorkspaces === 0 ? (
+          <GettingStartedPlaceholder
+            canCreateWorkspace={
+              organization.permissions.createWorkspace.isAllowed
+            }
+          />
+        ) : (
+          <>
+            <WorkspacesHeader
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              view={view}
+              setView={setView}
+              availableTags={organization.workspaceTags}
+              tagsFilter={tagsFilter}
+              setTagsFilter={setTagsFilter}
+            />
 
-        <div className="relative min-h-[200px]">
-          {loading && (
-            <div className="absolute inset-0 flex items-center justify-center  backdrop-blur-sm z-10 rounded-lg">
-              <Spinner />
+            <div className="relative min-h-[200px]">
+              {loading && (
+                <div className="absolute inset-0 flex items-center justify-center  backdrop-blur-sm z-10 rounded-lg">
+                  <Spinner />
+                </div>
+              )}
+              {view === "card" ? (
+                <WorkspacesCardView
+                  items={workspaces}
+                  page={page}
+                  setPage={setPage}
+                  perPage={perPage}
+                  totalPages={data?.workspaces?.totalPages || 0}
+                  totalItems={data?.workspaces?.totalItems || 0}
+                  onArchiveClick={handleArchiveClick}
+                  onDuplicateClick={handleDuplicateClick}
+                  onManageTagsClick={handleManageTagsClick}
+                />
+              ) : (
+                <WorkspacesListView
+                  items={workspaces}
+                  page={page}
+                  setPage={setPage}
+                  perPage={perPage}
+                  totalPages={data?.workspaces?.totalPages || 0}
+                  totalItems={data?.workspaces?.totalItems || 0}
+                  onArchiveClick={handleArchiveClick}
+                  onDuplicateClick={handleDuplicateClick}
+                  onManageTagsClick={handleManageTagsClick}
+                  canManageMembers={organization.permissions.manageMembers}
+                />
+              )}
             </div>
-          )}
-          {view === "card" ? (
-            <WorkspacesCardView
-              items={workspaces}
-              page={page}
-              setPage={setPage}
-              perPage={perPage}
-              totalPages={data?.workspaces?.totalPages || 0}
-              totalItems={data?.workspaces?.totalItems || 0}
-              onArchiveClick={handleArchiveClick}
-              onDuplicateClick={handleDuplicateClick}
-              onManageTagsClick={handleManageTagsClick}
-            />
-          ) : (
-            <WorkspacesListView
-              items={workspaces}
-              page={page}
-              setPage={setPage}
-              perPage={perPage}
-              totalPages={data?.workspaces?.totalPages || 0}
-              totalItems={data?.workspaces?.totalItems || 0}
-              onArchiveClick={handleArchiveClick}
-              onDuplicateClick={handleDuplicateClick}
-              onManageTagsClick={handleManageTagsClick}
-              canManageMembers={organization.permissions.manageMembers}
-            />
-          )}
-        </div>
+          </>
+        )}
       </OrganizationLayout>
 
       <CreateWorkspaceDialog

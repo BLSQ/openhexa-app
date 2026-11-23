@@ -160,6 +160,14 @@ def resolve_webapp_permissions_delete(obj, info, **kwargs):
     )
 
 
+@webapp_permissions.field("share")
+def resolve_webapp_permissions_share(obj, info, **kwargs):
+    request = info.context["request"]
+    return request.user.is_authenticated and request.user.has_perm(
+        "webapps.share_webapp", obj
+    )
+
+
 bindables = [
     webapp_permissions,
     webapp_object,

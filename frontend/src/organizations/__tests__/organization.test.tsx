@@ -4,6 +4,7 @@ import OrganizationPage from "pages/organizations/[organizationId]";
 import { OrganizationWorkspacesDocument } from "organizations/graphql/queries.generated";
 import mockRouter from "next-router-mock";
 import { TestApp } from "core/helpers/testutils";
+import { useTranslation } from "next-i18next";
 
 jest.mock("next/router", () => require("next-router-mock"));
 jest.mock("next-i18next", () => ({
@@ -299,5 +300,64 @@ describe("OrganizationPage", () => {
     await waitFor(() =>
       expect(mockRouter.asPath).toBe("/workspaces/workspace-1/settings"),
     );
+  });
+
+  describe("when the organization has no workspaces", () => {
+    const emptyOrganization = {
+      ...organization,
+      workspaces: { totalItems: 0, items: [] },
+    };
+
+    const renderEmpty = () =>
+      render(
+        <TestApp>
+          <MockedProvider mocks={emptyMocks}>
+            <OrganizationPage organization={emptyOrganization} />
+          </MockedProvider>
+        </TestApp>,
+      );
+
+    afterEach(() => {
+      (useTranslation as jest.Mock).mockReturnValue({
+        t: (key: string) => key,
+      });
+    });
+
+    it("shows the getting started video instead of the workspaces list", () => {
+      renderEmpty();
+
+      expect(
+        screen.getByTitle("Getting started with OpenHEXA"),
+      ).toHaveAttribute(
+        "src",
+        expect.stringContaining("youtube-nocookie.com/embed/xVP4HGJByIw"),
+      );
+      expect(
+        screen.queryByPlaceholderText("Search workspaces..."),
+      ).not.toBeInTheDocument();
+    });
+
+    it("plays the French video when the interface is in French", () => {
+      (useTranslation as jest.Mock).mockReturnValue({
+        t: (key: string) => key,
+        i18n: { language: "fr" },
+      });
+      renderEmpty();
+
+      expect(
+        screen.getByTitle("Getting started with OpenHEXA").getAttribute("src"),
+      ).toContain("/embed/Lr_hRqaC-vw");
+    });
+
+    it("keeps a single create workspace button and points to it", () => {
+      renderEmpty();
+
+      expect(
+        screen.getAllByRole("button", { name: "Create Workspace" }),
+      ).toHaveLength(1);
+      expect(
+        screen.getByText("Create your first workspace"),
+      ).toBeInTheDocument();
+    });
   });
 });
