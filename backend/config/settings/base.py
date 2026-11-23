@@ -885,6 +885,7 @@ OAUTH2_ALLOWED_REDIRECT_URI_HOSTS = {
     "claude.ai",
     "chatgpt.com",
     "chat.openai.com",
+    "callback.mistral.ai",
 }
 if "OAUTH2_ALLOWED_REDIRECT_URI_HOSTS" in os.environ:
     OAUTH2_ALLOWED_REDIRECT_URI_HOSTS.update(
