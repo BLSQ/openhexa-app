@@ -28,6 +28,8 @@ type WorkspaceCopyRun {
   "Name requested for the new workspace."
   targetWorkspaceName: String!
   sourceWorkspaceSlug: String!
+  "The workspace being copied, if the user can still see it."
+  sourceWorkspace: Workspace
   """
   Timestamped progress lines, appended while the run is going. Pass the
   previous `nextOffset` as `offset` to get only the lines added since.

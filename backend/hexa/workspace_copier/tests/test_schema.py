@@ -34,6 +34,7 @@ query run($id: UUID!, $offset: Int) {
     status
     targetWorkspaceName
     sourceWorkspaceSlug
+    sourceWorkspace { slug }
     logs(offset: $offset) { text nextOffset }
     error
     workspace { slug }
@@ -303,6 +304,18 @@ class WorkspaceCopyRunQueryTest(GraphQLTestCase):
 
     def test_nobody_else_sees_it(self):
         self.assertIsNone(self.query_run(self.OTHER))
+
+    def test_the_source_workspace_is_given_while_visible_to_the_requester(self):
+        self.assertIsNone(self.query_run(self.OWNER)["sourceWorkspace"])
+
+        WorkspaceCopyRun.objects.filter(id=self.RUN.id).update(
+            source_slug=self.WORKSPACE.slug
+        )
+
+        self.assertEqual(
+            {"slug": self.WORKSPACE.slug},
+            self.query_run(self.OWNER)["sourceWorkspace"],
+        )
 
     def test_the_workspace_is_null_until_created(self):
         WorkspaceCopyRun.objects.filter(id=self.RUN.id).update(result_workspace_slug="")

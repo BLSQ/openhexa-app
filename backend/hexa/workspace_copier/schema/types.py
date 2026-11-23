@@ -44,16 +44,21 @@ def resolve_workspace_copy_run_logs(run: WorkspaceCopyRun, info, offset=0):
     return {"text": row["tail"], "next_offset": row["length"]}
 
 
-@workspace_copy_run_object.field("workspace")
-def resolve_workspace_copy_run_workspace(run: WorkspaceCopyRun, info):
-    if not run.result_workspace_slug:
+def _visible_workspace(info, slug: str) -> Workspace | None:
+    if not slug:
         return None
     request: HttpRequest = info.context["request"]
-    return (
-        Workspace.objects.filter_for_user(request.user)
-        .filter(slug=run.result_workspace_slug)
-        .first()
-    )
+    return Workspace.objects.filter_for_user(request.user).filter(slug=slug).first()
+
+
+@workspace_copy_run_object.field("sourceWorkspace")
+def resolve_workspace_copy_run_source_workspace(run: WorkspaceCopyRun, info):
+    return _visible_workspace(info, run.source_slug)
+
+
+@workspace_copy_run_object.field("workspace")
+def resolve_workspace_copy_run_workspace(run: WorkspaceCopyRun, info):
+    return _visible_workspace(info, run.result_workspace_slug)
 
 
 bindables = [workspace_copy_resource_enum, workspace_copy_run_object]
