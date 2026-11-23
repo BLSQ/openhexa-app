@@ -93,26 +93,6 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
     setIsArchiveDialogOpen(true);
   };
 
-  const createWorkspaceButton = (
-    <SubscriptionLimitTooltip
-      isLimitReached={organization.permissions.createWorkspace.reasons.includes(
-        CreateWorkspacePermissionReason.WorkspacesLimitReached,
-      )}
-      title={t(
-        "You have reached the maximum number of workspaces for your plan.",
-      )}
-    >
-      <Button
-        variant="primary"
-        onClick={() => setIsCreateDialogOpen(true)}
-        leadingIcon={<PlusIcon className="w-4" />}
-        disabled={!organization.permissions.createWorkspace.isAllowed}
-      >
-        {t("Create Workspace")}
-      </Button>
-    </SubscriptionLimitTooltip>
-  );
-
   return (
     <Page title={t("Organization")}>
       <OrganizationLayout
@@ -126,10 +106,32 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
             </p>
           </div>
         }
-        headerActions={createWorkspaceButton}
+        headerActions={
+          <SubscriptionLimitTooltip
+            isLimitReached={organization.permissions.createWorkspace.reasons.includes(
+              CreateWorkspacePermissionReason.WorkspacesLimitReached,
+            )}
+            title={t(
+              "You have reached the maximum number of workspaces for your plan.",
+            )}
+          >
+            <Button
+              variant="primary"
+              onClick={() => setIsCreateDialogOpen(true)}
+              leadingIcon={<PlusIcon className="w-4" />}
+              disabled={!organization.permissions.createWorkspace.isAllowed}
+            >
+              {t("Create Workspace")}
+            </Button>
+          </SubscriptionLimitTooltip>
+        }
       >
         {totalWorkspaces === 0 ? (
-          <GettingStartedPlaceholder action={createWorkspaceButton} />
+          <GettingStartedPlaceholder
+            canCreateWorkspace={
+              organization.permissions.createWorkspace.isAllowed
+            }
+          />
         ) : (
           <>
             <WorkspacesHeader
