@@ -201,6 +201,9 @@ def oauth2_token_authentication_middleware(get_response):
                     # A workspace copy run acts as the user who requested it, so
                     # the copied resources are theirs and their permissions apply.
                     request.user = access_token.user
+                    # The server issued this token itself, for a request the
+                    # user made from a session that had already passed 2FA.
+                    request.bypass_two_factor = True
         except KeyError:
             pass
         except ValueError:
