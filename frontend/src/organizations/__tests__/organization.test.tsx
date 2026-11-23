@@ -326,12 +326,11 @@ describe("OrganizationPage", () => {
     it("shows the getting started video instead of the workspaces list", () => {
       renderEmpty();
 
-      expect(screen.getByText("Get started with OpenHEXA")).toBeInTheDocument();
       expect(
         screen.getByTitle("Getting started with OpenHEXA"),
       ).toHaveAttribute(
         "src",
-        expect.stringContaining("youtube-nocookie.com/embed/"),
+        expect.stringContaining("youtube-nocookie.com/embed/xVP4HGJByIw"),
       );
       expect(
         screen.queryByPlaceholderText("Search workspaces..."),
@@ -347,19 +346,18 @@ describe("OrganizationPage", () => {
 
       expect(
         screen.getByTitle("Getting started with OpenHEXA").getAttribute("src"),
-      ).toContain("hl=fr");
+      ).toContain("/embed/Lr_hRqaC-vw");
     });
 
-    it("opens the create workspace dialog from the CTA below the video", () => {
+    it("keeps a single create workspace button and points to it", () => {
       renderEmpty();
 
-      const buttons = screen.getAllByRole("button", {
-        name: "Create Workspace",
-      });
-      expect(buttons).toHaveLength(2);
-      fireEvent.click(buttons[1]);
-
-      expect(screen.getByText("Create a workspace")).toBeInTheDocument();
+      expect(
+        screen.getAllByRole("button", { name: "Create Workspace" }),
+      ).toHaveLength(1);
+      expect(
+        screen.getByText("Create your first workspace"),
+      ).toBeInTheDocument();
     });
   });
 });
