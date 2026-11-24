@@ -66,13 +66,12 @@ def get_organization_invite_url(
 
 
 def is_known_password_hash(password_hash: str) -> bool:
-    """
-    Whether one of OpenHEXA's password hashers can check passwords against ``password_hash``.
-
-    Only the algorithm is checked: a registered hasher whose library is not installed (argon2, bcrypt) still passes.
-    """
+    """Whether one of OpenHEXA's password hashers can check passwords against ``password_hash``."""
     try:
-        identify_hasher(password_hash)
+        hasher = identify_hasher(password_hash)
+        # A hasher can be registered without its library installed (argon2, bcrypt), and would only fail at login
+        if hasher.library:
+            hasher._load_library()
     except ValueError:
         return False
     return True
@@ -183,7 +182,7 @@ def send_organization_add_user_email(
     with override(invitee.language):
         send_mail(
             title=title,
-            template_name="user_management/mails/add_existing_user_organization",
+            template_name="user_management/mails/added_to_organization",
             template_variables={
                 "organization": organization.name,
                 "invited_by": invited_by,
