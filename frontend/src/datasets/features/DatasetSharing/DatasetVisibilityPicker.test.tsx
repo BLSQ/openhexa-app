@@ -23,15 +23,19 @@ const renderPicker = ({
     />,
   );
 
-const radios = (label: string) =>
-  screen.getAllByRole("radio", { name: new RegExp(`^${label}`) });
+const pick = async (label: string) => {
+  fireEvent.click(screen.getByRole("button", { name: "Visibility" }));
+  fireEvent.click(
+    await screen.findByRole("option", { name: new RegExp(`^${label}`) }),
+  );
+};
 
 beforeEach(() => jest.clearAllMocks());
 
 describe("DatasetVisibilityPicker", () => {
   it("shares with the organization straight away", async () => {
     renderPicker();
-    fireEvent.click(radios("Organization")[0]);
+    await pick("Organization");
 
     await waitFor(() =>
       expect(updateDataset).toHaveBeenCalledWith("dataset-id", {
@@ -46,7 +50,7 @@ describe("DatasetVisibilityPicker", () => {
 
   it("asks to confirm making it public, with its public slug", async () => {
     renderPicker();
-    fireEvent.click(radios("Public")[0]);
+    await pick("Public");
 
     expect(updateDataset).not.toHaveBeenCalled();
     expect(
@@ -67,7 +71,7 @@ describe("DatasetVisibilityPicker", () => {
 
   it("asks to confirm before stopping public sharing", async () => {
     renderPicker({ visibility: DatasetVisibility.Public });
-    fireEvent.click(radios("Organization")[0]);
+    await pick("Organization");
 
     expect(
       await screen.findByText("The public link will stop working."),
@@ -86,8 +90,22 @@ describe("DatasetVisibilityPicker", () => {
 
   it("only shows the visibility when disabled", () => {
     renderPicker({ disabled: true });
-    radios("Private")
-      .concat(radios("Organization"), radios("Public"))
-      .forEach((radio) => expect(radio).toBeDisabled());
+    expect(screen.getByRole("button", { name: "Visibility" })).toBeDisabled();
+    expect(screen.getByText("Private")).toBeInTheDocument();
+  });
+
+  it("shows the public link identifier of a public dataset", () => {
+    render(
+      <DatasetVisibilityPicker
+        dataset={{
+          id: "dataset-id",
+          slug: "my-dataset",
+          publicSlug: "malaria-cases",
+          visibility: DatasetVisibility.Public,
+          permissions: { update: true, share: true },
+        }}
+      />,
+    );
+    expect(screen.getByText("malaria-cases")).toBeInTheDocument();
   });
 });

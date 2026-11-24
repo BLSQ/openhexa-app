@@ -1,7 +1,6 @@
 import { LinkIcon } from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import Button from "core/components/Button";
-import Callout from "core/components/Callout";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
@@ -74,26 +73,32 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
             />
           </Block.Content>
         )}
-        {isOrganizationWide && (
-          <Block.Content>
-            <Callout>
-              {t(
-                "Every workspace of the organization can already access this dataset. The workspaces below keep their access if it is made private again.",
-              )}
-            </Callout>
-          </Block.Content>
-        )}
-        <DatasetLinksDataGrid dataset={datasetLink.dataset} />
-        <Block.Content className="flex justify-end">
-          {workspace.permissions.update && (
-            <Button
-              leadingIcon={<LinkIcon className={"h-4 w-4"} />}
-              onClick={() => setLinkDialogOpen(true)}
-              disabled={isOrganizationWide}
-            >
-              {t("Share with a workspace")}
-            </Button>
-          )}
+        <Block.Content className="space-y-4">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h4 className="font-medium">{t("Shared with workspaces")}</h4>
+              <p className="mt-1 text-sm text-gray-500">
+                {isOrganizationWide
+                  ? t(
+                      "Every workspace of the organization can already access this dataset. The workspaces below keep their access if it is made private again.",
+                    )
+                  : t(
+                      "Workspaces given access one by one, on top of the source workspace.",
+                    )}
+              </p>
+            </div>
+            {workspace.permissions.update && (
+              <Button
+                leadingIcon={<LinkIcon className={"h-4 w-4"} />}
+                onClick={() => setLinkDialogOpen(true)}
+                disabled={isOrganizationWide}
+                className="shrink-0"
+              >
+                {t("Share with a workspace")}
+              </Button>
+            )}
+          </div>
+          <DatasetLinksDataGrid dataset={datasetLink.dataset} />
         </Block.Content>
       </DatasetLayout>
       <LinkDatasetDialog
