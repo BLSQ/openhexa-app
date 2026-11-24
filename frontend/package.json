@@ -80,7 +80,7 @@
     "filesize": "^10.1.6",
     "flame-chart-js": "^3.3.0",
     "graphql": "^16.9.0",
-    "i18next": "^25.0.0",
+    "i18next": "^26.0.0",
     "isomorphic-unfetch": "^4.0.2",
     "jszip": "^3.10.1",
     "linkify-react": "^4.1.3",
