@@ -88,25 +88,18 @@ class PromptCachingRequestTest(AgentTestCase):
         self.assertEqual(request["tools"][-1].get("cache_control"), _EPHEMERAL)
         self.assertLessEqual(_count_cache_points(request), 4)
 
-    def test_vertex_caches_prefix_and_last_message(self):
-        """Vertex has no top-level automatic caching, so pydantic-ai marks the
-        last message itself.
-        """
-        request, _ = self._run(
-            AsyncAnthropicVertex(
+    def test_caches_prefix_and_conversation(self):
+        clients = {
+            "anthropic": AsyncAnthropic(api_key="test-key"),
+            "vertex": AsyncAnthropicVertex(
                 project_id="project", region="us-east5", access_token="token"
-            )
-        )
-        self._assert_prefix_is_cached(request)
-        self.assertNotIsInstance(request.get("cache_control"), dict)
-        self.assertEqual(
-            request["messages"][-1]["content"][-1].get("cache_control"), _EPHEMERAL
-        )
-
-    def test_direct_anthropic_caches_prefix_and_conversation(self):
-        request, _ = self._run(AsyncAnthropic(api_key="test-key"))
-        self._assert_prefix_is_cached(request)
-        self.assertEqual(request["cache_control"], _EPHEMERAL)
+            ),
+        }
+        for name, client in clients.items():
+            with self.subTest(client=name):
+                request, _ = self._run(client)
+                self._assert_prefix_is_cached(request)
+                self.assertEqual(request["cache_control"], _EPHEMERAL)
 
     def test_max_tokens_is_sent(self):
         request, _ = self._run(AsyncAnthropic(api_key="test-key"))

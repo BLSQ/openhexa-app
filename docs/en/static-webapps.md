@@ -42,7 +42,7 @@ Each webapp gets a subdomain under the workspace's webapps domain — e.g. `my-w
 - **Private** (default): viewers must be authenticated workspace members. Private static webapps can also call OpenHEXA's GraphQL API through an endpoint on their own URL (see below).
 - **Public**: anyone with the URL can view the webapp, without an account. Public static webapps can call the GraphQL API too, but only reach the workspace resources marked as public (see [Public webapps](#public-webapps)).
 
-To change visibility, use the **Share** button in the webapp's header, choose **Private** or **Public** and save. It is available to members who can edit the webapp. The current state is shown as a badge next to the webapp's name.
+To change visibility, use the **Share** button in the webapp's header, choose **Private** or **Public** and save. It is only available to the webapp's author (if they are still an editor or admin of its workspace), the workspace admins and the organization admins and owners, the same rule as for datasets, saved queries and public files. The current state is shown as a badge next to the webapp's name.
 
 ## Calling the OpenHEXA GraphQL API
 
@@ -63,9 +63,38 @@ Static webapps can call the platform's GraphQL API from their JavaScript code, t
 A public webapp's visitors have no OpenHEXA account and no session, so its requests run as an anonymous visitor bound to the webapp rather than as a user:
 
 - **No scopes to enable**: the `allowed_operations` list is ignored. Every public webapp can use the entry points of `PIPELINES_READ`, `PIPELINES_RUN`, `FILES_READ`, `DATASETS_READ` and `DATABASE_READ`, and nothing else — `me` and `workspace` are refused.
-- **Public resources only**: these entry points only return what was made public in the webapp's workspace. For now, saved queries are the only resources that can be made public: a public saved query of the webapp's workspace can be run through `executeSavedQuery`. Datasets, pipelines and files cannot be made public yet, so requests on them come back empty or are refused as unauthenticated.
+- **Public resources only**: these entry points only return what was made public in the webapp's workspace. A public saved query of the webapp's workspace can be run through `executeSavedQuery`, and the files of the workspace's `public` folder can be read (see [Files in a public webapp](#files-in-a-public-webapp)). Datasets and pipelines cannot be made public yet, so requests on them come back empty or are refused as unauthenticated.
 - **No users**: fields that return a user, such as `Dataset.createdBy` or `PipelineRun.user`, are refused, so a public page never shows who created or ran something.
 - Being signed in to OpenHEXA makes no difference: members get the same anonymous access as any visitor.
+
+### Files in a public webapp
+
+A public webapp can only read the files of the `public` folder at the root of the workspace filesystem, once [public files](files.md#public-files) are enabled on the workspace. Ask `prepareObjectDownload` for the URL of a file, with a key that starts with `public/`:
+
+```js
+const { workspaceSlug } = window.OPENHEXA;
+
+// Reads public/maps/regions.pmtiles
+const response = await fetch("/graphql/", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    query: `
+      mutation ($input: PrepareObjectDownloadInput!) {
+        prepareObjectDownload(input: $input) { success downloadUrl errors }
+      }
+    `,
+    variables: { input: { workspaceSlug, objectKey: "public/maps/regions.pmtiles" } },
+  }),
+});
+const { downloadUrl } = (await response.json()).data.prepareObjectDownload;
+```
+
+The URL it returns needs no session, and libraries that take a URL (map tiles, images, CSV parsers) can be given it directly; range requests are supported on cloud storage. The same call works in a private webapp that has the `FILES_READ` scope.
+
+In a public webapp the URL always downloads the file: `forceAttachment: false` is ignored, so a file cannot be opened in a new tab or an iframe. `fetch()`, `<img>` and range reads are not affected.
+
+`prepareObjectDownload` fails with `NOT_FOUND` while public files are disabled on the workspace. Any other file, and the other file entry points (`getFileByPath`, `readFileContent`), are not available to public webapps.
 
 ## Enabling the API on a webapp
 

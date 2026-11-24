@@ -9,7 +9,7 @@ from django.test import SimpleTestCase, TestCase, override_settings
 
 from hexa.files.backends.dummy import DummyStorageClient
 from hexa.files.backends.fs import FileSystemStorage
-from hexa.files.public import public_folder_exists
+from hexa.files.public import public_files_base_url, public_folder_exists
 from hexa.workspaces.tests.testutils import create_workspace
 
 
@@ -35,9 +35,10 @@ class PublicFileViewTest(TestCase):
             self.WORKSPACE.bucket_name, "public/.secret", io.BytesIO(b"content")
         )
         self.storage.create_bucket_folder(self.WORKSPACE.bucket_name, "public/maps")
-        patcher = patch("hexa.files.views.storage", self.storage)
-        patcher.start()
-        self.addCleanup(patcher.stop)
+        for module in ["hexa.files.views", "hexa.files.public"]:
+            patcher = patch(f"{module}.storage", self.storage)
+            patcher.start()
+            self.addCleanup(patcher.stop)
 
     def _url(self, path):
         return f"/files/{self.WORKSPACE.slug}/public/{path}"
@@ -113,6 +114,12 @@ class PublicFileViewTest(TestCase):
         response = self.client.get(self._url("data.csv"))
         self.assertEqual(response.status_code, 404)
 
+    def test_workspace_without_bucket(self):
+        self.WORKSPACE.bucket_name = ""
+        self.WORKSPACE.save()
+        self.assertIsNone(public_files_base_url(self.WORKSPACE))
+        self.assertEqual(self.client.get(self._url("data.csv")).status_code, 404)
+
     @override_settings(PUBLIC_FILES_ENABLED=False)
     def test_instance_setting_disabled(self):
         response = self.client.get(self._url("data.csv"))
@@ -141,9 +148,10 @@ class PublicFileViewFileSystemStorageTest(TestCase):
             self.WORKSPACE.bucket_name, "public/data.csv", io.BytesIO(b"a,b\n1,2\n")
         )
         # Both the public view and the download view it redirects to use this storage
-        patcher = patch("hexa.files.views.storage", self.storage)
-        patcher.start()
-        self.addCleanup(patcher.stop)
+        for module in ["hexa.files.views", "hexa.files.public"]:
+            patcher = patch(f"{module}.storage", self.storage)
+            patcher.start()
+            self.addCleanup(patcher.stop)
 
     def test_redirect_can_be_followed_to_the_file(self):
         response = self.client.get(f"/files/{self.WORKSPACE.slug}/public/data.csv")

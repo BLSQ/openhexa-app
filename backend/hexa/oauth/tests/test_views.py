@@ -153,6 +153,30 @@ class OAuthAuthorizeRedirectTest(TestCase):
             self.assertIn(b"redirectUri", response.content)
             self.assertIn(b"Authorization successful", response.content)
 
+    def test_a_callback_that_needs_the_browser_is_opened_in_it(self):
+        view = OAuthAuthorizeView()
+
+        response = view.redirect(
+            "https://callback.mistral.ai/v1/integrations_auth/oauth2_callback?code=abc",
+            self.application,
+        )
+
+        self.assertContains(response, "window.location.replace(redirectUri)")
+        self.assertNotContains(response, "fetch(")
+
+    def test_other_callbacks_are_called_in_the_background(self):
+        view = OAuthAuthorizeView()
+        for target in (
+            "http://127.0.0.1:54321/?code=abc",
+            "https://claude.ai/api/mcp/auth_callback?code=abc",
+            "https://chatgpt.com/connector_platform_oauth_redirect?code=abc",
+        ):
+            with self.subTest(target=target):
+                response = view.redirect(target, self.application)
+
+                self.assertContains(response, "fetch(redirectUri")
+                self.assertNotContains(response, "window.location.replace")
+
     def test_redirect_refuses_a_scheme_that_is_not_allowed(self):
         view = OAuthAuthorizeView()
         for target in (
@@ -309,6 +333,13 @@ class DynamicClientRegistrationTest(TestCase):
         response = self.register(["http://localhost:54321/callback"])
 
         self.assertEqual(201, response.status_code)
+
+    def test_registers_mistral_redirect_uri(self):
+        response = self.register(
+            ["https://callback.mistral.ai/v1/integrations_auth/oauth2_callback"]
+        )
+
+        self.assertEqual(201, response.status_code, response.content)
 
     def test_rejects_non_list_redirect_uris(self):
         response = self.register("https://claude.ai/callback")

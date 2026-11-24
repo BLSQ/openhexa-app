@@ -2,9 +2,56 @@
 authentication once the workspace enables public files (see `views.public_file`).
 """
 
+from django.conf import settings
+from django.urls import reverse
+
 from hexa.files import storage
+from hexa.files.utils import is_safe_path
 
 PUBLIC_FOLDER = "public/"
+
+
+def public_files_served(workspace) -> bool:
+    """Whether the public folder of a workspace is served: the instance and the workspace
+    have the feature on, and the workspace is active and has a bucket.
+    """
+    return bool(
+        settings.PUBLIC_FILES_ENABLED
+        and workspace.public_files_enabled
+        and not workspace.archived
+        and workspace.bucket_name
+    )
+
+
+def public_files_base_url(workspace) -> str | None:
+    """URL under which the public files of a workspace are served, ending with a slash,
+    or None while they are not served.
+    """
+    if not public_files_served(workspace):
+        return None
+    return (
+        f"{settings.BASE_URL}{reverse('files:public_file', args=[workspace.slug, ''])}"
+    )
+
+
+def find_public_file(bucket_name: str, path: str) -> str:
+    """Storage key of a file of the public folder, given its path inside that folder.
+
+    Raises `storage.exceptions.NotFound` for anything that must not be served: unsafe
+    paths, hidden files and folders.
+    """
+    if not path or not is_safe_path(path):
+        raise storage.exceptions.NotFound
+    if any(part.startswith(".") for part in path.split("/")):
+        raise storage.exceptions.NotFound
+    # Not the key of the storage object below: the filesystem backend returns it as a
+    # Path, which can't be signed.
+    key = f"{PUBLIC_FOLDER}{path}"
+    # Some backends resolve directory keys and sign URLs for any key, so the object
+    # has to be an existing file.
+    if storage.get_bucket_object(bucket_name, key).type != "file":
+        raise storage.exceptions.NotFound
+    return key
 
 
 def public_folder_exists(bucket_name: str) -> bool:

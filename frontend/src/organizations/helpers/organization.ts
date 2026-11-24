@@ -15,3 +15,14 @@ export function formatOrganizationMembershipRole(
       return i18n!.t("Unknown");
   }
 }
+
+/**
+ * Turns a Console plan code (e.g. "openhexa_starter") into a display name ("Starter").
+ */
+export function formatPlanName(planCode: string) {
+  return planCode
+    .replace(/^openhexa_/, "")
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}

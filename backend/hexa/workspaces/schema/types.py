@@ -4,12 +4,11 @@ from ariadne import EnumType, InterfaceType, ObjectType
 from django.conf import settings
 from django.db.models import OuterRef, Subquery
 from django.http import HttpRequest
-from django.urls import reverse
 from openhexa.toolbox.dhis2.api import DHIS2ToolboxError
 from openhexa.toolbox.iaso.api_client import IASOError
 
 from hexa.core.graphql import result_page
-from hexa.files.public import public_folder_exists
+from hexa.files.public import public_files_base_url, public_folder_exists
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.tags.models import Tag
@@ -158,11 +157,7 @@ def resolve_public_files(workspace: Workspace, info):
 
 @workspace_public_files_object.field("url")
 def resolve_public_files_url(workspace: Workspace, info):
-    if not workspace.public_files_enabled:
-        return None
-    return (
-        f"{settings.BASE_URL}{reverse('files:public_file', args=[workspace.slug, ''])}"
-    )
+    return public_files_base_url(workspace)
 
 
 @workspace_public_files_object.field("folderExists")

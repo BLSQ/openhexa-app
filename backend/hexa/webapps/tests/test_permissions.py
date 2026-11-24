@@ -6,7 +6,12 @@ from hexa.user_management.models import (
     User,
 )
 from hexa.webapps.models import Webapp
-from hexa.webapps.permissions import create_webapp, delete_webapp, update_webapp
+from hexa.webapps.permissions import (
+    create_webapp,
+    delete_webapp,
+    share_webapp,
+    update_webapp,
+)
 from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
@@ -152,3 +157,67 @@ class WebappsOrganizationPermissionsTest(TestCase):
     def test_workspace_editor_can_update_webapp(self):
         """Workspace editors should be able to update webapps through workspace membership"""
         self.assertTrue(update_webapp(self.USER_WORKSPACE_EDITOR, self.WEBAPP))
+
+
+class ShareWebappPermissionTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Share Organization",
+            short_name="share-org-webapps",
+            organization_type="CORPORATE",
+        )
+        cls.ORG_ADMIN = User.objects.create_user("org_admin@share.com", "password")
+        cls.ORG_MEMBER = User.objects.create_user("org_member@share.com", "password")
+        cls.WS_ADMIN = User.objects.create_user(
+            "ws_admin@share.com", "password", is_superuser=True
+        )
+        cls.AUTHOR = User.objects.create_user("author@share.com", "password")
+        cls.EDITOR = User.objects.create_user("editor@share.com", "password")
+        cls.VIEWER = User.objects.create_user("viewer@share.com", "password")
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ORG_ADMIN,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ORG_MEMBER,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+        cls.WORKSPACE = create_workspace(
+            cls.WS_ADMIN, name="Share Workspace", organization=cls.ORGANIZATION
+        )
+        cls.WS_ADMIN.is_superuser = False
+        cls.WS_ADMIN.save()
+        for user, role in [
+            (cls.AUTHOR, WorkspaceMembershipRole.EDITOR),
+            (cls.EDITOR, WorkspaceMembershipRole.EDITOR),
+            (cls.VIEWER, WorkspaceMembershipRole.VIEWER),
+        ]:
+            WorkspaceMembership.objects.create(
+                workspace=cls.WORKSPACE, user=user, role=role
+            )
+        cls.WEBAPP = Webapp.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Shared Webapp",
+            slug="shared-webapp",
+            subdomain="shared-webapp",
+            created_by=cls.AUTHOR,
+        )
+
+    def test_allowed(self):
+        for user in [self.ORG_ADMIN, self.WS_ADMIN, self.AUTHOR]:
+            with self.subTest(user=user.email):
+                self.assertTrue(share_webapp(user, self.WEBAPP))
+
+    def test_denied(self):
+        for user in [self.EDITOR, self.VIEWER, self.ORG_MEMBER]:
+            with self.subTest(user=user.email):
+                self.assertFalse(share_webapp(user, self.WEBAPP))
+
+    def test_author_demoted_to_viewer_is_denied(self):
+        WorkspaceMembership.objects.filter(
+            workspace=self.WORKSPACE, user=self.AUTHOR
+        ).update(role=WorkspaceMembershipRole.VIEWER)
+        self.assertFalse(share_webapp(self.AUTHOR, self.WEBAPP))

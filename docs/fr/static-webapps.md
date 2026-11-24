@@ -42,7 +42,7 @@ Chaque webapp obtient un sous-domaine sous le domaine webapps du workspace — p
 - **Privé** (par défaut) : seuls les membres authentifiés du workspace peuvent voir la webapp. Les webapps statiques privées peuvent aussi appeler l'API GraphQL d'OpenHEXA via un point d'accès sur leur propre URL (voir ci-dessous).
 - **Public** : n'importe qui ayant l'URL peut consulter la webapp, sans compte. Les webapps statiques publiques peuvent aussi appeler l'API GraphQL, mais n'accèdent qu'aux ressources du workspace marquées comme publiques (voir [Webapps publiques](#webapps-publiques)).
 
-Pour changer la visibilité, utilisez le bouton **Partager** dans l'en-tête de la webapp, choisissez **Privé** ou **Public** puis sauvegardez. Il est accessible aux membres qui peuvent modifier la webapp. L'état actuel est indiqué par un badge à côté du nom de la webapp.
+Pour changer la visibilité, utilisez le bouton **Partager** dans l'en-tête de la webapp, choisissez **Privé** ou **Public** puis sauvegardez. Il n'est accessible qu'à l'auteur de la webapp (s'il est encore éditeur ou administrateur de son workspace), aux administrateurs du workspace et aux administrateurs et propriétaires de l'organisation, comme pour les jeux de données, les requêtes enregistrées et les fichiers publics. L'état actuel est indiqué par un badge à côté du nom de la webapp.
 
 ## Appeler l'API GraphQL d'OpenHEXA
 
@@ -63,9 +63,38 @@ Les webapps statiques peuvent appeler l'API GraphQL de la plateforme depuis leur
 Les visiteurs d'une webapp publique n'ont ni compte OpenHEXA ni session : ses requêtes s'exécutent au nom d'un visiteur anonyme lié à la webapp, et non d'un utilisateur :
 
 - **Aucun scope à activer** : la liste `allowed_operations` est ignorée. Toute webapp publique peut utiliser les points d'entrée de `PIPELINES_READ`, `PIPELINES_RUN`, `FILES_READ`, `DATASETS_READ` et `DATABASE_READ`, et rien d'autre — `me` et `workspace` sont refusés.
-- **Ressources publiques uniquement** : ces points d'entrée ne renvoient que ce qui a été rendu public dans le workspace de la webapp. Pour l'instant, seules les requêtes enregistrées peuvent être rendues publiques : une requête enregistrée publique du workspace de la webapp peut être exécutée via `executeSavedQuery`. Les datasets, pipelines et fichiers ne peuvent pas encore être rendus publics, les requêtes qui les visent sont donc vides ou refusées faute d'authentification.
+- **Ressources publiques uniquement** : ces points d'entrée ne renvoient que ce qui a été rendu public dans le workspace de la webapp. Une requête enregistrée publique du workspace de la webapp peut être exécutée via `executeSavedQuery`, et les fichiers du dossier `public` du workspace peuvent être lus (voir [Fichiers dans une webapp publique](#fichiers-dans-une-webapp-publique)). Les datasets et pipelines ne peuvent pas encore être rendus publics, les requêtes qui les visent sont donc vides ou refusées faute d'authentification.
 - **Aucun utilisateur** : les champs qui renvoient un utilisateur, comme `Dataset.createdBy` ou `PipelineRun.user`, sont refusés, afin qu'une page publique n'affiche jamais qui a créé ou lancé quoi que ce soit.
 - Être connecté à OpenHEXA ne change rien : les membres ont le même accès anonyme que n'importe quel visiteur.
+
+### Fichiers dans une webapp publique
+
+Une webapp publique ne peut lire que les fichiers du dossier `public` à la racine du système de fichiers du workspace, une fois les [fichiers publics](files.md#fichiers-publics) activés sur le workspace. Demandez l'URL d'un fichier à `prepareObjectDownload`, avec une clé qui commence par `public/` :
+
+```js
+const { workspaceSlug } = window.OPENHEXA;
+
+// Lit public/maps/regions.pmtiles
+const response = await fetch("/graphql/", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    query: `
+      mutation ($input: PrepareObjectDownloadInput!) {
+        prepareObjectDownload(input: $input) { success downloadUrl errors }
+      }
+    `,
+    variables: { input: { workspaceSlug, objectKey: "public/maps/regions.pmtiles" } },
+  }),
+});
+const { downloadUrl } = (await response.json()).data.prepareObjectDownload;
+```
+
+L'URL renvoyée ne nécessite aucune session, et les bibliothèques qui prennent une URL (tuiles de carte, images, parseurs CSV) peuvent la recevoir directement ; les requêtes partielles (range) sont prises en charge sur le stockage cloud. Le même appel fonctionne dans une webapp privée qui dispose du scope `FILES_READ`.
+
+Dans une webapp publique, l'URL télécharge toujours le fichier : `forceAttachment: false` est ignoré, un fichier ne peut donc pas être ouvert dans un nouvel onglet ou une iframe. `fetch()`, `<img>` et les lectures partielles (range) ne sont pas affectés.
+
+`prepareObjectDownload` échoue avec `NOT_FOUND` tant que les fichiers publics sont désactivés sur le workspace. Tout autre fichier, ainsi que les autres points d'entrée de fichiers (`getFileByPath`, `readFileContent`), ne sont pas accessibles aux webapps publiques.
 
 ## Activer l'API sur une webapp
 

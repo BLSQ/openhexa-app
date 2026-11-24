@@ -6158,6 +6158,8 @@ export type Subscription = {
   endDate: Scalars['Date']['output'];
   /** Whether the subscription has expired. */
   isExpired: Scalars['Boolean']['output'];
+  /** Whether the subscription ends soon and no renewal has been booked yet. */
+  isExpiringSoon: Scalars['Boolean']['output'];
   /**
    * Whether the subscription is in the grace period after expiration.
    * During the grace period, limits are not enforced but a warning is shown.
@@ -7253,6 +7255,7 @@ export enum WebappOperationScope {
 export type WebappPermissions = {
   __typename?: 'WebappPermissions';
   delete: Scalars['Boolean']['output'];
+  share: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
 

@@ -46,7 +46,7 @@ const WebappVisibilityButton = ({ webapp }: WebappVisibilityButtonProps) => {
     [t],
   );
 
-  if (!webapp.permissions.update) {
+  if (!webapp.permissions.share) {
     return null;
   }
 
@@ -134,7 +134,7 @@ WebappVisibilityButton.fragments = {
       url
       serveUrl
       permissions {
-        update
+        share
       }
     }
   `,

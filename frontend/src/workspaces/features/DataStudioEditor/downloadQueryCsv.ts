@@ -1,3 +1,4 @@
+import { getCsrfToken } from "core/helpers/csrf";
 import { getCookie } from "cookies-next";
 
 // A single reusable hidden iframe receives the POST response. A successful
@@ -61,7 +62,7 @@ const submitCsvDownload = (
   action: string,
   fields: Record<string, string>,
 ): Promise<void> => {
-  const csrfToken = getCookie("csrftoken");
+  const csrfToken = getCsrfToken();
   const iframe = ensureDownloadFrame();
 
   const token = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -77,7 +78,7 @@ const submitCsvDownload = (
     appendHiddenField(form, name, value),
   );
   appendHiddenField(form, "download_token", token);
-  if (typeof csrfToken === "string") {
+  if (csrfToken) {
     appendHiddenField(form, "csrfmiddlewaretoken", csrfToken);
   }
 

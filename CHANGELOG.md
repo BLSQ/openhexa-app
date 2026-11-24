@@ -1,5 +1,20 @@
 # Changelog
 
+## [5.22.2](https://github.com/BLSQ/openhexa-app/compare/5.22.1...5.22.2) (2026-11-17)
+
+
+### Bug Fixes
+
+* ensure permission for deleting public saved query ([#2242](https://github.com/BLSQ/openhexa-app/issues/2242)) ([2aa9564](https://github.com/BLSQ/openhexa-app/commit/2aa9564a7d71824edf171106f142ec433d852d6c))
+* public web apps can read files of the public folder (HEXA-1902) ([#2241](https://github.com/BLSQ/openhexa-app/issues/2241)) ([e00ca90](https://github.com/BLSQ/openhexa-app/commit/e00ca905eb4d1b458a1de168b6976d30102b5d2a))
+
+## [5.22.1](https://github.com/BLSQ/openhexa-app/compare/5.22.0...5.22.1) (2026-11-16)
+
+
+### Bug Fixes
+
+* CSRF verification failed in MCP demo (HEXA-1899) ([#2239](https://github.com/BLSQ/openhexa-app/issues/2239)) ([0634549](https://github.com/BLSQ/openhexa-app/commit/06345497e469bde751347585ea5f258ecf619264))
+
 ## [5.22.0](https://github.com/BLSQ/openhexa-app/compare/5.21.0...5.22.0) (2026-11-13)
 
 

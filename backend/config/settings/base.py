@@ -42,6 +42,9 @@ OPENHEXA_JWT_TTL = int(os.environ.get("OPENHEXA_JWT_TTL", "3600"))
 SUBSCRIPTION_GRACE_PERIOD_DAYS = int(
     os.environ.get("SUBSCRIPTION_GRACE_PERIOD_DAYS", "15")
 )
+SUBSCRIPTION_EXPIRING_SOON_DAYS = int(
+    os.environ.get("SUBSCRIPTION_EXPIRING_SOON_DAYS", "14")
+)
 
 # X Frame Options
 # Allow OpenHEXA to embed itself, typical use is a Superset dashboards in a Web App
@@ -294,6 +297,10 @@ if SENTRY_DSN:
     setup_sentry(SENTRY_DSN)
 
 
+# Environments sharing a parent cookie domain (e.g. demo under .openhexa.org) need
+# distinct names, or the browser sends both environments' cookies under one name.
+SESSION_COOKIE_NAME = os.environ.get("SESSION_COOKIE_NAME", "sessionid")
+CSRF_COOKIE_NAME = os.environ.get("CSRF_COOKIE_NAME", "csrftoken")
 SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN", None)
 SESSION_COOKIE_SAMESITE = os.environ.get("SESSION_COOKIE_SAMESITE", "Lax")
 SESSION_COOKIE_HTTPONLY = True
@@ -878,6 +885,7 @@ OAUTH2_ALLOWED_REDIRECT_URI_HOSTS = {
     "claude.ai",
     "chatgpt.com",
     "chat.openai.com",
+    "callback.mistral.ai",
 }
 if "OAUTH2_ALLOWED_REDIRECT_URI_HOSTS" in os.environ:
     OAUTH2_ALLOWED_REDIRECT_URI_HOSTS.update(

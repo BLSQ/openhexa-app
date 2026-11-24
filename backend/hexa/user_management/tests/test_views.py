@@ -43,6 +43,21 @@ class ViewsTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/login")
 
+    @responses.activate
+    def test_logout_forwards_the_configured_cookie_names(self):
+        responses.add(responses.GET, f"{settings.NOTEBOOKS_HUB_URL}/logout", status=302)
+
+        with self.settings(
+            SESSION_COOKIE_NAME="sessionid_demo", CSRF_COOKIE_NAME="csrftoken_demo"
+        ):
+            self.client.force_login(self.USER_REGULAR)
+            session_key = self.client.cookies["sessionid_demo"].value
+            self.client.post(reverse("logout"))
+
+        cookie_header = responses.calls[0].request.headers["Cookie"]
+        self.assertIn(f"sessionid_demo={session_key}", cookie_header)
+        self.assertIn("csrftoken_demo=", cookie_header)
+
     def test_graphql_anonymous(self):
         response = self.client.get(reverse("graphql"))
         self.assertEqual(response.status_code, 200)

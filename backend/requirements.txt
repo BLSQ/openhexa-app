@@ -8,7 +8,7 @@ affine==2.4.0
     # via rasterio
 annotated-types==0.7.0
     # via pydantic
-anthropic[vertex]==1.13.0
+anthropic[vertex]==2.13.0
     # via
     #   -r requirements.in
     #   pydantic-ai-slim
@@ -184,7 +184,7 @@ filetype==1.2.0
     # via -r requirements.in
 fiona==1.10.1
     # via openhexa-toolbox
-genai-prices==0.1.13
+genai-prices==0.2.5
     # via
     #   -r requirements.in
     #   pydantic-ai-slim
@@ -229,7 +229,7 @@ google-crc32c==1.7.1
     # via
     #   google-cloud-storage
     #   google-resumable-media
-google-genai==2.29.0
+google-genai==2.34.0
     # via pydantic-ai-slim
 google-resumable-media==2.7.2
     # via google-cloud-storage
@@ -366,7 +366,7 @@ oauthlib==3.3.1
     #   django-oauth-toolkit
     #   kubernetes
     #   requests-oauthlib
-openai==3.29.0
+openai==3.58.0
     # via pydantic-ai-slim
 openhexa-sdk==2.22.7
     # via
@@ -378,6 +378,7 @@ openpyxl==3.1.5
     # via -r requirements.in
 opentelemetry-api==1.39.1
     # via
+    #   anthropic
     #   google-cloud-logging
     #   opentelemetry-exporter-otlp-proto-http
     #   opentelemetry-instrumentation
@@ -469,15 +470,15 @@ pydantic==2.12.5
     #   pydantic-evals
     #   pydantic-graph
     #   rio-cogeo
-pydantic-ai-slim[anthropic,google,openai]==2.55.0
+pydantic-ai-slim[anthropic,google,openai]==2.69.0
     # via
     #   -r requirements.in
     #   pydantic-evals
 pydantic-core==2.41.5
     # via pydantic
-pydantic-evals==2.55.0
+pydantic-evals==2.69.0
     # via -r requirements.in
-pydantic-graph==2.55.0
+pydantic-graph==2.69.0
     # via pydantic-ai-slim
 pyflakes==3.4.0
     # via autoflake
