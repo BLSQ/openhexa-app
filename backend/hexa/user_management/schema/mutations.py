@@ -1121,7 +1121,7 @@ def _create_owner_account(
     # The hash comes from the console, which shares Django's password hashers with OpenHEXA
     user = User.objects.create(
         email=email,
-        password=password_hash, # `password` is the stored hash: create() stores as-is, create_user() would hash it
+        password=password_hash,  # `password` is the stored hash: create() stores as-is, create_user() would hash it
         first_name=first_name,
         last_name=last_name,
         language=invited_by.language,
