@@ -129,8 +129,9 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
             <Button
               leadingIcon={<PlusIcon className="h-4 w-4" />}
               onClick={() => setUploadDialogOpen(true)}
+              collapseLabel
             >
-              {t("Create new version")}
+              {t("New version")}
             </Button>
           )}
           {isWorkspaceSource && dataset.permissions.delete && (
@@ -148,6 +149,7 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
                   variant={"danger"}
                   onClick={onClick}
                   leadingIcon={<TrashIcon className="w-4" />}
+                  collapseLabel
                 >
                   {t("Delete")}
                 </Button>

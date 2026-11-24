@@ -67,12 +67,12 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
         tab="access"
       >
         {dataset.workspace?.organization && (
-          <Block.Section title={t("Visibility")} collapsible={false}>
+          <Block.Content>
             <DatasetVisibilityPicker
               dataset={dataset}
               disabled={!isWorkspaceSource}
             />
-          </Block.Section>
+          </Block.Content>
         )}
         {isOrganizationWide && (
           <Block.Content>

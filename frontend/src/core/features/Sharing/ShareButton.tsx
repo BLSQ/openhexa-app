@@ -9,9 +9,12 @@ import { useState } from "react";
 // Header action of a shareable resource. Sharing lives behind its own dialog
 // rather than in the edit form: who can reach a resource should never ride
 // along with a rename.
-const ShareButton = <V extends string>(
-  props: Omit<ShareDialogProps<V>, "open" | "onClose">,
-) => {
+const ShareButton = <V extends string>({
+  collapseLabel,
+  ...props
+}: Omit<ShareDialogProps<V>, "open" | "onClose"> & {
+  collapseLabel?: boolean;
+}) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
@@ -21,6 +24,7 @@ const ShareButton = <V extends string>(
         variant="white"
         leadingIcon={<ShareIcon className="h-4 w-4" />}
         onClick={() => setOpen(true)}
+        collapseLabel={collapseLabel}
       >
         {t("Share")}
       </Button>

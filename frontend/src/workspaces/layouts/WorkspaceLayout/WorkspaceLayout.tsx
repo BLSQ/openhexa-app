@@ -61,7 +61,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
       {header && (
         <header
           className={clsx(
-            "fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header",
+            "@container/header fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header",
             isSidebarOpen ? "left-64 2xl:left-72" : "left-16",
           )}
         >
@@ -70,7 +70,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
             <div className="shrink basis-auto max-w-md p-2 xl:basis-80 xl:min-w-48 2xl:basis-100">
               <SpotlightSearch organizationId={workspace.organization?.id} />
             </div>
-            <div className="flex-1 flex justify-end items-center gap-2">
+            <div className="flex-1 flex justify-end items-center gap-2 whitespace-nowrap">
               {headerActions}
             </div>
           </div>

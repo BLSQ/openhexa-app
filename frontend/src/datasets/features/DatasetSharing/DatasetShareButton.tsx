@@ -9,7 +9,9 @@ type DatasetShareButtonProps = {
 
 const DatasetShareButton = ({ dataset }: DatasetShareButtonProps) => {
   const dialog = useDatasetShareDialog(dataset);
-  return dataset.permissions.update ? <ShareButton {...dialog} /> : null;
+  return dataset.permissions.update ? (
+    <ShareButton {...dialog} collapseLabel />
+  ) : null;
 };
 
 DatasetShareButton.fragments = {
