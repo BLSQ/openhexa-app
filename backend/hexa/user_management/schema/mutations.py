@@ -989,7 +989,19 @@ def resolve_create_organization(_, info, **kwargs):
         }
 
     create_input = kwargs["input"]
-    owner_email = create_input["owner_email"].strip().lower()
+    owner = create_input.get("owner")
+    deprecated_owner_email = create_input.get("owner_email")
+    if (owner is None) == (deprecated_owner_email is None):
+        return {
+            "success": False,
+            "organization": None,
+            "user": None,
+            "errors": ["INVALID_OWNER"],
+        }
+    owner = owner or {"email": deprecated_owner_email}
+    owner_email = owner["email"].strip().lower()
+    owner_first_name = owner.get("first_name") or ""
+    owner_last_name = owner.get("last_name") or ""
     name = create_input["name"].strip()
     short_name_input = (create_input.get("short_name") or "").strip()
     subscription_id = create_input["subscription_id"]
@@ -998,14 +1010,14 @@ def resolve_create_organization(_, info, **kwargs):
     subscription_end_date = create_input["subscription_end_date"]
     limits = create_input["limits"]
     send_invitation_email = create_input.get("send_invitation_email") is not False
-    owner_account = create_input.get("owner_account")
-    if owner_account and not is_known_password_hash(owner_account["password_hash"]):
+    owner_password_hash = owner.get("password_hash")
+    if owner_password_hash and not is_known_password_hash(owner_password_hash):
         # Inviting keeps the owner a way in, where failing would leave the caller with no organization at all
         logger.warning(
             "Cannot read the password hash for new owner %s, inviting them instead",
             owner_email,
         )
-        owner_account = None
+        owner_password_hash = None
 
     if Organization.objects.filter(name=name).exists():
         return {
@@ -1055,13 +1067,13 @@ def resolve_create_organization(_, info, **kwargs):
             role=OrganizationMembershipRole.OWNER,
         )
     except User.DoesNotExist:
-        if owner_account:
+        if owner_password_hash:
             # The hash comes from the console, which shares Django's password hashers with OpenHEXA
             user = User.objects.create(
                 email=owner_email,
-                password=owner_account["password_hash"],
-                first_name=owner_account.get("first_name") or "",
-                last_name=owner_account.get("last_name") or "",
+                password=owner_password_hash,
+                first_name=owner_first_name,
+                last_name=owner_last_name,
                 language=principal.language,
             )
             OrganizationMembership.objects.create(
@@ -1078,12 +1090,14 @@ def resolve_create_organization(_, info, **kwargs):
                 role=OrganizationMembershipRole.OWNER,
                 language=principal.language,
             )
-            invitation_url = get_organization_invite_url(invitation)
+            invitation_url = get_organization_invite_url(
+                invitation, first_name=owner_first_name, last_name=owner_last_name
+            )
             if send_invitation_email:
                 send_organization_invite(invitation)
             user = None  # User will be created when they accept the invitation
 
-    # Also sent to an owner created from ownerAccount: the email is how they find OpenHEXA again later
+    # Also sent to an owner created from owner.passwordHash: the email is how they find OpenHEXA again later
     if user and send_invitation_email:
         send_organization_add_user_email(
             invited_by=principal,

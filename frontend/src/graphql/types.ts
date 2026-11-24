@@ -1061,6 +1061,8 @@ export type CreateMembershipResult = {
 export enum CreateOrganizationError {
   /** Indicates that the provided email is invalid. */
   InvalidEmail = 'INVALID_EMAIL',
+  /** Indicates that neither or both of owner and ownerEmail were given. */
+  InvalidOwner = 'INVALID_OWNER',
   /** Indicates that the provided short name is invalid (must be max 5 uppercase letters). */
   InvalidShortName = 'INVALID_SHORT_NAME',
   /** Indicates that an organization with the same name already exists. */
@@ -1078,10 +1080,13 @@ export type CreateOrganizationInput = {
   limits: ResourceCountsInput;
   /** The name of the organization. */
   name: Scalars['String']['input'];
-  /** The account to create for an owner who has none yet, instead of inviting them. The caller then sends them to loginUrl. */
-  ownerAccount?: InputMaybe<OwnerAccountInput>;
-  /** The email address of the organization owner. Creates user if doesn't exist. */
-  ownerEmail: Scalars['String']['input'];
+  /** The organization owner. Exactly one of owner and ownerEmail must be given. */
+  owner?: InputMaybe<OrganizationOwnerInput>;
+  /**
+   * The email address of the organization owner.
+   * @deprecated Use `owner.email`.
+   */
+  ownerEmail?: InputMaybe<Scalars['String']['input']>;
   /** The subscription plan code (e.g., "openhexa_starter"). */
   planCode: Scalars['String']['input'];
   /**
@@ -1109,7 +1114,7 @@ export type CreateOrganizationResult = {
   errors: Array<CreateOrganizationError>;
   /** The registration link for a new owner (null when the owner already had an account). Valid for 48 hours. */
   invitationUrl?: Maybe<Scalars['String']['output']>;
-  /** A single-use link that logs in the owner created from ownerAccount and opens the organization. Valid for 15 minutes. */
+  /** A single-use link that logs in the owner created from owner.passwordHash and opens the organization. Valid for 15 minutes. */
   loginUrl?: Maybe<Scalars['String']['output']>;
   /** The created organization object. */
   organization?: Maybe<Organization>;
@@ -4373,6 +4378,22 @@ export enum OrganizationMembershipRole {
   Owner = 'OWNER'
 }
 
+/**
+ * The owner of an organization created with createOrganization.
+ * An owner without an OpenHEXA account is invited, unless passwordHash is given.
+ */
+export type OrganizationOwnerInput = {
+  email: Scalars['String']['input'];
+  /** Used for the account created from passwordHash, or to pre-fill the registration form of an invited owner. */
+  firstName?: InputMaybe<Scalars['String']['input']>;
+  lastName?: InputMaybe<Scalars['String']['input']>;
+  /**
+   * The owner's password, already hashed by a Django password hasher, so that the caller never handles it in clear.
+   * When given, an owner without an account gets one with this password instead of an invitation, and the caller sends them to loginUrl.
+   */
+  passwordHash?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type OrganizationPermissions = {
   __typename?: 'OrganizationPermissions';
   archiveWorkspace: Scalars['Boolean']['output'];
@@ -4388,14 +4409,6 @@ export type OrganizationWorkspaceInvitation = {
   __typename?: 'OrganizationWorkspaceInvitation';
   role: WorkspaceMembershipRole;
   workspace: Workspace;
-};
-
-/** An OpenHEXA account created directly for a new organization owner. */
-export type OwnerAccountInput = {
-  firstName?: InputMaybe<Scalars['String']['input']>;
-  lastName?: InputMaybe<Scalars['String']['input']>;
-  /** The owner's password, already hashed by a Django password hasher, so that the caller never handles it in clear. */
-  passwordHash: Scalars['String']['input'];
 };
 
 /** Represents an input parameter of a pipeline. */

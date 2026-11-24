@@ -1032,6 +1032,9 @@ enum CreateOrganizationError {
   """Indicates that the provided email is invalid."""
   INVALID_EMAIL
 
+  """Indicates that neither or both of owner and ownerEmail were given."""
+  INVALID_OWNER
+
   """
   Indicates that the provided short name is invalid (must be max 5 uppercase letters).
   """
@@ -1058,14 +1061,12 @@ input CreateOrganizationInput {
   name: String!
 
   """
-  The account to create for an owner who has none yet, instead of inviting them. The caller then sends them to loginUrl.
+  The organization owner. Exactly one of owner and ownerEmail must be given.
   """
-  ownerAccount: OwnerAccountInput
+  owner: OrganizationOwnerInput
 
-  """
-  The email address of the organization owner. Creates user if doesn't exist.
-  """
-  ownerEmail: String!
+  """The email address of the organization owner."""
+  ownerEmail: String @deprecated(reason: "Use `owner.email`.")
 
   """The subscription plan code (e.g., "openhexa_starter")."""
   planCode: String!
@@ -1107,7 +1108,7 @@ type CreateOrganizationResult {
   invitationUrl: String
 
   """
-  A single-use link that logs in the owner created from ownerAccount and opens the organization. Valid for 15 minutes.
+  A single-use link that logs in the owner created from owner.passwordHash and opens the organization. Valid for 15 minutes.
   """
   loginUrl: String
 
@@ -3807,6 +3808,26 @@ enum OrganizationMembershipRole {
   OWNER
 }
 
+"""
+The owner of an organization created with createOrganization.
+An owner without an OpenHEXA account is invited, unless passwordHash is given.
+"""
+input OrganizationOwnerInput {
+  email: String!
+
+  """
+  Used for the account created from passwordHash, or to pre-fill the registration form of an invited owner.
+  """
+  firstName: String
+  lastName: String
+
+  """
+  The owner's password, already hashed by a Django password hasher, so that the caller never handles it in clear.
+  When given, an owner without an account gets one with this password instead of an invitation, and the caller sends them to loginUrl.
+  """
+  passwordHash: String
+}
+
 type OrganizationPermissions {
   archiveWorkspace: Boolean!
   createWorkspace: CreateWorkspacePermission!
@@ -3820,17 +3841,6 @@ type OrganizationPermissions {
 type OrganizationWorkspaceInvitation {
   role: WorkspaceMembershipRole!
   workspace: Workspace!
-}
-
-"""An OpenHEXA account created directly for a new organization owner."""
-input OwnerAccountInput {
-  firstName: String
-  lastName: String
-
-  """
-  The owner's password, already hashed by a Django password hasher, so that the caller never handles it in clear.
-  """
-  passwordHash: String!
 }
 
 """Represents an input parameter of a pipeline."""

@@ -55,10 +55,14 @@ def is_two_factor_pending(request):
     return is_verified is None or not is_verified()
 
 
-def get_organization_invite_url(invitation: OrganizationInvitation) -> str:
-    """Registration link for an organization invitation (the token is valid for 48 hours)."""
-    token = invitation.generate_token()
-    return f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
+def get_organization_invite_url(
+    invitation: OrganizationInvitation, first_name: str = "", last_name: str = ""
+) -> str:
+    """Registration link for an organization invitation (the token is valid for 48 hours), with the names known so far pre-filled."""
+    params = {"email": invitation.email, "token": invitation.generate_token()}
+    names = {"first_name": first_name, "last_name": last_name}
+    params.update({key: value for key, value in names.items() if value})
+    return f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode(params)}"
 
 
 def is_known_password_hash(password_hash: str) -> bool:
