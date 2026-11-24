@@ -1,4 +1,4 @@
-import { LinkIcon } from "@heroicons/react/24/outline";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import Button from "core/components/Button";
 import Page from "core/components/Page";
@@ -89,12 +89,12 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
             </div>
             {workspace.permissions.update && (
               <Button
-                leadingIcon={<LinkIcon className={"h-4 w-4"} />}
+                leadingIcon={<PlusIcon className="h-4 w-4" />}
                 onClick={() => setLinkDialogOpen(true)}
                 disabled={isOrganizationWide}
                 className="shrink-0"
               >
-                {t("Share with a workspace")}
+                {t("Add workspace")}
               </Button>
             )}
           </div>
