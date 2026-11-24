@@ -15,20 +15,25 @@ const ExternalCollaboratorNotice = ({
   compact = false,
 }: ExternalCollaboratorNoticeProps) => {
   const { t } = useTranslation();
-  const { CONSOLE_URL } = usePublicEnv();
+  const { CONSOLE_FREE_TRIAL_URL } = usePublicEnv();
 
   const { data, loading } = useOrganizationsQuery({
     variables: { directMembershipOnly: true },
   });
 
-  if (loading || !data || data.organizations.length > 0 || !CONSOLE_URL) {
+  if (
+    loading ||
+    !data ||
+    data.organizations.length > 0 ||
+    !CONSOLE_FREE_TRIAL_URL
+  ) {
     return null;
   }
 
   if (compact) {
     return (
       <Link
-        href={CONSOLE_URL}
+        href={CONSOLE_FREE_TRIAL_URL}
         target="_blank"
         noStyle
         className="group relative mx-auto mb-4 flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-linear-to-r from-indigo-500 to-purple-500"
@@ -42,7 +47,7 @@ const ExternalCollaboratorNotice = ({
 
   return (
     <Link
-      href={CONSOLE_URL}
+      href={CONSOLE_FREE_TRIAL_URL}
       target="_blank"
       noStyle
       className="group relative mx-2 my-4 block overflow-hidden rounded-lg bg-linear-to-r from-indigo-500 to-purple-500 p-4 text-white transition-shadow hover:shadow-lg"
