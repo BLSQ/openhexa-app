@@ -13,6 +13,13 @@
     "automerge": true
   },
   "prConcurrentLimit": 5,
+  "packageRules": [
+    {
+      "description": "pydantic-evals pins pydantic-ai-slim to its own version and pydantic-ai-slim sets a minimum genai-prices, so they only resolve when bumped together",
+      "matchPackageNames": ["pydantic-ai-slim", "pydantic-evals", "genai-prices"],
+      "groupName": "pydantic-ai"
+    }
+  ],
   "pip_requirements": {
     "enabled": false
   },
