@@ -3824,6 +3824,7 @@ input OrganizationOwnerInput {
   """
   The owner's password, already hashed by a Django password hasher, so that the caller never handles it in clear.
   When given, an owner without an account gets one with this password instead of an invitation, and the caller sends them to loginUrl.
+  Only send it once the owner has proven they own email: whoever holds this password gets the account.
   """
   passwordHash: String
 }
