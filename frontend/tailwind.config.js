@@ -17,7 +17,8 @@ module.exports = {
 
       keyframes: {
         shimmer: {
-          "100%": { transform: "translateX(100%)" },
+          from: { transform: "translateX(-50%)" },
+          to: { transform: "translateX(0)" },
         },
       },
     },
