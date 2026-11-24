@@ -1599,9 +1599,11 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
     def test_create_organization_invites_owner_with_unreadable_password_hash(
         self, mock_send_invite
     ):
-        """A hash OpenHEXA cannot read falls back to inviting the owner, rather than failing."""
+        """A hash OpenHEXA cannot read never blocks the owner: they are invited instead, and the error is reported."""
         self.client.force_login(self.superuser)
-        with self.assertLogs("hexa.user_management.schema.mutations", level="WARNING"):
+        with self.assertLogs(
+            "hexa.user_management.schema.mutations", level="ERROR"
+        ) as logs:
             r = self.run_query(
                 """
                 mutation CreateOrganization($input: CreateOrganizationInput!) {
@@ -1624,6 +1626,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertIn("token=", result["invitationUrl"])
         self.assertFalse(User.objects.filter(email="newowner@example.org").exists())
         mock_send_invite.assert_called_once()
+        self.assertIn("newowner@example.org", logs.output[0])
 
     @patch("hexa.user_management.schema.mutations.send_organization_add_user_email")
     def test_create_organization_with_owner_account_for_existing_user(

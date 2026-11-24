@@ -66,7 +66,11 @@ def get_organization_invite_url(
 
 
 def is_known_password_hash(password_hash: str) -> bool:
-    """Whether one of OpenHEXA's password hashers can check passwords against ``password_hash``."""
+    """
+    Whether one of OpenHEXA's password hashers can check passwords against ``password_hash``.
+
+    Only the algorithm is checked: a registered hasher whose library is not installed (argon2, bcrypt) still passes.
+    """
     try:
         identify_hasher(password_hash)
     except ValueError:
