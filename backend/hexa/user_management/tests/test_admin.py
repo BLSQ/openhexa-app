@@ -67,3 +67,21 @@ class OrganizationMembershipAdminTest(TestCase):
         )
         self.assertChangelistEmails(url_name, {"status__exact": "ACCEPTED"}, set())
         self.assertChangelistEmails(url_name, {"q": "alpha"}, {"invited@openhexa.org"})
+
+    def test_organization_picker_leaves_out_deleted_organizations(self):
+        Organization.objects.create(
+            name="Alpha Deleted", short_name="alpha-old"
+        ).delete()
+        response = self.client.get(
+            reverse("admin:autocomplete"),
+            {
+                "term": "alpha",
+                "app_label": "user_management",
+                "model_name": "organizationmembership",
+                "field_name": "organization",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            [result["text"] for result in response.json()["results"]], ["alpha"]
+        )

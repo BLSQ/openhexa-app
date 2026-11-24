@@ -90,6 +90,24 @@ class ToolCallAdminTest(MCPTestCase):
         self.VIEWER_CALL.refresh_from_db()
         self.assertEqual(self.VIEWER_CALL.tool_name, "list_files")
 
+        response = self.client.post(
+            reverse("admin:mcp_toolcall_delete", args=[self.VIEWER_CALL.pk]),
+            {"post": "yes"},
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(ToolCall.objects.filter(pk=self.VIEWER_CALL.pk).exists())
+
+    def test_list_renders_calls_with_non_object_arguments(self):
+        ToolCall.objects.create(
+            user=self.USER_VIEWER,
+            tool_name="run_pipeline",
+            arguments=["x"],
+            success=False,
+            error="Tool not granted",
+        )
+        response = self.client.get(reverse("admin:mcp_toolcall_changelist"))
+        self.assertContains(response, "Tool not granted")
+
     def test_search_by_user_email(self):
         self.assertEqual(
             self._listed_calls(q=self.USER_VIEWER.email), [self.VIEWER_CALL]

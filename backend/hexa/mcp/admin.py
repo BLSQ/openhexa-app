@@ -50,6 +50,9 @@ class ToolCallAdmin(admin.ModelAdmin):
     def has_change_permission(self, request, obj=None):
         return False
 
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     @admin.display(description="User", ordering="user__email")
     def user_calls(self, obj):
         """The user's email, linking to the list narrowed to their calls."""
@@ -60,6 +63,9 @@ class ToolCallAdmin(admin.ModelAdmin):
 
     @admin.display(description="Workspace")
     def workspace(self, obj):
+        # Refused calls are logged unvalidated, so arguments can be any JSON value.
+        if not isinstance(obj.arguments, dict):
+            return "-"
         # Workspace tools name their target `slug`, every other tool `workspace_slug`.
         return obj.arguments.get("workspace_slug") or obj.arguments.get("slug") or "-"
 
