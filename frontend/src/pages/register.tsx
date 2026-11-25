@@ -10,9 +10,9 @@ import { NextPageWithLayout } from "core/helpers/types";
 import useForm from "core/hooks/useForm";
 import CenteredLayout from "core/layouts/centered";
 import { RegisterError } from "graphql/types";
+import OidcProviderIcon from "identity/features/OidcProviderIcon";
 import { useRegisterMutation } from "identity/graphql/mutations.generated";
 import { useRegisterPageQuery } from "identity/graphql/queries.generated";
-import { GlobeAltIcon } from "@heroicons/react/24/outline";
 import { useTranslation } from "next-i18next";
 import Image from "next/legacy/image";
 import logoWithTextBlack from "public/images/logo_with_text_black.svg";
@@ -184,7 +184,9 @@ const RegisterPage: NextPageWithLayout = (props: {
                     type="submit"
                     className="w-full"
                   >
-                    {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
+                    {form.isSubmitting && (
+                      <Spinner size="xs" className="mr-1" />
+                    )}
                     {t("Create account")}
                   </Button>
                 </div>
@@ -208,7 +210,7 @@ const RegisterPage: NextPageWithLayout = (props: {
                   "w-full rounded-sm",
                 )}
               >
-                <GlobeAltIcon className="-ml-1 mr-1.5 h-4 w-4" aria-hidden />
+                <OidcProviderIcon providerId={provider.id} />
                 {t("Sign up with {{name}}", { name: provider.displayName })}
               </a>
             ))}
