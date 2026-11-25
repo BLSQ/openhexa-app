@@ -586,6 +586,18 @@ describe("LoginPage: two-factor step after an SSO login", () => {
     useSignupPageQueryMock.mockReturnValue(DEFAULT_CONFIG);
   });
 
+  it("reads the pending 2FA state from the server, never from the cache", () => {
+    render(
+      <TestApp mocks={[challengeMock]}>
+        <LoginPage />
+      </TestApp>,
+    );
+
+    expect(useSignupPageQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ fetchPolicy: "network-only" }),
+    );
+  });
+
   it("shows only the code form", () => {
     render(
       <TestApp mocks={[challengeMock]}>

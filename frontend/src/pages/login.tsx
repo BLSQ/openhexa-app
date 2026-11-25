@@ -31,7 +31,9 @@ interface LoginForm {
 const LoginPage: NextPageWithLayout = () => {
   const router = useRouter();
   const [doLogin] = useLoginMutation();
-  const { data: configData, loading: configLoading } = useSignupPageQuery();
+  const { data: configData, loading: configLoading } = useSignupPageQuery({
+    fetchPolicy: "network-only",
+  });
   const passwordLoginEnabled = configData?.config?.passwordLoginEnabled ?? true;
   const oidcProviders = configData?.config?.oidcProviders ?? [];
   const [showOTPForm, setOTPForm] = useState(false);
