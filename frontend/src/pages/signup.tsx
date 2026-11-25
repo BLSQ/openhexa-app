@@ -9,6 +9,7 @@ import { NextPageWithLayout } from "core/helpers/types";
 import useForm from "core/hooks/useForm";
 import CenteredLayout from "core/layouts/centered";
 import { SignupError } from "graphql/types";
+import OidcProviderButton from "identity/features/OidcProviderButton";
 import { useSignupMutation } from "identity/graphql/mutations.generated";
 import { useSignupPageQuery } from "identity/graphql/queries.generated";
 import { useTranslation } from "next-i18next";
@@ -28,6 +29,7 @@ const SignupPage: NextPageWithLayout = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const { data } = useSignupPageQuery();
+  const oidcProviders = data?.config?.oidcProviders ?? [];
 
   const form = useForm<SignupForm>({
     onSubmit: async (values) => {
@@ -145,6 +147,22 @@ const SignupPage: NextPageWithLayout = () => {
             {t("Sign up")}
           </Button>
         </div>
+        {oidcProviders.length > 0 && (
+          <div className="flex items-center gap-3">
+            <div className="flex-1 border-t border-gray-300" />
+            <span className="text-sm text-gray-500">{t("or")}</span>
+            <div className="flex-1 border-t border-gray-300" />
+          </div>
+        )}
+        {oidcProviders.map((provider) => (
+          <OidcProviderButton
+            key={provider.id}
+            providerId={provider.id}
+            href={`${provider.loginUrl}?next=${encodeURIComponent("/workspaces")}`}
+          >
+            {t("Sign up with {{name}}", { name: provider.displayName })}
+          </OidcProviderButton>
+        ))}
         <div className="mt-4 text-center text-sm">
           <span className="text-gray-600">{t("Already have an account?")}</span>{" "}
           <Link href="/login" customStyle="text-blue-600 hover:text-blue-500">

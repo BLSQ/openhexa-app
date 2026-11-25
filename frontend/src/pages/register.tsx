@@ -1,6 +1,5 @@
 import clsx from "clsx";
 import Button from "core/components/Button";
-import { Classes as ButtonClasses } from "core/components/Button/Button";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
 import Spinner from "core/components/Spinner";
@@ -10,7 +9,7 @@ import { NextPageWithLayout } from "core/helpers/types";
 import useForm from "core/hooks/useForm";
 import CenteredLayout from "core/layouts/centered";
 import { RegisterError } from "graphql/types";
-import OidcProviderIcon from "identity/features/OidcProviderIcon";
+import OidcProviderButton from "identity/features/OidcProviderButton";
 import { useRegisterMutation } from "identity/graphql/mutations.generated";
 import { useRegisterPageQuery } from "identity/graphql/queries.generated";
 import { useTranslation } from "next-i18next";
@@ -200,19 +199,13 @@ const RegisterPage: NextPageWithLayout = (props: {
               </div>
             )}
             {oidcProviders.map((provider) => (
-              <a
+              <OidcProviderButton
                 key={provider.id}
+                providerId={provider.id}
                 href={`${provider.loginUrl}?next=${encodeURIComponent("/workspaces")}`}
-                className={clsx(
-                  ButtonClasses.base,
-                  ButtonClasses.secondary,
-                  ButtonClasses.md,
-                  "w-full rounded-sm",
-                )}
               >
-                <OidcProviderIcon providerId={provider.id} />
                 {t("Sign up with {{name}}", { name: provider.displayName })}
-              </a>
+              </OidcProviderButton>
             ))}
           </>
         )}
