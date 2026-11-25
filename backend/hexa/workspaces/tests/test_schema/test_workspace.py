@@ -766,6 +766,61 @@ class WorkspaceTest(GraphQLTestCase):
         self.WORKSPACE.refresh_from_db()
         self.assertEqual(self.WORKSPACE.name, "Renamed")
 
+    UPDATE_AI_MUTATION = """
+        mutation updateWorkspace($input: UpdateWorkspaceInput!) {
+            updateWorkspace(input: $input) {
+                success
+                errors
+                workspace { aiEnabled permissions { manageAi } }
+            }
+        }
+    """
+
+    def test_update_workspace_ai_as_workspace_admin(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
+        r = self.run_query(
+            self.UPDATE_AI_MUTATION,
+            {"input": {"slug": self.WORKSPACE.slug, "aiEnabled": False}},
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "workspace": {"aiEnabled": False, "permissions": {"manageAi": True}},
+            },
+            r["data"]["updateWorkspace"],
+        )
+        self.WORKSPACE.refresh_from_db()
+        self.assertFalse(self.WORKSPACE.ai_enabled)
+
+    def test_update_workspace_ai_as_editor_is_denied(self):
+        self.client.force_login(self.USER_WORKSPACE_EDITOR_ONLY)
+        r = self.run_query(
+            self.UPDATE_AI_MUTATION,
+            {"input": {"slug": self.WORKSPACE.slug, "aiEnabled": False}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"], "workspace": None},
+            r["data"]["updateWorkspace"],
+        )
+        self.WORKSPACE.refresh_from_db()
+        self.assertTrue(self.WORKSPACE.ai_enabled)
+
+    def test_update_workspace_unchanged_ai_as_editor(self):
+        self.client.force_login(self.USER_WORKSPACE_EDITOR_ONLY)
+        r = self.run_query(
+            self.UPDATE_AI_MUTATION,
+            {"input": {"slug": self.WORKSPACE.slug, "aiEnabled": True}},
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "workspace": {"aiEnabled": True, "permissions": {"manageAi": False}},
+            },
+            r["data"]["updateWorkspace"],
+        )
+
     @patch("hexa.workspaces.schema.types.public_folder_exists", return_value=True)
     def test_public_files_fields(self, _):
         self.WORKSPACE.public_files_enabled = True

@@ -135,6 +135,16 @@ def resolve_workspace_permission_manage_public_files(workspace: Workspace, info)
     )
 
 
+@workspace_permissions.field("manageAi")
+def resolve_workspace_permission_manage_ai(workspace: Workspace, info):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("workspaces.manage_ai", workspace)
+        if request.user.is_authenticated
+        else False
+    )
+
+
 @workspace_permissions.field("launchNotebookServer")
 def resolve_workspace_permission_launch_notebooks(workspace: Workspace, info):
     request: HttpRequest = info.context["request"]

@@ -50,6 +50,8 @@ NEVER_GRANTED = {
         "pipelineTemplateTags",
         # Web apps fetch public files by URL, they never need the setting itself.
         "publicFiles",
+        # Like the organization's aiSettings, an admin setting web apps have no use for.
+        "aiEnabled",
     },
     "Pipeline": {
         "workspace",
@@ -70,7 +72,7 @@ NEVER_GRANTED = {
     "User": {"lastLogin", "dateJoined", "analyticsEnabled"},
     "Me": {"hasTwoFactorEnabled"},
     # Whether web apps get any part in public resources is HEXA-1847's call.
-    "WorkspacePermissions": {"shareSavedQuery", "managePublicFiles"},
+    "WorkspacePermissions": {"shareSavedQuery", "managePublicFiles", "manageAi"},
 }
 
 
