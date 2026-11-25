@@ -93,6 +93,12 @@ def resolve_me_has_two_factor_enabled(_, info):
     return has_configured_two_factor(request.user)
 
 
+@me_object.field("twoFactorPending")
+def resolve_me_two_factor_pending(_, info):
+    request = info.context["request"]
+    return request.user.is_authenticated and is_two_factor_pending(request)
+
+
 @me_object.field("features")
 def resolve_me_features(_, info):
     request = info.context["request"]
