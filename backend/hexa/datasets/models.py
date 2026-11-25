@@ -69,7 +69,8 @@ def public_slug_locked_error() -> ValidationError:
 
 def check_principal_perm(principal, workspace_id, perm: str, obj) -> None:
     """A service principal is confined to its workspaces. One acting for a person
-    (MCPUser, PrivateWebappUser) is also held to that person's role; a pipeline run has none.
+    (MCPUser, AssistantUser, PrivateWebappUser) is also held to that person's role; a
+    pipeline run has none.
     """
     if (
         isinstance(principal, ServicePrincipal)
@@ -115,7 +116,9 @@ class DatasetQuerySet(BaseQuerySet):
                     visibility__in=ORGANIZATION_WIDE_VISIBILITIES,
                     workspace__organization__in=accessible_organizations,
                 )
-            ).distinct()
+            )
+            .exclude_ai_blocked(user)
+            .distinct()
         )
 
     def filter_for_workspace_slugs(
@@ -809,7 +812,9 @@ class DatasetLinkQuerySet(BaseQuerySet):
                     dataset__visibility__in=ORGANIZATION_WIDE_VISIBILITIES,
                     workspace__organization__in=accessible_organizations,
                 )
-            ).distinct()
+            )
+            .exclude_ai_blocked(user, "dataset__workspace")
+            .distinct()
         )
 
 

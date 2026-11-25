@@ -14,7 +14,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
-from hexa.user_management.models import User
+from hexa.user_management.models import AIPrincipal, User
 from hexa.workspaces.models import Workspace
 
 CONVERSATION_NAME_MAX_LENGTH = 50
@@ -98,6 +98,14 @@ class Conversation(SoftDeletedModel, Base):
             ),
         ]
 
+    @property
+    def linked_object_in_workspace(self) -> bool:
+        """Whether the linked object, whose content goes into the agent's
+        instructions, belongs to the conversation's workspace.
+        """
+        linked_object = self.linked_object
+        return linked_object is None or linked_object.workspace_id == self.workspace_id
+
     @cached_property
     def agent(self):
         from hexa.assistant.agents import create_agent
@@ -106,6 +114,38 @@ class Conversation(SoftDeletedModel, Base):
 
     def __str__(self):
         return f"Conversation({self.id}, user={self.user_id}, workspace={self.workspace_id})"
+
+
+class AssistantUser(User, AIPrincipal):
+    """The principal the assistant's tools run as: the conversation's person,
+    confined to the conversation's workspace.
+    """
+
+    class Meta:
+        proxy = True
+
+    conversation = None
+    real_user = None
+
+    @classmethod
+    def from_conversation(cls, conversation: Conversation) -> "AssistantUser":
+        instance = cls.objects.get(pk=conversation.user_id)
+        instance.conversation = conversation
+        instance.real_user = conversation.user
+        return instance
+
+    @property
+    def workspace_ids(self):
+        # Read on every check rather than once, so that blocking AI stops the tool
+        # calls of a reply already being written.
+        return list(
+            Workspace.objects.filter(
+                pk=self.conversation.workspace_id, ai_enabled=True
+            ).values_list("id", flat=True)
+        )
+
+    def get_username(self):
+        return f"assistant_{self.conversation.id}_as_{self.email}"
 
 
 class Message(Base):

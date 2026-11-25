@@ -1,6 +1,7 @@
 from django.apps import apps
 from oauth2_provider.models import Application
 
+from hexa.assistant.models import AssistantUser, Conversation
 from hexa.core.test import TestCase
 from hexa.data_studio.models import SavedQuery, SavedQueryVisibility
 from hexa.datasets.models import (
@@ -43,9 +44,9 @@ def querysets_filtered_for_user():
 
 
 class MCPAccessCeilingTest(TestCase):
-    """Whatever an MCP connection is granted, it never reaches anything its
-    person cannot: for every filter_for_user, the MCPUser's result is a subset
-    of the person's. The fixture covers the cases that differ by kind of access:
+    """Whatever an MCP connection is granted, and wherever an assistant conversation
+    runs, they never reach anything their person cannot: for every filter_for_user,
+    the MCPUser's and the AssistantUser's results are subsets of the person's. The fixture covers the cases that differ by kind of access:
     organization members and non-members, admins, viewers, superusers, and data
     that is linked, shared with an organization, private or shared.
     """
@@ -170,7 +171,18 @@ class MCPAccessCeilingTest(TestCase):
         connection.workspaces.set(Workspace.objects.all())
         return MCPUser.from_user(user, connection)
 
+    def assistant_user(self, user):
+        return AssistantUser.from_conversation(
+            Conversation.objects.create(user=user, workspace=self.W1)
+        )
+
     def test_an_mcp_user_never_reaches_more_than_its_person(self):
+        self.assert_never_reaches_more_than_its_person(self.fully_granted)
+
+    def test_an_assistant_user_never_reaches_more_than_its_person(self):
+        self.assert_never_reaches_more_than_its_person(self.assistant_user)
+
+    def assert_never_reaches_more_than_its_person(self, principal_for):
         people = (
             self.WORKSPACE_EDITOR,
             self.ORG_MEMBER,
@@ -181,7 +193,7 @@ class MCPAccessCeilingTest(TestCase):
         querysets = querysets_filtered_for_user()
         checked = 0
         for user in people:
-            mcp_user = self.fully_granted(user)
+            principal = principal_for(user)
             for model, manager in querysets:
                 try:
                     allowed = set(
@@ -190,7 +202,7 @@ class MCPAccessCeilingTest(TestCase):
                 except NotImplementedError:
                     continue
                 reached = set(
-                    manager.filter_for_user(mcp_user).values_list("pk", flat=True)
+                    manager.filter_for_user(principal).values_list("pk", flat=True)
                 )
                 checked += 1
                 with self.subTest(person=user.email, model=model._meta.label):

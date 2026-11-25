@@ -29,6 +29,8 @@ def resolve_pipeline_templates(_, info, **kwargs):
         .distinct()
     )
 
+    pipeline_templates = pipeline_templates.exclude_ai_blocked(request.user)
+
     if kwargs.get("functional_type"):
         pipeline_templates = pipeline_templates.filter(
             functional_type=kwargs.get("functional_type")
@@ -83,8 +85,11 @@ def resolve_pipeline_templates(_, info, **kwargs):
 
 @pipeline_template_query.field("templateByCode")
 def resolve_template_by_code(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
     try:
-        template = PipelineTemplate.objects.get(code=kwargs["code"])
+        template = PipelineTemplate.objects.exclude_ai_blocked(request.user).get(
+            code=kwargs["code"]
+        )
     except PipelineTemplate.DoesNotExist:
         template = None
     return template

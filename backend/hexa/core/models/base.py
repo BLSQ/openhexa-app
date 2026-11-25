@@ -107,6 +107,17 @@ class BaseQuerySet(models.QuerySet):
 
         return self.filter(query_object).distinct()
 
+    def exclude_ai_blocked(self, principal, workspace_path: str = "workspace"):
+        """Leave out what workspaces whose admins blocked AI own, when an AI asks.
+
+        Confining an AI principal to its workspaces is not enough for content shared
+        across workspaces (datasets, pipeline templates): a queryset returning such
+        content applies this, `workspace_path` leading to the owning workspace.
+        """
+        if isinstance(principal, user_management_models.AIPrincipal):
+            return self.exclude(**{f"{workspace_path}__ai_enabled": False})
+        return self
+
     def prefetch_indexes(self):
         if not hasattr(self.model, "indexes"):
             raise ValueError(f"Model {self.model} has no indexes")

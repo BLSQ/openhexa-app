@@ -55,6 +55,7 @@ def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **
     qs = DatasetLink.objects.filter_for_workspaces(
         workspaces=[obj], pinned=pinned, query=query
     )
+    qs = qs.exclude_ai_blocked(info.context["request"].user, "dataset__workspace")
 
     return result_page(
         queryset=qs,
