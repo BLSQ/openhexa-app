@@ -14,7 +14,6 @@ import SidebarToggleButton from "./SidebarToggleButton";
 import UserMenu from "workspaces/features/UserMenu";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
-import ExternalCollaboratorNotice from "workspaces/features/ExternalCollaboratorNotice";
 import useSidebarOpen from "core/hooks/useSidebarOpen";
 
 type OrganizationSidebarProps = {
@@ -103,7 +102,6 @@ const OrganizationSidebar = ({ organization }: OrganizationSidebarProps) => {
               )}
             </nav>
           </div>
-          <ExternalCollaboratorNotice compact={!isSidebarOpen} />
           <UserMenu compact={!isSidebarOpen} />
         </div>
         <SidebarToggleButton />
