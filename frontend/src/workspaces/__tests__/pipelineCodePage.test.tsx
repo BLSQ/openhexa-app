@@ -44,6 +44,7 @@ const mockWorkspace = {
   slug: WORKSPACE_SLUG,
   name: "Test Workspace",
   webappsEnabled: false,
+  aiEnabled: true,
   organization: {
     id: "org-1",
     name: "Test Organization",

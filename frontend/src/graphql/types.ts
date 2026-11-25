@@ -575,6 +575,7 @@ export enum AuthorizeMcpConnectionError {
   ClientNotFound = 'CLIENT_NOT_FOUND',
   OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
   ToolNotFound = 'TOOL_NOT_FOUND',
+  WorkspaceAiDisabled = 'WORKSPACE_AI_DISABLED',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
@@ -6530,6 +6531,7 @@ export enum UpdateMcpConnectionError {
   NotFound = 'NOT_FOUND',
   OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
   ToolNotFound = 'TOOL_NOT_FOUND',
+  WorkspaceAiDisabled = 'WORKSPACE_AI_DISABLED',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
@@ -7004,6 +7006,7 @@ export enum UpdateWorkspaceError {
 
 /** Represents the input for updating a workspace. */
 export type UpdateWorkspaceInput = {
+  aiEnabled?: InputMaybe<Scalars['Boolean']['input']>;
   configuration?: InputMaybe<Scalars['JSON']['input']>;
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars['String']['input']>;
@@ -7298,6 +7301,7 @@ export type WebappsPage = {
 /** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
 export type Workspace = {
   __typename?: 'Workspace';
+  aiEnabled: Scalars['Boolean']['output'];
   assistantConversations: Array<AssistantConversation>;
   /** File storage of the workspace represented as a bucket */
   bucket: Bucket;
@@ -7467,6 +7471,7 @@ export type WorkspacePermissions = {
   downloadObject: Scalars['Boolean']['output'];
   generateToken: Scalars['Boolean']['output'];
   launchNotebookServer: Scalars['Boolean']['output'];
+  manageAi: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
   managePublicFiles: Scalars['Boolean']['output'];
   manageTags: Scalars['Boolean']['output'];

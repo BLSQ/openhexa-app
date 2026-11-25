@@ -76,6 +76,9 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
           ...(workspace.permissions.managePublicFiles && {
             publicFilesEnabled: values.publicFilesEnabled,
           }),
+          ...(workspace.permissions.manageAi && {
+            aiEnabled: values.aiEnabled,
+          }),
         },
       },
     });
@@ -195,6 +198,15 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                     readonly={!workspace.permissions.managePublicFiles}
                     help={t(
                       'When enabled, every file in the "public" folder at the root of the workspace filesystem can be downloaded by anyone who has its link, without signing in. Folder contents are never listed.',
+                    )}
+                  />
+                  <SwitchProperty
+                    id="aiEnabled"
+                    accessor="aiEnabled"
+                    label={t("Allow AI")}
+                    readonly={!workspace.permissions.manageAi}
+                    help={t(
+                      "When disabled, the AI assistant is unavailable in this workspace, it cannot be connected to AI tools through MCP, and its datasets stay out of reach of AI in the workspaces they are shared with. Disable it on workspaces holding sensitive data.",
                     )}
                   />
                 </DataCard.FormSection>

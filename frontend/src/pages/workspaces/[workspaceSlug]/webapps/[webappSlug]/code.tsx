@@ -31,6 +31,7 @@ import GitClonePopover from "webapps/features/GitClonePopover/GitClonePopover";
 import useCacheKey from "core/hooks/useCacheKey";
 import { WebappVersion_VersionFragment } from "webapps/graphql/queries.generated";
 import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
+import { isAiAvailable } from "assistant/helpers";
 
 type Props = {
   webappSlug: string;
@@ -121,8 +122,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
     }
   }, [proposedToolInvocationId, resolveProposal, refetch, resetCommitMessage]);
 
-  const showAssistant =
-    data?.workspace?.organization?.aiSettings?.enabled ?? false;
+  const showAssistant = isAiAvailable(data?.workspace);
   const aiBudgetLimitReached =
     data?.workspace?.organization?.aiBudgetLimitReached ?? false;
 

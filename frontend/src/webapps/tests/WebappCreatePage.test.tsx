@@ -33,6 +33,7 @@ const mockWorkspace = {
   slug: "test-workspace",
   countries: [],
   shortcuts: [],
+  aiEnabled: true,
   organization: {
     __typename: "Organization",
     id: "org-1",

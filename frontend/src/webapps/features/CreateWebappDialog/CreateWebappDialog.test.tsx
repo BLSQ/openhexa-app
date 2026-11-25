@@ -16,6 +16,7 @@ const buildWorkspace = ({
   aiBudgetLimitReached = false,
 } = {}) => ({
   slug: "test-workspace",
+  aiEnabled: true,
   organization: {
     id: "org-1",
     aiSettings: { enabled: aiEnabled },

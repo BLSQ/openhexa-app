@@ -530,6 +530,7 @@ enum AuthorizeMCPConnectionError {
   CLIENT_NOT_FOUND
   ORGANIZATION_NOT_FOUND
   TOOL_NOT_FOUND
+  WORKSPACE_AI_DISABLED
   WORKSPACE_NOT_FOUND
 }
 
@@ -5640,6 +5641,7 @@ enum UpdateMCPConnectionError {
   NOT_FOUND
   ORGANIZATION_NOT_FOUND
   TOOL_NOT_FOUND
+  WORKSPACE_AI_DISABLED
   WORKSPACE_NOT_FOUND
 }
 
@@ -6229,6 +6231,7 @@ enum UpdateWorkspaceError {
 
 """Represents the input for updating a workspace."""
 input UpdateWorkspaceInput {
+  aiEnabled: Boolean
   configuration: JSON
   countries: [CountryInput!]
   description: String
@@ -6513,6 +6516,7 @@ type WebappsPage {
 Represents a workspace. A workspace is a shared environment where users can collaborate on data projects.
 """
 type Workspace {
+  aiEnabled: Boolean!
   assistantConversations: [AssistantConversation!]!
 
   """File storage of the workspace represented as a bucket"""
@@ -6660,6 +6664,7 @@ type WorkspacePermissions {
   downloadObject: Boolean!
   generateToken: Boolean!
   launchNotebookServer: Boolean!
+  manageAi: Boolean!
   manageMembers: Boolean!
   managePublicFiles: Boolean!
   manageTags: Boolean!

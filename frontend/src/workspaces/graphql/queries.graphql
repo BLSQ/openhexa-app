@@ -13,6 +13,7 @@ query WorkspacePage($slug: String!) {
     description
     dockerImage
     configuration
+    aiEnabled
     publicFiles {
       url
     }
@@ -26,6 +27,7 @@ query WorkspacePage($slug: String!) {
       update
       manageMembers
       managePublicFiles
+      manageAi
     }
     ...ArchiveWorkspace_workspace
     ...InviteMemberWorkspace_workspace
@@ -88,6 +90,7 @@ query WorkspaceDataStudioPage($workspaceSlug: String!) {
       createSavedQuery
       shareSavedQuery
     }
+    aiEnabled
     organization {
       id
       aiSettings {
@@ -255,6 +258,7 @@ query WorkspacePipelineCodePage(
   workspace(slug: $workspaceSlug) {
     slug
     name
+    aiEnabled
     organization {
       id
       aiSettings {
@@ -977,6 +981,7 @@ query WorkspaceWebappsPage(
 
 query WorkspaceWebappPage($workspaceSlug: String!, $webappSlug: String!) {
   workspace(slug: $workspaceSlug) {
+    aiEnabled
     organization {
       id
       aiSettings {

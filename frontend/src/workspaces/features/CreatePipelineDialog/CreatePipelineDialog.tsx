@@ -19,6 +19,7 @@ import CreateWithAI, { useAIForm } from "assistant/features/CreateWithAI";
 import { InstructionSet } from "assistant/instructions";
 import { AssistantToolName } from "graphql/types";
 import BucketObjectPicker from "../BucketObjectPicker";
+import { isAiAvailable } from "assistant/helpers";
 
 type Method = "ai" | "template" | "notebook" | "cli" | null;
 
@@ -31,7 +32,7 @@ type CreatePipelineDialogProps = {
 const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
   const { t } = useTranslation();
   const { open, onClose, workspace } = props;
-  const aiEnabled = workspace.organization?.aiSettings?.enabled ?? false;
+  const aiEnabled = isAiAvailable(workspace);
   const aiBudgetLimitReached =
     workspace.organization?.aiBudgetLimitReached ?? false;
 
@@ -204,6 +205,7 @@ CreatePipelineDialog.fragments = {
       permissions {
         generateToken
       }
+      aiEnabled
       organization {
         id
         aiSettings {

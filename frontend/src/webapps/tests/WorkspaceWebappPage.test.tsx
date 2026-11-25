@@ -116,6 +116,7 @@ const graphqlMocks: MockedResponse[] = [
           name: "Test Workspace",
           countries: [],
           shortcuts: [],
+          aiEnabled: true,
           organization: ORGANIZATION,
           permissions: {
             launchNotebookServer: false,
@@ -140,6 +141,7 @@ const graphqlMocks: MockedResponse[] = [
           name: "Test Workspace",
           countries: [],
           shortcuts: [],
+          aiEnabled: true,
           organization: ORGANIZATION,
           permissions: {
             launchNotebookServer: false,
@@ -254,6 +256,7 @@ describe("WorkspaceWebappPage", () => {
                   name: "Test Workspace",
                   countries: [],
                   shortcuts: [],
+                  aiEnabled: true,
                   organization: ORGANIZATION,
                   permissions: {
                     launchNotebookServer: false,
@@ -336,6 +339,7 @@ describe("WorkspaceWebappPage", () => {
                   name: "Test Workspace",
                   countries: [],
                   shortcuts: [],
+                  aiEnabled: true,
                   organization: ORGANIZATION,
                   permissions: {
                     launchNotebookServer: false,
