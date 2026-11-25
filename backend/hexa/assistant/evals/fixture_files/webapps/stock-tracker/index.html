@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Stock Tracker</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        background: #f1f5f9;
+        color: #0f172a;
+      }
+      .page {
+        padding: 4px 6px;
+        margin: 0px 0;
+        border-radius: 6px;
+        font-size: 12px;
+      }
+      .toolbar {
+        padding: 6px 10px;
+        margin: 4px 0;
+        border-radius: 6px;
+        font-size: 13px;
+      }
+      .summary {
+        padding: 8px 14px;
+        margin: 8px 0;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+      .card {
+        padding: 10px 6px;
+        margin: 0px 0;
+        border-radius: 6px;
+        font-size: 15px;
+      }
+      .table {
+        padding: 4px 10px;
+        margin: 4px 0;
+        border-radius: 6px;
+        font-size: 12px;
+      }
+      .row {
+        padding: 6px 14px;
+        margin: 8px 0;
+        border-radius: 6px;
+        font-size: 13px;
+      }
+      .cell {
+        padding: 8px 6px;
+        margin: 0px 0;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+      .badge {
+        padding: 10px 10px;
+        margin: 4px 0;
+        border-radius: 6px;
+        font-size: 15px;
+      }
+      .badge-low {
+        padding: 4px 14px;
+        margin: 8px 0;
+        border-radius: 6px;
+        font-size: 12px;
+      }
+      .badge-ok {
+        padding: 6px 6px;
+        margin: 0px 0;
+        border-radius: 6px;
+        font-size: 13px;
+      }
+      .badge-out {
+        padding: 8px 10px;
+        margin: 4px 0;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+      .search {
+        padding: 10px 14px;
+        margin: 8px 0;
+        border-radius: 6px;
+        font-size: 15px;
+      }
+      .select {
+        padding: 4px 6px;
+        margin: 0px 0;
+        border-radius: 6px;
+        font-size: 12px;
+      }
+      .footer {
+        padding: 6px 10px;
+        margin: 4px 0;
+        border-radius: 6px;
+        font-size: 13px;
+      }
+      .pager {
+        padding: 8px 14px;
+        margin: 8px 0;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+      .empty {
+        padding: 10px 6px;
+        margin: 0px 0;
+        border-radius: 6px;
+        font-size: 15px;
+      }
+      .badge-low { background: #fef3c7; color: #92400e; }
+      .badge-ok { background: #dcfce7; color: #166534; }
+      .badge-out { background: #fee2e2; color: #991b1b; }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <h1>Stock Tracker</h1>
+      <section class="summary">
+        <div class="card">In stock: <strong id="count-ok">0</strong></div>
+        <div class="card">Low: <strong id="count-low">0</strong></div>
+        <div class="card">Out: <strong id="count-out">0</strong></div>
+      </section>
+      <section class="toolbar">
+        <input id="search" class="search" placeholder="Search items" />
+        <select id="category" class="select">
+          <option value="all">All categories</option>
+        </select>
+      </section>
+      <table id="stock-table" class="table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Category</th>
+            <th>Stock</th>
+            <th>Months of stock</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="empty" class="empty" hidden>No items match your filters.</p>
+      <nav class="pager">
+        <button id="prev">Previous</button>
+        <span id="page-info"></span>
+        <button id="next">Next</button>
+      </nav>
+    </main>
+    <script>
+      const LOW_STOCK_THRESHOLD = 20;
+      const PAGE_SIZE = 15;
+
+      const ITEMS = [
+        { id: 1, name: 'Artemether-lumefantrine 20/120 (unit)', category: 'Antimalarials', stock: 0, monthly_consumption: 10, updated_at: '2024-01-10' },
+        { id: 2, name: 'Artesunate injection 60mg (unit)', category: 'Diagnostics', stock: 37, monthly_consumption: 23, updated_at: '2024-02-11' },
+        { id: 3, name: 'SP tablets (unit)', category: 'Antibiotics', stock: 74, monthly_consumption: 36, updated_at: '2024-03-12' },
+        { id: 4, name: 'Amodiaquine 153mg (unit)', category: 'Vaccines', stock: 111, monthly_consumption: 49, updated_at: '2024-04-13' },
+        { id: 5, name: 'RDT malaria Pf (unit)', category: 'Consumables', stock: 8, monthly_consumption: 62, updated_at: '2024-05-14' },
+        { id: 6, name: 'RDT malaria Pf/Pan (unit)', category: 'Nutrition', stock: 45, monthly_consumption: 15, updated_at: '2024-06-15' },
+        { id: 7, name: 'Amoxicillin 250mg (unit)', category: 'Antimalarials', stock: 82, monthly_consumption: 28, updated_at: '2024-07-16' },
+        { id: 8, name: 'Amoxicillin 500mg (unit)', category: 'Diagnostics', stock: 119, monthly_consumption: 41, updated_at: '2024-08-17' },
+        { id: 9, name: 'Cotrimoxazole 480mg (unit)', category: 'Antibiotics', stock: 16, monthly_consumption: 54, updated_at: '2024-09-18' },
+        { id: 10, name: 'Ceftriaxone 1g (unit)', category: 'Vaccines', stock: 53, monthly_consumption: 67, updated_at: '2024-01-19' },
+        { id: 11, name: 'Gentamicin 80mg (unit)', category: 'Consumables', stock: 90, monthly_consumption: 20, updated_at: '2024-02-20' },
+        { id: 12, name: 'Metronidazole 250mg (unit)', category: 'Nutrition', stock: 127, monthly_consumption: 33, updated_at: '2024-03-21' },
+        { id: 13, name: 'Measles vaccine (unit)', category: 'Antimalarials', stock: 24, monthly_consumption: 46, updated_at: '2024-04-22' },
+        { id: 14, name: 'BCG vaccine (unit)', category: 'Diagnostics', stock: 61, monthly_consumption: 59, updated_at: '2024-05-23' },
+        { id: 15, name: 'Pentavalent vaccine (unit)', category: 'Antibiotics', stock: 98, monthly_consumption: 12, updated_at: '2024-06-24' },
+        { id: 16, name: 'Polio vaccine (bOPV) (unit)', category: 'Vaccines', stock: 135, monthly_consumption: 25, updated_at: '2024-07-25' },
+        { id: 17, name: 'Syringes 5ml (unit)', category: 'Consumables', stock: 32, monthly_consumption: 38, updated_at: '2024-08-26' },
+        { id: 18, name: 'Gloves (box) (unit)', category: 'Nutrition', stock: 69, monthly_consumption: 51, updated_at: '2024-09-27' },
+        { id: 19, name: 'Gauze rolls (unit)', category: 'Antimalarials', stock: 106, monthly_consumption: 64, updated_at: '2024-01-10' },
+        { id: 20, name: 'Cotton wool (unit)', category: 'Diagnostics', stock: 3, monthly_consumption: 17, updated_at: '2024-02-11' },
+        { id: 21, name: 'RUTF sachets (unit)', category: 'Antibiotics', stock: 40, monthly_consumption: 30, updated_at: '2024-03-12' },
+        { id: 22, name: 'ORS sachets (unit)', category: 'Vaccines', stock: 77, monthly_consumption: 43, updated_at: '2024-04-13' },
+        { id: 23, name: 'Zinc 20mg (unit)', category: 'Consumables', stock: 114, monthly_consumption: 56, updated_at: '2024-05-14' },
+        { id: 24, name: 'Vitamin A 200000 IU (unit)', category: 'Nutrition', stock: 11, monthly_consumption: 69, updated_at: '2024-06-15' },
+        { id: 25, name: 'Paracetamol 500mg (unit)', category: 'Antimalarials', stock: 48, monthly_consumption: 22, updated_at: '2024-07-16' },
+        { id: 26, name: 'Ibuprofen 400mg (unit)', category: 'Diagnostics', stock: 85, monthly_consumption: 35, updated_at: '2024-08-17' },
+        { id: 27, name: 'Iron-folic acid (unit)', category: 'Antibiotics', stock: 122, monthly_consumption: 48, updated_at: '2024-09-18' },
+        { id: 28, name: 'Mebendazole 500mg (unit)', category: 'Vaccines', stock: 19, monthly_consumption: 61, updated_at: '2024-01-19' },
+        { id: 29, name: 'Oxytocin 10 IU (unit)', category: 'Consumables', stock: 56, monthly_consumption: 14, updated_at: '2024-02-20' },
+        { id: 30, name: 'Magnesium sulfate (unit)', category: 'Nutrition', stock: 93, monthly_consumption: 27, updated_at: '2024-03-21' },
+        { id: 31, name: 'Insulin (vial) (unit)', category: 'Antimalarials', stock: 130, monthly_consumption: 40, updated_at: '2024-04-22' },
+        { id: 32, name: 'Salbutamol inhaler (unit)', category: 'Diagnostics', stock: 27, monthly_consumption: 53, updated_at: '2024-05-23' },
+        { id: 33, name: 'Hydrochlorothiazide (unit)', category: 'Antibiotics', stock: 64, monthly_consumption: 66, updated_at: '2024-06-24' },
+        { id: 34, name: 'Amlodipine 5mg (unit)', category: 'Vaccines', stock: 101, monthly_consumption: 19, updated_at: '2024-07-25' },
+        { id: 35, name: 'Metformin 500mg (unit)', category: 'Consumables', stock: 138, monthly_consumption: 32, updated_at: '2024-08-26' },
+        { id: 36, name: 'Glucose test strips (unit)', category: 'Nutrition', stock: 35, monthly_consumption: 45, updated_at: '2024-09-27' },
+        { id: 37, name: 'Malaria microscopy slides (unit)', category: 'Antimalarials', stock: 72, monthly_consumption: 58, updated_at: '2024-01-10' },
+        { id: 38, name: 'Giemsa stain (unit)', category: 'Diagnostics', stock: 109, monthly_consumption: 11, updated_at: '2024-02-11' },
+        { id: 39, name: 'LLIN (bednet) (unit)', category: 'Antibiotics', stock: 6, monthly_consumption: 24, updated_at: '2024-03-12' },
+        { id: 40, name: 'Chlorine tablets (unit)', category: 'Vaccines', stock: 43, monthly_consumption: 37, updated_at: '2024-04-13' },
+        { id: 41, name: 'Artemether-lumefantrine 20/120 (box)', category: 'Consumables', stock: 80, monthly_consumption: 50, updated_at: '2024-05-14' },
+        { id: 42, name: 'Artesunate injection 60mg (box)', category: 'Nutrition', stock: 117, monthly_consumption: 63, updated_at: '2024-06-15' },
+        { id: 43, name: 'SP tablets (box)', category: 'Antimalarials', stock: 14, monthly_consumption: 16, updated_at: '2024-07-16' },
+        { id: 44, name: 'Amodiaquine 153mg (box)', category: 'Diagnostics', stock: 51, monthly_consumption: 29, updated_at: '2024-08-17' },
+        { id: 45, name: 'RDT malaria Pf (box)', category: 'Antibiotics', stock: 88, monthly_consumption: 42, updated_at: '2024-09-18' },
+        { id: 46, name: 'RDT malaria Pf/Pan (box)', category: 'Vaccines', stock: 125, monthly_consumption: 55, updated_at: '2024-01-19' },
+        { id: 47, name: 'Amoxicillin 250mg (box)', category: 'Consumables', stock: 22, monthly_consumption: 68, updated_at: '2024-02-20' },
+        { id: 48, name: 'Amoxicillin 500mg (box)', category: 'Nutrition', stock: 59, monthly_consumption: 21, updated_at: '2024-03-21' },
+        { id: 49, name: 'Cotrimoxazole 480mg (box)', category: 'Antimalarials', stock: 96, monthly_consumption: 34, updated_at: '2024-04-22' },
+        { id: 50, name: 'Ceftriaxone 1g (box)', category: 'Diagnostics', stock: 133, monthly_consumption: 47, updated_at: '2024-05-23' },
+        { id: 51, name: 'Gentamicin 80mg (box)', category: 'Antibiotics', stock: 30, monthly_consumption: 60, updated_at: '2024-06-24' },
+        { id: 52, name: 'Metronidazole 250mg (box)', category: 'Vaccines', stock: 67, monthly_consumption: 13, updated_at: '2024-07-25' },
+        { id: 53, name: 'Measles vaccine (box)', category: 'Consumables', stock: 104, monthly_consumption: 26, updated_at: '2024-08-26' },
+        { id: 54, name: 'BCG vaccine (box)', category: 'Nutrition', stock: 1, monthly_consumption: 39, updated_at: '2024-09-27' },
+        { id: 55, name: 'Pentavalent vaccine (box)', category: 'Antimalarials', stock: 38, monthly_consumption: 52, updated_at: '2024-01-10' },
+        { id: 56, name: 'Polio vaccine (bOPV) (box)', category: 'Diagnostics', stock: 75, monthly_consumption: 65, updated_at: '2024-02-11' },
+        { id: 57, name: 'Syringes 5ml (box)', category: 'Antibiotics', stock: 112, monthly_consumption: 18, updated_at: '2024-03-12' },
+        { id: 58, name: 'Gloves (box) (box)', category: 'Vaccines', stock: 9, monthly_consumption: 31, updated_at: '2024-04-13' },
+        { id: 59, name: 'Gauze rolls (box)', category: 'Consumables', stock: 46, monthly_consumption: 44, updated_at: '2024-05-14' },
+        { id: 60, name: 'Cotton wool (box)', category: 'Nutrition', stock: 83, monthly_consumption: 57, updated_at: '2024-06-15' },
+        { id: 61, name: 'RUTF sachets (box)', category: 'Antimalarials', stock: 120, monthly_consumption: 10, updated_at: '2024-07-16' },
+        { id: 62, name: 'ORS sachets (box)', category: 'Diagnostics', stock: 17, monthly_consumption: 23, updated_at: '2024-08-17' },
+        { id: 63, name: 'Zinc 20mg (box)', category: 'Antibiotics', stock: 54, monthly_consumption: 36, updated_at: '2024-09-18' },
+        { id: 64, name: 'Vitamin A 200000 IU (box)', category: 'Vaccines', stock: 91, monthly_consumption: 49, updated_at: '2024-01-19' },
+        { id: 65, name: 'Paracetamol 500mg (box)', category: 'Consumables', stock: 128, monthly_consumption: 62, updated_at: '2024-02-20' },
+        { id: 66, name: 'Ibuprofen 400mg (box)', category: 'Nutrition', stock: 25, monthly_consumption: 15, updated_at: '2024-03-21' },
+        { id: 67, name: 'Iron-folic acid (box)', category: 'Antimalarials', stock: 62, monthly_consumption: 28, updated_at: '2024-04-22' },
+        { id: 68, name: 'Mebendazole 500mg (box)', category: 'Diagnostics', stock: 99, monthly_consumption: 41, updated_at: '2024-05-23' },
+        { id: 69, name: 'Oxytocin 10 IU (box)', category: 'Antibiotics', stock: 136, monthly_consumption: 54, updated_at: '2024-06-24' },
+        { id: 70, name: 'Magnesium sulfate (box)', category: 'Vaccines', stock: 33, monthly_consumption: 67, updated_at: '2024-07-25' },
+        { id: 71, name: 'Insulin (vial) (box)', category: 'Consumables', stock: 70, monthly_consumption: 20, updated_at: '2024-08-26' },
+        { id: 72, name: 'Salbutamol inhaler (box)', category: 'Nutrition', stock: 107, monthly_consumption: 33, updated_at: '2024-09-27' },
+        { id: 73, name: 'Hydrochlorothiazide (box)', category: 'Antimalarials', stock: 4, monthly_consumption: 46, updated_at: '2024-01-10' },
+        { id: 74, name: 'Amlodipine 5mg (box)', category: 'Diagnostics', stock: 41, monthly_consumption: 59, updated_at: '2024-02-11' },
+        { id: 75, name: 'Metformin 500mg (box)', category: 'Antibiotics', stock: 78, monthly_consumption: 12, updated_at: '2024-03-12' },
+        { id: 76, name: 'Glucose test strips (box)', category: 'Vaccines', stock: 115, monthly_consumption: 25, updated_at: '2024-04-13' },
+        { id: 77, name: 'Malaria microscopy slides (box)', category: 'Consumables', stock: 12, monthly_consumption: 38, updated_at: '2024-05-14' },
+        { id: 78, name: 'Giemsa stain (box)', category: 'Nutrition', stock: 49, monthly_consumption: 51, updated_at: '2024-06-15' },
+        { id: 79, name: 'LLIN (bednet) (box)', category: 'Antimalarials', stock: 86, monthly_consumption: 64, updated_at: '2024-07-16' },
+        { id: 80, name: 'Chlorine tablets (box)', category: 'Diagnostics', stock: 123, monthly_consumption: 17, updated_at: '2024-08-17' },
+      ];
+
+      const state = { query: '', category: 'all', page: 0 };
+
+      function stockStatus(item) {
+        if (item.stock === 0) return 'out';
+        if (item.stock < LOW_STOCK_THRESHOLD) return 'low';
+        return 'ok';
+      }
+
+      function monthsOfStock(item) {
+        if (!item.monthly_consumption) return null;
+        return (item.stock / item.monthly_consumption).toFixed(1);
+      }
+
+      function filtered() {
+        return ITEMS.filter((item) => {
+          const matchesQuery = item.name.toLowerCase().includes(state.query.toLowerCase());
+          const matchesCategory = state.category === 'all' || item.category === state.category;
+          return matchesQuery && matchesCategory;
+        });
+      }
+
+      function renderSummary(items) {
+        const counts = { ok: 0, low: 0, out: 0 };
+        items.forEach((item) => counts[stockStatus(item)]++);
+        document.getElementById('count-ok').textContent = counts.ok;
+        document.getElementById('count-low').textContent = counts.low;
+        document.getElementById('count-out').textContent = counts.out;
+      }
+
+      function renderTable(items) {
+        const tbody = document.querySelector('#stock-table tbody');
+        tbody.innerHTML = '';
+        const start = state.page * PAGE_SIZE;
+        items.slice(start, start + PAGE_SIZE).forEach((item) => {
+          const status = stockStatus(item);
+          const tr = document.createElement('tr');
+          tr.className = 'row';
+          tr.innerHTML = `
+            <td class="cell">${item.name}</td>
+            <td class="cell">${item.category}</td>
+            <td class="cell">${item.stock}</td>
+            <td class="cell">${monthsOfStock(item) ?? '–'}</td>
+            <td class="cell"><span class="badge badge-${status}">${status}</span></td>`;
+          tbody.appendChild(tr);
+        });
+        document.getElementById('page-info').textContent =
+          `${state.page + 1} / ${Math.max(1, Math.ceil(items.length / PAGE_SIZE))}`;
+      }
+
+      function render() {
+        const items = filtered();
+        renderSummary(items);
+        renderTable(items);
+        document.getElementById('empty').hidden = items.length > 0;
+      }
+
+      function populateCategories() {
+        const select = document.getElementById('category');
+        [...new Set(ITEMS.map((item) => item.category))].sort().forEach((category) => {
+          select.insertAdjacentHTML('beforeend', `<option>${category}</option>`);
+        });
+      }
+
+      document.getElementById('search').addEventListener('input', (event) => {
+        state.query = event.target.value;
+        state.page = 0;
+        render();
+      });
+      document.getElementById('category').addEventListener('change', (event) => {
+        state.category = event.target.value;
+        state.page = 0;
+        render();
+      });
+      document.getElementById('prev').addEventListener('click', () => {
+        state.page = Math.max(0, state.page - 1);
+        render();
+      });
+      document.getElementById('next').addEventListener('click', () => {
+        const pages = Math.ceil(filtered().length / PAGE_SIZE);
+        state.page = Math.min(pages - 1, state.page + 1);
+        render();
+      });
+
+      populateCategories();
+      render();
+    </script>
+  </body>
+</html>
