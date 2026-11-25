@@ -41,6 +41,13 @@ export type GenerateChallengeMutationVariables = Types.Exact<{ [key: string]: ne
 
 export type GenerateChallengeMutation = { __typename?: 'Mutation', generateChallenge: { __typename?: 'GenerateChallengeResult', success: boolean, errors?: Array<Types.GenerateChallengeError> | null } };
 
+export type VerifyTwoFactorLoginMutationVariables = Types.Exact<{
+  input: Types.VerifyTwoFactorLoginInput;
+}>;
+
+
+export type VerifyTwoFactorLoginMutation = { __typename?: 'Mutation', verifyTwoFactorLogin: { __typename?: 'VerifyTwoFactorLoginResult', success: boolean, errors?: Array<Types.VerifyTwoFactorLoginError> | null } };
+
 export type VerifyDeviceMutationVariables = Types.Exact<{
   input: Types.VerifyDeviceInput;
 }>;
@@ -275,6 +282,40 @@ export function useGenerateChallengeMutation(baseOptions?: Apollo.MutationHookOp
 export type GenerateChallengeMutationHookResult = ReturnType<typeof useGenerateChallengeMutation>;
 export type GenerateChallengeMutationResult = Apollo.MutationResult<GenerateChallengeMutation>;
 export type GenerateChallengeMutationOptions = Apollo.BaseMutationOptions<GenerateChallengeMutation, GenerateChallengeMutationVariables>;
+export const VerifyTwoFactorLoginDocument = gql`
+    mutation VerifyTwoFactorLogin($input: VerifyTwoFactorLoginInput!) {
+  verifyTwoFactorLogin(input: $input) {
+    success
+    errors
+  }
+}
+    `;
+export type VerifyTwoFactorLoginMutationFn = Apollo.MutationFunction<VerifyTwoFactorLoginMutation, VerifyTwoFactorLoginMutationVariables>;
+
+/**
+ * __useVerifyTwoFactorLoginMutation__
+ *
+ * To run a mutation, you first call `useVerifyTwoFactorLoginMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useVerifyTwoFactorLoginMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [verifyTwoFactorLoginMutation, { data, loading, error }] = useVerifyTwoFactorLoginMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useVerifyTwoFactorLoginMutation(baseOptions?: Apollo.MutationHookOptions<VerifyTwoFactorLoginMutation, VerifyTwoFactorLoginMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<VerifyTwoFactorLoginMutation, VerifyTwoFactorLoginMutationVariables>(VerifyTwoFactorLoginDocument, options);
+      }
+export type VerifyTwoFactorLoginMutationHookResult = ReturnType<typeof useVerifyTwoFactorLoginMutation>;
+export type VerifyTwoFactorLoginMutationResult = Apollo.MutationResult<VerifyTwoFactorLoginMutation>;
+export type VerifyTwoFactorLoginMutationOptions = Apollo.BaseMutationOptions<VerifyTwoFactorLoginMutation, VerifyTwoFactorLoginMutationVariables>;
 export const VerifyDeviceDocument = gql`
     mutation VerifyDevice($input: VerifyDeviceInput!) {
   verifyDevice(input: $input) {
