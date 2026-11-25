@@ -9,6 +9,7 @@ export interface RuntimeEnv {
   SENTRY_TRACES_SAMPLE_RATE: string;
   DISABLE_ANALYTICS: string;
   CONSOLE_URL: string;
+  CONSOLE_FREE_TRIAL_URL: string;
   CONTACT_EMAIL: string;
   MIXPANEL_TOKEN: string;
   MIXPANEL_API_HOST: string;
@@ -32,6 +33,8 @@ export function getPublicEnv(): RuntimeEnv {
     SENTRY_TRACES_SAMPLE_RATE: process.env.SENTRY_TRACES_SAMPLE_RATE ?? "1",
     DISABLE_ANALYTICS: process.env.DISABLE_ANALYTICS ?? "",
     CONSOLE_URL: process.env.CONSOLE_URL ?? "",
+    CONSOLE_FREE_TRIAL_URL:
+      process.env.CONSOLE_FREE_TRIAL_URL || process.env.CONSOLE_URL || "",
     CONTACT_EMAIL: process.env.CONTACT_EMAIL ?? "",
     MIXPANEL_TOKEN: process.env.MIXPANEL_TOKEN ?? "",
     MIXPANEL_API_HOST:
