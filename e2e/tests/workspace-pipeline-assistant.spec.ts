@@ -1,4 +1,6 @@
+import { features } from "../config/environment";
 import { expect, test } from "../fixtures/cleanup";
+import { requires } from "../helpers/features";
 import { uniqueName } from "../helpers/confirm";
 import {
   ASSISTANT_PIPELINE_SOURCE,
@@ -15,6 +17,8 @@ import { WorkspacePipelinesPage } from "../pages/WorkspacePipelinesPage";
 test.describe.configure({ timeout: 420_000 });
 
 test.describe("Pipeline AI assistant", () => {
+  requires("ai");
+
   test("a pipeline created with AI opens in the editor with its conversation", async ({
     page,
     cleanup,
@@ -212,5 +216,39 @@ test.describe("Pipeline AI assistant", () => {
       await expect(assistant.historyEntries).toHaveCount(2);
       await expect(assistant.historyEntry(firstName)).toBeVisible();
     });
+  });
+});
+
+test.describe("Pipelines without the AI assistant", () => {
+  test.skip(features.ai, "The environment has the assistant.");
+
+  test("the Create dialog does not offer to create with AI", async ({
+    page,
+  }) => {
+    const pipelines = new WorkspacePipelinesPage(page);
+    const dialog = new CreatePipelineWithAIDialog(page);
+
+    await pipelines.goto();
+    await dialog.openButton.click();
+
+    await expect(dialog.method("From Template")).toBeVisible();
+    await expect(dialog.method("From Notebook")).toBeVisible();
+    await expect(dialog.methodButton).toHaveCount(0);
+  });
+
+  test("the Code tab has no assistant", async ({ page, cleanup }) => {
+    const pipelines = new WorkspacePipelinesPage(page);
+    const assistant = new PipelineAssistantPanel(page);
+
+    const code = await pipelines.createWithSource(
+      uniqueName("e2e-no-assistant"),
+      ASSISTANT_PIPELINE_SOURCE,
+    );
+    cleanup.add(`pipeline ${code}`, () => pipelines.deleteIfPresent(code));
+
+    await pipelines.gotoCode(code);
+    await expect(pipelines.codeEditor).toContainText(ORIGINAL_LOG_MESSAGE);
+    await expect(assistant.openButton).toHaveCount(0);
+    await expect(assistant.heading).toHaveCount(0);
   });
 });
