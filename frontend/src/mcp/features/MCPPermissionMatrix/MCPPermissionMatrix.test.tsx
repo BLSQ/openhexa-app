@@ -31,6 +31,7 @@ const workspaces = [
     countries: [],
     currentMembership: { role: WorkspaceMembershipRole.Viewer },
     organization: { id: ministry.id },
+    aiEnabled: true,
   },
   {
     slug: "edited",
@@ -38,6 +39,7 @@ const workspaces = [
     countries: [],
     currentMembership: { role: WorkspaceMembershipRole.Editor },
     organization: { id: ministry.id },
+    aiEnabled: true,
   },
   {
     slug: "partnered",
@@ -45,6 +47,7 @@ const workspaces = [
     countries: [],
     currentMembership: { role: WorkspaceMembershipRole.Editor },
     organization: { id: partner.id },
+    aiEnabled: true,
   },
 ];
 
@@ -200,5 +203,52 @@ describe("MCPPermissionMatrix", () => {
     });
 
     expect(screen.getByText(VIEWER_NOTE)).toBeInTheDocument();
+  });
+});
+
+describe("MCPPermissionMatrix with a workspace whose admins disabled AI", () => {
+  const blocked = {
+    slug: "blocked",
+    name: "Blocked",
+    countries: [],
+    currentMembership: { role: WorkspaceMembershipRole.Editor },
+    organization: { id: ministry.id },
+    aiEnabled: false,
+  };
+
+  const renderWithBlocked = (grant: MCPGrant) =>
+    render(
+      <MCPPermissionMatrix
+        idPrefix="test"
+        grant={grant}
+        organizations={[ministry, partner]}
+        workspaces={[...workspaces, blocked]}
+        tools={tools}
+        onChange={jest.fn()}
+      />,
+    );
+
+  it("cannot be selected", () => {
+    renderWithBlocked({ workspaceSlugs: [], organizationIds: [], tools: [] });
+    expandAll();
+
+    const checkbox = screen.getByLabelText(/^Blocked/);
+    expect(checkbox).toBeDisabled();
+    expect(checkbox).not.toBeChecked();
+    expect(screen.getByText("Blocked").closest("label")).toHaveTextContent(
+      "AI disabled",
+    );
+  });
+
+  it("stays out of a grant covering its whole organization", () => {
+    renderWithBlocked({
+      workspaceSlugs: [],
+      organizationIds: [ministry.id],
+      tools: [],
+    });
+    expandAll();
+
+    expect(screen.getByLabelText(/^Blocked/)).not.toBeChecked();
+    expect(screen.getByLabelText(/^Edited/)).toBeChecked();
   });
 });

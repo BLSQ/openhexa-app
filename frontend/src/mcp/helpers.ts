@@ -15,6 +15,9 @@ export function getMCPErrorMessage(t: TFunction, errors?: string[]): string {
     WORKSPACE_NOT_FOUND: t(
       "You no longer have access to one of the selected workspaces. Reload the page and try again.",
     ),
+    WORKSPACE_AI_DISABLED: t(
+      "AI has been disabled on one of the selected workspaces by its administrators. Reload the page and try again.",
+    ),
   };
   const code = errors?.find((error) => error in messages);
   return code ? messages[code] : t("An error occurred. Please try again.");

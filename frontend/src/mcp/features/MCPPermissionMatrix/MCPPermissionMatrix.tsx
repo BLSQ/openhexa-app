@@ -34,12 +34,16 @@ export type MCPWorkspace = {
   countries: { code: string }[];
   currentMembership?: { role: WorkspaceMembershipRole } | null;
   organization: { id: string };
+  aiEnabled: boolean;
 };
 
+// A workspace whose admins blocked AI stays out of every grant, even one
+// covering its whole organization.
 export function isWorkspaceGranted(grant: MCPGrant, workspace: MCPWorkspace) {
   return (
-    grant.organizationIds.includes(workspace.organization.id) ||
-    grant.workspaceSlugs.includes(workspace.slug)
+    workspace.aiEnabled &&
+    (grant.organizationIds.includes(workspace.organization.id) ||
+      grant.workspaceSlugs.includes(workspace.slug))
   );
 }
 
@@ -531,7 +535,9 @@ const MCPPermissionMatrix = ({
                           htmlFor={`${idPrefix}-workspace-${workspace.slug}`}
                           className={clsx(
                             "flex items-center gap-2.5 rounded-md px-2 py-1.5",
-                            disabled || organizationGranted
+                            disabled ||
+                              organizationGranted ||
+                              !workspace.aiEnabled
                               ? "cursor-not-allowed"
                               : "cursor-pointer hover:bg-gray-50",
                           )}
@@ -539,7 +545,11 @@ const MCPPermissionMatrix = ({
                           <input
                             type="checkbox"
                             id={`${idPrefix}-workspace-${workspace.slug}`}
-                            disabled={disabled || organizationGranted}
+                            disabled={
+                              disabled ||
+                              organizationGranted ||
+                              !workspace.aiEnabled
+                            }
                             checked={isWorkspaceSelected(workspace)}
                             onChange={(event) =>
                               toggleWorkspace(
@@ -570,6 +580,11 @@ const MCPPermissionMatrix = ({
                               {workspace.slug}
                             </span>
                           </span>
+                          {!workspace.aiEnabled && (
+                            <span className="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-600">
+                              {t("AI disabled")}
+                            </span>
+                          )}
                           {workspace.currentMembership?.role ===
                             WorkspaceMembershipRole.Viewer && (
                             <span className="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-700">
