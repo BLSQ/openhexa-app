@@ -35,6 +35,8 @@ If you're a workspace Admin, you can use the **Administration** option to manage
 
 In the general configuration, you can change the workspace name and define the associated countries. These settings help identify your workspace across the platform.
 
+Administrators can also block AI on a workspace that holds sensitive data, see [Blocking AI on a workspace](ai.md#blocking-ai-on-a-workspace).
+
 ![Workspace general settings](../assets/images/workspaces/workspace_general.png)
 
 ### Docker image configuration

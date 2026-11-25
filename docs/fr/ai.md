@@ -68,6 +68,16 @@ Les outils sont regroupés par type de ressource. Chaque autorisation couvre un 
 
 Seul l'outil d'aide, qui renvoie la documentation OpenHEXA, fonctionne sans autorisation préalable. Aucun outil MCP n'exécute de requête SQL sur une base de données de workspace ni ne renvoie de secrets de connexion.
 
+## Bloquer l'IA sur un workspace
+
+Les workspaces contiennent souvent des données sensibles, comme des données personnelles. Les administrateurs du workspace, ainsi que les administrateurs et propriétaires de l'organisation, peuvent y bloquer l'IA en désactivant **Autoriser l'IA** dans **Paramètres → Général** du workspace. L'IA est autorisée par défaut, et ce paramètre s'applique que l'organisation ait activé l'assistant intégré ou non.
+
+Lorsque l'IA est bloquée sur un workspace :
+
+- L'assistant intégré n'y est plus disponible, y compris pour les conversations commencées avant le blocage. Une réponse que l'assistant est déjà en train de rédiger au moment du blocage peut se terminer, mais ses appels d'outils suivants n'accèdent plus au workspace.
+- Les clients MCP ne peuvent plus y accéder, et il ne peut pas être sélectionné sur la page des permissions MCP. Les connexions qui y avaient accès, directement ou via son organisation, l'ignorent tant que l'IA y est bloquée, et y accèdent de nouveau dès que l'IA est autorisée.
+- Ses jeux de données et ses modèles de pipelines restent hors de portée de l'IA partout, y compris dans les workspaces avec lesquels ils sont partagés.
+
 ## Modèles
 
 !!! info "Les modèles évoluent avec le temps"

@@ -35,6 +35,8 @@ Si vous êtes un Admin d'espace de travail, vous pouvez utiliser l'option **Admi
 
 Dans la configuration générale, vous pouvez changer le nom de l'espace de travail et définir les pays associés. Ces paramètres aident à identifier votre espace de travail sur la plateforme.
 
+Les administrateurs peuvent aussi bloquer l'IA sur un espace de travail contenant des données sensibles, voir [Bloquer l'IA sur un workspace](ai.md#bloquer-lia-sur-un-workspace).
+
 ![Workspace general settings](../assets/images/workspaces/workspace_general.png)
 
 ### Configuration de l'image Docker
