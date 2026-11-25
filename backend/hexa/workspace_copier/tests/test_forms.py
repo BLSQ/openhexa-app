@@ -126,6 +126,18 @@ class CopyWorkspaceFormTest(SimpleTestCase):
         self.assertTrue(form.is_valid(), form.errors)
         self.assertEqual(form.cleaned_data["target_url"], "")
 
+    def test_this_server_ignores_an_invalid_leftover_custom_url(self):
+        form = CopyWorkspaceForm(data=_base_data(target_url="not a url"))
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["target_url"], "")
+
+    def test_custom_server_rejects_an_invalid_url(self):
+        form = CopyWorkspaceForm(
+            data=_base_data(target_server=CUSTOM_SERVER, target_url="not a url")
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("target_url", form.errors)
+
     def test_unknown_server_is_rejected(self):
         form = CopyWorkspaceForm(
             data=_base_data(source_server="https://evil.example.org/graphql/")

@@ -1,3 +1,4 @@
+import ssl
 from unittest.mock import MagicMock, patch
 
 import httpx
@@ -54,6 +55,27 @@ class VerifySideTest(SimpleTestCase):
         result, error = _verify_side("target", build)
         self.assertIsNone(result)
         self.assertEqual(error, "target server is unreachable (ConnectError).")
+
+    def test_certificate_failure_points_to_the_ssl_option(self):
+        certificate_error = ssl.SSLCertVerificationError(
+            1, "[SSL: CERTIFICATE_VERIFY_FAILED]"
+        )
+        certificate_error.verify_message = "certificate has expired"
+
+        def build():
+            try:
+                raise certificate_error
+            except ssl.SSLError as exc:
+                raise httpx.ConnectError(str(exc)) from exc
+
+        result, error = _verify_side("source", build)
+        self.assertIsNone(result)
+        self.assertEqual(
+            error,
+            "source server's SSL certificate could not be verified (certificate "
+            "has expired). If the certificate is known to be expired or "
+            "self-signed, disable SSL certificate verification.",
+        )
 
 
 class CredentialErrorTest(SimpleTestCase):

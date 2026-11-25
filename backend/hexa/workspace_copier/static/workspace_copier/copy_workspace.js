@@ -119,7 +119,14 @@
     function syncServer(side) {
         const custom = form.elements[side + "_server"].value === CUSTOM_SERVER;
         document.getElementById(side + "-custom-url").hidden = !custom;
+        // A hidden invalid URL would block the submit with an error the
+        // browser has nowhere to show; disabled, it is neither checked nor sent.
+        form.elements[side + "_url"].disabled = !custom;
         PICKERS.filter((picker) => picker.side === side).forEach((picker) => picker.sync());
+    }
+
+    function serverPairKey() {
+        return SIDES.map(serverKey).join(" ");
     }
 
     function syncSslWarning() {
@@ -192,12 +199,41 @@
     // Tokens are remembered per side and server. A token saved for the other
     // side of the same server is the next best guess: one service account
     // often serves both.
-    function fillToken(side) {
+    // Only a token this function filled in is ever replaced: one the operator
+    // typed stays. An edit of the custom URL (keepUnmatched) also keeps a
+    // filled token that has no match, so fixing a typo in the URL doesn't lose
+    // the token saved under the mistyped one; picking another server clears
+    // it, as it belongs to the previous server.
+    const filledTokens = {};
+
+    function fillToken(side, keepUnmatched) {
+        const input = form.elements[side + "_token"];
+        if (input.value && input.value !== filledTokens[side]) return;
         const tokens = load(sessionStorage, SESSION_KEY).tokens || {};
         const other = side === "source" ? "target" : "source";
         const key = serverKey(side);
-        form.elements[side + "_token"].value =
-            tokens[side + "|" + key] || tokens[other + "|" + key] || "";
+        const token = tokens[side + "|" + key] || tokens[other + "|" + key] || "";
+        if (!token && keepUnmatched) return;
+        input.value = token;
+        filledTokens[side] = token;
+    }
+
+    // Disabling SSL verification is remembered for the pair of servers it was
+    // chosen for, so it never carries over to a copy between other servers.
+    // A box the operator ticked by hand is left alone.
+    let sslFilled = false;
+
+    function fillSsl() {
+        const box = form.elements["disable_ssl_verification"];
+        const pairs = load(sessionStorage, SESSION_KEY).sslDisabledFor || {};
+        if (pairs[serverPairKey()]) {
+            sslFilled = sslFilled || !box.checked;
+            box.checked = true;
+        } else if (sslFilled) {
+            box.checked = false;
+            sslFilled = false;
+        }
+        syncSslWarning();
     }
 
     function remember() {
@@ -218,9 +254,15 @@
             const token = form.elements[side + "_token"].value;
             if (token) tokens[side + "|" + serverKey(side)] = token;
         });
+        const sslDisabledFor = session.sslDisabledFor || {};
+        if (readField("disable_ssl_verification")) {
+            sslDisabledFor[serverPairKey()] = true;
+        } else {
+            delete sslDisabledFor[serverPairKey()];
+        }
         store(sessionStorage, SESSION_KEY, {
             tokens: tokens,
-            disableSslVerification: readField("disable_ssl_verification"),
+            sslDisabledFor: sslDisabledFor,
         });
     }
 
@@ -229,29 +271,32 @@
         REMEMBERED_FIELDS.forEach((name) => {
             if (name in values) writeField(name, values[name]);
         });
-        writeField(
-            "disable_ssl_verification",
-            load(sessionStorage, SESSION_KEY).disableSslVerification
-        );
-        SIDES.forEach(fillToken);
+        SIDES.forEach((side) => fillToken(side));
+        fillSsl();
     }
 
     if (config.restore) restore();
 
     SIDES.forEach((side) => {
-        const onServerChange = () => {
+        form.elements[side + "_server"].addEventListener("change", () => {
             syncServer(side);
             fillToken(side);
-        };
-        form.elements[side + "_server"].addEventListener("change", onServerChange);
-        form.elements[side + "_url"].addEventListener("change", () => fillToken(side));
+            fillSsl();
+        });
+        form.elements[side + "_url"].addEventListener("change", () => {
+            fillToken(side, true);
+            fillSsl();
+        });
         syncServer(side);
     });
     checkboxes("resources").forEach((box) => box.addEventListener("change", syncResourceOptions));
     form.querySelectorAll('input[name="target_mode"]').forEach((radio) => {
         radio.addEventListener("change", syncTargetMode);
     });
-    form.elements["disable_ssl_verification"].addEventListener("change", syncSslWarning);
+    form.elements["disable_ssl_verification"].addEventListener("change", () => {
+        sslFilled = false;
+        syncSslWarning();
+    });
     form.addEventListener("submit", remember);
     document.getElementById("copier-forget").addEventListener("click", () => {
         forget(localStorage, FORM_KEY);

@@ -200,6 +200,9 @@ class CopyWorkspaceForm(forms.Form):
         server = cleaned.get(f"{side}_server", "")
         if server != CUSTOM_SERVER:
             cleaned[f"{side}_url"] = server
+            # The custom URL row is hidden then, so an error on a leftover
+            # value would block the form without being shown.
+            self.errors.pop(f"{side}_url", None)
         elif not cleaned.get(f"{side}_url") and f"{side}_url" not in self.errors:
             self.add_error(f"{side}_url", "This field is required.")
 

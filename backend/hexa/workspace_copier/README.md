@@ -172,7 +172,7 @@ The form is built for making several copies in a row:
 - **Service accounts**: the page starts with the steps to create the tokens it asks for.
 - **Servers** are picked from a list (this server, production, demo, localhost), each shown with its GraphQL endpoint; "Other…" takes any endpoint. The presets are `SERVER_PRESETS` in `forms.py`.
 - **Search pickers**: when a side is this server, the source workspace, the existing target workspace and the target organization are picked with the admin's search widget, across the whole instance. On another server these are free-text fields.
-- **Remembered values**: the browser keeps the servers, target organization and resource choices in `localStorage`, and the tokens (per server) in `sessionStorage`, so the tokens are gone once the tab is closed. Workspace slugs and the new workspace's name are never remembered. "Forget remembered values" clears everything. Nothing more is stored on the server than before.
+- **Remembered values**: the browser keeps the servers, target organization and resource choices in `localStorage`, and the tokens (per server) and the disabled SSL verification (per pair of servers) in `sessionStorage`, so those are gone once the tab is closed. Workspace slugs and the new workspace's name are never remembered. "Forget remembered values" clears everything. Nothing more is stored on the server than before.
 - **"Disable SSL certificate verification"** is the admin counterpart of `--disable-ssl-verification`, with the same risk: use it only for a server whose certificate is known to be expired or self-signed. The choice is recorded on the run (`verify_ssl`).
 
 ## Async execution

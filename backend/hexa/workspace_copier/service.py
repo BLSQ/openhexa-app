@@ -14,6 +14,7 @@ checked even if the first fails, so the user sees every problem at once rather
 than fixing them one round-trip at a time.
 """
 
+import ssl
 from collections.abc import Callable
 from typing import Any
 
@@ -221,6 +222,21 @@ def _build_remote_client(side: str, url: str, token: str) -> Client:
     return build_client(url, token, label=side)
 
 
+def _certificate_error(exc: BaseException) -> ssl.SSLCertVerificationError | None:
+    """Find the certificate verification failure behind ``exc``, if there is one.
+
+    httpx reports it as a plain ``ConnectError``; the TLS error is only
+    reachable through the exception chain.
+    """
+    seen = set()
+    while exc is not None and id(exc) not in seen:
+        if isinstance(exc, ssl.SSLCertVerificationError):
+            return exc
+        seen.add(id(exc))
+        exc = exc.__cause__ or exc.__context__
+    return None
+
+
 def _verify_side(side: str, build: Callable[[], Any]) -> tuple[Any | None, str | None]:
     """Build one endpoint (or client), returning ``(value, error_message)``.
 
@@ -234,6 +250,14 @@ def _verify_side(side: str, build: Callable[[], Any]) -> tuple[Any | None, str |
         # build_client already labels authentication failures with the side.
         return None, str(exc)
     except httpx.HTTPError as exc:
+        certificate_error = _certificate_error(exc)
+        if certificate_error is not None:
+            return None, (
+                f"{side} server's SSL certificate could not be verified "
+                f"({certificate_error.verify_message}). If the certificate is "
+                "known to be expired or self-signed, disable SSL certificate "
+                "verification."
+            )
         return None, f"{side} server is unreachable ({exc.__class__.__name__})."
 
 
