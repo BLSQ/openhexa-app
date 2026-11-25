@@ -70,7 +70,10 @@ def _build_source(
     )
     workspace = client.workspace(slug=slug)
     if workspace is None:
-        raise GraphQLError(f"source workspace '{slug}' not found")
+        raise GraphQLError(
+            f"source workspace '{slug}' not found: it does not exist, or the "
+            "token's account is not a member of it."
+        )
     return Endpoint(client, slug, workspace=workspace)
 
 

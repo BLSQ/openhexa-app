@@ -10,7 +10,7 @@ A single `orchestrator.copy_workspace(source, target, *, resources)` owns an ord
 
 The read-vs-write asymmetry lives inside each copier (it reads from `source`, writes to `target`), so the orchestration is written once and shared by every entry point.
 
-Two resources need direct access to the server's database and git server, so they only run in a **same-server copy** (`--same-server` on the CLI, "Both workspaces are on this server" in the admin): the workspace [database](#database) and [static web apps](#static-web-apps-on-the-same-server). The operator states it explicitly rather than the copier guessing from URLs, which have several valid spellings for the same server. Pre-flight checks that the source workspace (and an existing target) are in this server's database, so a wrong flag stops the run before anything is copied.
+Two resources need direct access to the server's database and git server, so they only run in a **same-server copy** (`--same-server` on the CLI; in the admin, picking "This server" as both source and target): the workspace [database](#database) and [static web apps](#static-web-apps-on-the-same-server). The operator states it explicitly rather than the copier guessing from URLs, which have several valid spellings for the same server: in the admin, a custom URL that happens to be this server is not a same-server copy. Pre-flight checks that the source workspace (and an existing target) are in this server's database, so a wrong flag stops the run before anything is copied.
 
 ```
 service.run_copy(...)        # builds both Endpoints, calls the orchestrator
@@ -148,7 +148,7 @@ When `--target-workspace-slug` is set:
 
 #### Static web apps on the same server
 
-Static web apps are copied in a same-server copy (`--same-server`, or "Both workspaces are on this server" in the admin). The run copies everything else as usual over GraphQL, and static web apps in the same run, directly through the ORM and Forgejo, since both workspaces are in this server's database. Iframe web apps still go through GraphQL.
+Static web apps are copied in a same-server copy (`--same-server`, or "This server" on both sides in the admin). The run copies everything else as usual over GraphQL, and static web apps in the same run, directly through the ORM and Forgejo, since both workspaces are in this server's database. Iframe web apps still go through GraphQL.
 
 Without the option, static web apps are skipped with a warning. With it, if a workspace turns out not to be on this server (a new target created on another one), each static web app fails with a message saying so.
 
@@ -166,6 +166,14 @@ Without it, each static web app fails with a message naming this setting, and th
 On the workspaces list page, there's a button "Copy workspace". Submitting its form **queues** a copy run and redirects to the run's admin page (Workspace copier → Workspace copy runs), which refreshes itself while the run is queued or running and shows its logs and summary.
 
 The view is Superuser-only. Entered credentials are stored encrypted on the run and erased when it ends.
+
+The form is built for making several copies in a row:
+
+- **Service accounts**: the page starts with the steps to create the tokens it asks for.
+- **Servers** are picked from a list (this server, production, demo, localhost), each shown with its GraphQL endpoint; "Other…" takes any endpoint. The presets are `SERVER_PRESETS` in `forms.py`.
+- **Search pickers**: when a side is this server, the source workspace, the existing target workspace and the target organization are picked with the admin's search widget, across the whole instance. On another server these are free-text fields.
+- **Remembered values**: the browser keeps the servers, target organization and resource choices in `localStorage`, and the tokens (per server) in `sessionStorage`, so the tokens are gone once the tab is closed. Workspace slugs and the new workspace's name are never remembered. "Forget remembered values" clears everything. Nothing more is stored on the server than before.
+- **"Disable SSL certificate verification"** is the admin counterpart of `--disable-ssl-verification`, with the same risk: use it only for a server whose certificate is known to be expired or self-signed. The choice is recorded on the run (`verify_ssl`).
 
 ## Async execution
 

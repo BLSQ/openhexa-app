@@ -94,8 +94,8 @@ class WebappsCopier(ResourceCopier):
     name = "webapps"
     label = "Web apps"
     help_text = (
-        'Static web apps are copied with their full history only with "Both '
-        'workspaces are on this server". Superset web apps only within the same '
+        "Static web apps are copied with their full history only when source "
+        "and target are both this server. Superset web apps only within the same "
         "organization on this server."
     )
 

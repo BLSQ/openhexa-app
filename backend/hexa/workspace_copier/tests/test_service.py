@@ -115,7 +115,13 @@ class VerifyEndpointsTest(SimpleTestCase):
         with self.assertRaises(CredentialError) as ctx:
             _verify_endpoints(**_kwargs())
 
-        self.assertEqual(ctx.exception.errors, ["source workspace 'my-ws' not found"])
+        self.assertEqual(
+            ctx.exception.errors,
+            [
+                "source workspace 'my-ws' not found: it does not exist, or the "
+                "token's account is not a member of it."
+            ],
+        )
 
     @patch("hexa.workspace_copier.service.build_client")
     def test_success_returns_both_endpoints(self, mock_build):

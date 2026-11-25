@@ -1,9 +1,28 @@
 """Forms backing the workspace-copier admin views."""
 
 from django import forms
+from django.conf import settings
 
 from hexa.workspace_copier.orchestrator import WORKSPACE_COPIERS
 from hexa.workspace_copier.templates import DEFAULT_SOURCE_URL
+
+CUSTOM_SERVER = "custom"
+
+SERVER_PRESETS = [
+    (DEFAULT_SOURCE_URL, "Production (SaaS)"),
+    ("https://api.demo.openhexa.org/graphql/", "Demo"),
+    ("http://localhost:8000/graphql/", "Localhost"),
+]
+
+
+def _server_choices() -> list[tuple[str, str]]:
+    """List the servers a side can be, each labelled with its GraphQL endpoint."""
+    this_server_url = f"{settings.BASE_URL.rstrip('/')}/graphql/"
+    return [
+        ("", f"This server — {this_server_url}"),
+        *((url, f"{label} — {url}") for url, label in SERVER_PRESETS),
+        (CUSTOM_SERVER, "Other…"),
+    ]
 
 
 def _resource_choices() -> list[tuple[str, str]]:
@@ -44,28 +63,46 @@ class ResourceSelect(forms.CheckboxSelectMultiple):
 class CopyWorkspaceForm(forms.Form):
     """Pick a source endpoint, a target endpoint, and the resources to copy.
 
-    A blank server URL means this server's GraphQL endpoint (resolved by the
-    service): this server is reached over GraphQL like any other, so a token is
-    required on both sides. The mandatory
+    Each side's server is picked from a list; ``clean`` turns that choice into
+    the ``source_url`` / ``target_url`` the service expects, where blank means
+    this server's GraphQL endpoint. Picking this server on both sides makes it
+    a same-server copy, which also copies the database and static web apps.
+    This server is reached over GraphQL like any
+    other, so a token is required on both sides. The mandatory
     workspace-metadata copier is always run regardless of what the operator
     selects.
     """
 
+    source_server = forms.ChoiceField(
+        required=False,
+        label="Source server",
+        choices=_server_choices,
+    )
     source_url = forms.URLField(
         required=False,
-        label="Source server URL",
-        help_text="GraphQL endpoint of the source server. Leave blank for this server.",
+        label="Custom server URL",
+        help_text="GraphQL endpoint of the source server, "
+        "e.g. https://api.example.org/graphql/",
     )
     source_token = forms.CharField(
         label="Source ServiceAccount token",
         widget=forms.PasswordInput(render_value=True),
     )
-    source_slug = forms.CharField(label="Source workspace slug")
+    source_slug = forms.CharField(
+        label="Source workspace slug",
+        help_text="On this server, type to search by slug or name.",
+    )
 
+    target_server = forms.ChoiceField(
+        required=False,
+        label="Target server",
+        choices=_server_choices,
+    )
     target_url = forms.URLField(
         required=False,
-        label="Target server URL",
-        help_text="GraphQL endpoint of the target server. Leave blank for this server.",
+        label="Custom server URL",
+        help_text="GraphQL endpoint of the target server, "
+        "e.g. https://api.example.org/graphql/",
     )
     target_token = forms.CharField(
         label="Target ServiceAccount token",
@@ -86,7 +123,8 @@ class CopyWorkspaceForm(forms.Form):
     target_organization = forms.CharField(
         required=False,
         label="Target organization id",
-        help_text="UUID of the organization to create the workspace under.",
+        help_text="UUID of the organization to create the workspace under. "
+        "On this server, type to search by name.",
     )
     target_workspace_name = forms.CharField(
         required=False,
@@ -97,16 +135,16 @@ class CopyWorkspaceForm(forms.Form):
     target_workspace_slug = forms.CharField(
         required=False,
         label="Target workspace slug",
-        help_text="Slug of the existing workspace to copy into.",
+        help_text="Slug of the existing workspace to copy into. "
+        "On this server, type to search by slug or name.",
     )
 
-    same_server = forms.BooleanField(
+    disable_ssl_verification = forms.BooleanField(
         required=False,
-        label="Both workspaces are on this server",
+        label="Disable SSL certificate verification",
         label_suffix="",
-        help_text="Also copies the workspace database and static web apps, which "
-        "need direct access to this server's database and git server. The run "
-        "stops before copying anything if a workspace is not on this server.",
+        help_text="Only for a server whose certificate is known to be expired or "
+        "self-signed.",
     )
 
     resources = forms.MultipleChoiceField(
@@ -132,6 +170,12 @@ class CopyWorkspaceForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["resources"].initial = _default_resources()
+        for field in self.fields.values():
+            # The admin's own class for text inputs, so they get its width.
+            if isinstance(
+                field.widget, forms.TextInput | forms.URLInput | forms.PasswordInput
+            ):
+                field.widget.attrs.setdefault("class", "vTextField")
 
     def resource_rows(self):
         """Pair each resource checkbox with the option fields tuning that resource.
@@ -152,8 +196,23 @@ class CopyWorkspaceForm(forms.Form):
                 "options": [self[field] for field in option_fields.get(name, ())],
             }
 
+    def _resolve_server_url(self, cleaned, side):
+        server = cleaned.get(f"{side}_server", "")
+        if server != CUSTOM_SERVER:
+            cleaned[f"{side}_url"] = server
+        elif not cleaned.get(f"{side}_url") and f"{side}_url" not in self.errors:
+            self.add_error(f"{side}_url", "This field is required.")
+
     def clean(self):
         cleaned = super().clean()
+        self._resolve_server_url(cleaned, "source")
+        self._resolve_server_url(cleaned, "target")
+        # Only the explicit "This server" choice counts: a custom URL has
+        # several valid spellings for this server, so it is never guessed from.
+        cleaned["same_server"] = (
+            cleaned.get("source_server") == "" and cleaned.get("target_server") == ""
+        )
+
         if cleaned.get("target_mode") == "existing":
             # Hidden fields may still carry values typed before switching mode.
             cleaned["target_organization"] = ""
@@ -165,7 +224,9 @@ class CopyWorkspaceForm(forms.Form):
             if not cleaned.get("target_organization"):
                 self.add_error("target_organization", "This field is required.")
 
-        selected = set(cleaned.get("resources") or _default_resources())
+        # The mandatory copiers' boxes are disabled, so they are never posted:
+        # an empty selection means "only the mandatory ones", not "everything".
+        selected = set(cleaned.get("resources") or [])
         selected |= _mandatory_resources()
         cleaned["resources"] = selected
         return cleaned

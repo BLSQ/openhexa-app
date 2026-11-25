@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 
-from hexa.workspace_copier.admin import copy_workspace_view
+from hexa.workspace_copier.admin import copy_lookup_view, copy_workspace_view
 
 from .models import (
     Connection,
@@ -67,6 +67,11 @@ class WorkspaceAdmin(admin.ModelAdmin):
                 "copy/",
                 self.admin_site.admin_view(copy_workspace_view),
                 name="workspaces_workspace_copy",
+            ),
+            path(
+                "copy/lookup/",
+                self.admin_site.admin_view(copy_lookup_view),
+                name="workspaces_workspace_copy_lookup",
             ),
         ]
         return custom + super().get_urls()

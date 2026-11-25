@@ -1,7 +1,10 @@
 {% extends "admin/base_site.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/forms.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/vendor/select2/select2.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/autocomplete.css' %}">
 <style>
     .copier-resources { margin: 0; padding: 0; list-style: none; }
     .copier-resources > li { padding: 0.2rem 0; }
@@ -12,6 +15,22 @@
     .copier-option label { margin-left: 0.35rem; }
     .copier-option .help { margin: 0; padding: 0; }
     .copier-option.is-disabled { opacity: 0.45; }
+    #id_source_server, #id_target_server { min-width: 32em; }
+    /* The aligned fieldset's fixed label width would wrap the radio labels. */
+    #id_target_mode label { width: auto; }
+    .copier-info {
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.25rem;
+        background: var(--darkened-bg, #f8f8f8);
+        border: 1px solid var(--hairline-color, #e8e8e8);
+        border-left: 4px solid var(--primary, #417690);
+        border-radius: 4px;
+    }
+    .copier-info h2 { margin: 0 0 0.5rem; font-size: 1rem; }
+    .copier-info ol { margin: 0 0 0 1.25rem; padding: 0; }
+    .copier-info li { list-style: decimal; }
+    /* The admin's .errornote sets display, which would defeat [hidden]. */
+    #copier-ssl-warning[hidden] { display: none; }
 </style>
 {% endblock %}
 
@@ -32,29 +51,62 @@
     }
 </style>
 <p>
-    Copy a workspace between servers. Leave a server URL blank to use this
-    server (a token is still required). The copy runs in the background: submitting queues it and opens its
-    run page, where logs appear as it progresses. Source/target credentials are
-    stored encrypted until the run ends, then erased.
+    Copy a workspace between servers. A token is required on both sides, this
+    server included. The copy runs in the background: submitting queues it and
+    opens its run page, where logs appear as it progresses. Source/target
+    credentials are stored encrypted until the run ends, then erased.
 </p>
-<p>{% trans 'Example server URLs:' %}</p>
-<ul>
-    <li>{% trans 'Production (SaaS)' %}: <code>https://api.openhexa.org/graphql/</code></li>
-    <li>{% trans 'Demo' %}: <code>https://api.demo.openhexa.org/graphql/</code></li>
-    <li>{% trans 'Localhost' %}: <code>http://localhost:8000/graphql/</code></li>
-</ul>
+<p>
+    When source and target are both "This server", the workspace database and
+    static web apps are copied too: they need direct access to this server's
+    database and git server.
+</p>
+<p>
+    To make several copies in a row, this browser remembers the form: servers,
+    target organization and resource choices are kept until you forget them,
+    tokens only until this tab is closed.
+</p>
 
-<form method="post">
+<div class="copier-info">
+    <h2>{% trans 'Creating the service account tokens' %}</h2>
+    <ol>
+        <li>
+            On each server, open Django admin &rsaquo; User management &rsaquo;
+            Service accounts
+            (<a href="{% url 'admin:user_management_serviceaccount_changelist' %}">here on this server</a>)
+            and add a service account. An email address is all it needs.
+        </li>
+        <li>
+            Copy the token from the yellow message shown right after saving: it
+            is displayed only once. If it is lost, select the account in the
+            list and run the "Rotate tokens" action to get a new one.
+        </li>
+        <li>
+            Give the account access like any other user. On the source, make it
+            a member of the workspace to copy. On the target, it must be
+            allowed to create workspaces in the target organization, or be an
+            editor (or above) of the existing workspace to copy into.
+        </li>
+    </ol>
+</div>
+
+<form method="post" id="copy-workspace-form">
     {% csrf_token %}
     <fieldset class="module aligned">
         <h2 style="margin-bottom: 1rem;">{% trans 'Source' %}</h2>
-        {% include "admin/workspace_copier/_field_row.html" with field=form.source_url %}
+        {% include "admin/workspace_copier/_field_row.html" with field=form.source_server %}
+        <div id="source-custom-url">
+            {% include "admin/workspace_copier/_field_row.html" with field=form.source_url %}
+        </div>
         {% include "admin/workspace_copier/_field_row.html" with field=form.source_token %}
         {% include "admin/workspace_copier/_field_row.html" with field=form.source_slug %}
     </fieldset>
     <fieldset class="module aligned">
         <h2>{% trans 'Target' %}</h2>
-        {% include "admin/workspace_copier/_field_row.html" with field=form.target_url %}
+        {% include "admin/workspace_copier/_field_row.html" with field=form.target_server %}
+        <div id="target-custom-url">
+            {% include "admin/workspace_copier/_field_row.html" with field=form.target_url %}
+        </div>
         {% include "admin/workspace_copier/_field_row.html" with field=form.target_token %}
         {% include "admin/workspace_copier/_field_row.html" with field=form.target_mode %}
         <div id="target-mode-new-fields" class="target-mode-fields">
@@ -66,8 +118,17 @@
         </div>
     </fieldset>
     <fieldset class="module aligned">
-        <h2>{% trans 'Server' %}</h2>
-        {% include "admin/workspace_copier/_field_row.html" with field=form.same_server %}
+        <h2>{% trans 'Connection' %}</h2>
+        {% include "admin/workspace_copier/_field_row.html" with field=form.disable_ssl_verification %}
+        <p class="errornote" id="copier-ssl-warning" hidden>
+            {% blocktrans trimmed %}
+            Warning: with verification disabled, nothing proves that the copy is
+            talking to the real servers. Anyone able to intercept the connection
+            can read both tokens and everything that is copied, connection
+            secrets included, or alter it on the way. Never use this over a
+            network you do not trust.
+            {% endblocktrans %}
+        </p>
     </fieldset>
     <fieldset class="module">
         <h2>{% trans 'Resources' %}</h2>
@@ -93,49 +154,14 @@
     </fieldset>
     <div class="submit-row">
         <input type="submit" value="{% trans 'Queue copy' %}" class="default">
+        <input type="button" value="{% trans 'Forget remembered values' %}" id="copier-forget">
     </div>
 </form>
 
-<script>
-// A resource's nested options only mean something when that resource is copied:
-// disabling them keeps them out of the POST, so the backend can't receive an
-// option for a copier that never runs.
-(function () {
-    document.querySelectorAll(".copier-resources > li").forEach(function (item) {
-        var box = item.querySelector('input[name="resources"]');
-        var options = item.querySelectorAll(".copier-option");
-        if (!box || !options.length) return;
-
-        function sync() {
-            options.forEach(function (option) {
-                option.classList.toggle("is-disabled", !box.checked);
-                option.querySelectorAll("input").forEach(function (input) {
-                    input.disabled = !box.checked;
-                });
-            });
-        }
-
-        box.addEventListener("change", sync);
-        sync();
-    });
-})();
-</script>
-
-<script>
-(function () {
-    const radios = document.querySelectorAll('input[name="target_mode"]');
-    const newFields = document.getElementById('target-mode-new-fields');
-    const existingFields = document.getElementById('target-mode-existing-fields');
-
-    function toggle() {
-        const checked = document.querySelector('input[name="target_mode"]:checked');
-        const existing = checked && checked.value === 'existing';
-        newFields.hidden = existing;
-        existingFields.hidden = !existing;
-    }
-
-    radios.forEach((radio) => radio.addEventListener('change', toggle));
-    toggle();
-})();
-</script>
+{{ copier_config|json_script:"copier-config" }}
+{# Same files and order as the admin's own autocomplete widget. #}
+<script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+<script src="{% static 'admin/js/vendor/select2/select2.full.js' %}"></script>
+<script src="{% static 'admin/js/jquery.init.js' %}"></script>
+<script src="{% static 'workspace_copier/copy_workspace.js' %}"></script>
 {% endblock %}
