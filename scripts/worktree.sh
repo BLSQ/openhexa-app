@@ -110,7 +110,7 @@ write_env() { # dir n
   env_set "$env" FRONTEND_PORT "$frontend_port"
   # Read by the frontend dev server (frontend/server/index.mjs)
   env_set "$env" PORT "$frontend_port"
-  env_set "$env" OPENHEXA_BACKEND_URL "http://localhost:$backend_port"
+  env_set "$env" OPENHEXA_BACKEND_URL "http://$host:$backend_port"
   # Pipeline containers reach the backend through the host
   env_set "$env" INTERNAL_BASE_URL "http://host.docker.internal:$backend_port"
   env_set "$env" WEBAPPS_DOMAIN "webapps.$host:$backend_port"
@@ -124,7 +124,7 @@ write_env() { # dir n
 
   if [[ -f "$MAIN_DIR/frontend/.env" ]]; then
     cp "$MAIN_DIR/frontend/.env" "$dir/frontend/.env"
-    env_set "$dir/frontend/.env" OPENHEXA_BACKEND_URL "http://localhost:$backend_port"
+    env_set "$dir/frontend/.env" OPENHEXA_BACKEND_URL "http://$host:$backend_port"
   fi
 }
 
