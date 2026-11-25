@@ -137,6 +137,13 @@ class AiModelBuilderTest(TestCase):
         with self.assertRaises(AssistantException):
             AiModelBuilder.from_conversation(mock_conversation)
 
+    def test_from_conversation_raises_when_workspace_blocks_ai(self):
+        mock_conversation = MagicMock()
+        mock_conversation.workspace.ai_enabled = False
+        mock_conversation.workspace.organization.ai_settings_safe.enabled = True
+        with self.assertRaises(AssistantException):
+            AiModelBuilder.from_conversation(mock_conversation)
+
     def test_from_conversation_raises_when_ai_settings_disabled(self):
         mock_conversation = MagicMock()
         mock_conversation.workspace.organization.ai_settings_safe.enabled = False

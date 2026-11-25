@@ -33,7 +33,25 @@ async def stream_assistant_message(
     except Conversation.DoesNotExist:
         return JsonResponse({"error": "Conversation not found"}, status=404)
 
-    organization = await sync_to_async(lambda: conversation.workspace.organization)()
+    workspace = await sync_to_async(lambda: conversation.workspace)()
+    if not workspace.ai_enabled:
+        return JsonResponse(
+            {
+                "error": "AI is disabled on this workspace",
+                "error_code": "AI_DISABLED_FOR_WORKSPACE",
+            },
+            status=403,
+        )
+    if not await sync_to_async(lambda: conversation.linked_object_in_workspace)():
+        return JsonResponse(
+            {
+                "error": "The linked object does not belong to this workspace",
+                "error_code": "LINKED_OBJECT_OUTSIDE_WORKSPACE",
+            },
+            status=403,
+        )
+
+    organization = await sync_to_async(lambda: workspace.organization)()
     ai_budget_limit_reached = await sync_to_async(
         organization.is_ai_budget_limit_reached
     )()
