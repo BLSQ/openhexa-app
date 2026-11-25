@@ -554,6 +554,11 @@ extend type Mutation {
     verifyDevice(input: VerifyDeviceInput!): VerifyDeviceResult!
 
     """
+    Completes two-factor authentication for a session opened through SSO.
+    """
+    verifyTwoFactorLogin(input: VerifyTwoFactorLoginInput!): VerifyTwoFactorLoginResult! @loginRequired(withoutTwoFactor: true)
+
+    """
     Generates a challenge for two-factor authentication.
     """
     generateChallenge: GenerateChallengeResult! @loginRequired(withoutTwoFactor: true)
@@ -1500,6 +1505,25 @@ directive @loginRequired(withoutTwoFactor: Boolean, allowPublicWebapp: Boolean) 
 
 extend type Me {
     hasTwoFactorEnabled: Boolean!
+
+    """
+    Indicates that the user is logged in but must still enter their two-factor code (e.g. after an SSO login).
+    """
+    twoFactorPending: Boolean!
+}
+
+input VerifyTwoFactorLoginInput {
+    token: String!
+}
+
+enum VerifyTwoFactorLoginError {
+    NO_DEVICE
+    INVALID_OTP
+}
+
+type VerifyTwoFactorLoginResult {
+    success: Boolean!
+    errors: [VerifyTwoFactorLoginError!]
 }
 
 """
