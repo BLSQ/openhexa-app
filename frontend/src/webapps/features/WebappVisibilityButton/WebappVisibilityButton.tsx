@@ -30,7 +30,7 @@ const WebappVisibilityButton = ({ webapp }: WebappVisibilityButtonProps) => {
   const [updateWebapp] = useUpdateWebappMutation();
   const clearCache = useCacheKey("webapps");
 
-  if (!webapp.permissions.update) {
+  if (!webapp.permissions.share) {
     return null;
   }
 
@@ -155,7 +155,7 @@ WebappVisibilityButton.fragments = {
       url
       serveUrl
       permissions {
-        update
+        share
       }
     }
   `,

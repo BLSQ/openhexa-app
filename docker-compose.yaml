@@ -181,7 +181,7 @@ services:
   #############
 
   forgejo:
-    image: codeberg.org/forgejo/forgejo:14
+    image: codeberg.org/forgejo/forgejo:15.0.12
     entrypoint: /custom-entrypoint.sh
     environment:
       - GIT_SERVER_ADMIN_USERNAME=${GIT_SERVER_ADMIN_USERNAME}

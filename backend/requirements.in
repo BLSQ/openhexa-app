@@ -91,9 +91,9 @@ azure-storage-blob
 azure-identity
 
 # AI assistant
-pydantic-ai-slim[anthropic,google,openai]==2.55.0
-pydantic-evals==2.55.0
-genai-prices==0.1.13
+pydantic-ai-slim[anthropic,google,openai]==2.69.0
+pydantic-evals==2.69.0
+genai-prices==0.2.5
 anthropic[vertex]
 logfire==4.41.0
 vcrpy

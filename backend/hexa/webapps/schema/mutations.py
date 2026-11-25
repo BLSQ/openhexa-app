@@ -142,6 +142,12 @@ def resolve_update_webapp(_, info, **kwargs):
 
     if not user.has_perm("webapps.update_webapp", webapp):
         return {"success": False, "errors": ["PERMISSION_DENIED"], "webapp": None}
+    if (
+        "is_public" in input
+        and input["is_public"] != webapp.is_public
+        and not user.has_perm("webapps.share_webapp", webapp)
+    ):
+        return {"success": False, "errors": ["PERMISSION_DENIED"], "webapp": None}
 
     source = input.get("source")
     if source and "superset" in source:
