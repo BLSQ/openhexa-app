@@ -68,7 +68,7 @@ NEVER_GRANTED = {
     "DatabaseTable": {"rows", "sample"},
     "DatasetVersionFile": {"uri"},
     "User": {"lastLogin", "dateJoined", "analyticsEnabled"},
-    "Me": {"hasTwoFactorEnabled"},
+    "Me": {"hasTwoFactorEnabled", "twoFactorPending"},
     # Whether web apps get any part in public resources is HEXA-1847's call.
     "WorkspacePermissions": {"shareSavedQuery", "managePublicFiles"},
 }
