@@ -19,6 +19,12 @@ class BindContextTest(TestCase):
         bound = bind_context(_sample_func, {"user": "alice", "workspace_slug": "ws-1"})
         self.assertEqual(bound(name="pipeline"), "alice:ws-1:pipeline")
 
+    def test_bound_values_win_over_the_callers(self):
+        bound = bind_context(_sample_func, {"user": "alice", "workspace_slug": "ws-1"})
+        self.assertEqual(
+            bound(workspace_slug="ws-2", name="pipeline"), "alice:ws-1:pipeline"
+        )
+
     def test_ignores_nonmatching_context_keys(self):
         bound = bind_context(
             _sample_func,
