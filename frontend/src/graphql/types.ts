@@ -3185,6 +3185,8 @@ export type Me = {
   hasTwoFactorEnabled: Scalars['Boolean']['output'];
   /** The permissions assigned to the currently authenticated user. */
   permissions: MePermissions;
+  /** Indicates that the user is logged in but must still enter their two-factor code (e.g. after an SSO login). */
+  twoFactorPending: Scalars['Boolean']['output'];
   /** The user object representing the currently authenticated user. */
   user?: Maybe<User>;
 };
@@ -3483,6 +3485,8 @@ export type Mutation = {
   uploadPipelineRunProfile: UploadPipelineRunProfileResult;
   /** Verifies a device for two-factor authentication. */
   verifyDevice: VerifyDeviceResult;
+  /** Completes two-factor authentication for a session opened through SSO. */
+  verifyTwoFactorLogin: VerifyTwoFactorLoginResult;
   /** Write text content to a file in a workspace's bucket. Use the overwrite flag to replace an existing file. */
   writeFileContent: WriteFileContentResult;
 };
@@ -4155,6 +4159,11 @@ export type MutationUploadPipelineRunProfileArgs = {
 
 export type MutationVerifyDeviceArgs = {
   input: VerifyDeviceInput;
+};
+
+
+export type MutationVerifyTwoFactorLoginArgs = {
+  input: VerifyTwoFactorLoginInput;
 };
 
 
@@ -7142,6 +7151,21 @@ export type VerifyDeviceInput = {
 export type VerifyDeviceResult = {
   __typename?: 'VerifyDeviceResult';
   errors?: Maybe<Array<VerifyDeviceError>>;
+  success: Scalars['Boolean']['output'];
+};
+
+export enum VerifyTwoFactorLoginError {
+  InvalidOtp = 'INVALID_OTP',
+  NoDevice = 'NO_DEVICE'
+}
+
+export type VerifyTwoFactorLoginInput = {
+  token: Scalars['String']['input'];
+};
+
+export type VerifyTwoFactorLoginResult = {
+  __typename?: 'VerifyTwoFactorLoginResult';
+  errors?: Maybe<Array<VerifyTwoFactorLoginError>>;
   success: Scalars['Boolean']['output'];
 };
 
