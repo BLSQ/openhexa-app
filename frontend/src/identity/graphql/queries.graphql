@@ -100,4 +100,7 @@ query SignupPage {
       loginUrl
     }
   }
+  me {
+    twoFactorPending
+  }
 }
