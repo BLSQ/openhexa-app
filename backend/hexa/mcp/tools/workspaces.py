@@ -1,19 +1,18 @@
 import json
 
 from hexa.mcp.models import MCPUser
-from hexa.mcp.protocol import scope_refusal_message, tool
+from hexa.mcp.protocol import ai_disabled_message, scope_refusal_message, tool
 from hexa.workspaces.models import Workspace
 
 from ._graphql import execute_graphql
 
 
-def _matches_ungranted_workspace(user: MCPUser, query: str) -> bool:
-    """Whether the search matches a workspace the person can access but not this connection."""
+def _ungranted_matches(user: MCPUser, query: str):
+    """The workspaces matching the search that the person can access but not this connection."""
     return (
         Workspace.objects.filter_for_user(user.real_user)
         .exclude(pk__in=user.workspace_ids)
         .filter_by_query(query)
-        .exists()
     )
 
 
@@ -26,15 +25,14 @@ def list_workspaces(user, query: str = "", page: int = 1, per_page: int = 10) ->
         {"query": query or None, "page": page, "perPage": per_page},
     )
     listing = data.get("workspaces") or {}
-    if (
-        query
-        and isinstance(user, MCPUser)
-        and listing.get("totalItems") == 0
-        and _matches_ungranted_workspace(user, query)
-    ):
-        data["message"] = scope_refusal_message(
-            user.connection, "access the workspaces matching this search"
-        )
+    if query and isinstance(user, MCPUser) and listing.get("totalItems") == 0:
+        matches = _ungranted_matches(user, query)
+        if matches.filter(ai_enabled=True).exists():
+            data["message"] = scope_refusal_message(
+                user.connection, "access the workspaces matching this search"
+            )
+        elif blocked := matches.first():
+            data["message"] = ai_disabled_message(blocked.slug)
     return data
 
 

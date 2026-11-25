@@ -136,6 +136,17 @@ class MCPConnectionSchemaTest(GraphQLTestCase):
 
         self.assertEqual([], result["data"]["mcpConnections"][0]["workspaces"])
 
+    def test_a_workspace_with_ai_disabled_is_not_reported_as_granted(self):
+        self.CONNECTION.workspaces.set([self.WORKSPACE])
+        self.WORKSPACE.ai_enabled = False
+        self.WORKSPACE.save()
+        self.live_token()
+        self.client.force_login(self.USER)
+
+        result = self.run_query(CONNECTIONS_QUERY)
+
+        self.assertEqual([], result["data"]["mcpConnections"][0]["workspaces"])
+
     def test_connections_are_private_to_their_owner(self):
         self.live_token()
         self.client.force_login(self.OTHER_USER)
@@ -223,6 +234,39 @@ class MCPConnectionSchemaTest(GraphQLTestCase):
         payload = result["data"]["updateMCPConnection"]
         self.assertFalse(payload["success"])
         self.assertEqual(["WORKSPACE_NOT_FOUND"], payload["errors"])
+
+    def test_a_workspace_with_ai_disabled_cannot_be_granted(self):
+        Workspace.objects.filter(pk=self.WORKSPACE.pk).update(ai_enabled=False)
+        self.live_token()
+        self.client.force_login(self.USER)
+
+        result = self.run_query(
+            UPDATE_MUTATION,
+            {
+                "input": {
+                    "id": str(self.CONNECTION.id),
+                    "workspaceSlugs": [self.WORKSPACE.slug],
+                }
+            },
+        )
+
+        payload = result["data"]["updateMCPConnection"]
+        self.assertFalse(payload["success"])
+        self.assertEqual(["WORKSPACE_AI_DISABLED"], payload["errors"])
+
+    def test_saving_the_grant_keeps_a_workspace_with_ai_disabled(self):
+        self.CONNECTION.workspaces.set([self.WORKSPACE])
+        Workspace.objects.filter(pk=self.WORKSPACE.pk).update(ai_enabled=False)
+        self.live_token()
+        self.client.force_login(self.USER)
+
+        result = self.run_query(
+            UPDATE_MUTATION,
+            {"input": {"id": str(self.CONNECTION.id), "workspaceSlugs": []}},
+        )
+
+        self.assertTrue(result["data"]["updateMCPConnection"]["success"])
+        self.assertIn(self.WORKSPACE, self.CONNECTION.workspaces.all())
 
     def test_another_users_connection_cannot_be_edited(self):
         self.client.force_login(self.OTHER_USER)
@@ -365,6 +409,15 @@ class AuthorizeMCPConnectionTest(GraphQLTestCase):
 
         self.assertFalse(payload["success"])
         self.assertEqual(["WORKSPACE_NOT_FOUND"], payload["errors"])
+
+    def test_a_workspace_with_ai_disabled_cannot_be_authorized(self):
+        Workspace.objects.filter(pk=self.WORKSPACE.pk).update(ai_enabled=False)
+        self.client.force_login(self.USER)
+
+        payload = self.authorize(workspaceSlugs=[self.WORKSPACE.slug])
+
+        self.assertFalse(payload["success"])
+        self.assertEqual(["WORKSPACE_AI_DISABLED"], payload["errors"])
 
     def test_an_organization_can_be_granted_as_a_whole(self):
         self.client.force_login(self.USER)

@@ -60,6 +60,7 @@ enum UpdateMCPConnectionError {
   WORKSPACE_NOT_FOUND
   ORGANIZATION_NOT_FOUND
   TOOL_NOT_FOUND
+  WORKSPACE_AI_DISABLED
 }
 
 type UpdateMCPConnectionResult {
@@ -84,6 +85,7 @@ enum AuthorizeMCPConnectionError {
   WORKSPACE_NOT_FOUND
   ORGANIZATION_NOT_FOUND
   TOOL_NOT_FOUND
+  WORKSPACE_AI_DISABLED
 }
 
 type AuthorizeMCPConnectionResult {
