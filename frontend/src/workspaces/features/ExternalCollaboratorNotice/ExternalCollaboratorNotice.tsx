@@ -7,6 +7,12 @@ import Link from "core/components/Link";
 import { usePublicEnv } from "core/helpers/runtimeConfig";
 import { useOrganizationsQuery } from "organizations/graphql/queries.generated";
 
+// The strip is twice the card width and tiled with one highlight per card width,
+// so sliding it by half its width loops without a visible jump.
+const Shine = () => (
+  <div className="pointer-events-none absolute inset-y-0 left-0 w-[200%] animate-[shimmer_4s_linear_infinite] bg-[linear-gradient(90deg,transparent,rgb(255_255_255/0.2),transparent)] bg-size-[50%_100%] bg-repeat-x motion-reduce:animate-none" />
+);
+
 type ExternalCollaboratorNoticeProps = {
   compact?: boolean;
 };
@@ -15,39 +21,44 @@ const ExternalCollaboratorNotice = ({
   compact = false,
 }: ExternalCollaboratorNoticeProps) => {
   const { t } = useTranslation();
-  const { CONSOLE_URL } = usePublicEnv();
+  const { CONSOLE_FREE_TRIAL_URL } = usePublicEnv();
 
   const { data, loading } = useOrganizationsQuery({
     variables: { directMembershipOnly: true },
   });
 
-  if (loading || !data || data.organizations.length > 0 || !CONSOLE_URL) {
+  if (
+    loading ||
+    !data ||
+    data.organizations.length > 0 ||
+    !CONSOLE_FREE_TRIAL_URL
+  ) {
     return null;
   }
 
   if (compact) {
     return (
       <Link
-        href={CONSOLE_URL}
+        href={CONSOLE_FREE_TRIAL_URL}
         target="_blank"
         noStyle
         className="group relative mx-auto mb-4 flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-linear-to-r from-indigo-500 to-purple-500"
         title={t("Create your own organization")}
       >
         <SparklesIcon className="h-5 w-5 text-white" />
-        <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-linear-to-r from-transparent via-white/20 to-transparent" />
+        <Shine />
       </Link>
     );
   }
 
   return (
     <Link
-      href={CONSOLE_URL}
+      href={CONSOLE_FREE_TRIAL_URL}
       target="_blank"
       noStyle
       className="group relative mx-2 my-4 block overflow-hidden rounded-lg bg-linear-to-r from-indigo-500 to-purple-500 p-4 text-white transition-shadow hover:shadow-lg"
     >
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-linear-to-r from-transparent via-white/20 to-transparent" />
+      <Shine />
       <div className="relative flex items-start gap-3">
         <SparklesIcon className="mt-0.5 h-5 w-5 shrink-0" />
         <div className="space-y-2">
