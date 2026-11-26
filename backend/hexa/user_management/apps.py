@@ -30,6 +30,7 @@ class UserManagementConfig(CoreAppConfig):
 
     ANONYMOUS_URLS = [
         "logout",
+        "login_link",
         "password_reset",
         "password_reset_confirm",
         "password_reset_done",

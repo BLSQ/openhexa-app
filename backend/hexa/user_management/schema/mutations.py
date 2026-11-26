@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
@@ -50,14 +51,18 @@ from ..utils import (
     DEVICE_DEFAULT_NAME,
     accept_pending_invitations,
     default_device,
+    get_login_url,
     get_organization_invite_url,
     has_configured_two_factor,
+    is_known_password_hash,
     send_organization_add_user_email,
     send_organization_invite,
     send_signup_email,
 )
 
 identity_mutations = MutationType()
+
+logger = logging.getLogger(__name__)
 
 
 def update_workspace_permissions(
@@ -984,7 +989,19 @@ def resolve_create_organization(_, info, **kwargs):
         }
 
     create_input = kwargs["input"]
-    owner_email = create_input["owner_email"].strip().lower()
+    owner = create_input.get("owner")
+    deprecated_owner_email = create_input.get("owner_email")
+    if (owner is None) == (deprecated_owner_email is None):
+        return {
+            "success": False,
+            "organization": None,
+            "user": None,
+            "errors": ["INVALID_OWNER"],
+        }
+    owner = owner or {"email": deprecated_owner_email}
+    owner_email = owner["email"].strip().lower()
+    owner_first_name = owner.get("first_name") or ""
+    owner_last_name = owner.get("last_name") or ""
     name = create_input["name"].strip()
     short_name_input = (create_input.get("short_name") or "").strip()
     subscription_id = create_input["subscription_id"]
@@ -993,6 +1010,7 @@ def resolve_create_organization(_, info, **kwargs):
     subscription_end_date = create_input["subscription_end_date"]
     limits = create_input["limits"]
     send_invitation_email = create_input.get("send_invitation_email") is not False
+    owner_password_hash = owner.get("password_hash")
 
     if Organization.objects.filter(name=name).exists():
         return {
@@ -1033,41 +1051,118 @@ def resolve_create_organization(_, info, **kwargs):
         notebook_profile=limits.get("notebook_profile"),
     )
 
-    invitation_url = None
-    try:
-        user = User.objects.get(email__iexact=owner_email)
-        OrganizationMembership.objects.create(
-            organization=organization,
-            user=user,
-            role=OrganizationMembershipRole.OWNER,
-        )
-        if send_invitation_email:
-            send_organization_add_user_email(
-                invited_by=principal,
-                organization=organization,
-                invitee=user,
-                role=OrganizationMembershipRole.OWNER,
-            )
-    except User.DoesNotExist:
-        invitation = OrganizationInvitation.objects.create(
+    user = User.objects.filter(email__iexact=owner_email).first()
+    invitation_url = login_url = None
+    if user:
+        _add_existing_owner(user, organization, principal, send_invitation_email)
+    elif owner_password_hash and is_known_password_hash(owner_password_hash):
+        user = _create_owner_account(
+            organization,
+            principal,
             email=owner_email,
-            organization=organization,
-            invited_by=principal,
-            role=OrganizationMembershipRole.OWNER,
-            language=principal.language,
+            first_name=owner_first_name,
+            last_name=owner_last_name,
+            password_hash=owner_password_hash,
+            send_email=send_invitation_email,
         )
-        invitation_url = get_organization_invite_url(invitation)
-        if send_invitation_email:
-            send_organization_invite(invitation)
-        user = None  # User will be created when they accept the invitation
+        login_url = get_login_url(user, organization)
+    else:
+        if owner_password_hash:
+            # Never block the owner's signup over a hasher mismatch with the console: invite them, and alert us
+            logger.error(
+                "Cannot read the password hash for new owner %s, inviting them instead",
+                owner_email,
+            )
+        invitation_url = _invite_owner(
+            organization,
+            principal,
+            email=owner_email,
+            first_name=owner_first_name,
+            last_name=owner_last_name,
+            send_email=send_invitation_email,
+        )
 
     return {
         "success": True,
         "organization": organization,
         "user": user,
         "invitation_url": invitation_url,
+        "login_url": login_url,
         "errors": [],
     }
+
+
+def _add_existing_owner(
+    user: User, organization: Organization, invited_by, send_email: bool
+) -> None:
+    OrganizationMembership.objects.create(
+        organization=organization, user=user, role=OrganizationMembershipRole.OWNER
+    )
+    if send_email:
+        send_organization_add_user_email(
+            invited_by=invited_by,
+            organization=organization,
+            invitee=user,
+            role=OrganizationMembershipRole.OWNER,
+        )
+
+
+def _create_owner_account(
+    organization: Organization,
+    invited_by,
+    *,
+    email: str,
+    first_name: str,
+    last_name: str,
+    password_hash: str,
+    send_email: bool,
+) -> User:
+    """Create the owner's account with the password they chose on the console."""
+    # The hash comes from the console, which shares Django's password hashers with OpenHEXA
+    user = User.objects.create(
+        email=email,
+        password=password_hash,  # `password` is the stored hash: create() stores as-is, create_user() would hash it
+        first_name=first_name,
+        last_name=last_name,
+        language=invited_by.language,
+    )
+    OrganizationMembership.objects.create(
+        organization=organization, user=user, role=OrganizationMembershipRole.OWNER
+    )
+    # The welcome email is how they find OpenHEXA again once the console's login link is spent
+    if send_email:
+        send_organization_add_user_email(
+            invited_by=invited_by,
+            organization=organization,
+            invitee=user,
+            role=OrganizationMembershipRole.OWNER,
+            new_account=True,
+        )
+    return user
+
+
+def _invite_owner(
+    organization: Organization,
+    invited_by,
+    *,
+    email: str,
+    first_name: str,
+    last_name: str,
+    send_email: bool,
+) -> str:
+    """Invite an owner without an OpenHEXA account and return their registration link."""
+    invitation = OrganizationInvitation.objects.create(
+        email=email,
+        organization=organization,
+        invited_by=invited_by,
+        role=OrganizationMembershipRole.OWNER,
+        language=invited_by.language,
+    )
+    if send_email:
+        send_organization_invite(invitation)
+    return get_organization_invite_url(
+        invitation, first_name=first_name, last_name=last_name
+    )
 
 
 @identity_mutations.field("createSelfHostedOrganization")
