@@ -104,6 +104,16 @@ class MCPConnectionSchemaTest(GraphQLTestCase):
         self.assertEqual("Claude", connections[0]["name"])
         self.assertEqual(["list_files", "read_file"], connections[0]["tools"])
 
+    def test_a_removed_tool_is_not_reported(self):
+        self.live_token()
+        self.CONNECTION.tools = ["grep_files", "list_files"]
+        self.CONNECTION.save()
+        self.client.force_login(self.USER)
+
+        result = self.run_query(CONNECTIONS_QUERY)
+
+        self.assertEqual(["list_files"], result["data"]["mcpConnections"][0]["tools"])
+
     def test_a_connection_with_no_live_token_is_not_listed(self):
         self.client.force_login(self.USER)
 
