@@ -20,9 +20,8 @@ class BucketFileSource(FileSource):
     Listing walks the directories, one request per directory and page, up to
     MAX_LISTED_FILES (`truncated` tells when it stopped there). Each content is a full
     download, made on every read and not kept: a search reads each file once, and
-    holding a bucket's worth of contents would exhaust the worker's memory. `bytes_read`
-    lets callers budget those downloads. Hidden, binary and oversized files are skipped
-    or map to None, as in `list_files`.
+    holding a bucket's worth of contents would exhaust the worker's memory. Hidden,
+    binary and oversized files are skipped or map to None, as in `list_files`.
     """
 
     def __init__(self, storage: Storage, bucket_name: str, prefix: str = ""):
@@ -30,7 +29,6 @@ class BucketFileSource(FileSource):
         self._bucket_name = bucket_name
         self._prefix = prefix
         self.truncated = False
-        self.bytes_read = 0
 
     def __getitem__(self, path: str) -> str | None:
         if path not in self._file_sizes:
@@ -83,5 +81,4 @@ class BucketFileSource(FileSource):
             raw = self._storage.read_object(self._bucket_name, path)
         except NotFound:
             raise KeyError(path)
-        self.bytes_read += len(raw)
         return decode_text(raw)

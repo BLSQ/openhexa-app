@@ -42,7 +42,7 @@ class BucketFileSourceTest(SimpleTestCase):
         files = BucketFileSource(self.storage, "bucket", prefix="data/nested/")
         self.assertEqual(list(files), ["data/nested/b.py"])
 
-    def test_counts_downloaded_bytes_without_keeping_contents(self):
+    def test_downloads_on_every_read_without_keeping_contents(self):
         files = BucketFileSource(self.storage, "bucket")
         with patch.object(
             self.storage, "read_object", wraps=self.storage.read_object
@@ -51,15 +51,17 @@ class BucketFileSourceTest(SimpleTestCase):
             self.assertIsNone(files["data/logo.png"])
             self.assertEqual(files["data/a.csv"], "x,y")
         self.assertEqual(read_object.call_count, 3)
-        self.assertEqual(files.bytes_read, 3 + 5 + 3)
 
     def test_oversized_files_are_not_downloaded(self):
         self.storage.save_object(
             "bucket", "big.json", BytesIO(b"0" * (MAX_TEXT_FILE_SIZE + 1))
         )
         files = BucketFileSource(self.storage, "bucket")
-        self.assertIsNone(files["big.json"])
-        self.assertEqual(files.bytes_read, 0)
+        with patch.object(
+            self.storage, "read_object", wraps=self.storage.read_object
+        ) as read_object:
+            self.assertIsNone(files["big.json"])
+        read_object.assert_not_called()
 
     def test_binary_and_oversized_files_are_none(self):
         self.storage.save_object(
