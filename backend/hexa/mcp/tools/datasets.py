@@ -1,12 +1,9 @@
+import hashlib
 import json
 
 from hexa.mcp.protocol import tool
 
 from ._graphql import execute_graphql
-
-# LLM callers only need enough rows to infer the schema and value shapes; the stored
-# sample (WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE rows) is sized for the UI table.
-PREVIEW_SAMPLE_ROWS = 3
 
 
 @tool
@@ -40,7 +37,7 @@ def get_dataset(
     versions_page: int = 1,
     versions_per_page: int = 10,
 ) -> dict:
-    """Get full details of a dataset: metadata, all versions with their files, and the latest version's file list. Use a file 'id' from the response with preview_dataset_file to see sample data. Use the dataset 'id' with create_dataset_version to add a new version."""
+    """Get full details of a dataset: metadata, all versions with their files, and the latest version's file list. Use a file 'id' from the response with preview_dataset_file to see its columns. Use the dataset 'id' with create_dataset_version to add a new version."""
     data = execute_graphql(
         user,
         "GetDataset",
@@ -59,9 +56,19 @@ def get_dataset(
     return link["dataset"]
 
 
+def _column_types(attributes: list[dict]) -> dict[str, str]:
+    """Map md5(column name) to the data type recorded by the dataset profiling."""
+    types = {}
+    for attribute in attributes:
+        column_hash, _, key = attribute["key"].rpartition(".")
+        if attribute["system"] and key == "data_type":
+            types[column_hash] = attribute["value"]
+    return types
+
+
 @tool
 def preview_dataset_file(user, file_id: str) -> dict:
-    """Preview the content of a dataset file by its ID (from get_dataset's file list). Returns file metadata and, for tabular files (CSV, Parquet, etc.), the ordered 'columns' of the file and the first few rows of the stored sample. This is a preview only: 'rows' is the row count of the whole file, usually larger than the number of rows returned here. The sample status can be PROCESSING (still generating), FINISHED (sample ready), or FAILED."""
+    """Describe a dataset file by its ID (from get_dataset's file list). Returns file metadata and, for tabular files (CSV, Parquet, etc.), 'rows' (the row count of the whole file) and the ordered 'columns' as {name, type} objects. File content and sample rows are never returned, as they may hold sensitive data. 'columns' is null for non-tabular files and while the file is still being profiled; a column 'type' is null when profiling could not determine it."""
     data = execute_graphql(user, "PreviewDatasetFile", {"id": file_id})
     if "errors" in data:
         return data
@@ -69,9 +76,15 @@ def preview_dataset_file(user, file_id: str) -> dict:
     if file_data is None:
         return {"error": "Dataset file not found"}
 
-    file_sample = file_data.get("fileSample")
-    if file_sample and file_sample.get("sample"):
-        file_sample["sample"] = file_sample["sample"][:PREVIEW_SAMPLE_ROWS]
+    # Only the data type is taken from the profiling attributes: the other statistics
+    # (minimum, maximum, ...) are values taken from the data itself.
+    types = _column_types(file_data.pop("attributes"))
+    if file_data["columns"] is not None:
+        file_data["columns"] = [
+            # Profiling attributes are keyed by the md5 hash of the column name.
+            {"name": name, "type": types.get(hashlib.md5(name.encode()).hexdigest())}
+            for name in file_data["columns"]
+        ]
     return file_data
 
 

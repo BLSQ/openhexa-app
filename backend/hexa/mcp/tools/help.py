@@ -11,7 +11,7 @@ _OVERVIEW = {
     "common_workflows": [
         "Explore: list_workspaces -> list_pipelines / list_datasets / list_files / list_saved_queries",
         "Run a pipeline: get_pipeline (check parameters) -> run_pipeline -> get_pipeline_run (check results)",
-        "Inspect data: list_datasets -> get_dataset -> preview_dataset_file",
+        "Inspect a dataset's structure: list_datasets -> get_dataset -> preview_dataset_file (columns only, no rows)",
         "Use a template: list_pipeline_templates -> get_pipeline_template -> create_pipeline_from_template",
         "Create a web app: create_static_webapp with HTML/CSS/JS files",
         "Save a SQL query: get_db_schema -> get_db_table_schema -> create_saved_query",
