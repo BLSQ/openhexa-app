@@ -75,7 +75,6 @@ query PreviewDatasetFile($id: ID!) {
     columns
     fileSample {
       status
-      statusReason
     }
     attributes {
       key

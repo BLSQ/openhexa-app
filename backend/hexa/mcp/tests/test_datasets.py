@@ -197,9 +197,7 @@ class PreviewDatasetFileTest(MCPTestCase):
 
         result = self.preview()
         self.assertIsNone(result["columns"])
-        self.assertEqual(
-            result["profiling"], {"status": "PROCESSING", "statusReason": None}
-        )
+        self.assertEqual(result["profiling"], {"status": "PROCESSING"})
 
     def test_preview_dataset_file_profiling_failed(self):
         DatasetFileSample.objects.create(
@@ -212,7 +210,7 @@ class PreviewDatasetFileTest(MCPTestCase):
         self.assertIsNone(result["columns"])
         self.assertEqual(
             result["profiling"],
-            {"status": "FAILED", "statusReason": "Unsupported file format"},
+            {"status": "FAILED"},
         )
 
 

@@ -37,7 +37,7 @@ def get_dataset(
     versions_page: int = 1,
     versions_per_page: int = 10,
 ) -> dict:
-    """Get full details of a dataset: metadata, all versions with their files, and the latest version's file list. Use a file 'id' from the response with preview_dataset_file to see its columns. Use the dataset 'id' with create_dataset_version to add a new version."""
+    """Get full details of a dataset: metadata, its versions (name, changelog, date) and the file list of the latest version only. Use a file 'id' from the response with preview_dataset_file to see its columns. Use the dataset 'id' with create_dataset_version to add a new version."""
     data = execute_graphql(
         user,
         "GetDataset",
@@ -68,7 +68,7 @@ def _column_types(attributes: list[dict]) -> dict[str, str]:
 
 @tool
 def preview_dataset_file(user, file_id: str) -> dict:
-    """Describe a dataset file by its ID (from get_dataset's file list). Returns file metadata and, for tabular files (CSV, Parquet, etc.), 'rows' (the row count of the whole file) and the ordered 'columns' as {name, type} objects. File content and sample rows are never returned, as they may hold sensitive data. 'columns' is null when the file has not been profiled, and 'profiling' ({status, statusReason}) tells why: it is null for non-tabular files, PROCESSING while the file is still being read (try again later), FAILED when the file could not be read (permanent, see statusReason) and FINISHED with null 'columns' when the columns could not be determined (permanent). A column 'type' is null when profiling could not determine it."""
+    """Describe a dataset file by its ID (from get_dataset's file list). Returns file metadata and, for tabular files (CSV, Parquet, etc.), 'rows' (the row count of the whole file) and the ordered 'columns' as {name, type} objects. File content and sample rows are never returned, as they may hold sensitive data. 'columns' is null when the file has not been profiled, and 'profiling' ({status}) tells why: it is null for non-tabular files, PROCESSING while the file is still being read (try again later), FAILED when the file could not be profiled (permanent) and FINISHED with null 'columns' when the columns could not be determined (permanent). A column 'type' is null when profiling could not determine it."""
     data = execute_graphql(user, "PreviewDatasetFile", {"id": file_id})
     if "errors" in data:
         return data
