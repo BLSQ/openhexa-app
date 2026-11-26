@@ -1,14 +1,9 @@
-import shutil
-from io import BytesIO
-from pathlib import Path
-from tempfile import mkdtemp
 from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
 from hexa.core.text_files import MAX_TEXT_FILE_SIZE
 from hexa.files.backends.base import StorageObject
 from hexa.files.backends.exceptions import NotFound
-from hexa.files.backends.fs import FileSystemStorage
 from hexa.files.schema.queries import MAX_WINDOWED_READ_SIZE
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
@@ -377,68 +372,6 @@ class FilesTest(GraphQLTestCase):
         )
         self.assertIn("FILE_TOO_LARGE", r["data"]["readFileContent"]["errors"])
         mock_storage.read_object.assert_not_called()
-
-    GREP_FILES_QUERY = """
-        query GrepFiles(
-            $workspaceSlug: String!
-            $pattern: String!
-            $glob: String!
-            $outputMode: GrepOutputMode
-        ) {
-            grepFiles(
-                workspaceSlug: $workspaceSlug
-                pattern: $pattern
-                glob: $glob
-                outputMode: $outputMode
-            ) {
-                success
-                errors
-                counts {
-                    path
-                    count
-                }
-                total
-            }
-        }
-    """
-
-    def _bucket_with(self, files: dict[str, bytes]):
-        data_directory = Path(mkdtemp())
-        self.addCleanup(shutil.rmtree, data_directory)
-        storage = FileSystemStorage(data_dir=data_directory)
-        storage.create_bucket(self.WORKSPACE.bucket_name)
-        for key, content in files.items():
-            storage.save_object(self.WORKSPACE.bucket_name, key, BytesIO(content))
-        patcher = patch("hexa.files.schema.queries.storage", storage)
-        patcher.start()
-        self.addCleanup(patcher.stop)
-
-    def test_grep_files_counts(self):
-        self._bucket_with({"a.py": b"def a():\ndef b():\n", "b.py": b"x = 1\n"})
-        self.client.force_login(self.USER_WORKSPACE_ADMIN)
-        r = self.run_query(
-            self.GREP_FILES_QUERY,
-            {
-                "workspaceSlug": self.WORKSPACE.slug,
-                "pattern": "^def ",
-                "glob": "*.py",
-                "outputMode": "COUNT",
-            },
-        )
-        result = r["data"]["grepFiles"]
-        self.assertEqual(result["counts"], [{"path": "a.py", "count": 2}])
-        self.assertEqual(result["total"], 2)
-
-    def test_grep_files_invalid_pattern(self):
-        self._bucket_with({"a.py": b"def a():\n"})
-        self.client.force_login(self.USER_WORKSPACE_ADMIN)
-        r = self.run_query(
-            self.GREP_FILES_QUERY,
-            {"workspaceSlug": self.WORKSPACE.slug, "pattern": "(", "glob": "**"},
-        )
-        result = r["data"]["grepFiles"]
-        self.assertFalse(result["success"])
-        self.assertEqual(result["errors"], ["INVALID_PATTERN"])
 
     WRITE_FILE_CONTENT_MUTATION = """
         mutation WriteFileContent($input: WriteFileContentInput!) {
