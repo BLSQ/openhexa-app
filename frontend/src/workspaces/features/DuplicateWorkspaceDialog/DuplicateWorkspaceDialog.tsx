@@ -87,6 +87,7 @@ const DuplicateWorkspaceDialog = ({
   const [isLoadingActiveRun, setIsLoadingActiveRun] = useState(false);
   const [logLines, setLogLines] = useState<string[]>([]);
   const logsOffset = useRef(0);
+  const followedRunId = useRef<string | null>(null);
   const client = useApolloClient();
 
   const resourceLabels: Record<WorkspaceCopyResource, string> = {
@@ -131,8 +132,11 @@ const DuplicateWorkspaceDialog = ({
 
   const followRun = useCallback(
     (next: DuplicateWorkspaceDialog_RunFragment | null) => {
-      logsOffset.current = 0;
-      setLogLines([]);
+      if ((next?.id ?? null) !== followedRunId.current) {
+        followedRunId.current = next?.id ?? null;
+        logsOffset.current = 0;
+        setLogLines([]);
+      }
       setRun(next);
     },
     [],

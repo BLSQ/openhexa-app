@@ -292,6 +292,67 @@ describe("DuplicateWorkspaceDialog", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("keeps the earlier log lines when opened again", async () => {
+    const first = "10:00:00 => Copying files ...\n";
+    const tree = (open: boolean) => (
+      <DuplicateWorkspaceDialog
+        open={open}
+        workspace={null}
+        onClose={jest.fn()}
+      />
+    );
+    const mocks = [
+      activeRunMock(run(WorkspaceCopyRunStatus.Running)),
+      pollMock(WorkspaceCopyRunStatus.Running, first),
+      activeRunMock(run(WorkspaceCopyRunStatus.Running)),
+      {
+        request: {
+          query: WorkspaceCopyRunDocument,
+          variables: { id: "run-1", logsOffset: first.length },
+        },
+        result: {
+          data: {
+            workspaceCopyRun: {
+              ...run(WorkspaceCopyRunStatus.Running),
+              logs: {
+                __typename: "WorkspaceCopyRunLogs",
+                text: "10:00:05 => Copying database ...\n",
+                nextOffset: first.length + 33,
+              },
+            },
+          },
+        },
+      },
+    ];
+    const cache = new InMemoryCache(CACHE_CONFIG);
+    const { rerender } = render(
+      <TestApp mocks={mocks} cache={cache}>
+        {tree(true)}
+      </TestApp>,
+    );
+    expect(
+      await screen.findByText("10:00:00 => Copying files ..."),
+    ).toBeInTheDocument();
+
+    rerender(
+      <TestApp mocks={mocks} cache={cache}>
+        {tree(false)}
+      </TestApp>,
+    );
+    rerender(
+      <TestApp mocks={mocks} cache={cache}>
+        {tree(true)}
+      </TestApp>,
+    );
+
+    expect(
+      await screen.findByText("10:00:05 => Copying database ..."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("10:00:00 => Copying files ..."),
+    ).toBeInTheDocument();
+  });
+
   it("switches to the copy already running instead of starting another", async () => {
     const user = userEvent.setup();
     renderDialog([
