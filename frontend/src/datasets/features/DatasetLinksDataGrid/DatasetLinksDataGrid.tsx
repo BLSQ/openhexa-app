@@ -2,6 +2,7 @@ import { gql, useQuery } from "@apollo/client";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
+import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import Button from "core/components/Button";
 import { useState } from "react";
@@ -66,16 +67,26 @@ const DatasetLinksDataGrid = (props: DatasetLinksDataGridProps) => {
       totalItems={links.totalItems}
       defaultPageSize={6}
       fetchData={({ page }) => setPage(page)}
+      emptyLabel={t("Not shared with any workspace yet.")}
     >
       <TextColumn accessor={"workspace.name"} label={t("Workspace")} />
-      <DateColumn accessor={"createdAt"} label={t("Created At")} />
-      <TextColumn accessor={"createdBy.displayName"} label={t("Created By")} />
+      <TextColumn accessor={"createdBy.displayName"} label={t("Shared by")} />
+      <DateColumn
+        accessor={"createdAt"}
+        label={t("Since")}
+        format={DateTime.DATE_MED}
+      />
       <BaseColumn className={"text-right"}>
         {(item) =>
           item.permissions.delete && (
             <DeleteDatasetLinkTrigger datasetLink={item}>
               {({ onClick }) => (
-                <Button size={"sm"} variant={"outlined"} onClick={onClick}>
+                <Button
+                  size={"sm"}
+                  variant={"outlined"}
+                  className="text-red-600"
+                  onClick={onClick}
+                >
                   {t("Revoke")}
                 </Button>
               )}

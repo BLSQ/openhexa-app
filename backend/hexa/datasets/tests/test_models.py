@@ -1222,7 +1222,7 @@ class DatasetVisibilityTest(BaseTestMixin, TestCase):
     def test_share_publicly_with_invalid_slug(self):
         for slug, code in [
             ("Not A Slug", "PUBLIC_SLUG_INVALID_FORMAT"),
-            ("openhexa", "PUBLIC_SLUG_RESERVED"),
+            ("new", "PUBLIC_SLUG_RESERVED"),
         ]:
             with self.subTest(slug=slug):
                 with self.assertRaises(ValidationError) as ctx:

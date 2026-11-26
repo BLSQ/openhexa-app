@@ -1,22 +1,12 @@
 import {
-  GlobeAltIcon,
-  LockClosedIcon,
-  UserGroupIcon,
-} from "@heroicons/react/24/outline";
+  SHARING_STYLES,
+  SharingOption,
+} from "core/features/Sharing/sharingStyles";
 import { SavedQueryVisibility } from "graphql/types";
 import { useTranslation } from "next-i18next";
-import { ComponentType, useMemo } from "react";
+import { useMemo } from "react";
 
-export type VisibilityOption = {
-  value: SavedQueryVisibility;
-  label: string;
-  description: string;
-  Icon: ComponentType<{ className?: string }>;
-  iconClassName: string;
-  // Colours of the read-only badge; the same scale the dataset badge uses, so
-  // the two lists read alike.
-  badgeClassName: string;
-};
+export type VisibilityOption = SharingOption<SavedQueryVisibility>;
 
 // Binds each entry to its own key, so an option filed under the wrong visibility
 // is a compile error rather than a picker whose radios submit the wrong value.
@@ -42,9 +32,7 @@ const useVisibilityOptionsByValue = (): VisibilityOptions => {
         value: SavedQueryVisibility.Private,
         label: t("Private"),
         description: t("Only you can see this query."),
-        Icon: LockClosedIcon,
-        iconClassName: "text-gray-500",
-        badgeClassName: "bg-gray-100 text-gray-800 ring-gray-500/20",
+        ...SHARING_STYLES.private,
       },
       [SavedQueryVisibility.Workspace]: {
         value: SavedQueryVisibility.Workspace,
@@ -55,9 +43,7 @@ const useVisibilityOptionsByValue = (): VisibilityOptions => {
         description: t(
           "Anyone in this workspace can view and run it. Editors and admins can also change or delete it.",
         ),
-        Icon: UserGroupIcon,
-        iconClassName: "text-emerald-600",
-        badgeClassName: "bg-green-100 text-green-800 ring-green-600/20",
+        ...SHARING_STYLES.workspace,
       },
       [SavedQueryVisibility.Public]: {
         value: SavedQueryVisibility.Public,
@@ -65,9 +51,7 @@ const useVisibilityOptionsByValue = (): VisibilityOptions => {
         description: t(
           "Anyone with the link can run it and export its result, even without an OpenHEXA account. Members of the workspace keep the same access as for a shared query.",
         ),
-        Icon: GlobeAltIcon,
-        iconClassName: "text-blue-600",
-        badgeClassName: "bg-blue-100 text-blue-800 ring-blue-600/20",
+        ...SHARING_STYLES.public,
       },
     }),
     [t],
