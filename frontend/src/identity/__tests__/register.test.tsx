@@ -83,6 +83,17 @@ describe("RegisterPage", () => {
     expect(screen.getByRole("heading", { name: "Create your account" }));
   });
 
+  it("pre-fills the names it is given", async () => {
+    render(
+      <TestApp>
+        <RegisterPage firstName="Ada" lastName="Lovelace" />
+      </TestApp>,
+    );
+
+    expect(screen.getByLabelText("First name")).toHaveValue("Ada");
+    expect(screen.getByLabelText("Last name")).toHaveValue("Lovelace");
+  });
+
   it("calls the register action on submit", async () => {
     const user = userEvent.setup();
     const doRegister = jest

@@ -60,7 +60,7 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
     });
   }, []);
 
-  const { CONSOLE_URL } = usePublicEnv();
+  const { CONSOLE_FREE_TRIAL_URL } = usePublicEnv();
 
   if (typeof window === "undefined" || isChecking) {
     return null;
@@ -82,9 +82,9 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
               "Contact your administrator or a member of the OpenHEXA team to get invited to a workspace.",
             )}
           </p>
-          {CONSOLE_URL && (
+          {CONSOLE_FREE_TRIAL_URL && (
             <Link
-              href={CONSOLE_URL}
+              href={CONSOLE_FREE_TRIAL_URL}
               target="_blank"
               noStyle
               className="mt-6 inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"

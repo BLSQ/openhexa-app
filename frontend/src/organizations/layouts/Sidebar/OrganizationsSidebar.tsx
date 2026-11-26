@@ -8,6 +8,7 @@ import NavItem from "./NavItem";
 import { useTranslation } from "next-i18next";
 import useSidebarOpen from "core/hooks/useSidebarOpen";
 import useMe from "identity/hooks/useMe";
+import ExternalCollaboratorNotice from "workspaces/features/ExternalCollaboratorNotice";
 import CreateOrganizationDialog from "organizations/features/CreateOrganizationDialog";
 
 type OrganizationsSidebarProps = {
@@ -67,6 +68,7 @@ const OrganizationsSidebar = ({ organizations }: OrganizationsSidebarProps) => {
               </button>
             )}
           </div>
+          <ExternalCollaboratorNotice compact={!isSidebarOpen} />
           <UserMenu compact={!isSidebarOpen} />
         </div>
         <SidebarToggleButton />

@@ -1,8 +1,12 @@
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from itertools import chain
 from urllib.parse import urlencode
 
 from django.conf import settings
+from django.contrib.auth.hashers import identify_hasher
+from django.core import signing
+from django.urls import reverse
 from django.utils.translation import gettext, gettext_lazy, override
 from django_otp import devices_for_user, user_has_device
 
@@ -21,6 +25,8 @@ from hexa.workspaces.models import WorkspaceInvitation, WorkspaceInvitationStatu
 
 USER_DEFAULT_DEVICE_ATTR_NAME = "_default_device"
 DEVICE_DEFAULT_NAME = "default"
+LOGIN_LINK_SALT = "hexa.user_management.login_link"
+LOGIN_LINK_MAX_AGE = timedelta(minutes=15)
 
 
 def default_device(user, confirmed=True):
@@ -49,10 +55,68 @@ def is_two_factor_pending(request):
     return is_verified is None or not is_verified()
 
 
-def get_organization_invite_url(invitation: OrganizationInvitation) -> str:
-    """Registration link for an organization invitation (the token is valid for 48 hours)."""
-    token = invitation.generate_token()
-    return f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
+def get_organization_invite_url(
+    invitation: OrganizationInvitation, first_name: str = "", last_name: str = ""
+) -> str:
+    """Registration link for an organization invitation (the token is valid for 48 hours), with the names known so far pre-filled."""
+    params = {"email": invitation.email, "token": invitation.generate_token()}
+    names = {"first_name": first_name, "last_name": last_name}
+    params.update({key: value for key, value in names.items() if value})
+    return f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode(params)}"
+
+
+def is_known_password_hash(password_hash: str) -> bool:
+    """Whether one of OpenHEXA's password hashers can check passwords against ``password_hash``."""
+    try:
+        hasher = identify_hasher(password_hash)
+        # A hasher can be registered without its library installed (argon2, bcrypt), and would only fail at login
+        if hasher.library:
+            hasher._load_library()
+    except ValueError:
+        return False
+    return True
+
+
+def get_login_url(user: User, organization: Organization) -> str:
+    """Single-use link that logs ``user`` in and opens ``organization``, valid for ``LOGIN_LINK_MAX_AGE``."""
+    token = signing.dumps(
+        {
+            "user": str(user.id),
+            "organization": str(organization.id),
+            "state": _login_link_state(user),
+        },
+        salt=LOGIN_LINK_SALT,
+    )
+    return f"{settings.NEW_FRONTEND_DOMAIN}{reverse('login_link', args=[token])}"
+
+
+@dataclass(frozen=True)
+class LoginLink:
+    user: User | None
+    organization_id: str
+    usable: bool  # False once the link has expired or been used
+
+
+def read_login_link(token: str) -> LoginLink | None:
+    """The link created by ``get_login_url``, or None if it was not (tampered with or forged)."""
+    try:
+        payload = signing.loads(token, salt=LOGIN_LINK_SALT, max_age=LOGIN_LINK_MAX_AGE)
+        expired = False
+    except signing.SignatureExpired:
+        payload = signing.loads(token, salt=LOGIN_LINK_SALT)
+        expired = True
+    except signing.BadSignature:
+        return None
+    user = User.objects.filter(id=payload["user"], is_active=True).first()
+    usable = (
+        not expired and user is not None and _login_link_state(user) == payload["state"]
+    )
+    return LoginLink(user=user, organization_id=payload["organization"], usable=usable)
+
+
+def _login_link_state(user: User) -> str:
+    # Logging in updates last_login, which makes every link issued before it unusable
+    return user.last_login.isoformat() if user.last_login else ""
 
 
 def send_organization_invite(invitation):
@@ -92,25 +156,40 @@ def send_organization_invite(invitation):
 
 
 def send_organization_add_user_email(
-    invited_by, organization: Organization, invitee, role, workspace_invitations=None
+    invited_by,
+    organization: Organization,
+    invitee,
+    role,
+    workspace_invitations=None,
+    new_account: bool = False,
 ):
-    """Send email to existing user when added to organization"""
-    title = gettext_lazy(
-        f"You've been added to the organization {organization.name} on OpenHEXA"
-    )
+    """
+    Send email to a user added to an organization.
+
+    ``new_account`` is for an owner whose account was just created for them (see ``createOrganization``).
+    """
+    if new_account:
+        title = gettext_lazy(
+            f"Your organization {organization.name} is ready on OpenHEXA"
+        )
+    else:
+        title = gettext_lazy(
+            f"You've been added to the organization {organization.name} on OpenHEXA"
+        )
     action_url = f"{settings.NEW_FRONTEND_DOMAIN}/organizations/{organization.id}"
     invited_by = None if isinstance(invited_by, ServiceAccount) else invited_by
 
     with override(invitee.language):
         send_mail(
             title=title,
-            template_name="user_management/mails/add_existing_user_organization",
+            template_name="user_management/mails/added_to_organization",
             template_variables={
                 "organization": organization.name,
                 "invited_by": invited_by,
                 "invitee": invitee.display_name,
                 "url": action_url,
                 "workspace_invitations": workspace_invitations or [],
+                "new_account": new_account,
             },
             recipient_list=[invitee.email],
             attachments=get_email_attachments(),

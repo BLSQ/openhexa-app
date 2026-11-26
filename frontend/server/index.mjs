@@ -13,6 +13,7 @@ const handle = app.getRequestHandler();
 const API_PATHS = [
   "/graphql/",
   "/auth/logout",
+  "/auth/login-link/",
   "/static/",
   "/admin/",
   "/analytics/track/",

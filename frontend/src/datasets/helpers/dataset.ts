@@ -6,7 +6,9 @@ import {
   DeleteDatasetError,
   DeleteDatasetLinkError,
   DeleteDatasetVersionError,
+  DatasetVisibility,
   SetMetadataAttributeError,
+  UpdateDatasetError,
   UpdateDatasetVersionError,
 } from "graphql/types";
 import {
@@ -40,7 +42,8 @@ export async function updateDataset(
   values: {
     name?: string;
     description?: string;
-    sharedWithOrganization?: boolean;
+    visibility?: DatasetVisibility;
+    publicSlug?: string;
   },
 ) {
   const client = getApolloClient();
@@ -56,7 +59,8 @@ export async function updateDataset(
             id
             name
             description
-            sharedWithOrganization
+            visibility
+            publicSlug
             updatedAt
           }
           success
@@ -69,18 +73,36 @@ export async function updateDataset(
         datasetId,
         name: values.name,
         description: values.description,
-        sharedWithOrganization: values.sharedWithOrganization,
+        visibility: values.visibility,
+        publicSlug: values.publicSlug,
       },
     },
   });
 
   if (data?.updateDataset.success) {
     return data.updateDataset.dataset;
-  } else {
-    throw new Error(
-      data?.updateDataset.errors?.[0] ?? "An unknown error occurred",
-    );
   }
+  const messages: Partial<Record<UpdateDatasetError, string>> = {
+    [UpdateDatasetError.PermissionDenied]: i18n!.t(
+      "You do not have permission to update this dataset",
+    ),
+    [UpdateDatasetError.PublicSlugInvalidFormat]: i18n!.t(
+      "The public link identifier can only contain lowercase letters and numbers, separated by single hyphens or underscores.",
+    ),
+    [UpdateDatasetError.PublicSlugReserved]: i18n!.t(
+      "This public link identifier is reserved. Please choose another one.",
+    ),
+    [UpdateDatasetError.PublicSlugTaken]: i18n!.t(
+      "This public link identifier is already used. Please choose another one.",
+    ),
+    [UpdateDatasetError.PublicSlugLocked]: i18n!.t(
+      "The public link identifier of a dataset cannot be changed once set.",
+    ),
+  };
+  const error = data?.updateDataset.errors?.[0];
+  throw new Error(
+    (error && messages[error]) ?? i18n!.t("An unknown error occurred"),
+  );
 }
 
 export async function updateDatasetVersion(

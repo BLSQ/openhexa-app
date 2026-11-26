@@ -37,8 +37,8 @@ h help: ## Show this help
 b build: ## Build the backend docker image
 	$(COMPOSE) build
 
-rb run_backend: ## Run the backend with the pipelines and dataset workers
-	$(COMPOSE) --profile pipelines --profile dataset_worker up
+rb run_backend: ## Run the backend with the pipelines, dataset and workspace copy workers
+	$(COMPOSE) --profile pipelines --profile dataset_worker --profile workspace_copy_worker up
 
 rbl run_backend_light: ## Run the backend without workers
 	$(COMPOSE) up
