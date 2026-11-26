@@ -64,7 +64,7 @@ jobs:
     # A separate job, so the third-party action never sees the test accounts.
     permissions: {}
     steps:
-      - uses: rtCamp/action-slack-notify@v2.4.0
+      - uses: rtCamp/action-slack-notify@v2.4.1
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_CHANNEL: "#openhexa-alerts"
