@@ -1063,3 +1063,10 @@ query FinishedWorkspaceCopyRun($id: UUID!) {
     ...DuplicateWorkspaceDialog_run
   }
 }
+
+query WorkspaceDatabaseInUse($slug: String!) {
+  workspace(slug: $slug) {
+    slug
+    databaseInUse
+  }
+}

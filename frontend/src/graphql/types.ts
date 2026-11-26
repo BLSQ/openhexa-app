@@ -2417,6 +2417,8 @@ export type DisableTwoFactorResult = {
 export enum DuplicateWorkspaceError {
   /** The user already has a duplication queued or running. */
   CopyAlreadyRunning = 'COPY_ALREADY_RUNNING',
+  /** The workspace database has open connections, so it cannot be copied. */
+  DatabaseInUse = 'DATABASE_IN_USE',
   InvalidCountry = 'INVALID_COUNTRY',
   /** The name is blank or longer than 255 characters. */
   InvalidName = 'INVALID_NAME',
@@ -2426,6 +2428,8 @@ export enum DuplicateWorkspaceError {
 }
 
 export type DuplicateWorkspaceInput = {
+  /** Copy every version of each dataset instead of only the latest one. */
+  allDatasetVersions?: InputMaybe<Scalars['Boolean']['input']>;
   /** Countries of the new workspace. Omitted, the source workspace's are kept. */
   countries?: InputMaybe<Array<CountryInput>>;
   includeConnectionSecrets: Scalars['Boolean']['input'];
@@ -7352,6 +7356,11 @@ export type Workspace = {
   createdBy: User;
   currentMembership?: Maybe<WorkspaceMembership>;
   database: Database;
+  /**
+   * Whether the workspace database has open connections, which prevent copying
+   * it. Null if the user cannot duplicate the workspace.
+   */
+  databaseInUse?: Maybe<Scalars['Boolean']['output']>;
   /** Linked datasets of the workspace */
   datasets: DatasetLinkPage;
   description?: Maybe<Scalars['String']['output']>;
@@ -7438,8 +7447,12 @@ export type WorkspaceCopyRun = {
   sourceWorkspaceSlug: Scalars['String']['output'];
   startedAt?: Maybe<Scalars['DateTime']['output']>;
   status: WorkspaceCopyRunStatus;
+  /** The run's steps, in the order they are run. */
+  steps: Array<WorkspaceCopyStep>;
   /** Name requested for the new workspace. */
   targetWorkspaceName: Scalars['String']['output'];
+  /** What the user should check or redo by hand, once the run is over. */
+  warnings: Array<Scalars['String']['output']>;
   /** The workspace created by the run, once it exists. */
   workspace?: Maybe<Workspace>;
 };
@@ -7464,6 +7477,37 @@ export enum WorkspaceCopyRunStatus {
   Running = 'RUNNING',
   Success = 'SUCCESS',
   SuccessWithErrors = 'SUCCESS_WITH_ERRORS'
+}
+
+export type WorkspaceCopyStep = {
+  __typename?: 'WorkspaceCopyStep';
+  name: WorkspaceCopyStepName;
+  status: WorkspaceCopyStepStatus;
+};
+
+/**
+ * A step of a workspace duplication: creating the workspace, then copying each
+ * selected resource.
+ */
+export enum WorkspaceCopyStepName {
+  Connections = 'CONNECTIONS',
+  Database = 'DATABASE',
+  Datasets = 'DATASETS',
+  Files = 'FILES',
+  Pipelines = 'PIPELINES',
+  Webapps = 'WEBAPPS',
+  Workspace = 'WORKSPACE'
+}
+
+export enum WorkspaceCopyStepStatus {
+  /** The run stopped during this step. */
+  Failed = 'FAILED',
+  Pending = 'PENDING',
+  Running = 'RUNNING',
+  Success = 'SUCCESS',
+  /** Some items could not be copied. */
+  SuccessWithErrors = 'SUCCESS_WITH_ERRORS',
+  SuccessWithWarnings = 'SUCCESS_WITH_WARNINGS'
 }
 
 /** Represents an invitation to join a workspace. */

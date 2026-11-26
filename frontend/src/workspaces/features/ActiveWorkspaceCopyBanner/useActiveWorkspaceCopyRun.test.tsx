@@ -28,6 +28,8 @@ const run = (status: WorkspaceCopyRunStatus) => ({
   },
   error: null,
   workspace: null,
+  steps: [],
+  warnings: [],
 });
 
 const activeRunMock = (active: ReturnType<typeof run> | null) => ({

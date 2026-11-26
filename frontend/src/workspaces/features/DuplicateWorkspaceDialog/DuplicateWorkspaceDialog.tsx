@@ -3,6 +3,13 @@ import clsx from "clsx";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
+import {
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+  XCircleIcon,
+} from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
@@ -15,6 +22,8 @@ import {
   DuplicateWorkspaceError,
   WorkspaceCopyResource,
   WorkspaceCopyRunStatus,
+  WorkspaceCopyStepName,
+  WorkspaceCopyStepStatus,
 } from "graphql/types";
 import { useDuplicateWorkspaceMutation } from "workspaces/graphql/mutations.generated";
 import {
@@ -23,6 +32,9 @@ import {
   WorkspaceCopyRunDocument,
   WorkspaceCopyRunQuery,
   WorkspaceCopyRunQueryVariables,
+  WorkspaceDatabaseInUseDocument,
+  WorkspaceDatabaseInUseQuery,
+  WorkspaceDatabaseInUseQueryVariables,
 } from "workspaces/graphql/queries.generated";
 import {
   DuplicateWorkspaceDialog_RunFragment,
@@ -64,7 +76,9 @@ const DuplicateWorkspaceDialog = ({
     [],
   );
   const [resources, setResources] = useState<WorkspaceCopyResource[]>([]);
-  const [includeSecrets, setIncludeSecrets] = useState(true);
+  const [includeSecrets, setIncludeSecrets] = useState(false);
+  const [allDatasetVersions, setAllDatasetVersions] = useState(false);
+  const [databaseInUse, setDatabaseInUse] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [run, setRun] = useState<DuplicateWorkspaceDialog_RunFragment | null>(
@@ -82,6 +96,37 @@ const DuplicateWorkspaceDialog = ({
     [WorkspaceCopyResource.Connections]: t("Connections"),
     [WorkspaceCopyResource.Pipelines]: t("Pipelines"),
     [WorkspaceCopyResource.Webapps]: t("Web apps"),
+  };
+
+  const stepLabels: Record<WorkspaceCopyStepName, string> = {
+    [WorkspaceCopyStepName.Workspace]: t("Workspace"),
+    [WorkspaceCopyStepName.Files]: t("Files"),
+    [WorkspaceCopyStepName.Database]: t("Workspace database"),
+    [WorkspaceCopyStepName.Datasets]: t("Datasets"),
+    [WorkspaceCopyStepName.Connections]: t("Connections"),
+    [WorkspaceCopyStepName.Pipelines]: t("Pipelines"),
+    [WorkspaceCopyStepName.Webapps]: t("Web apps"),
+  };
+
+  const stepStatusLabels: Record<WorkspaceCopyStepStatus, string> = {
+    [WorkspaceCopyStepStatus.Pending]: t("Waiting"),
+    [WorkspaceCopyStepStatus.Running]: t("Copying…"),
+    [WorkspaceCopyStepStatus.Success]: t("Done"),
+    [WorkspaceCopyStepStatus.SuccessWithWarnings]: t("Done, with warnings"),
+    [WorkspaceCopyStepStatus.SuccessWithErrors]: t(
+      "Some items could not be copied",
+    ),
+    [WorkspaceCopyStepStatus.Failed]: t("Failed"),
+  };
+
+  // Settings never copied, whatever happens during the run.
+  const resourceNotes: Partial<Record<WorkspaceCopyResource, string>> = {
+    [WorkspaceCopyResource.Pipelines]: t(
+      "Pipeline schedules are not copied: set them again in the new workspace once you have checked the pipelines.",
+    ),
+    [WorkspaceCopyResource.Webapps]: t(
+      "Web app subdomains, custom domains and favorites are not copied: the public URLs of the web apps change.",
+    ),
   };
 
   const followRun = useCallback(
@@ -114,13 +159,43 @@ const DuplicateWorkspaceDialog = ({
       setName(t("Copy of {{name}}", { name: workspace.name }));
       setCountries(workspace.countries);
       setResources(ALL_RESOURCES);
-      setIncludeSecrets(true);
+      setIncludeSecrets(false);
+      setAllDatasetVersions(false);
+      setDatabaseInUse(false);
     }
     setSubmitError(null);
     loadActiveRun();
     // Only opening the dialog resets it: `t` is left out so that a change of
     // its identity never wipes what the user typed.
   }, [open, workspace, loadActiveRun]);
+
+  // The database cannot be copied while anything is connected to it, so it is
+  // offered only when nothing is.
+  useEffect(() => {
+    if (!open || !workspace) return;
+    let cancelled = false;
+    client
+      .query<WorkspaceDatabaseInUseQuery, WorkspaceDatabaseInUseQueryVariables>(
+        {
+          query: WorkspaceDatabaseInUseDocument,
+          variables: { slug: workspace.slug },
+          fetchPolicy: "no-cache",
+        },
+      )
+      .then(({ data }) => {
+        if (cancelled || !data?.workspace?.databaseInUse) return;
+        setDatabaseInUse(true);
+        setResources((current) =>
+          current.filter((r) => r !== WorkspaceCopyResource.Database),
+        );
+      })
+      .catch(() => {
+        // The mutation checks it again, so a failure here only loses the hint.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, workspace, client]);
 
   const runId = run?.id;
   const isFinished = !!run && FINISHED_STATUSES.includes(run.status);
@@ -187,7 +262,10 @@ const DuplicateWorkspaceDialog = ({
         ? current.filter((r) => r !== resource)
         : [...current, resource],
     );
-  const allSelected = resources.length === ALL_RESOURCES.length;
+  const selectableResources = databaseInUse
+    ? ALL_RESOURCES.filter((r) => r !== WorkspaceCopyResource.Database)
+    : ALL_RESOURCES;
+  const allSelected = resources.length === selectableResources.length;
 
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -205,6 +283,9 @@ const DuplicateWorkspaceDialog = ({
             includeConnectionSecrets:
               resources.includes(WorkspaceCopyResource.Connections) &&
               includeSecrets,
+            allDatasetVersions:
+              resources.includes(WorkspaceCopyResource.Datasets) &&
+              allDatasetVersions,
           },
         },
       });
@@ -233,8 +314,17 @@ const DuplicateWorkspaceDialog = ({
           [DuplicateWorkspaceError.InvalidName]: t(
             "Enter a name of at most 255 characters.",
           ),
+          [DuplicateWorkspaceError.DatabaseInUse]: t(
+            "The workspace database is in use. Close the notebooks, pipelines and tools connected to it, or duplicate the workspace without its database.",
+          ),
         };
         const error = result?.errors.find((code) => code in refusals);
+        if (error === DuplicateWorkspaceError.DatabaseInUse) {
+          setDatabaseInUse(true);
+          setResources((current) =>
+            current.filter((r) => r !== WorkspaceCopyResource.Database),
+          );
+        }
         setSubmitError(
           error ? refusals[error]! : t("An unexpected error occurred."),
         );
@@ -245,6 +335,16 @@ const DuplicateWorkspaceDialog = ({
       setIsSubmitting(false);
     }
   };
+
+  const runNotes = Object.entries(resourceNotes)
+    .filter(([resource]) =>
+      run?.steps.some(
+        (step) =>
+          step.name === (resource as string) &&
+          step.status !== WorkspaceCopyStepStatus.Pending,
+      ),
+    )
+    .map(([, note]) => note);
 
   const openWorkspace = async () => {
     if (!run?.workspace) return;
@@ -260,7 +360,7 @@ const DuplicateWorkspaceDialog = ({
       open={open}
       onClose={onClose}
       onSubmit={run ? undefined : onSubmit}
-      maxWidth="max-w-xl"
+      maxWidth="max-w-3xl"
     >
       <Dialog.Title onClose={onClose}>
         {run && !isFinished ? t("Copy in progress") : t("Duplicate workspace")}
@@ -319,7 +419,9 @@ const DuplicateWorkspaceDialog = ({
                 <button
                   type="button"
                   className="text-sm font-medium text-blue-600 hover:text-blue-500"
-                  onClick={() => setResources(allSelected ? [] : ALL_RESOURCES)}
+                  onClick={() =>
+                    setResources(allSelected ? [] : selectableResources)
+                  }
                 >
                   {allSelected ? t("Deselect all") : t("Select all")}
                 </button>
@@ -332,6 +434,18 @@ const DuplicateWorkspaceDialog = ({
                       checked={resources.includes(resource)}
                       onChange={() => toggleResource(resource)}
                       label={resourceLabels[resource]}
+                      disabled={
+                        resource === WorkspaceCopyResource.Database &&
+                        databaseInUse
+                      }
+                      description={
+                        resource === WorkspaceCopyResource.Database &&
+                        databaseInUse
+                          ? t(
+                              "The database is in use and cannot be copied. Close the notebooks, pipelines and tools connected to it, then reopen this dialog.",
+                            )
+                          : undefined
+                      }
                     />
                     {resource === WorkspaceCopyResource.Connections &&
                       resources.includes(resource) && (
@@ -343,6 +457,21 @@ const DuplicateWorkspaceDialog = ({
                           label={t("Include connection secrets")}
                           description={t(
                             "If unchecked, connections are copied without their secrets.",
+                          )}
+                        />
+                      )}
+                    {resource === WorkspaceCopyResource.Datasets &&
+                      resources.includes(resource) && (
+                        <Checkbox
+                          className="mt-3 ml-7"
+                          name="allDatasetVersions"
+                          checked={allDatasetVersions}
+                          onChange={() =>
+                            setAllDatasetVersions(!allDatasetVersions)
+                          }
+                          label={t("Copy all dataset versions")}
+                          description={t(
+                            "If unchecked, only the latest version of each dataset is copied.",
                           )}
                         />
                       )}
@@ -405,45 +534,124 @@ const DuplicateWorkspaceDialog = ({
                 {run.error}
               </div>
             )}
-            <div
-              ref={logRef}
-              data-testid="copy-logs"
-              className="h-60 overflow-y-auto rounded-md bg-gray-900 px-4 py-3 font-mono text-xs leading-relaxed"
+            <ul
+              data-testid="copy-steps"
+              className="divide-y divide-gray-100 rounded-md border border-gray-200"
             >
-              {logLines.length === 0 && (
-                <div className="text-gray-500">
-                  {t("Waiting for the copy to start…")}
-                </div>
-              )}
-              {logLines.map((line, index) => (
-                <div
-                  key={index}
-                  className={clsx(
-                    "whitespace-pre-wrap break-words",
-                    line.includes("[ERROR]")
-                      ? "text-red-400"
-                      : line.includes("[WARNING]")
-                        ? "text-amber-300"
-                        : "text-gray-300",
-                  )}
+              {run.steps.map((step) => (
+                <li
+                  key={step.name}
+                  className="flex items-center justify-between px-4 py-2.5 text-sm"
                 >
-                  {line}
-                </div>
+                  <span className="flex items-center gap-2 text-gray-900">
+                    <StepIcon status={step.status} />
+                    {stepLabels[step.name]}
+                  </span>
+                  <span
+                    className={clsx(
+                      "text-xs",
+                      step.status === WorkspaceCopyStepStatus.Failed ||
+                        step.status ===
+                          WorkspaceCopyStepStatus.SuccessWithErrors
+                        ? "text-red-600"
+                        : step.status ===
+                            WorkspaceCopyStepStatus.SuccessWithWarnings
+                          ? "text-amber-600"
+                          : "text-gray-500",
+                    )}
+                  >
+                    {stepStatusLabels[step.status]}
+                  </span>
+                </li>
               ))}
-            </div>
+            </ul>
+            {isFinished && run.warnings.length > 0 && (
+              <div className="rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                <div className="mb-1 font-medium">
+                  {t("Check these items in the new workspace:")}
+                </div>
+                <ul className="list-disc space-y-1 pl-5">
+                  {run.warnings.map((warning, index) => (
+                    <li key={index} className="break-words">
+                      {warning}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {isFinished && runNotes.length > 0 && (
+              <div className="flex gap-2 rounded-md bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                <InformationCircleIcon className="h-5 w-5 shrink-0" />
+                <ul className="space-y-1">
+                  {runNotes.map((note) => (
+                    <li key={note}>{note}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <details>
+              <summary className="cursor-pointer text-sm text-gray-600 select-none">
+                {t("Show details")}
+              </summary>
+              <div
+                ref={logRef}
+                data-testid="copy-logs"
+                className="mt-2 h-72 overflow-y-auto rounded-md bg-gray-900 px-4 py-3 font-mono text-xs leading-relaxed"
+              >
+                {logLines.length === 0 && (
+                  <div className="text-gray-500">
+                    {t("Waiting for the copy to start…")}
+                  </div>
+                )}
+                {logLines.map((line, index) => (
+                  <div
+                    key={index}
+                    className={clsx(
+                      "whitespace-pre-wrap break-words",
+                      line.includes("[ERROR]")
+                        ? "text-red-400"
+                        : line.includes("[WARNING]")
+                          ? "text-amber-300"
+                          : "text-gray-300",
+                    )}
+                  >
+                    {line}
+                  </div>
+                ))}
+              </div>
+            </details>
           </Dialog.Content>
           <Dialog.Actions>
             <Button variant="white" onClick={onClose}>
               {t("Close")}
             </Button>
             {isFinished && run?.workspace && (
-              <Button onClick={openWorkspace}>{t("Open workspace")}</Button>
+              <Button onClick={openWorkspace}>
+                {t("Open {{name}}", { name: run.workspace.name })}
+              </Button>
             )}
           </Dialog.Actions>
         </>
       )}
     </Dialog>
   );
+};
+
+const StepIcon = ({ status }: { status: WorkspaceCopyStepStatus }) => {
+  switch (status) {
+    case WorkspaceCopyStepStatus.Running:
+      return <Spinner size="xs" />;
+    case WorkspaceCopyStepStatus.Success:
+      return <CheckCircleIcon className="h-5 w-5 text-green-600" />;
+    case WorkspaceCopyStepStatus.SuccessWithWarnings:
+      return <ExclamationTriangleIcon className="h-5 w-5 text-amber-500" />;
+    case WorkspaceCopyStepStatus.SuccessWithErrors:
+      return <ExclamationCircleIcon className="h-5 w-5 text-red-500" />;
+    case WorkspaceCopyStepStatus.Failed:
+      return <XCircleIcon className="h-5 w-5 text-red-500" />;
+    default:
+      return <span className="h-5 w-5 rounded-full border-2 border-gray-200" />;
+  }
 };
 
 DuplicateWorkspaceDialog.fragments = {
@@ -458,8 +666,14 @@ DuplicateWorkspaceDialog.fragments = {
         name
       }
       error
+      steps {
+        name
+        status
+      }
+      warnings
       workspace {
         slug
+        name
       }
     }
   `,

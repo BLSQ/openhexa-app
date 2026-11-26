@@ -186,7 +186,7 @@ export type DuplicateWorkspaceMutationVariables = Types.Exact<{
 }>;
 
 
-export type DuplicateWorkspaceMutation = { __typename?: 'Mutation', duplicateWorkspace: { __typename?: 'DuplicateWorkspaceResult', success: boolean, errors: Array<Types.DuplicateWorkspaceError>, run?: { __typename?: 'WorkspaceCopyRun', id: string, status: Types.WorkspaceCopyRunStatus, targetWorkspaceName: string, sourceWorkspaceSlug: string, error?: string | null, sourceWorkspace?: { __typename?: 'Workspace', slug: string, name: string } | null, workspace?: { __typename?: 'Workspace', slug: string } | null } | null } };
+export type DuplicateWorkspaceMutation = { __typename?: 'Mutation', duplicateWorkspace: { __typename?: 'DuplicateWorkspaceResult', success: boolean, errors: Array<Types.DuplicateWorkspaceError>, run?: { __typename?: 'WorkspaceCopyRun', id: string, status: Types.WorkspaceCopyRunStatus, targetWorkspaceName: string, sourceWorkspaceSlug: string, error?: string | null, warnings: Array<string>, sourceWorkspace?: { __typename?: 'Workspace', slug: string, name: string } | null, steps: Array<{ __typename?: 'WorkspaceCopyStep', name: Types.WorkspaceCopyStepName, status: Types.WorkspaceCopyStepStatus }>, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null } | null } };
 
 
 export const CreateWorkspaceDocument = gql`

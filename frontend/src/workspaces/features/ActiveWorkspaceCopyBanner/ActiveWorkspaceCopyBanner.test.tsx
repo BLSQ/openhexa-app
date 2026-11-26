@@ -11,6 +11,8 @@ const RUN = {
   sourceWorkspace: { slug: "malaria", name: "Malaria" },
   error: null,
   workspace: null,
+  steps: [],
+  warnings: [],
 };
 
 describe("ActiveWorkspaceCopyBanner", () => {

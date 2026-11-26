@@ -2405,6 +2405,9 @@ type DisableTwoFactorResult {
 enum DuplicateWorkspaceError {
   """The user already has a duplication queued or running."""
   COPY_ALREADY_RUNNING
+
+  """The workspace database has open connections, so it cannot be copied."""
+  DATABASE_IN_USE
   INVALID_COUNTRY
 
   """The name is blank or longer than 255 characters."""
@@ -2415,6 +2418,9 @@ enum DuplicateWorkspaceError {
 }
 
 input DuplicateWorkspaceInput {
+  """Copy every version of each dataset instead of only the latest one."""
+  allDatasetVersions: Boolean = false
+
   """
   Countries of the new workspace. Omitted, the source workspace's are kept.
   """
@@ -6565,6 +6571,12 @@ type Workspace {
   currentMembership: WorkspaceMembership
   database: Database!
 
+  """
+  Whether the workspace database has open connections, which prevent copying
+  it. Null if the user cannot duplicate the workspace.
+  """
+  databaseInUse: Boolean
+
   """Linked datasets of the workspace"""
   datasets(page: Int = 1, perPage: Int = 15, pinned: Boolean, query: String): DatasetLinkPage!
   description: String
@@ -6622,8 +6634,14 @@ type WorkspaceCopyRun {
   startedAt: DateTime
   status: WorkspaceCopyRunStatus!
 
+  """The run's steps, in the order they are run."""
+  steps: [WorkspaceCopyStep!]!
+
   """Name requested for the new workspace."""
   targetWorkspaceName: String!
+
+  """What the user should check or redo by hand, once the run is over."""
+  warnings: [String!]!
 
   """The workspace created by the run, once it exists."""
   workspace: Workspace
@@ -6643,6 +6661,37 @@ enum WorkspaceCopyRunStatus {
   RUNNING
   SUCCESS
   SUCCESS_WITH_ERRORS
+}
+
+type WorkspaceCopyStep {
+  name: WorkspaceCopyStepName!
+  status: WorkspaceCopyStepStatus!
+}
+
+"""
+A step of a workspace duplication: creating the workspace, then copying each
+selected resource.
+"""
+enum WorkspaceCopyStepName {
+  CONNECTIONS
+  DATABASE
+  DATASETS
+  FILES
+  PIPELINES
+  WEBAPPS
+  WORKSPACE
+}
+
+enum WorkspaceCopyStepStatus {
+  """The run stopped during this step."""
+  FAILED
+  PENDING
+  RUNNING
+  SUCCESS
+
+  """Some items could not be copied."""
+  SUCCESS_WITH_ERRORS
+  SUCCESS_WITH_WARNINGS
 }
 
 """Represents an invitation to join a workspace."""

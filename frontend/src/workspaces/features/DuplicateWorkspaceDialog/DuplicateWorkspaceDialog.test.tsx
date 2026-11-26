@@ -7,11 +7,14 @@ import {
   DuplicateWorkspaceError,
   WorkspaceCopyResource,
   WorkspaceCopyRunStatus,
+  WorkspaceCopyStepName,
+  WorkspaceCopyStepStatus,
 } from "graphql/types";
 import { DuplicateWorkspaceDocument } from "workspaces/graphql/mutations.generated";
 import {
   ActiveWorkspaceCopyRunDocument,
   WorkspaceCopyRunDocument,
+  WorkspaceDatabaseInUseDocument,
 } from "workspaces/graphql/queries.generated";
 import DuplicateWorkspaceDialog from "./DuplicateWorkspaceDialog";
 
@@ -34,7 +37,25 @@ const WORKSPACE = {
 
 const ALL_RESOURCES = Object.values(WorkspaceCopyResource);
 
-const run = (status: WorkspaceCopyRunStatus, slug: string | null = null) => ({
+const step = (
+  name: WorkspaceCopyStepName,
+  status: WorkspaceCopyStepStatus,
+) => ({
+  __typename: "WorkspaceCopyStep",
+  name,
+  status,
+});
+
+const run = (
+  status: WorkspaceCopyRunStatus,
+  slug: string | null = null,
+  {
+    steps = [
+      step(WorkspaceCopyStepName.Workspace, WorkspaceCopyStepStatus.Pending),
+    ],
+    warnings = [] as string[],
+  } = {},
+) => ({
   __typename: "WorkspaceCopyRun",
   id: "run-1",
   status,
@@ -46,7 +67,11 @@ const run = (status: WorkspaceCopyRunStatus, slug: string | null = null) => ({
     name: "Malaria",
   },
   error: null,
-  workspace: slug ? { __typename: "Workspace", slug } : null,
+  steps,
+  warnings,
+  workspace: slug
+    ? { __typename: "Workspace", slug, name: "Malaria (copy)" }
+    : null,
 });
 
 const activeRunMock = (active: ReturnType<typeof run> | null) => ({
@@ -66,7 +91,8 @@ const duplicateMock = (
         name: "Malaria (copy)",
         countries: [{ code: "BE" }],
         resources: ALL_RESOURCES,
-        includeConnectionSecrets: true,
+        includeConnectionSecrets: false,
+        allDatasetVersions: false,
         ...input,
       },
     },
@@ -84,10 +110,23 @@ const duplicateMock = (
   },
 });
 
+const databaseInUseMock = (slug: string, databaseInUse: boolean) => ({
+  request: {
+    query: WorkspaceDatabaseInUseDocument,
+    variables: { slug },
+  },
+  result: {
+    data: {
+      workspace: { __typename: "Workspace", slug, databaseInUse },
+    },
+  },
+});
+
 const pollMock = (
   status: WorkspaceCopyRunStatus,
   text: string,
   slug: string | null = null,
+  extra: Parameters<typeof run>[2] = {},
 ) => ({
   request: {
     query: WorkspaceCopyRunDocument,
@@ -96,7 +135,7 @@ const pollMock = (
   result: {
     data: {
       workspaceCopyRun: {
-        ...run(status, slug),
+        ...run(status, slug, extra),
         logs: {
           __typename: "WorkspaceCopyRunLogs",
           text,
@@ -110,9 +149,17 @@ const pollMock = (
 const renderDialog = (
   mocks: any[],
   workspace: typeof WORKSPACE | null = WORKSPACE,
+  { databaseInUse = false } = {},
 ) =>
   render(
-    <TestApp mocks={mocks} cache={new InMemoryCache(CACHE_CONFIG)}>
+    <TestApp
+      mocks={
+        workspace
+          ? [databaseInUseMock(workspace.slug, databaseInUse), ...mocks]
+          : mocks
+      }
+      cache={new InMemoryCache(CACHE_CONFIG)}
+    >
       <DuplicateWorkspaceDialog
         open={true}
         workspace={workspace}
@@ -138,6 +185,19 @@ describe("DuplicateWorkspaceDialog", () => {
         WorkspaceCopyRunStatus.Success,
         "10:00:00 => Copying files ...\n10:00:01 [WARNING] skipped one\n",
         "malaria-copy",
+        {
+          steps: [
+            step(
+              WorkspaceCopyStepName.Workspace,
+              WorkspaceCopyStepStatus.Success,
+            ),
+            step(
+              WorkspaceCopyStepName.Pipelines,
+              WorkspaceCopyStepStatus.SuccessWithWarnings,
+            ),
+          ],
+          warnings: ["pipeline 'etl' schedule not copied"],
+        },
       ),
     ]);
 
@@ -147,13 +207,32 @@ describe("DuplicateWorkspaceDialog", () => {
     for (const label of ["Files", "Workspace database", "Web apps"]) {
       expect(screen.getByLabelText(label)).toBeChecked();
     }
+    expect(
+      screen.getByLabelText("Include connection secrets"),
+    ).not.toBeChecked();
+    expect(
+      screen.getByLabelText("Copy all dataset versions"),
+    ).not.toBeChecked();
 
     await typeName(user);
     await user.click(screen.getByRole("button", { name: "Duplicate" }));
 
     expect(
-      await screen.findByRole("button", { name: "Open workspace" }),
+      await screen.findByRole("button", { name: "Open {{name}}" }),
     ).toBeInTheDocument();
+    expect(screen.getByText("Done, with warnings")).toBeVisible();
+    expect(
+      screen.getByText("pipeline 'etl' schedule not copied"),
+    ).toBeVisible();
+    expect(
+      screen.getByText(
+        "Pipeline schedules are not copied: set them again in the new workspace once you have checked the pipelines.",
+      ),
+    ).toBeVisible();
+    expect(
+      screen.getByText("10:00:01 [WARNING] skipped one"),
+    ).not.toBeVisible();
+    await user.click(screen.getByText("Show details"));
     expect(screen.getByText("10:00:01 [WARNING] skipped one")).toHaveClass(
       "text-amber-300",
     );
@@ -182,26 +261,32 @@ describe("DuplicateWorkspaceDialog", () => {
     ).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Duplicate" }));
 
+    expect(await screen.findByText("Waiting")).toBeVisible();
     expect(
-      await screen.findByText("Waiting for the copy to start…"),
-    ).toBeVisible();
-    expect(
-      screen.queryByRole("button", { name: "Open workspace" }),
+      screen.queryByRole("button", { name: "Open {{name}}" }),
     ).not.toBeInTheDocument();
   });
 
   it("shows a copy still running when opened again", async () => {
+    const steps = [
+      step(WorkspaceCopyStepName.Workspace, WorkspaceCopyStepStatus.Success),
+      step(WorkspaceCopyStepName.Files, WorkspaceCopyStepStatus.Running),
+    ];
     renderDialog([
-      activeRunMock(run(WorkspaceCopyRunStatus.Running)),
+      activeRunMock(run(WorkspaceCopyRunStatus.Running, null, { steps })),
       pollMock(
         WorkspaceCopyRunStatus.Running,
         "10:00:00 => Copying files ...\n",
+        null,
+        { steps },
       ),
     ]);
 
+    expect(await screen.findByText("Copying…")).toBeVisible();
+    expect(screen.getByText("Done")).toBeVisible();
     expect(
       await screen.findByText("10:00:00 => Copying files ..."),
-    ).toBeVisible();
+    ).toBeInTheDocument();
     expect(
       screen.queryByLabelText("New workspace name"),
     ).not.toBeInTheDocument();
@@ -230,7 +315,57 @@ describe("DuplicateWorkspaceDialog", () => {
 
     expect(
       await screen.findByText("10:00:00 => Copying files ..."),
-    ).toBeVisible();
+    ).toBeInTheDocument();
+  });
+
+  it("sends the dataset versions option when datasets are copied", async () => {
+    const user = userEvent.setup();
+    renderDialog([
+      activeRunMock(null),
+      duplicateMock(
+        { allDatasetVersions: true, includeConnectionSecrets: true },
+        { run: run(WorkspaceCopyRunStatus.Queued) },
+      ),
+      pollMock(WorkspaceCopyRunStatus.Queued, ""),
+    ]);
+
+    await typeName(user);
+    await user.click(screen.getByLabelText("Copy all dataset versions"));
+    await user.click(screen.getByLabelText("Include connection secrets"));
+    await user.click(screen.getByRole("button", { name: "Duplicate" }));
+
+    expect(await screen.findByText("Waiting")).toBeVisible();
+  });
+
+  it("leaves the database out while it is in use", async () => {
+    const user = userEvent.setup();
+    renderDialog(
+      [
+        activeRunMock(null),
+        duplicateMock(
+          {
+            resources: ALL_RESOURCES.filter(
+              (r) => r !== WorkspaceCopyResource.Database,
+            ),
+          },
+          { run: run(WorkspaceCopyRunStatus.Queued) },
+        ),
+        pollMock(WorkspaceCopyRunStatus.Queued, ""),
+      ],
+      WORKSPACE,
+      { databaseInUse: true },
+    );
+
+    await typeName(user);
+    const database = await screen.findByLabelText("Workspace database");
+    await screen.findByText(
+      "The database is in use and cannot be copied. Close the notebooks, pipelines and tools connected to it, then reopen this dialog.",
+    );
+    expect(database).not.toBeChecked();
+    expect(database).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Duplicate" }));
+
+    expect(await screen.findByText("Waiting")).toBeVisible();
   });
 
   it("shows why a duplication is refused", async () => {
