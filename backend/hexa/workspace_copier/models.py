@@ -64,6 +64,10 @@ class WorkspaceCopyRun(Base):
     started_at = models.DateTimeField(null=True, blank=True)
     finished_at = models.DateTimeField(null=True, blank=True)
     logs = models.TextField(blank=True, default="")
+    # Copier name -> StepStatus, written by the reporter as the copy goes.
+    steps = models.JSONField(default=dict, blank=True)
+    # Everything the requester should act on once the copy is over.
+    warnings = models.JSONField(default=list, blank=True)
     summary = models.TextField(blank=True, default="")
     error = models.TextField(blank=True, default="")
     result_workspace_slug = models.CharField(max_length=255, blank=True)
@@ -103,8 +107,8 @@ class WorkspaceCopyRun(Base):
         self.finished_at = timezone.now()
         self.source_token = None
         self.target_token = None
-        # "logs" is deliberately left out: the reporter appends to it in SQL,
-        # and saving this instance's stale copy would erase those lines.
+        # "logs" and "steps" are deliberately left out: the reporter writes them
+        # in SQL, and saving this instance's stale copy would erase them.
         self.save(
             update_fields=[
                 "status",
@@ -112,6 +116,7 @@ class WorkspaceCopyRun(Base):
                 "source_token",
                 "target_token",
                 "summary",
+                "warnings",
                 "error",
                 "result_workspace_slug",
                 "updated_at",

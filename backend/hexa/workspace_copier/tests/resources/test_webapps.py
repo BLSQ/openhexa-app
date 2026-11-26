@@ -93,7 +93,7 @@ class WebappsCopierAcrossServersTest(SimpleTestCase):
         [create] = servers.calls
         self.assertEqual(create["source"], {"iframe": {"url": "https://embed.org"}})
         self.assertEqual(result.webapps.created, ["embed"])
-        self.assertIn(NOT_COPIED_NOTE, result.webapps.warnings)
+        self.assertIn(NOT_COPIED_NOTE, result.webapps.notes)
 
     def test_static_webapp_is_skipped_across_servers(self):
         servers = FakeServers(

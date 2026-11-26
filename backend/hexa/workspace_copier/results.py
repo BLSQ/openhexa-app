@@ -7,6 +7,7 @@ views render that aggregate via :func:`format_summary`.
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from enum import StrEnum
 
 BYTE_UNITS = ("B", "KiB", "MiB", "GiB", "TiB", "PiB")
 
@@ -27,6 +28,18 @@ def format_bytes(size: int) -> str:
         if value < 1024:
             break
     return f"{value:.1f} {unit}"
+
+
+class StepStatus(StrEnum):
+    """Progress of one copier within a run, shown to the requester as a step."""
+
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    SUCCESS = "SUCCESS"
+    SUCCESS_WITH_WARNINGS = "SUCCESS_WITH_WARNINGS"
+    SUCCESS_WITH_ERRORS = "SUCCESS_WITH_ERRORS"
+    FAILED = "FAILED"
+    """The copier raised: the run stopped there."""
 
 
 @dataclass
@@ -130,6 +143,9 @@ class WebappsResult:
     warnings: list[str] = field(default_factory=list)
     """Human-readable warnings to print in the summary."""
 
+    notes: list[str] = field(default_factory=list)
+    """Settings that are never copied: worth knowing, but not a problem to act on."""
+
 
 @dataclass
 class TemplatesResult:
@@ -179,6 +195,52 @@ class CopyResult:
 
     def warn(self, message: str) -> None:
         self.warnings.append(message)
+
+    def step_status(self, name: str) -> str:
+        """Outcome of the copier ``name`` once it has run, as a step status."""
+        resource = getattr(self, name, None)
+        if isinstance(resource, DatabaseResult):
+            if resource.failed:
+                return StepStatus.FAILED
+            return (
+                StepStatus.SUCCESS_WITH_WARNINGS
+                if resource.skipped
+                else StepStatus.SUCCESS
+            )
+        if resource is None or not hasattr(resource, "failed"):
+            return StepStatus.SUCCESS
+        if resource.failed:
+            return StepStatus.SUCCESS_WITH_ERRORS
+        if getattr(resource, "warnings", None):
+            return StepStatus.SUCCESS_WITH_WARNINGS
+        return StepStatus.SUCCESS
+
+    def all_warnings(self) -> list[str]:
+        """Every warning of the run, for the user to act on once it is over.
+
+        Failures that the copiers only logged are added, counted rather than
+        listed for files, which can fail by the thousand.
+        """
+        warnings = list(self.warnings)
+        if self.files and self.files.failed:
+            warnings.append(
+                f"{len(self.files.failed)} file(s) could not be copied — see the "
+                "logs for the list."
+            )
+        if self.database and (self.database.skipped or self.database.failed):
+            warnings.append(
+                f"The database was not copied: {self.database.skipped or self.database.failed}"
+            )
+        if self.connections:
+            warnings.extend(self.connections.warnings)
+            warnings.extend(
+                f"connection '{slug}' could not be created — handle manually."
+                for slug in self.connections.failed
+            )
+        for resource in (self.pipelines, self.datasets, self.webapps):
+            if resource:
+                warnings.extend(resource.warnings)
+        return warnings
 
     @property
     def has_failures(self) -> bool:
@@ -318,6 +380,9 @@ def format_summary(result: CopyResult) -> str:
         if webapps.warnings:
             lines.append("Web app warnings:")
             lines.extend(f"  - {w}" for w in webapps.warnings)
+        if webapps.notes:
+            lines.append("Web app notes:")
+            lines.extend(f"  - {n}" for n in webapps.notes)
 
     if result.warnings:
         lines.append("Warnings:")

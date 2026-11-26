@@ -33,6 +33,9 @@ class ProgressReporter(Protocol):
     def log(self, message: str, *, level: Level = "INFO") -> None:
         ...
 
+    def step(self, name: str, status: str) -> None:
+        ...
+
 
 class BaseReporter:
     def log(self, message: str, *, level: Level = "INFO") -> None:
@@ -46,6 +49,13 @@ class BaseReporter:
 
     def error(self, message: str) -> None:
         self.log(message, level="ERROR")
+
+    def step(self, name: str, status: str) -> None:
+        """Record that the copier ``name`` reached ``status``.
+
+        Only the async job keeps steps, to show the requester a short progress
+        list; the other flows read the log lines.
+        """
 
 
 class NullReporter(BaseReporter):
@@ -108,6 +118,7 @@ class DatabaseReporter(BaseReporter):
         self.max_buffer = max_buffer
         self.buffer: list[str] = []
         self._last_flush = time.monotonic()
+        self.steps: dict[str, str] = {}
 
     def log(self, message: str, *, level: Level = "INFO") -> None:
         self.buffer.append(format_entry(timezone.localtime(), level, message))
@@ -129,4 +140,12 @@ class DatabaseReporter(BaseReporter):
         WorkspaceCopyRun.objects.filter(pk=self.run_id).update(
             logs=Concat(F("logs"), Value(chunk), output_field=TextField()),
             updated_at=timezone.now(),
+        )
+
+    def step(self, name: str, status: str) -> None:
+        # Flushed first so the logs never lag behind the step they belong to.
+        self.flush()
+        self.steps[name] = status
+        WorkspaceCopyRun.objects.filter(pk=self.run_id).update(
+            steps=self.steps, updated_at=timezone.now()
         )

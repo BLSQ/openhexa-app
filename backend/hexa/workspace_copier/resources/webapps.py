@@ -180,7 +180,7 @@ class WebappsCopier(ResourceCopier):
             wa_result.created.append(target_slug)
             reporter.info(f"   created web app '{target_slug}'")
         if wa_result.created:
-            wa_result.warnings.append(NOT_COPIED_NOTE)
+            wa_result.notes.append(NOT_COPIED_NOTE)
 
 
 # ---------------------------------------------------------------------------
