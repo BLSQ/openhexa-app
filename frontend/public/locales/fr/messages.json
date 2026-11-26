@@ -569,7 +569,7 @@
   "Let the assistant browse and read files in workspace buckets, and add new ones.": "Permet à l'assistant de parcourir et lire les fichiers des espaces de travail, et d'en ajouter de nouveaux.",
   "Let the assistant browse pipeline templates and read their source code.": "Permet à l'assistant de parcourir les modèles de pipeline et de lire leur code source.",
   "Let the assistant inspect pipelines and their runs, and create, edit or run them.": "Permet à l'assistant d'inspecter les pipelines et leurs exécutions, et de les créer, modifier ou exécuter.",
-  "Let the assistant list datasets, preview their contents, and publish new versions.": "Permet à l'assistant de lister les jeux de données, d'en prévisualiser le contenu et de publier de nouvelles versions.",
+  "Let the assistant list datasets, see the structure of their files (not the rows), and publish new versions.": "Permet à l'assistant de lister les jeux de données, de voir la structure de leurs fichiers (pas les lignes) et de publier de nouvelles versions.",
   "Let the assistant list the external connections a workspace holds.": "Permet à l'assistant de lister les connexions externes d'un espace de travail.",
   "Let the assistant read the saved SQL queries of the Data Studio, and save or edit them.": "Permet à l'assistant de lire les requêtes SQL sauvegardées du Data Studio, et d'en sauvegarder ou modifier.",
   "Let the assistant read the structure of your workspace databases.": "Permet à l'assistant de lire la structure des bases de données de vos espaces de travail.",
