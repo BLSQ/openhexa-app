@@ -21,7 +21,7 @@ Vous pouvez créer de nouveaux espaces de travail si vous êtes :
 
 ## Dupliquer un espace de travail
 
-Depuis la page **Espaces de travail** de votre organisation, cliquez sur **Dupliquer** sur un espace de travail pour en créer une copie dans la même organisation. Vous pouvez dupliquer un espace de travail si vous pouvez créer des espaces de travail dans l'organisation et que vous êtes **Editor** ou **Admin** de l'espace de travail (ou Admin ou Owner de l'organisation).
+Depuis la page **Espaces de travail** de votre organisation, cliquez sur **Dupliquer** sur un espace de travail pour en créer une copie dans la même organisation. Vous pouvez dupliquer un espace de travail si vous pouvez créer des espaces de travail dans l'organisation et que vous êtes **Admin** de l'espace de travail (ou Admin ou Owner de l'organisation).
 
 Les Admins et Owners d'une organisation peuvent dupliquer n'importe quel espace de travail de celle-ci, secrets des connexions compris, même s'ils n'en sont pas membres.
 

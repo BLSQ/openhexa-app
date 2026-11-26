@@ -21,7 +21,7 @@ You can create new workspaces if you're:
 
 ## Duplicate a workspace
 
-From your organization's **Workspaces** page, click **Duplicate** on a workspace to create a copy of it in the same organization. You can duplicate a workspace if you can create workspaces in the organization and you are an **Editor** or **Admin** of the workspace (or an Admin or Owner of the organization).
+From your organization's **Workspaces** page, click **Duplicate** on a workspace to create a copy of it in the same organization. You can duplicate a workspace if you can create workspaces in the organization and you are an **Admin** of the workspace (or an Admin or Owner of the organization).
 
 Organization Admins and Owners can duplicate any workspace of their organization, including its connection secrets, even if they are not a member of it.
 

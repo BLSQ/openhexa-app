@@ -22,6 +22,7 @@ from ..models import (
     WorkspaceInvitationStatus,
     WorkspaceMembership,
 )
+from ..permissions import is_workspace_admin
 from ..utils import (
     DHIS2MetadataQueryType,
     IASOMetadataQueryType,
@@ -118,8 +119,8 @@ def resolve_workspace_permission_duplicate(workspace: Workspace, info):
         can_create_in[workspace.organization_id] = request.user.has_perm(
             "user_management.create_workspace", workspace.organization
         )
-    return can_create_in[workspace.organization_id] and request.user.has_perm(
-        "workspaces.update_workspace", workspace
+    return can_create_in[workspace.organization_id] and is_workspace_admin(
+        request.user, workspace
     )
 
 

@@ -91,7 +91,7 @@ class CopyTokenLifecycleTest(TestCase):
             role=OrganizationMembershipRole.MEMBER,
         )
         cls.MEMBERSHIP = WorkspaceMembership.objects.create(
-            user=cls.USER, workspace=cls.WORKSPACE, role=WorkspaceMembershipRole.EDITOR
+            user=cls.USER, workspace=cls.WORKSPACE, role=WorkspaceMembershipRole.ADMIN
         )
 
     def queue(self, **overrides):
@@ -141,7 +141,7 @@ class CopyTokenLifecycleTest(TestCase):
     @patch("hexa.workspace_copier.queue.run_copy")
     def test_a_requester_who_lost_access_while_queued_is_refused(self, mock_run_copy):
         run = self.queue()
-        self.MEMBERSHIP.role = WorkspaceMembershipRole.VIEWER
+        self.MEMBERSHIP.role = WorkspaceMembershipRole.EDITOR
         self.MEMBERSHIP.save()
 
         execute_copy_run(str(run.id))

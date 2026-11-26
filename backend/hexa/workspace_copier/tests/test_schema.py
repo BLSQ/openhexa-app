@@ -121,13 +121,13 @@ class DuplicateWorkspaceTest(GraphQLTestCase):
             "duplicateWorkspace"
         ]
 
-    def test_an_editor_queues_a_same_server_copy_acting_as_themselves(self):
-        result = self.duplicate(self.EDITOR)
+    def test_a_workspace_admin_queues_a_same_server_copy_acting_as_themselves(self):
+        result = self.duplicate(self.WS_ADMIN)
 
         self.assertTrue(result["success"])
         self.assertEqual("QUEUED", result["run"]["status"])
         run = WorkspaceCopyRun.objects.get(id=result["run"]["id"])
-        self.assertEqual(self.EDITOR, run.created_by)
+        self.assertEqual(self.WS_ADMIN, run.created_by)
         self.assertEqual(self.WORKSPACE.slug, run.source_slug)
         self.assertEqual(str(self.ORGANIZATION.id), run.target_organization_id)
         self.assertEqual("Copy of Source", run.target_workspace_name)
@@ -143,13 +143,11 @@ class DuplicateWorkspaceTest(GraphQLTestCase):
             WorkspaceCopyJob.objects.filter(args__run_id=str(run.id)).exists()
         )
 
-    def test_a_workspace_admin_queues_a_copy_acting_as_themselves(self):
-        result = self.duplicate(self.WS_ADMIN)
+    def test_an_editor_cannot_duplicate(self):
+        result = self.duplicate(self.EDITOR)
 
-        self.assertTrue(result["success"])
-        run = WorkspaceCopyRun.objects.get(id=result["run"]["id"])
-        self.assertEqual(self.WS_ADMIN, run.created_by)
-        self.assertTrue(run.acts_as_requester)
+        self.assertEqual(["PERMISSION_DENIED"], result["errors"])
+        self.assertFalse(WorkspaceCopyRun.objects.exists())
 
     def test_an_external_collaborator_cannot_duplicate_even_as_workspace_admin(self):
         result = self.duplicate(self.EXTERNAL_ADMIN)
@@ -158,9 +156,9 @@ class DuplicateWorkspaceTest(GraphQLTestCase):
         self.assertFalse(WorkspaceCopyRun.objects.exists())
 
     def test_all_dataset_versions_is_off_unless_asked(self):
-        default = self.duplicate(self.EDITOR)
+        default = self.duplicate(self.WS_ADMIN)
         WorkspaceCopyRun.objects.update(status=WorkspaceCopyRunStatus.SUCCESS)
-        every_version = self.duplicate(self.EDITOR, allDatasetVersions=True)
+        every_version = self.duplicate(self.WS_ADMIN, allDatasetVersions=True)
 
         self.assertFalse(
             WorkspaceCopyRun.objects.get(id=default["run"]["id"]).all_dataset_versions
@@ -173,18 +171,22 @@ class DuplicateWorkspaceTest(GraphQLTestCase):
 
     @patch("hexa.workspace_copier.duplicate.database_in_use", return_value=True)
     def test_a_database_in_use_is_refused_before_queueing(self, _):
-        result = self.duplicate(self.EDITOR, resources=["FILES", "DATABASE"])
+        result = self.duplicate(self.WS_ADMIN, resources=["FILES", "DATABASE"])
 
         self.assertEqual(["DATABASE_IN_USE"], result["errors"])
         self.assertFalse(WorkspaceCopyRun.objects.exists())
 
     @patch("hexa.workspace_copier.duplicate.database_in_use", return_value=True)
     def test_a_database_in_use_does_not_matter_when_not_copied(self, _):
-        self.assertTrue(self.duplicate(self.EDITOR)["success"])
+        self.assertTrue(self.duplicate(self.WS_ADMIN)["success"])
 
     @patch("hexa.workspace_copier.schema.types.database_in_use", return_value=True)
     def test_database_in_use_is_only_told_to_those_who_can_duplicate(self, _):
-        for user, expected in ((self.EDITOR, True), (self.VIEWER, None)):
+        for user, expected in (
+            (self.WS_ADMIN, True),
+            (self.EDITOR, None),
+            (self.VIEWER, None),
+        ):
             with self.subTest(user=user.email):
                 self.client.force_login(user)
                 data = self.run_query(DATABASE_IN_USE, {"slug": self.WORKSPACE.slug})
@@ -207,43 +209,45 @@ class DuplicateWorkspaceTest(GraphQLTestCase):
     def test_an_organization_preventing_creation_blocks_duplication(self):
         FeatureFlag.objects.create(
             feature=Feature.objects.get_or_create(code="workspaces.prevent_create")[0],
-            user=self.EDITOR,
+            user=self.WS_ADMIN,
         )
 
-        self.assertEqual(["PERMISSION_DENIED"], self.duplicate(self.EDITOR)["errors"])
+        self.assertEqual(["PERMISSION_DENIED"], self.duplicate(self.WS_ADMIN)["errors"])
 
     @patch.object(Organization, "is_workspaces_limit_reached", return_value=True)
     def test_the_organization_workspaces_limit_is_enforced_up_front(self, _):
-        result = self.duplicate(self.EDITOR)
+        result = self.duplicate(self.WS_ADMIN)
 
         self.assertEqual(["WORKSPACES_LIMIT_REACHED"], result["errors"])
         self.assertFalse(WorkspaceCopyRun.objects.exists())
 
     def test_a_second_copy_waits_for_the_first_to_finish(self):
-        first = self.duplicate(self.EDITOR)
+        first = self.duplicate(self.WS_ADMIN)
 
-        second = self.duplicate(self.EDITOR)
+        second = self.duplicate(self.WS_ADMIN)
 
         self.assertEqual(["COPY_ALREADY_RUNNING"], second["errors"])
         self.assertEqual(1, WorkspaceCopyRun.objects.count())
         WorkspaceCopyRun.objects.filter(id=first["run"]["id"]).update(
             status=WorkspaceCopyRunStatus.SUCCESS
         )
-        self.assertTrue(self.duplicate(self.EDITOR)["success"])
+        self.assertTrue(self.duplicate(self.WS_ADMIN)["success"])
 
     def test_other_users_can_copy_while_one_is_running(self):
-        self.duplicate(self.EDITOR)
+        self.duplicate(self.WS_ADMIN)
 
         self.assertTrue(self.duplicate(self.ORG_ADMIN)["success"])
 
     def test_countries_override_the_source_ones(self):
-        result = self.duplicate(self.EDITOR, countries=[{"code": "BE"}, {"code": "FR"}])
+        result = self.duplicate(
+            self.WS_ADMIN, countries=[{"code": "BE"}, {"code": "FR"}]
+        )
 
         run = WorkspaceCopyRun.objects.get(id=result["run"]["id"])
         self.assertEqual(["BE", "FR"], run.target_countries)
 
     def test_an_unknown_country_is_refused_before_queueing(self):
-        result = self.duplicate(self.EDITOR, countries=[{"code": "ZZ"}])
+        result = self.duplicate(self.WS_ADMIN, countries=[{"code": "ZZ"}])
 
         self.assertEqual(["INVALID_COUNTRY"], result["errors"])
         self.assertFalse(WorkspaceCopyRun.objects.exists())
@@ -251,15 +255,16 @@ class DuplicateWorkspaceTest(GraphQLTestCase):
     def test_a_blank_or_too_long_name_is_refused(self):
         for name in ("   ", "x" * 256):
             with self.subTest(name=name):
-                result = self.duplicate(self.EDITOR, name=name)
+                result = self.duplicate(self.WS_ADMIN, name=name)
 
                 self.assertEqual(["INVALID_NAME"], result["errors"])
         self.assertFalse(WorkspaceCopyRun.objects.exists())
 
     def test_permissions_duplicate(self):
         for user, expected in (
-            (self.EDITOR, True),
+            (self.WS_ADMIN, True),
             (self.ORG_ADMIN, True),
+            (self.EDITOR, False),
             (self.VIEWER, False),
         ):
             with self.subTest(user=user.email):
@@ -275,11 +280,11 @@ class DuplicateWorkspaceTest(GraphQLTestCase):
                 self.ROOT, name=name, organization=self.ORGANIZATION
             )
             WorkspaceMembership.objects.create(
-                user=self.EDITOR,
+                user=self.WS_ADMIN,
                 workspace=workspace,
-                role=WorkspaceMembershipRole.EDITOR,
+                role=WorkspaceMembershipRole.ADMIN,
             )
-        self.client.force_login(self.EDITOR)
+        self.client.force_login(self.WS_ADMIN)
 
         with patch(
             "hexa.user_management.permissions.create_workspace", return_value=True
