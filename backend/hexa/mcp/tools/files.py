@@ -1,4 +1,3 @@
-from hexa.core.text_files import GREP_HEAD_LIMIT, GrepOutputMode
 from hexa.mcp.protocol import tool
 
 from ._graphql import execute_graphql
@@ -38,50 +37,6 @@ def glob_files(user, workspace_slug: str, pattern: str, prefix: str = "") -> dic
     if "errors" in data:
         return data
     return data["globFiles"]
-
-
-@tool
-def grep_files(
-    user,
-    workspace_slug: str,
-    pattern: str,
-    glob: str,
-    prefix: str = "",
-    output_mode: GrepOutputMode = GrepOutputMode.FILES_WITH_MATCHES,
-    ignore_case: bool = False,
-    context: int = 0,
-    head_limit: int = GREP_HEAD_LIMIT,
-    offset: int = 0,
-) -> dict:
-    """Search the contents of text files in a workspace bucket with a Python regular expression.
-
-    EXPENSIVE: every file searched is downloaded in full. Keep `glob` (required, e.g. `scripts/**/*.py`) and `prefix` as narrow as possible, and prefer list_files or glob_files when the file name is enough. Text files over 1 MB are skipped.
-
-    Patterns match within a single line; escape regex metacharacters. output_mode: `files_with_matches` (default) lists matching paths, which stops downloading once a page is full; `content` returns matching lines as `path:line:text`, with `context` lines around each match; `count` returns matches per file and their total, and downloads every file matching `glob`. head_limit and offset page through the entries; `truncated` tells there are more.
-
-    A search stops after downloading 50 MB or running 20 seconds, and returns what it found so far with a notice.
-    """
-    data = execute_graphql(
-        user,
-        "GrepFiles",
-        {
-            "workspaceSlug": workspace_slug,
-            "pattern": pattern,
-            "glob": glob,
-            "prefix": prefix,
-            "outputMode": GrepOutputMode(output_mode).name,
-            "ignoreCase": ignore_case,
-            "context": context,
-            "headLimit": head_limit,
-            "offset": offset,
-        },
-    )
-    if "errors" in data:
-        return data
-    result = data["grepFiles"]
-    if result["counts"] is not None:
-        result["counts"] = {c["path"]: c["count"] for c in result["counts"]}
-    return result
 
 
 @tool
