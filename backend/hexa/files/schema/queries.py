@@ -121,11 +121,10 @@ def _bucket_files(request: HttpRequest, workspace_slug: str, prefix: str | None)
 
 def _with_listing_notice(result: dict, source: BucketFileSource) -> dict:
     if source.truncated:
-        notice = (
+        result["notice"] = (
             f"Only the first {MAX_LISTED_FILES} files of the bucket were considered. "
             "Pass a prefix to narrow the search."
         )
-        result["notice"] = " ".join(filter(None, [result.get("notice"), notice]))
     return {"success": True, "errors": [], **result}
 
 

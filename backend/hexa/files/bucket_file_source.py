@@ -1,10 +1,9 @@
 from collections.abc import Iterator
 from functools import cached_property
 
-from hexa.core.text_files import MAX_TEXT_FILE_SIZE, FileSource, decode_text
+from hexa.core.text_files import FileSource
 
 from .backends.base import Storage
-from .backends.exceptions import NotFound
 
 # A bucket can hold far more files than an agent could use; listing stops here.
 MAX_LISTED_FILES = 5000
@@ -15,13 +14,15 @@ _MAX_LIST_PAGES = 100
 
 
 class BucketFileSource(FileSource):
-    """The files of a workspace bucket under `prefix`, downloaded on first access.
+    """The paths of a workspace bucket's files under `prefix`, listed on first access.
 
     Listing walks the directories, one request per directory and page, up to
-    MAX_LISTED_FILES (`truncated` tells when it stopped there). Each content is a full
-    download, made on every read and not kept: a search reads each file once, and
-    holding a bucket's worth of contents would exhaust the worker's memory. Hidden,
-    binary and oversized files are skipped or map to None, as in `list_files`.
+    MAX_LISTED_FILES (`truncated` tells when it stopped there). Hidden files are
+    skipped, as in `list_files`.
+
+    Contents are never downloaded: every path maps to None, so the files can be globbed
+    but not searched or read through this source. Buckets may hold sensitive data that
+    must not be searchable by AI tools (HEXA-1917).
     """
 
     def __init__(self, storage: Storage, bucket_name: str, prefix: str = ""):
@@ -30,23 +31,23 @@ class BucketFileSource(FileSource):
         self._prefix = prefix
         self.truncated = False
 
-    def __getitem__(self, path: str) -> str | None:
-        if path not in self._file_sizes:
+    def __getitem__(self, path: str) -> None:
+        if path not in self._paths:
             raise KeyError(path)
-        return self._fetch(path)
+        return None
 
     def __contains__(self, path: object) -> bool:
-        return path in self._file_sizes
+        return path in self._paths
 
     def __iter__(self) -> Iterator[str]:
-        return iter(self._file_sizes)
+        return iter(self._paths)
 
     def __len__(self) -> int:
-        return len(self._file_sizes)
+        return len(self._paths)
 
     @cached_property
-    def _file_sizes(self) -> dict[str, int]:
-        sizes: dict[str, int] = {}
+    def _paths(self) -> dict[str, None]:
+        paths: dict[str, None] = {}
         directories = [self._prefix]
         while directories:
             prefix = directories.pop()
@@ -58,11 +59,11 @@ class BucketFileSource(FileSource):
                     if f"{key}/" != prefix:
                         directories.append(f"{key}/")
                     continue
-                if len(sizes) == MAX_LISTED_FILES:
+                if len(paths) == MAX_LISTED_FILES:
                     self.truncated = True
-                    return sizes
-                sizes[key] = obj.size or 0
-        return sizes
+                    return paths
+                paths[key] = None
+        return paths
 
     def _list(self, prefix: str) -> Iterator:
         for page in range(1, _MAX_LIST_PAGES + 1):
@@ -73,12 +74,3 @@ class BucketFileSource(FileSource):
             if not result.has_next_page:
                 return
         self.truncated = True
-
-    def _fetch(self, path: str) -> str | None:
-        if self._file_sizes[path] > MAX_TEXT_FILE_SIZE:
-            return None
-        try:
-            raw = self._storage.read_object(self._bucket_name, path)
-        except NotFound:
-            raise KeyError(path)
-        return decode_text(raw)

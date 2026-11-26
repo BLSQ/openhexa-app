@@ -19,6 +19,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Not reversed: the tool no longer exists, so there is nothing to grant back.
+        # Deliberately not reversed: after a rollback, connections must be granted
+        # grep_files again by hand rather than regain a content search silently.
         migrations.RunPython(revoke_grep_files, migrations.RunPython.noop),
     ]

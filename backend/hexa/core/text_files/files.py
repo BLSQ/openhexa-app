@@ -15,8 +15,8 @@ class TextFiles:
     `files` maps every path, binary files included, to the file's text, or to None when
     it cannot be read as text (binary, too large); an unknown path raises KeyError.
     Sources: `GitRepoFileSource` (repositories, fetched per file or all at once),
-    `BucketFileSource` (workspace buckets, downloaded on lookup) and `Overlay`
-    (pending changes on top of either).
+    `BucketFileSource` (workspace buckets, paths only: contents are never read) and
+    `Overlay` (pending changes on top of either).
 
     With a lazy source, `glob` touches paths alone, and `grep` reads only the files its
     `glob` filter keeps, stopping once it has a full page. A file whose
