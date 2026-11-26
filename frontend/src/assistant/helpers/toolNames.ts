@@ -22,7 +22,6 @@ export function getToolLabels(t: TFunction): Record<string, string> {
     [TOOL.ListFiles]: t("Listing files"),
     [TOOL.ReadFile]: t("Reading file"),
     [TOOL.GlobFiles]: t("Finding files"),
-    [TOOL.GrepFiles]: t("Searching files"),
     [TOOL.ListDatasets]: t("Listing datasets"),
     [TOOL.GetDataset]: t("Reading dataset"),
     [TOOL.PreviewDatasetFile]: t("Previewing dataset file"),

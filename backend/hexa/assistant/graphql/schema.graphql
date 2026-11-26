@@ -87,7 +87,6 @@ enum AssistantToolName {
   get_workspace
   glob_files
   glob_webapp_files
-  grep_files
   grep_webapp_files
   list_connections
   list_datasets

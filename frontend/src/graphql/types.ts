@@ -534,7 +534,6 @@ export enum AssistantToolName {
   GetWorkspace = 'get_workspace',
   GlobFiles = 'glob_files',
   GlobWebappFiles = 'glob_webapp_files',
-  GrepFiles = 'grep_files',
   GrepWebappFiles = 'grep_webapp_files',
   ListConnections = 'list_connections',
   ListDatasets = 'list_datasets',
