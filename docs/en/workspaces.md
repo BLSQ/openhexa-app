@@ -25,7 +25,7 @@ From your organization's **Workspaces** page, click **Duplicate** on a workspace
 
 Organization Admins and Owners can duplicate any workspace of their organization, including its connection secrets, even if they are not a member of it.
 
-In the dialog, choose the new workspace's name and countries, and which resources to copy: files, the workspace database, datasets, connections (with or without their secrets), pipelines and web apps. The copy runs in the background and shows its progress; you can close the dialog: a banner above the workspace list shows the copy until it finishes, and **View progress** opens it again. You can have one copy running at a time: start the next one once the current one is done.
+In the dialog, choose the new workspace's name and countries, and which resources to copy: files, the workspace database, datasets, connections (with or without their secrets), pipelines and web apps. Connection secrets are left out and only the latest version of each dataset is copied, unless you choose otherwise. The workspace database can only be copied while nothing is connected to it: close the notebooks, pipelines and tools using it first. The copy runs in the background and shows each step's progress, then lists what you should check in the new workspace; **Show details** displays the full log. You can close the dialog: a banner above the workspace list shows the copy until it finishes, and **View progress** opens it again. You can have one copy running at a time: start the next one once the current one is done.
 
 Some things are not copied:
 
