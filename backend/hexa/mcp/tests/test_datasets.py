@@ -187,6 +187,33 @@ class PreviewDatasetFileTest(MCPTestCase):
     def test_preview_dataset_file_without_profiling(self):
         result = self.preview()
         self.assertIsNone(result["columns"])
+        self.assertIsNone(result["profiling"])
+
+    def test_preview_dataset_file_profiling_in_progress(self):
+        DatasetFileSample.objects.create(
+            dataset_version_file=self.DATASET_FILE,
+            status=DatasetFileSample.STATUS_PROCESSING,
+        )
+
+        result = self.preview()
+        self.assertIsNone(result["columns"])
+        self.assertEqual(
+            result["profiling"], {"status": "PROCESSING", "statusReason": None}
+        )
+
+    def test_preview_dataset_file_profiling_failed(self):
+        DatasetFileSample.objects.create(
+            dataset_version_file=self.DATASET_FILE,
+            status=DatasetFileSample.STATUS_FAILED,
+            status_reason="Unsupported file format",
+        )
+
+        result = self.preview()
+        self.assertIsNone(result["columns"])
+        self.assertEqual(
+            result["profiling"],
+            {"status": "FAILED", "statusReason": "Unsupported file format"},
+        )
 
 
 class CreateDatasetTest(MCPTestCase):

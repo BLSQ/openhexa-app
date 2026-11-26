@@ -68,7 +68,7 @@ def _column_types(attributes: list[dict]) -> dict[str, str]:
 
 @tool
 def preview_dataset_file(user, file_id: str) -> dict:
-    """Describe a dataset file by its ID (from get_dataset's file list). Returns file metadata and, for tabular files (CSV, Parquet, etc.), 'rows' (the row count of the whole file) and the ordered 'columns' as {name, type} objects. File content and sample rows are never returned, as they may hold sensitive data. 'columns' is null for non-tabular files and while the file is still being profiled; a column 'type' is null when profiling could not determine it."""
+    """Describe a dataset file by its ID (from get_dataset's file list). Returns file metadata and, for tabular files (CSV, Parquet, etc.), 'rows' (the row count of the whole file) and the ordered 'columns' as {name, type} objects. File content and sample rows are never returned, as they may hold sensitive data. 'columns' is null when the file has not been profiled, and 'profiling' ({status, statusReason}) tells why: it is null for non-tabular files, PROCESSING while the file is still being read (try again later), FAILED when the file could not be read (permanent, see statusReason) and FINISHED with null 'columns' when the columns could not be determined (permanent). A column 'type' is null when profiling could not determine it."""
     data = execute_graphql(user, "PreviewDatasetFile", {"id": file_id})
     if "errors" in data:
         return data
@@ -76,6 +76,7 @@ def preview_dataset_file(user, file_id: str) -> dict:
     if file_data is None:
         return {"error": "Dataset file not found"}
 
+    file_data["profiling"] = file_data.pop("fileSample")
     # Only the data type is taken from the profiling attributes: the other statistics
     # (minimum, maximum, ...) are values taken from the data itself.
     types = _column_types(file_data.pop("attributes"))
