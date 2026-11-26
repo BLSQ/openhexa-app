@@ -153,6 +153,21 @@ class CopyTokenLifecycleTest(TestCase):
         self.assertIn(REFUSAL_MESSAGES["PERMISSION_DENIED"], run.logs)
         self.assertFalse(AccessToken.objects.exists())
 
+    @patch("hexa.workspace_copier.duplicate.database_in_use", return_value=True)
+    @patch("hexa.workspace_copier.queue.run_copy")
+    def test_a_database_in_use_when_the_run_starts_stops_it_before_copying(
+        self, mock_run_copy, _
+    ):
+        run = self.queue(resources=["database", "files"])
+
+        execute_copy_run(str(run.id))
+
+        mock_run_copy.assert_not_called()
+        run.refresh_from_db()
+        self.assertEqual(WorkspaceCopyRunStatus.FAILED, run.status)
+        self.assertEqual(REFUSAL_MESSAGES["DATABASE_IN_USE"], run.error)
+        self.assertFalse(AccessToken.objects.exists())
+
     @patch(
         "hexa.workspace_copier.queue.run_copy",
         side_effect=RuntimeError("could not reach db.internal:5432"),

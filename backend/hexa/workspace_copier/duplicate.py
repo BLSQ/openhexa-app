@@ -13,6 +13,7 @@ from django.conf import settings
 from django.utils import timezone
 from oauth2_provider.models import AccessToken
 
+from hexa.databases.api import database_in_use
 from hexa.oauth.scopes import WORKSPACE_COPY_SCOPE
 from hexa.user_management.models import User
 from hexa.workspace_copier.models import WorkspaceCopyRun
@@ -22,6 +23,11 @@ REFUSAL_MESSAGES = {
     "WORKSPACE_NOT_FOUND": "The source workspace is no longer available to you.",
     "PERMISSION_DENIED": "You are no longer allowed to duplicate this workspace.",
     "WORKSPACES_LIMIT_REACHED": "The organization has reached its workspace limit.",
+    "DATABASE_IN_USE": (
+        "The workspace database has open connections and cannot be copied. Close "
+        "the notebooks, pipelines and tools connected to it, or duplicate the "
+        "workspace without its database."
+    ),
 }
 
 
@@ -56,12 +62,24 @@ def check_can_duplicate(user: User, slug: str, organization_id=None) -> Workspac
     return workspace
 
 
+def check_database_free(workspace: Workspace) -> None:
+    """Raise DuplicateRefused if the workspace database has open connections.
+
+    Checked before anything is copied: the database is copied after the files,
+    so finding it in use then would leave a half-copied workspace behind.
+    """
+    if database_in_use(workspace.db_name):
+        raise DuplicateRefused("DATABASE_IN_USE")
+
+
 def issue_requester_token(run: WorkspaceCopyRun) -> str:
-    """Re-check the requester's rights, then give the run a token acting as them."""
+    """Re-check that the requester may still copy the source, then issue their token."""
     user = run.created_by
     if user is None or not user.is_active:
         raise DuplicateRefused("PERMISSION_DENIED")
-    check_can_duplicate(user, run.source_slug, run.target_organization_id)
+    workspace = check_can_duplicate(user, run.source_slug, run.target_organization_id)
+    if "database" in run.resources:
+        check_database_free(workspace)
     run.access_token = AccessToken.objects.create(
         user=user,
         token=secrets.token_urlsafe(32),

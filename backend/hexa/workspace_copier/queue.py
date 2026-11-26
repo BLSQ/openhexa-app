@@ -121,6 +121,7 @@ def execute_copy_run(run_id: str) -> None:
         run.result_workspace_slug = result.workspace_slug or ""
         if result.started_at:
             run.summary = format_summary(result)
+            run.warnings = result.all_warnings()
         # A failed log write must not stop finish(), which erases the tokens.
         try:
             reporter.flush()
@@ -234,6 +235,7 @@ def queue_duplicate_workspace(
     countries: list[str] | None,
     resources: list[str],
     include_connection_secrets: bool,
+    all_dataset_versions: bool = False,
 ) -> WorkspaceCopyRun:
     """Duplicate a workspace into its own organization, acting as ``user``.
 
@@ -251,6 +253,7 @@ def queue_duplicate_workspace(
             target_countries=countries,
             resources=sorted(resources),
             include_connection_secrets=include_connection_secrets,
+            all_dataset_versions=all_dataset_versions,
             same_server=True,
             acts_as_requester=True,
         )

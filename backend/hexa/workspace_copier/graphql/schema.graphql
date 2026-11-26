@@ -20,6 +20,36 @@ enum WorkspaceCopyRunStatus {
 }
 
 """
+A step of a workspace duplication: creating the workspace, then copying each
+selected resource.
+"""
+enum WorkspaceCopyStepName {
+  WORKSPACE
+  FILES
+  DATABASE
+  CONNECTIONS
+  PIPELINES
+  DATASETS
+  WEBAPPS
+}
+
+enum WorkspaceCopyStepStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  SUCCESS_WITH_WARNINGS
+  "Some items could not be copied."
+  SUCCESS_WITH_ERRORS
+  "The run stopped during this step."
+  FAILED
+}
+
+type WorkspaceCopyStep {
+  name: WorkspaceCopyStepName!
+  status: WorkspaceCopyStepStatus!
+}
+
+"""
 A workspace duplication, run in the background.
 """
 type WorkspaceCopyRun {
@@ -35,6 +65,10 @@ type WorkspaceCopyRun {
   previous `nextOffset` as `offset` to get only the lines added since.
   """
   logs(offset: Int = 0): WorkspaceCopyRunLogs!
+  "The run's steps, in the order they are run."
+  steps: [WorkspaceCopyStep!]!
+  "What the user should check or redo by hand, once the run is over."
+  warnings: [String!]!
   "Why the run failed, if it did."
   error: String
   createdAt: DateTime!
@@ -58,6 +92,8 @@ input DuplicateWorkspaceInput {
   countries: [CountryInput!]
   resources: [WorkspaceCopyResource!]!
   includeConnectionSecrets: Boolean!
+  "Copy every version of each dataset instead of only the latest one."
+  allDatasetVersions: Boolean = false
 }
 
 enum DuplicateWorkspaceError {
@@ -69,12 +105,22 @@ enum DuplicateWorkspaceError {
   INVALID_NAME
   "The user already has a duplication queued or running."
   COPY_ALREADY_RUNNING
+  "The workspace database has open connections, so it cannot be copied."
+  DATABASE_IN_USE
 }
 
 type DuplicateWorkspaceResult {
   success: Boolean!
   errors: [DuplicateWorkspaceError!]!
   run: WorkspaceCopyRun
+}
+
+extend type Workspace {
+  """
+  Whether the workspace database has open connections, which prevent copying
+  it. Null if the user cannot duplicate the workspace.
+  """
+  databaseInUse: Boolean
 }
 
 extend type Query {

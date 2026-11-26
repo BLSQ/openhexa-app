@@ -6,6 +6,7 @@ from hexa.workspace_copier.duplicate import (
     CopyAlreadyRunning,
     DuplicateRefused,
     check_can_duplicate,
+    check_database_free,
 )
 from hexa.workspace_copier.models import WorkspaceCopyRun
 from hexa.workspace_copier.queue import queue_duplicate_workspace
@@ -26,6 +27,8 @@ def resolve_duplicate_workspace(_, info, **kwargs):
 
     try:
         workspace = check_can_duplicate(request.user, input["workspace_slug"])
+        if "database" in input["resources"]:
+            check_database_free(workspace)
     except DuplicateRefused as exc:
         return {"success": False, "errors": [exc.code]}
 
@@ -46,6 +49,7 @@ def resolve_duplicate_workspace(_, info, **kwargs):
             countries=countries,
             resources=input["resources"],
             include_connection_secrets=input["include_connection_secrets"],
+            all_dataset_versions=input["all_dataset_versions"],
         )
     except CopyAlreadyRunning:
         return {"success": False, "errors": ["COPY_ALREADY_RUNNING"]}

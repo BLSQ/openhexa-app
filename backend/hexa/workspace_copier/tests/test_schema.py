@@ -36,6 +36,8 @@ query run($id: UUID!, $offset: Int) {
     sourceWorkspaceSlug
     sourceWorkspace { slug }
     logs(offset: $offset) { text nextOffset }
+    steps { name status }
+    warnings
     error
     workspace { slug }
   }
@@ -44,6 +46,12 @@ query run($id: UUID!, $offset: Int) {
 
 ACTIVE_RUN = """
 query { activeWorkspaceCopyRun { id } }
+"""
+
+DATABASE_IN_USE = """
+query ws($slug: String!) {
+  workspace(slug: $slug) { databaseInUse }
+}
 """
 
 PERMISSIONS = """
@@ -73,6 +81,10 @@ class DuplicateWorkspaceTest(GraphQLTestCase):
         )
 
         cls.EDITOR = cls._org_user("editor@bluesquarehub.com")
+        cls.WS_ADMIN = cls._org_user("ws-admin@bluesquarehub.com")
+        cls.EXTERNAL_ADMIN = User.objects.create_user(
+            "external@bluesquarehub.com", "password"
+        )
         cls.VIEWER = cls._org_user("viewer@bluesquarehub.com")
         cls.OUTSIDER = cls._org_user("outsider@bluesquarehub.com")
         cls.ORG_ADMIN = cls._org_user(
@@ -81,6 +93,8 @@ class DuplicateWorkspaceTest(GraphQLTestCase):
         for user, role in (
             (cls.EDITOR, WorkspaceMembershipRole.EDITOR),
             (cls.VIEWER, WorkspaceMembershipRole.VIEWER),
+            (cls.WS_ADMIN, WorkspaceMembershipRole.ADMIN),
+            (cls.EXTERNAL_ADMIN, WorkspaceMembershipRole.ADMIN),
         ):
             WorkspaceMembership.objects.create(
                 user=user, workspace=cls.WORKSPACE, role=role
@@ -128,6 +142,53 @@ class DuplicateWorkspaceTest(GraphQLTestCase):
         self.assertTrue(
             WorkspaceCopyJob.objects.filter(args__run_id=str(run.id)).exists()
         )
+
+    def test_a_workspace_admin_queues_a_copy_acting_as_themselves(self):
+        result = self.duplicate(self.WS_ADMIN)
+
+        self.assertTrue(result["success"])
+        run = WorkspaceCopyRun.objects.get(id=result["run"]["id"])
+        self.assertEqual(self.WS_ADMIN, run.created_by)
+        self.assertTrue(run.acts_as_requester)
+
+    def test_an_external_collaborator_cannot_duplicate_even_as_workspace_admin(self):
+        result = self.duplicate(self.EXTERNAL_ADMIN)
+
+        self.assertEqual(["PERMISSION_DENIED"], result["errors"])
+        self.assertFalse(WorkspaceCopyRun.objects.exists())
+
+    def test_all_dataset_versions_is_off_unless_asked(self):
+        default = self.duplicate(self.EDITOR)
+        WorkspaceCopyRun.objects.update(status=WorkspaceCopyRunStatus.SUCCESS)
+        every_version = self.duplicate(self.EDITOR, allDatasetVersions=True)
+
+        self.assertFalse(
+            WorkspaceCopyRun.objects.get(id=default["run"]["id"]).all_dataset_versions
+        )
+        self.assertTrue(
+            WorkspaceCopyRun.objects.get(
+                id=every_version["run"]["id"]
+            ).all_dataset_versions
+        )
+
+    @patch("hexa.workspace_copier.duplicate.database_in_use", return_value=True)
+    def test_a_database_in_use_is_refused_before_queueing(self, _):
+        result = self.duplicate(self.EDITOR, resources=["FILES", "DATABASE"])
+
+        self.assertEqual(["DATABASE_IN_USE"], result["errors"])
+        self.assertFalse(WorkspaceCopyRun.objects.exists())
+
+    @patch("hexa.workspace_copier.duplicate.database_in_use", return_value=True)
+    def test_a_database_in_use_does_not_matter_when_not_copied(self, _):
+        self.assertTrue(self.duplicate(self.EDITOR)["success"])
+
+    @patch("hexa.workspace_copier.schema.types.database_in_use", return_value=True)
+    def test_database_in_use_is_only_told_to_those_who_can_duplicate(self, _):
+        for user, expected in ((self.EDITOR, True), (self.VIEWER, None)):
+            with self.subTest(user=user.email):
+                self.client.force_login(user)
+                data = self.run_query(DATABASE_IN_USE, {"slug": self.WORKSPACE.slug})
+                self.assertEqual(expected, data["data"]["workspace"]["databaseInUse"])
 
     def test_an_organization_admin_can_duplicate_without_being_a_member(self):
         self.assertTrue(self.duplicate(self.ORG_ADMIN)["success"])
@@ -315,6 +376,38 @@ class WorkspaceCopyRunQueryTest(GraphQLTestCase):
         self.assertEqual(
             {"slug": self.WORKSPACE.slug},
             self.query_run(self.OWNER)["sourceWorkspace"],
+        )
+
+    def test_steps_follow_the_selected_resources_in_order(self):
+        WorkspaceCopyRun.objects.filter(id=self.RUN.id).update(
+            resources=["database", "files"],
+            steps={"workspace": "SUCCESS", "files": "RUNNING"},
+            status=WorkspaceCopyRunStatus.RUNNING,
+        )
+
+        self.assertEqual(
+            [
+                {"name": "WORKSPACE", "status": "SUCCESS"},
+                {"name": "FILES", "status": "RUNNING"},
+                {"name": "DATABASE", "status": "PENDING"},
+            ],
+            self.query_run(self.OWNER)["steps"],
+        )
+
+    def test_the_step_running_when_the_run_ended_is_the_one_that_failed(self):
+        WorkspaceCopyRun.objects.filter(id=self.RUN.id).update(
+            resources=["files"],
+            steps={"workspace": "SUCCESS", "files": "RUNNING"},
+            status=WorkspaceCopyRunStatus.FAILED,
+            warnings=["1 file(s) could not be copied — see the logs for the list."],
+        )
+
+        run = self.query_run(self.OWNER)
+
+        self.assertEqual({"name": "FILES", "status": "FAILED"}, run["steps"][1])
+        self.assertEqual(
+            ["1 file(s) could not be copied — see the logs for the list."],
+            run["warnings"],
         )
 
     def test_the_workspace_is_null_until_created(self):

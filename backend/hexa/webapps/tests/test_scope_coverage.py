@@ -50,6 +50,8 @@ NEVER_GRANTED = {
         "pipelineTemplateTags",
         # Web apps fetch public files by URL, they never need the setting itself.
         "publicFiles",
+        # Only the duplicate dialog needs it, and no scope grants duplicateWorkspace.
+        "databaseInUse",
     },
     "Pipeline": {
         "workspace",

@@ -328,6 +328,12 @@ def count_open_connections(db_name: str, cursor) -> int:
     return cursor.fetchone()[0]
 
 
+def database_in_use(db_name: str) -> bool:
+    """Whether the database has open connections, which prevent copying it."""
+    with get_cursor(settings.WORKSPACES_DATABASE_DEFAULT_DB) as cursor:
+        return count_open_connections(db_name, cursor) > 0
+
+
 # PostGIS creates these in every workspace database, so they don't count as data.
 IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
 
