@@ -8,8 +8,17 @@ from mixpanel_async import AsyncBufferedConsumer
 from hexa.analytics.api import set_user_properties, track
 from hexa.core.test import TestCase
 from hexa.pipelines.models import Pipeline, PipelineRunTrigger
-from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.user_management.models import (
+    Organization,
+    OrganizationMembership,
+    OrganizationMembershipRole,
+    User,
+)
+from hexa.workspaces.models import (
+    Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
+)
 from hexa.workspaces.tests.testutils import create_workspace
 
 
@@ -145,8 +154,66 @@ class AnalyticsTest(TestCase):
                     "dataset_id": "slug",
                     "creation_source": "SDK",
                     "workspace": self.WORKSPACE.slug,
+                    "organization": self.WORKSPACE.organization.name,
                 },
             )
+
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_track_attaches_organization_without_mutating_caller_dict(
+        self,
+        mock_mixpanel,
+    ):
+        properties = {"workspace": self.WORKSPACE.slug, "source": "UI"}
+        track(None, "notebooks.notebook_launched", properties, user=self.USER)
+
+        mock_mixpanel.track.assert_called_once_with(
+            distinct_id=str(self.USER.id),
+            event_name="notebooks.notebook_launched",
+            properties={
+                "workspace": self.WORKSPACE.slug,
+                "source": "UI",
+                "organization": self.WORKSPACE.organization.name,
+            },
+        )
+        self.assertEqual(properties, {"workspace": self.WORKSPACE.slug, "source": "UI"})
+
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_track_respects_existing_organization_property(
+        self,
+        mock_mixpanel,
+    ):
+        properties = {
+            "workspace": self.WORKSPACE.slug,
+            "organization": "Explicit Organization",
+        }
+        track(None, "custom.event", properties, user=self.USER)
+
+        mock_mixpanel.track.assert_called_once_with(
+            distinct_id=str(self.USER.id),
+            event_name="custom.event",
+            properties={
+                "workspace": self.WORKSPACE.slug,
+                "organization": "Explicit Organization",
+            },
+        )
+
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_track_ignores_unknown_workspace_slug(
+        self,
+        mock_mixpanel,
+    ):
+        track(
+            None,
+            "custom.event",
+            {"workspace": "does-not-exist"},
+            user=self.USER,
+        )
+
+        mock_mixpanel.track.assert_called_once_with(
+            distinct_id=str(self.USER.id),
+            event_name="custom.event",
+            properties={"workspace": "does-not-exist"},
+        )
 
     @mock.patch("hexa.analytics.api.mixpanel")
     def test_create_user_profile(
@@ -163,11 +230,74 @@ class AnalyticsTest(TestCase):
                 properties={
                     "$email": self.USER.email,
                     "$name": self.USER.display_name,
+                    "$created": self.USER.date_joined.isoformat(),
+                    "language": self.USER.language,
                     "is_staff": self.USER.is_staff,
                     "is_superuser": self.USER.is_superuser,
                     "features_flag": [],
+                    "organizations": [],
+                    "workspace_count": 1,
                 },
             )
+
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_set_user_properties_includes_organizations_and_workspace_count(
+        self,
+        mock_mixpanel,
+    ):
+        user = User.objects.create_user(
+            "member@bluesquarehub.com",
+            "password",
+            analytics_enabled=True,
+            language="fr",
+        )
+        org_zeta = Organization.objects.create(name="Zeta Org")
+        org_alpha = Organization.objects.create(name="Alpha Org")
+        org_deleted = Organization.objects.create(name="Deleted Org")
+        for org in (org_zeta, org_alpha, org_deleted):
+            OrganizationMembership.objects.create(
+                user=user,
+                organization=org,
+                role=OrganizationMembershipRole.MEMBER,
+            )
+        org_deleted.delete()
+
+        active_ws = create_workspace(
+            name="Active WS",
+            slug="active-ws",
+            db_name="active_ws",
+            organization=org_alpha,
+        )
+        archived_ws = create_workspace(
+            name="Archived WS",
+            slug="archived-ws",
+            db_name="archived_ws",
+            organization=org_zeta,
+            archived=True,
+        )
+        for ws in (active_ws, archived_ws):
+            WorkspaceMembership.objects.create(
+                user=user,
+                workspace=ws,
+                role=WorkspaceMembershipRole.EDITOR,
+            )
+
+        set_user_properties(user)
+
+        mock_mixpanel.people_set.assert_called_once_with(
+            distinct_id=str(user.id),
+            properties={
+                "$email": user.email,
+                "$name": user.display_name,
+                "$created": user.date_joined.isoformat(),
+                "language": "fr",
+                "is_staff": False,
+                "is_superuser": False,
+                "features_flag": [],
+                "organizations": ["Alpha Org", "Zeta Org"],
+                "workspace_count": 1,
+            },
+        )
 
 
 class AsyncMixpanelTest(TestCase):
