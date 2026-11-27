@@ -12,6 +12,15 @@ class UserManagementConfig(CoreAppConfig):
     def ready(self):
         super().ready()
         self._unregister_unused_allauth_admin()
+        self._connect_sso_login_tracking()
+
+    @staticmethod
+    def _connect_sso_login_tracking():
+        from allauth.account.signals import user_logged_in
+
+        from hexa.user_management.sso.signals import track_sso_login
+
+        user_logged_in.connect(track_sso_login, dispatch_uid="track_sso_login")
 
     @staticmethod
     def _unregister_unused_allauth_admin():

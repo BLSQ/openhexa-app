@@ -31,7 +31,7 @@ export type RegisterPageQuery = { __typename?: 'Query', config: { __typename?: '
 export type SignupPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type SignupPageQuery = { __typename?: 'Query', config: { __typename?: 'Config', allowSelfRegistration: boolean, passwordLoginEnabled: boolean, oidcProviders: Array<{ __typename?: 'OidcProvider', id: string, displayName: string, loginUrl: string }> } };
+export type SignupPageQuery = { __typename?: 'Query', config: { __typename?: 'Config', allowSelfRegistration: boolean, passwordLoginEnabled: boolean, oidcProviders: Array<{ __typename?: 'OidcProvider', id: string, displayName: string, loginUrl: string }> }, me: { __typename?: 'Me', twoFactorPending: boolean } };
 
 
 export const GetUserDocument = gql`
@@ -267,6 +267,9 @@ export const SignupPageDocument = gql`
       displayName
       loginUrl
     }
+  }
+  me {
+    twoFactorPending
   }
 }
     `;

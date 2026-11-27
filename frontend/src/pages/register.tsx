@@ -1,6 +1,5 @@
 import clsx from "clsx";
 import Button from "core/components/Button";
-import { Classes as ButtonClasses } from "core/components/Button/Button";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
 import Spinner from "core/components/Spinner";
@@ -10,9 +9,9 @@ import { NextPageWithLayout } from "core/helpers/types";
 import useForm from "core/hooks/useForm";
 import CenteredLayout from "core/layouts/centered";
 import { RegisterError } from "graphql/types";
+import OidcProviderButton from "identity/features/OidcProviderButton";
 import { useRegisterMutation } from "identity/graphql/mutations.generated";
 import { useRegisterPageQuery } from "identity/graphql/queries.generated";
-import { GlobeAltIcon } from "@heroicons/react/24/outline";
 import { useTranslation } from "next-i18next";
 import Image from "next/legacy/image";
 import logoWithTextBlack from "public/images/logo_with_text_black.svg";
@@ -186,7 +185,9 @@ const RegisterPage: NextPageWithLayout = (props: {
                     type="submit"
                     className="w-full"
                   >
-                    {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
+                    {form.isSubmitting && (
+                      <Spinner size="xs" className="mr-1" />
+                    )}
                     {t("Create account")}
                   </Button>
                 </div>
@@ -200,19 +201,13 @@ const RegisterPage: NextPageWithLayout = (props: {
               </div>
             )}
             {oidcProviders.map((provider) => (
-              <a
+              <OidcProviderButton
                 key={provider.id}
+                providerId={provider.id}
                 href={`${provider.loginUrl}?next=${encodeURIComponent("/workspaces")}`}
-                className={clsx(
-                  ButtonClasses.base,
-                  ButtonClasses.secondary,
-                  ButtonClasses.md,
-                  "w-full rounded-sm",
-                )}
               >
-                <GlobeAltIcon className="-ml-1 mr-1.5 h-4 w-4" aria-hidden />
                 {t("Sign up with {{name}}", { name: provider.displayName })}
-              </a>
+              </OidcProviderButton>
             ))}
           </>
         )}

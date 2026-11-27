@@ -34,7 +34,7 @@ export async function logout() {
   if (!csrfToken) {
     throw new Error("Could not find CSRF token in cookies.");
   }
-  fetch("/auth/logout/", {
+  return fetch("/auth/logout/", {
     method: "POST",
     redirect: "follow",
     headers: { "X-CSRFToken": csrfToken },

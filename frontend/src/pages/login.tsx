@@ -1,11 +1,12 @@
 import Input from "core/components/forms/Input";
 import Spinner from "core/components/Spinner";
 import Button from "core/components/Button";
-import { Classes as ButtonClasses } from "core/components/Button/Button";
-import { GlobeAltIcon } from "@heroicons/react/24/outline";
 import { useLoginMutation } from "identity/graphql/mutations.generated";
 import { useSignupPageQuery } from "identity/graphql/queries.generated";
 import { createGetServerSideProps } from "core/helpers/page";
+import OidcProviderButton from "identity/features/OidcProviderButton";
+import OtpCodeFields from "identity/features/OtpCodeFields";
+import TwoFactorLoginForm from "identity/features/TwoFactorLoginForm";
 import { getSafeRedirectPath } from "core/helpers/redirect";
 import { NextPageWithLayout } from "core/helpers/types";
 import useForm from "core/hooks/useForm";
@@ -18,7 +19,6 @@ import { ReactElement, useEffect, useState } from "react";
 import Page from "core/components/Page";
 import { useTranslation } from "next-i18next";
 import { LoginError } from "graphql/types";
-import Field from "core/components/forms/Field";
 import clsx from "clsx";
 import { toast } from "react-toastify";
 
@@ -31,7 +31,9 @@ interface LoginForm {
 const LoginPage: NextPageWithLayout = () => {
   const router = useRouter();
   const [doLogin] = useLoginMutation();
-  const { data: configData, loading: configLoading } = useSignupPageQuery();
+  const { data: configData, loading: configLoading } = useSignupPageQuery({
+    fetchPolicy: "network-only",
+  });
   const passwordLoginEnabled = configData?.config?.passwordLoginEnabled ?? true;
   const oidcProviders = configData?.config?.oidcProviders ?? [];
   const [showOTPForm, setOTPForm] = useState(false);
@@ -130,6 +132,34 @@ const LoginPage: NextPageWithLayout = () => {
     form.setFieldValue("token", "");
   };
 
+  const header = (
+    <div>
+      <div className="relative h-16 w-auto">
+        <Image
+          priority
+          src={logo}
+          layout="fill"
+          className="mx-auto block h-16 w-auto"
+          alt="OpenHEXA logo"
+        />
+      </div>
+      <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        {t("Sign in")}
+      </h2>
+    </div>
+  );
+
+  if (configData?.me?.twoFactorPending) {
+    return (
+      <Page>
+        <div className="max-w-xs flex-1 space-y-6">
+          {header}
+          <TwoFactorLoginForm />
+        </div>
+      </Page>
+    );
+  }
+
   return (
     <Page>
       <form
@@ -139,20 +169,7 @@ const LoginPage: NextPageWithLayout = () => {
         )}
         onSubmit={form.handleSubmit}
       >
-        <div>
-          <div className="relative h-16 w-auto">
-            <Image
-              priority
-              src={logo}
-              layout="fill"
-              className="mx-auto block h-16 w-auto"
-              alt="OpenHEXA logo"
-            />
-          </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            {t("Sign in")}
-          </h2>
-        </div>
+        {header}
         {ssoError && (
           <div
             data-testid="sso-error"
@@ -172,40 +189,12 @@ const LoginPage: NextPageWithLayout = () => {
             {passwordLoginEnabled && (
               <>
                 {showOTPForm ? (
-                  <>
-                    <div className="text-gray-600">
-                      <p>
-                        {t("Enter the OTP code you received in your mailbox.")}
-                      </p>
-                    </div>
-                    <Field
-                      fullWidth
-                      name="token"
-                      data-testid="token"
-                      label={t("OTP Code")}
-                      value={form.formData.token}
-                      placeholder="123456"
-                      onChange={form.handleInputChange}
-                      required
-                    />
-                    <div className="my-2 flex items-center justify-between gap-2">
-                      {form.submitError && (
-                        <div
-                          data-testid="error"
-                          className="text-sm text-red-600"
-                        >
-                          <span>{form.submitError}</span>
-                        </div>
-                      )}
-                      <button
-                        type="button"
-                        className="text-blue-600"
-                        onClick={sendNewCode}
-                      >
-                        {t("Send a new code")}
-                      </button>
-                    </div>
-                  </>
+                  <OtpCodeFields
+                    value={form.formData.token}
+                    onChange={form.handleInputChange}
+                    error={form.submitError}
+                    onSendNewCode={sendNewCode}
+                  />
                 ) : (
                   <>
                     <div className="-space-y-px pt-2">
@@ -271,7 +260,9 @@ const LoginPage: NextPageWithLayout = () => {
                     type="submit"
                     className="w-full"
                   >
-                    {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
+                    {form.isSubmitting && (
+                      <Spinner size="xs" className="mr-1" />
+                    )}
                     {t("Sign in")}
                   </Button>
                   {showOTPForm && (
@@ -288,28 +279,24 @@ const LoginPage: NextPageWithLayout = () => {
                 </div>
               </>
             )}
-            {!showOTPForm && passwordLoginEnabled && oidcProviders.length > 0 && (
-              <div className="flex items-center gap-3">
-                <div className="flex-1 border-t border-gray-300" />
-                <span className="text-sm text-gray-500">{t("or")}</span>
-                <div className="flex-1 border-t border-gray-300" />
-              </div>
-            )}
+            {!showOTPForm &&
+              passwordLoginEnabled &&
+              oidcProviders.length > 0 && (
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 border-t border-gray-300" />
+                  <span className="text-sm text-gray-500">{t("or")}</span>
+                  <div className="flex-1 border-t border-gray-300" />
+                </div>
+              )}
             {!showOTPForm &&
               oidcProviders.map((provider) => (
-                <a
+                <OidcProviderButton
                   key={provider.id}
+                  providerId={provider.id}
                   href={`${provider.loginUrl}?next=${encodeURIComponent(getSafeRedirectPath(router.query.next))}`}
-                  className={clsx(
-                    ButtonClasses.base,
-                    ButtonClasses.secondary,
-                    ButtonClasses.md,
-                    "w-full rounded-sm",
-                  )}
                 >
-                  <GlobeAltIcon className="-ml-1 mr-1.5 h-4 w-4" aria-hidden />
                   {t("Sign in with {{name}}", { name: provider.displayName })}
-                </a>
+                </OidcProviderButton>
               ))}
           </>
         )}

@@ -38,6 +38,13 @@ mutation GenerateChallenge {
   }
 }
 
+mutation VerifyTwoFactorLogin($input: VerifyTwoFactorLoginInput!) {
+  verifyTwoFactorLogin(input: $input) {
+    success
+    errors
+  }
+}
+
 mutation VerifyDevice($input: VerifyDeviceInput!) {
   verifyDevice(input: $input) {
     success

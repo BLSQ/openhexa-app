@@ -113,7 +113,12 @@ def _load_oidc_providers() -> list[dict]:
 
 
 OIDC_PROVIDERS = _load_oidc_providers()
-PASSWORD_LOGIN_ENABLED = not bool(OIDC_PROVIDERS)
+# Defaults to off when SSO providers are configured, so enterprise SSO instances keep
+# forcing SSO; set explicitly to offer both (e.g. Google next to password login).
+PASSWORD_LOGIN_ENABLED = (
+    os.environ.get("PASSWORD_LOGIN_ENABLED", "false" if OIDC_PROVIDERS else "true")
+    == "true"
+)
 
 # Trust the X_FORWARDED_PROTO header from the proxy or load balancer so Django is aware it is accessed by https
 if os.environ.get("TRUST_FORWARDED_PROTO", "false") == "true":

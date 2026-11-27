@@ -401,6 +401,24 @@ def resolve_delete_membership(_, info, **kwargs):
         return {"success": False, "membership": None, "errors": ["PERMISSION_DENIED"]}
 
 
+@identity_mutations.field("verifyTwoFactorLogin")
+def resolve_verify_two_factor_login(_, info, **kwargs):
+    """Complete the 2FA step of a session opened without a password (SSO login).
+
+    Wrong tokens are throttled by the device itself (django-otp ThrottlingMixin).
+    """
+    request: HttpRequest = info.context["request"]
+    device = default_device(request.user)
+    if device is None:
+        return {"success": False, "errors": ["NO_DEVICE"]}
+    if not device.verify_token(kwargs["input"]["token"]):
+        return {"success": False, "errors": ["INVALID_OTP"]}
+
+    django_otp.login(request, device)
+    track(request, "users.user_logged_in", user=request.user)
+    return {"success": True, "errors": []}
+
+
 @identity_mutations.field("verifyDevice")
 def resolve_verify_token(_, info, **kwargs):
     request: HttpRequest = info.context["request"]

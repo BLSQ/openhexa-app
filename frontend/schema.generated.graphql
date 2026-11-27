@@ -3204,6 +3204,11 @@ type Me {
   """The permissions assigned to the currently authenticated user."""
   permissions: MePermissions!
 
+  """
+  Indicates that the user is logged in but must still enter their two-factor code (e.g. after an SSO login).
+  """
+  twoFactorPending: Boolean!
+
   """The user object representing the currently authenticated user."""
   user: User
 }
@@ -3576,6 +3581,9 @@ type Mutation {
 
   """Verifies a device for two-factor authentication."""
   verifyDevice(input: VerifyDeviceInput!): VerifyDeviceResult!
+
+  """Completes two-factor authentication for a session opened through SSO."""
+  verifyTwoFactorLogin(input: VerifyTwoFactorLoginInput!): VerifyTwoFactorLoginResult!
 
   """
   Write text content to a file in a workspace's bucket. Use the overwrite flag to replace an existing file.
@@ -6360,6 +6368,20 @@ The VerifyDeviceResult type represents the result of the verifyDevice mutation.
 """
 type VerifyDeviceResult {
   errors: [VerifyDeviceError!]
+  success: Boolean!
+}
+
+enum VerifyTwoFactorLoginError {
+  INVALID_OTP
+  NO_DEVICE
+}
+
+input VerifyTwoFactorLoginInput {
+  token: String!
+}
+
+type VerifyTwoFactorLoginResult {
+  errors: [VerifyTwoFactorLoginError!]
   success: Boolean!
 }
 

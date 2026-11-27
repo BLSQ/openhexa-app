@@ -2,8 +2,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TestApp } from "core/helpers/testutils";
 import {
+  GenerateChallengeDocument,
   LoginDocument,
   useLoginMutation,
+  VerifyTwoFactorLoginDocument,
 } from "identity/graphql/mutations.generated";
 import { useSignupPageQuery } from "identity/graphql/queries.generated";
 import mockRouter from "next-router-mock";
@@ -500,5 +502,145 @@ describe("LoginPage: With Two Factor Authentication", () => {
         },
       },
     });
+  });
+});
+
+const GOOGLE_PROVIDER = {
+  id: "google",
+  displayName: "Google",
+  loginUrl: "http://localhost:8000/accounts/oidc/google/login/",
+};
+
+describe("LoginPage: Google provider", () => {
+  afterEach(() => {
+    useSignupPageQueryMock.mockReturnValue(DEFAULT_CONFIG);
+  });
+
+  it("shows the Google logo on the Google button only", () => {
+    mockRouter.setCurrentUrl("/");
+    useSignupPageQueryMock.mockReturnValue({
+      data: {
+        config: {
+          allowSelfRegistration: false,
+          passwordLoginEnabled: true,
+          oidcProviders: [GOOGLE_PROVIDER, WHO_PROVIDER],
+        },
+      },
+      loading: false,
+    });
+    render(
+      <TestApp>
+        <LoginPage />
+      </TestApp>,
+    );
+
+    const [googleLink, whoLink] = screen.getAllByRole("link", {
+      name: /sign in with/i,
+    });
+    expect(googleLink.getAttribute("href")).toContain(GOOGLE_PROVIDER.loginUrl);
+    expect(whoLink.getAttribute("href")).toContain(WHO_PROVIDER.loginUrl);
+    expect(
+      googleLink.querySelector("[data-testid='google-icon']"),
+    ).not.toBeNull();
+    expect(whoLink.querySelector("[data-testid='google-icon']")).toBeNull();
+  });
+});
+
+describe("LoginPage: two-factor step after an SSO login", () => {
+  const challengeMock = {
+    request: { query: GenerateChallengeDocument },
+    result: { data: { generateChallenge: { success: true, errors: null } } },
+  };
+
+  const verifyMock = (token: string, success: boolean) => ({
+    request: {
+      query: VerifyTwoFactorLoginDocument,
+      variables: { input: { token } },
+    },
+    result: {
+      data: {
+        verifyTwoFactorLogin: {
+          success,
+          errors: success ? [] : ["INVALID_OTP"],
+        },
+      },
+    },
+  });
+
+  beforeEach(() => {
+    mockRouter.setCurrentUrl("/login?next=%2Fworkspaces");
+    useSignupPageQueryMock.mockReturnValue({
+      data: {
+        config: {
+          allowSelfRegistration: true,
+          passwordLoginEnabled: true,
+          oidcProviders: [GOOGLE_PROVIDER],
+        },
+        me: { twoFactorPending: true },
+      },
+      loading: false,
+    });
+  });
+
+  afterEach(() => {
+    useSignupPageQueryMock.mockReturnValue(DEFAULT_CONFIG);
+  });
+
+  it("reads the pending 2FA state from the server, never from the cache", () => {
+    render(
+      <TestApp mocks={[challengeMock]}>
+        <LoginPage />
+      </TestApp>,
+    );
+
+    expect(useSignupPageQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ fetchPolicy: "network-only" }),
+    );
+  });
+
+  it("shows only the code form", () => {
+    render(
+      <TestApp mocks={[challengeMock]}>
+        <LoginPage />
+      </TestApp>,
+    );
+
+    expect(screen.getByTestId("two-factor-login-form")).toBeInTheDocument();
+    expect(screen.queryByTestId("email")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /sign in with/i })).toBeNull();
+    expect(screen.queryByText("Sign up")).toBeNull();
+  });
+
+  it("redirects to next once the code is accepted", async () => {
+    const pushSpy = jest.spyOn(router, "push");
+    const user = userEvent.setup();
+    render(
+      <TestApp mocks={[challengeMock, verifyMock("123456", true)]}>
+        <LoginPage />
+      </TestApp>,
+    );
+
+    await user.type(screen.getByTestId("token"), "123456");
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+
+    await waitFor(() => expect(pushSpy).toHaveBeenCalledWith("/workspaces"));
+  });
+
+  it("shows an error when the code is wrong", async () => {
+    const pushSpy = jest.spyOn(router, "push");
+    const user = userEvent.setup();
+    render(
+      <TestApp mocks={[challengeMock, verifyMock("000000", false)]}>
+        <LoginPage />
+      </TestApp>,
+    );
+
+    await user.type(screen.getByTestId("token"), "000000");
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+
+    expect(await screen.findByTestId("error")).toHaveTextContent(
+      "Invalid token",
+    );
+    expect(pushSpy).not.toHaveBeenCalled();
   });
 });
