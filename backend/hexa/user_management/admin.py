@@ -10,6 +10,7 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.db.models import Count, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Collate
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
@@ -381,6 +382,16 @@ class OrganizationAdmin(GlobalObjectsModelAdmin):
     is_active.boolean = True
     is_active.short_description = "Active"
 
+    def get_search_results(self, request, queryset, search_term):
+        queryset, may_have_duplicates = super().get_search_results(
+            request, queryset, search_term
+        )
+        # Pickers on other models validate against `Organization.objects`, which
+        # leaves soft-deleted organizations out, so they must not be offered.
+        if request.path == reverse("admin:autocomplete"):
+            queryset = queryset.filter(deleted_at__isnull=True)
+        return queryset, may_have_duplicates
+
     def workspace_count(self, obj):
         return obj.workspaces.filter(archived=False).count()
 
@@ -396,6 +407,7 @@ class OrganizationAdmin(GlobalObjectsModelAdmin):
 @admin.register(Team)
 class TeamAdmin(admin.ModelAdmin):
     list_display = ("name", "members_count")
+    search_fields = ("name",)
     inlines = [
         MembershipInline,
     ]
@@ -414,18 +426,30 @@ class FeatureAdmin(admin.ModelAdmin):
 @admin.register(FeatureFlag)
 class FeatureFlagAdmin(admin.ModelAdmin):
     list_display = ("feature", "user")
-    list_filter = ("feature", "user")
+    list_select_related = ("feature", "user")
+    list_filter = ("feature",)
+    search_fields = ("user__email", "user__first_name", "user__last_name")
+    autocomplete_fields = ("user",)
 
 
 @admin.register(OrganizationMembership)
 class OrganizationMembershipAdmin(admin.ModelAdmin):
-    autocomplete_fields = ("user",)
+    autocomplete_fields = ("organization", "user")
     list_display = (
         "organization",
         "user",
         "role",
         "created_at",
         "updated_at",
+    )
+    list_select_related = ("organization", "user")
+    list_filter = ("role", "organization")
+    search_fields = (
+        "user__email",
+        "user__first_name",
+        "user__last_name",
+        "organization__name",
+        "organization__short_name",
     )
 
 
@@ -448,6 +472,15 @@ class OrganizationInvitationAdmin(admin.ModelAdmin):
         "updated_at",
         "role",
     )
+    list_select_related = ("organization", "invited_by")
+    list_filter = ("status", "role", "organization")
+    search_fields = (
+        "email",
+        "invited_by__email",
+        "organization__name",
+        "organization__short_name",
+    )
+    autocomplete_fields = ("organization", "invited_by")
     inlines = [OrganizationWorkspaceInvitationInline]
 
 
