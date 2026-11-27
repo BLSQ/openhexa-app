@@ -1,5 +1,27 @@
 # Changelog
 
+## [5.23.0](https://github.com/BLSQ/openhexa-app/compare/5.22.2...5.23.0) (2026-11-27)
+
+
+### Features
+
+* Add a Playwright test suite to test demo ahead of a release ([#2237](https://github.com/BLSQ/openhexa-app/issues/2237)) ([1b415eb](https://github.com/BLSQ/openhexa-app/commit/1b415ebecabacb0243175159bd2edb3124b6aa1e))
+* auto create account when signing up via console (HEXA-1875) (HEXA-1892) ([#2250](https://github.com/BLSQ/openhexa-app/issues/2250)) ([ca45c1e](https://github.com/BLSQ/openhexa-app/commit/ca45c1e332a22fe0e74306129abf317427281c06))
+* **dataset:** making a dataset public via frontend (HEXA-1791) ([#2238](https://github.com/BLSQ/openhexa-app/issues/2238)) ([3fcfecd](https://github.com/BLSQ/openhexa-app/commit/3fcfecd76a00ee7753f724e3191bc0837a134843))
+* getting started video when no workspace in organisation(HEXA-1890) ([#2249](https://github.com/BLSQ/openhexa-app/issues/2249)) ([0156b6d](https://github.com/BLSQ/openhexa-app/commit/0156b6dd391d3085c96af95cede610074eb6b00f))
+* **mcp:** restrict read_file to source code files ([#2280](https://github.com/BLSQ/openhexa-app/issues/2280)) ([e36c4d0](https://github.com/BLSQ/openhexa-app/commit/e36c4d00a5fcf31dbcb7eacd3c9ee406ab4ef930))
+* plan expiration banners for organisation admins(HEXA-1981) ([#2233](https://github.com/BLSQ/openhexa-app/issues/2233)) ([b2dc678](https://github.com/BLSQ/openhexa-app/commit/b2dc6784f57c95b85976213c2ff34bddce12de00))
+
+
+### Bug Fixes
+
+* add (.md, .markdown, .rst, .rmd, .qmd) ([#2281](https://github.com/BLSQ/openhexa-app/issues/2281)) ([fc39930](https://github.com/BLSQ/openhexa-app/commit/fc39930795ee900020cb8c68e032067395bd5b48))
+* create your own organization place and URL (HEXA-1957) ([#2264](https://github.com/BLSQ/openhexa-app/issues/2264)) ([ba71824](https://github.com/BLSQ/openhexa-app/commit/ba7182471dbbe18c318d7841b83d89e04b5a4768))
+* document oh sdk r package in docs (HEXA-1961) ([#2283](https://github.com/BLSQ/openhexa-app/issues/2283)) ([4df8d39](https://github.com/BLSQ/openhexa-app/commit/4df8d397d11f95fd6f68462de2da515f1d21c118))
+* making a resource public requires the same permission everywhere (HEXA-1848) ([#2248](https://github.com/BLSQ/openhexa-app/issues/2248)) ([ebc24a3](https://github.com/BLSQ/openhexa-app/commit/ebc24a38df324d54bc18887d9bafb0adcf068edc))
+* MCP OAuth for Mistral Vibe (HEXA-1911) ([#2251](https://github.com/BLSQ/openhexa-app/issues/2251)) ([3952e05](https://github.com/BLSQ/openhexa-app/commit/3952e05d46630c81aaa6cc87678440e9a38bbdd3))
+* save as new button fix ([#2244](https://github.com/BLSQ/openhexa-app/issues/2244)) ([c2403b3](https://github.com/BLSQ/openhexa-app/commit/c2403b3dd7e29666146689df22d257f976384b39))
+
 ## [5.22.2](https://github.com/BLSQ/openhexa-app/compare/5.22.1...5.22.2) (2026-11-17)
 
 
