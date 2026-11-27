@@ -160,6 +160,12 @@ export function applyReplayGate(
   mixpanel.start_session_recording();
 }
 
+export function resetMixpanel(): void {
+  if (!initialized) return;
+  mixpanel.stop_session_recording();
+  mixpanel.reset();
+}
+
 // Exported so tests can reset between cases.
 export function __resetForTests(): void {
   initialized = false;

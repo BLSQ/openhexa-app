@@ -17,6 +17,7 @@ import {
 } from "identity/graphql/queries.generated";
 import { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "core/helpers/csrf";
+import { resetMixpanel } from "core/helpers/mixpanel";
 import Router from "next/router";
 
 export async function getMe(ctx?: GetServerSidePropsContext) {
@@ -34,11 +35,12 @@ export async function logout() {
   if (!csrfToken) {
     throw new Error("Could not find CSRF token in cookies.");
   }
-  fetch("/auth/logout/", {
+  return fetch("/auth/logout/", {
     method: "POST",
     redirect: "follow",
     headers: { "X-CSRFToken": csrfToken },
   }).then((response) => {
+    resetMixpanel();
     return Router.replace(response.url);
   });
 }

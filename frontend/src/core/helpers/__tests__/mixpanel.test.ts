@@ -8,6 +8,7 @@ import {
   isSensitiveRoute,
   isWithinOnboardingSessions,
   MixpanelUser,
+  resetMixpanel,
 } from "../mixpanel";
 
 jest.mock("mixpanel-browser", () => ({
@@ -15,6 +16,7 @@ jest.mock("mixpanel-browser", () => ({
   default: {
     init: jest.fn(),
     identify: jest.fn(),
+    reset: jest.fn(),
     opt_in_tracking: jest.fn(),
     opt_out_tracking: jest.fn(),
     has_opted_in_tracking: jest.fn().mockReturnValue(false),
@@ -299,5 +301,24 @@ describe("applyReplayGate", () => {
     applyReplayGate(newUser(), "/workspaces/abc");
     expect(mixpanel.start_session_recording).not.toHaveBeenCalled();
     expect(mixpanel.stop_session_recording).not.toHaveBeenCalled();
+  });
+});
+
+describe("resetMixpanel", () => {
+  it("stops session recording and resets identity when initialized", () => {
+    initMixpanel();
+    resetMixpanel();
+    expect(mixpanel.stop_session_recording).toHaveBeenCalledTimes(1);
+    expect(mixpanel.reset).toHaveBeenCalledTimes(1);
+    expect(
+      (mixpanel.stop_session_recording as jest.Mock).mock
+        .invocationCallOrder[0],
+    ).toBeLessThan((mixpanel.reset as jest.Mock).mock.invocationCallOrder[0]);
+  });
+
+  it("is a no-op when not initialized", () => {
+    resetMixpanel();
+    expect(mixpanel.stop_session_recording).not.toHaveBeenCalled();
+    expect(mixpanel.reset).not.toHaveBeenCalled();
   });
 });
