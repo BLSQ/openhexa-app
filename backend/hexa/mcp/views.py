@@ -55,7 +55,7 @@ def mcp_endpoint(request: HttpRequest) -> HttpResponse:
 
     from .server import handle_jsonrpc
 
-    result = handle_jsonrpc(request.body, request.user)
+    result = handle_jsonrpc(request.body, request.user, request=request)
 
     if result is None:
         return HttpResponse(status=204)
