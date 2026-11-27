@@ -8,6 +8,7 @@ from hexa.files.backends.base import StorageObject
 from hexa.files.backends.exceptions import NotFound
 from hexa.files.backends.fs import FileSystemStorage
 from hexa.mcp.tools.files import (
+    READABLE_EXTENSIONS,
     glob_files,
     grep_files,
     list_files,
@@ -54,30 +55,30 @@ class ListFilesTest(MCPTestCase):
 class ReadFileTest(MCPTestCase):
     @patch("hexa.files.schema.queries.storage")
     def test_read_file(self, mock_storage):
-        mock_storage.read_object.return_value = b"col1,col2\nval1,val2"
+        mock_storage.read_object.return_value = b"import os\nprint(os.getcwd())"
         mock_storage.get_bucket_object.return_value = StorageObject(
-            key="data.csv",
-            name="data.csv",
-            path="data.csv",
-            size=19,
+            key="script.py",
+            name="script.py",
+            path="script.py",
+            size=31,
             updated_at=None,
             type="file",
         )
         result = read_file(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
-            file_path="data.csv",
+            file_path="script.py",
         )
         self.assertTrue(result["success"])
-        self.assertEqual(result["content"], "col1,col2\nval1,val2")
+        self.assertEqual(result["content"], "import os\nprint(os.getcwd())")
 
     @patch("hexa.files.schema.queries.storage")
     def test_read_file_with_line_range(self, mock_storage):
         mock_storage.read_object.return_value = b"line1\nline2\nline3\nline4\nline5\n"
         mock_storage.get_bucket_object.return_value = StorageObject(
-            key="data.txt",
-            name="data.txt",
-            path="data.txt",
+            key="script.py",
+            name="script.py",
+            path="script.py",
             size=30,
             updated_at=None,
             type="file",
@@ -85,7 +86,7 @@ class ReadFileTest(MCPTestCase):
         result = read_file(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
-            file_path="data.txt",
+            file_path="script.py",
             start_line=2,
             end_line=4,
         )
@@ -96,9 +97,9 @@ class ReadFileTest(MCPTestCase):
     def test_read_file_start_line_only(self, mock_storage):
         mock_storage.read_object.return_value = b"line1\nline2\nline3\n"
         mock_storage.get_bucket_object.return_value = StorageObject(
-            key="data.txt",
-            name="data.txt",
-            path="data.txt",
+            key="script.py",
+            name="script.py",
+            path="script.py",
             size=18,
             updated_at=None,
             type="file",
@@ -106,7 +107,7 @@ class ReadFileTest(MCPTestCase):
         result = read_file(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
-            file_path="data.txt",
+            file_path="script.py",
             start_line=2,
         )
         self.assertTrue(result["success"])
@@ -116,9 +117,9 @@ class ReadFileTest(MCPTestCase):
     def test_read_file_end_line_only(self, mock_storage):
         mock_storage.read_object.return_value = b"line1\nline2\nline3\n"
         mock_storage.get_bucket_object.return_value = StorageObject(
-            key="data.txt",
-            name="data.txt",
-            path="data.txt",
+            key="script.py",
+            name="script.py",
+            path="script.py",
             size=18,
             updated_at=None,
             type="file",
@@ -126,11 +127,58 @@ class ReadFileTest(MCPTestCase):
         result = read_file(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
-            file_path="data.txt",
+            file_path="script.py",
             end_line=2,
         )
         self.assertTrue(result["success"])
         self.assertEqual(result["content"], "line1\nline2\n")
+
+    @patch("hexa.files.schema.queries.storage")
+    def test_read_file_refuses_non_source_files(self, mock_storage):
+        for file_path in [
+            "data.csv",
+            "config.json",
+            "analysis.ipynb",
+            "notes.txt",
+            "README.md",
+            "DATA.CSV",
+            "scripts/data.py.csv",
+            ".env",
+            "Dockerfile",
+        ]:
+            with self.subTest(file_path=file_path):
+                result = read_file(
+                    user=self.USER_ADMIN,
+                    workspace_slug=self.WORKSPACE.slug,
+                    file_path=file_path,
+                )
+                self.assertIn("only reads source code files", result["error"])
+        mock_storage.read_object.assert_not_called()
+        mock_storage.get_bucket_object.assert_not_called()
+
+    @patch("hexa.files.schema.queries.storage")
+    def test_read_file_extension_is_case_insensitive(self, mock_storage):
+        mock_storage.read_object.return_value = b"x <- 1"
+        mock_storage.get_bucket_object.return_value = StorageObject(
+            key="analysis.R",
+            name="analysis.R",
+            path="analysis.R",
+            size=6,
+            updated_at=None,
+            type="file",
+        )
+        result = read_file(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            file_path="analysis.R",
+        )
+        self.assertTrue(result["success"])
+        self.assertEqual(result["content"], "x <- 1")
+
+    def test_read_file_description_lists_every_readable_extension(self):
+        for extension in READABLE_EXTENSIONS:
+            with self.subTest(extension=extension):
+                self.assertIn(extension, read_file.__doc__)
 
 
 class WriteFileTest(MCPTestCase):
@@ -288,9 +336,9 @@ class ReadFileWithLineNumbersTest(MCPTestCase):
     def test_read_file_with_line_numbers(self, mock_storage):
         mock_storage.read_object.return_value = b"line1\nline2\nline3\n"
         mock_storage.get_bucket_object.return_value = StorageObject(
-            key="data.txt",
-            name="data.txt",
-            path="data.txt",
+            key="script.py",
+            name="script.py",
+            path="script.py",
             size=18,
             updated_at=None,
             type="file",
@@ -298,7 +346,7 @@ class ReadFileWithLineNumbersTest(MCPTestCase):
         result = read_file(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
-            file_path="data.txt",
+            file_path="script.py",
             start_line=2,
             line_numbers=True,
         )
