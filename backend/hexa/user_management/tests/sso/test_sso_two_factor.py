@@ -1,3 +1,5 @@
+from unittest.mock import ANY, patch
+
 from django.core import mail
 from django.test import Client
 from django_otp import devices_for_user
@@ -102,6 +104,26 @@ class SSOTwoFactorLoginTest(GraphQLTestCase):
             },
             self.me(),
         )
+
+    @patch("hexa.user_management.schema.mutations.track")
+    def test_valid_code_tracks_login(self, mock_track):
+        self.client.force_login(self.USER_WITH_DEVICE)
+        token = self.send_code()
+
+        self.verify(token)
+
+        mock_track.assert_called_once_with(
+            ANY, "users.user_logged_in", user=self.USER_WITH_DEVICE
+        )
+
+    @patch("hexa.user_management.schema.mutations.track")
+    def test_invalid_code_does_not_track_login(self, mock_track):
+        self.client.force_login(self.USER_WITH_DEVICE)
+        self.send_code()
+
+        self.verify("000000")
+
+        mock_track.assert_not_called()
 
     def test_invalid_code_keeps_login_pending(self):
         self.client.force_login(self.USER_WITH_DEVICE)
