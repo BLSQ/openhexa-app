@@ -93,7 +93,7 @@ class WebappsCopierAcrossServersTest(SimpleTestCase):
         [create] = servers.calls
         self.assertEqual(create["source"], {"iframe": {"url": "https://embed.org"}})
         self.assertEqual(result.webapps.created, ["embed"])
-        self.assertIn(NOT_COPIED_NOTE, result.webapps.warnings)
+        self.assertIn(NOT_COPIED_NOTE, result.webapps.notes)
 
     def test_static_webapp_is_skipped_across_servers(self):
         servers = FakeServers(
@@ -193,7 +193,7 @@ class WebappsCopierSameServerTest(TestCase):
         self.source_ws = create_workspace(name="Source", slug="source", db_name="src")
         self.target_ws = create_workspace(name="Target", slug="target", db_name="tgt")
 
-    def run_copy(self, servers, target_slug="target"):
+    def run_copy(self, servers, target_slug="target", **options):
         result = CopyResult()
         with patch("hexa.workspace_copier.resources.webapps.gql", servers):
             WebappsCopier().copy(
@@ -201,7 +201,7 @@ class WebappsCopierSameServerTest(TestCase):
                 Endpoint(servers.target_client, target_slug),
                 result,
                 NullReporter(),
-                options=CopyOptions(same_server=True),
+                options=CopyOptions(same_server=True, **options),
             )
         return result
 
@@ -219,6 +219,17 @@ class WebappsCopierSameServerTest(TestCase):
             repository=f"source-webapp-{slug}",
             published_commit=self.PUBLISHED_SHA,
         )
+
+    def test_static_webapp_belongs_to_the_requester_when_given(self):
+        self._static("app")
+        requester = User.objects.create_user("requester@bluesquarehub.com", "pw")
+
+        self.run_copy(
+            FakeServers(_static_listing("app")), created_by_id=str(requester.id)
+        )
+
+        copy = GitWebapp.objects.get(workspace=self.target_ws)
+        self.assertEqual(copy.created_by, requester)
 
     def test_static_webapp_is_copied_with_its_repository(self):
         source = self._static("app")

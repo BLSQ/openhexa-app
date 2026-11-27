@@ -165,10 +165,26 @@ On the workspaces list page, there's a button "Copy workspace". Submitting its f
 
 The view is Superuser-only. Entered credentials are stored encrypted on the run and erased when it ends.
 
+### App (`duplicateWorkspace` mutation)
+
+Organization members duplicate a workspace from the organization's workspaces page. The `duplicateWorkspace` mutation (`schema/mutations.py`) calls `duplicate.check_can_duplicate` (the source is visible to the user, `workspaces.duplicate_workspace` allows it — they may create a workspace in the organization *and* edit the source, which organization admins and owners always may, with its connection secrets too — and the organization is under its workspace limit) and that the name is neither blank nor over 255 characters, then queues an async run through `queue.queue_duplicate_workspace`: always a same-server copy into the source's organization, optionally with other countries.
+
+**One active copy per user.** The worker runs one copy at a time for the whole server, so a user queueing several would hold up everyone else's. A partial unique constraint (`workspace_copy_one_active_run_per_requester`) allows each user a single app-requested run that is `QUEUED` or `RUNNING`; a second request gets `COPY_ALREADY_RUNNING`. Being a database constraint, it also holds against two simultaneous requests. Admin copies are not limited.
+
+**Acting as the requester.** There is no ServiceAccount token here: the run is flagged `acts_as_requester`. When the worker starts it, `issue_requester_token` (in `duplicate.py`) runs `check_can_duplicate` again — the requester's rights or the organization's plan may have changed while the run waited — and only then issues an OAuth access token for this run, with the `openhexa:workspace_copy` scope. Issuing it at start means time spent queued neither shortens its lifetime nor leaves a live token in the database. That scope is not in `OAUTH2_PROVIDER["SCOPES"]`, so no OAuth client can request it, and `oauth2_token_authentication_middleware` only accepts it on `/graphql/`. Because the copy acts as the user, the copy cannot reach anything they cannot, and they own every copied resource: the GraphQL-created ones naturally, and static web apps (written with the ORM) through `CopyOptions.created_by_id`. The token is deleted as soon as the run ends (including runs failed as interrupted); `WORKSPACE_COPY_TOKEN_EXPIRE_SECONDS` (default 24 hours) only bounds one whose cleanup never ran.
+
+**Two-factor authentication.** The middleware sets `bypass_two_factor` on requests made with this token, like the workspace and web app tokens do: the copier cannot answer a 2FA challenge, and the user passed 2FA in the session that requested the copy.
+
+**Errors.** A refusal at start (rights or limit changed) is shown with its plain reason. Any other unexpected failure is shown to the requester as a generic message: the exception may name internal hosts or queries, so its details only go to the server log. Admin runs keep the full error, since only superusers see them.
+
+**What the token can do.** It authenticates as the full user on `/graphql/`: it is not limited to the operations the copier needs or to the source and target workspaces, and `django-oauth-toolkit` stores it unencrypted. Restricting it to the copier's operations would mean filtering every GraphQL field the copiers call, and keeping that list in sync with them; that is left for a follow-up. We accept that risk because the token never leaves the server, exists only while its run is running, and grants nothing the user does not already have.
+
+**Following a run.** The dialog asks `activeWorkspaceCopyRun` when it opens, so a copy still going is shown again after closing the dialog or reloading the page. It polls `workspaceCopyRun(id)`, visible to its requester only, while it is open. `logs(offset)` returns only the text after `offset` plus the `nextOffset` to send next, read with `Substr`/`Length` in SQL so a large log is never loaded whole; the dialog keeps the last lines only.
+
 ## Async execution
 
 ```
-admin form ──> WorkspaceCopyRun (QUEUED) + WorkspaceCopyJob  (one transaction)
+admin form / duplicateWorkspace ──> WorkspaceCopyRun (QUEUED) + WorkspaceCopyJob  (one transaction)
                        │
 workspace_copy_worker ─┴─> queue.execute_copy_run(run_id)
                              └─ service.run_copy(..., reporter=DatabaseReporter(run))

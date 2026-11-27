@@ -20,7 +20,7 @@ export type CustomApolloClient = ApolloClient<NormalizedCacheObject>;
 
 let apolloClient: CustomApolloClient | undefined;
 
-const CACHE_CONFIG: InMemoryCacheConfig = {
+export const CACHE_CONFIG: InMemoryCacheConfig = {
   // possibleTypes must be provided to cache correctly unions and interfaces
   // https://www.apollographql.com/docs/react/data/fragments/#using-fragments-with-unions-and-interfaces
   possibleTypes: require("graphql/possibleTypes.json").possibleTypes,

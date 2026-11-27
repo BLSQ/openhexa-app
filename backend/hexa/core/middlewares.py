@@ -8,7 +8,7 @@ from django.utils import timezone
 from oauth2_provider.models import AccessToken
 
 from hexa.mcp.models import MCPConnection, MCPUser
-from hexa.oauth.scopes import MCP_SCOPE
+from hexa.oauth.scopes import MCP_SCOPE, WORKSPACE_COPY_SCOPE
 
 logger = logging.getLogger(__name__)
 security_logger = logging.getLogger("django.security.RequestDataTooBig")
@@ -193,6 +193,17 @@ def oauth2_token_authentication_middleware(get_response):
                     )
                     mcp_connection.mark_used()
                     request.user = MCPUser.from_user(access_token.user, mcp_connection)
+                elif (
+                    access_token.expires >= timezone.now()
+                    and request.path.startswith("/graphql/")
+                    and WORKSPACE_COPY_SCOPE in access_token.scope.split()
+                ):
+                    # A workspace copy run acts as the user who requested it, so
+                    # the copied resources are theirs and their permissions apply.
+                    request.user = access_token.user
+                    # The server issued this token itself, for a request the
+                    # user made from a session that had already passed 2FA.
+                    request.bypass_two_factor = True
         except KeyError:
             pass
         except ValueError:

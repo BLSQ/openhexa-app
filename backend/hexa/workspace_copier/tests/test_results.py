@@ -1,9 +1,12 @@
 from django.test import SimpleTestCase
 
 from hexa.workspace_copier.results import (
+    ConnectionsResult,
     CopyResult,
+    DatabaseResult,
     FilesResult,
     PipelinesResult,
+    StepStatus,
     WebappsResult,
     format_bytes,
     format_summary,
@@ -48,3 +51,61 @@ class HasFailuresTest(SimpleTestCase):
     def test_true_when_a_webapp_failed(self):
         result = CopyResult(webapps=WebappsResult(failed=["app"]))
         self.assertTrue(result.has_failures)
+
+
+class StepStatusTest(SimpleTestCase):
+    def test_a_resource_without_problems_succeeds(self):
+        result = CopyResult(files=FilesResult(copied=[("a.csv", 3)]))
+
+        self.assertEqual(StepStatus.SUCCESS, result.step_status("files"))
+        self.assertEqual(StepStatus.SUCCESS, result.step_status("workspace"))
+
+    def test_warnings_and_failures_are_told_apart(self):
+        result = CopyResult(
+            pipelines=PipelinesResult(warnings=["schedule not copied"]),
+            datasets=None,
+            webapps=WebappsResult(failed=["app"], warnings=["app failed"]),
+        )
+
+        self.assertEqual(
+            StepStatus.SUCCESS_WITH_WARNINGS, result.step_status("pipelines")
+        )
+        self.assertEqual(StepStatus.SUCCESS_WITH_ERRORS, result.step_status("webapps"))
+
+    def test_web_app_notes_are_not_warnings(self):
+        result = CopyResult(webapps=WebappsResult(created=["app"], notes=["note"]))
+
+        self.assertEqual(StepStatus.SUCCESS, result.step_status("webapps"))
+        self.assertEqual([], result.all_warnings())
+
+    def test_a_database_not_copied_is_failed_or_skipped(self):
+        failed = CopyResult(database=DatabaseResult(failed="in use"))
+        skipped = CopyResult(database=DatabaseResult(skipped="not empty"))
+
+        self.assertEqual(StepStatus.FAILED, failed.step_status("database"))
+        self.assertEqual(
+            StepStatus.SUCCESS_WITH_WARNINGS, skipped.step_status("database")
+        )
+
+
+class AllWarningsTest(SimpleTestCase):
+    def test_gathers_every_resource_and_logged_only_failures(self):
+        result = CopyResult(
+            warnings=["run warning"],
+            files=FilesResult(failed=[("a.csv", "timeout"), ("b.csv", "timeout")]),
+            database=DatabaseResult(failed="in use"),
+            connections=ConnectionsResult(failed=["dhis2"], warnings=["empty secret"]),
+            pipelines=PipelinesResult(warnings=["schedule not copied"]),
+        )
+
+        self.assertEqual(
+            [
+                "run warning",
+                "2 file(s) could not be copied — see the logs for the list.",
+                "The database was not copied: in use",
+                "empty secret",
+                "connection 'dhis2' could not be created — handle manually.",
+                "schedule not copied",
+            ],
+            result.all_warnings(),
+        )

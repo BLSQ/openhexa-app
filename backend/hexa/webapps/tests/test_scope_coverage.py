@@ -50,6 +50,8 @@ NEVER_GRANTED = {
         "pipelineTemplateTags",
         # Web apps fetch public files by URL, they never need the setting itself.
         "publicFiles",
+        # Only the duplicate dialog needs it, and no scope grants duplicateWorkspace.
+        "databaseInUse",
     },
     "Pipeline": {
         "workspace",
@@ -70,7 +72,8 @@ NEVER_GRANTED = {
     "User": {"lastLogin", "dateJoined", "analyticsEnabled"},
     "Me": {"hasTwoFactorEnabled"},
     # Whether web apps get any part in public resources is HEXA-1847's call.
-    "WorkspacePermissions": {"shareSavedQuery", "managePublicFiles"},
+    # No scope grants duplicateWorkspace, so a web app must not be told it may.
+    "WorkspacePermissions": {"shareSavedQuery", "managePublicFiles", "duplicate"},
 }
 
 

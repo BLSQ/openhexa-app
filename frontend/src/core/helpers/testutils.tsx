@@ -1,3 +1,4 @@
+import { ApolloCache } from "@apollo/client";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 import { faker } from "@faker-js/faker";
 import { ByRoleOptions, screen } from "@testing-library/react";
@@ -9,6 +10,9 @@ type TestAppProps = {
   children: ReactNode;
   mocks?: MockedResponse[];
   me?: any;
+  // Pass `new InMemoryCache(CACHE_CONFIG)` to catch fragments the app's cache
+  // cannot store, e.g. a Workspace queried without its `slug` key.
+  cache?: ApolloCache<any>;
 };
 
 jest.mock("next/router", () => require("next-router-mock"));
@@ -25,7 +29,7 @@ export function TestApp(props: TestAppProps) {
     ...(props.me ?? {}),
   };
   return (
-    <MockedProvider mocks={props.mocks ?? []}>
+    <MockedProvider mocks={props.mocks ?? []} cache={props.cache}>
       <CookiesProvider>
         <MeProvider me={me}>{props.children}</MeProvider>
       </CookiesProvider>

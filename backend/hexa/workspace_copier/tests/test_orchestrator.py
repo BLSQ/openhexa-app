@@ -12,7 +12,7 @@ from hexa.workspace_copier.orchestrator import (
 )
 from hexa.workspace_copier.progress import NullReporter
 from hexa.workspace_copier.resources.base import ResourceCopier
-from hexa.workspace_copier.results import CopyResult
+from hexa.workspace_copier.results import CopyResult, StepStatus
 
 
 class FakeCopier(ResourceCopier):
@@ -79,6 +79,22 @@ class ResolveSelectionTest(SimpleTestCase):
 
 
 class CopyWorkspaceTest(SimpleTestCase):
+    def test_reports_each_step_as_it_starts_and_ends(self):
+        fakes = [FakeCopier("workspace", mandatory=True), FakeCopier("files")]
+        reporter = MagicMock()
+        with patch.object(orchestrator, "WORKSPACE_COPIERS", fakes):
+            copy_workspace(_endpoint(), _endpoint(), reporter)
+
+        self.assertEqual(
+            [
+                ("workspace", StepStatus.RUNNING),
+                ("workspace", StepStatus.SUCCESS),
+                ("files", StepStatus.RUNNING),
+                ("files", StepStatus.SUCCESS),
+            ],
+            [c.args for c in reporter.step.call_args_list],
+        )
+
     def test_runs_selected_copiers_in_order(self):
         fakes = [
             FakeCopier("workspace", mandatory=True),

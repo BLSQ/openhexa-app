@@ -17,8 +17,12 @@ import GettingStartedPlaceholder from "organizations/features/GettingStartedPlac
 import { CreateWorkspacePermissionReason } from "graphql/types";
 import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
 import ArchiveWorkspaceDialog from "workspaces/features/ArchiveWorkspaceDialog";
+import DuplicateWorkspaceDialog from "workspaces/features/DuplicateWorkspaceDialog";
+import ActiveWorkspaceCopyBanner from "workspaces/features/ActiveWorkspaceCopyBanner";
+import useActiveWorkspaceCopyRun from "workspaces/features/ActiveWorkspaceCopyBanner/useActiveWorkspaceCopyRun";
+import { DuplicateWorkspace_WorkspaceFragment } from "workspaces/features/DuplicateWorkspaceDialog/DuplicateWorkspaceDialog.generated";
 import { ArchiveWorkspace_WorkspaceFragment } from "workspaces/features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Button from "core/components/Button";
 import useDebounce from "core/hooks/useDebounce";
 import Spinner from "core/components/Spinner";
@@ -46,6 +50,9 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
   const [taggedWorkspace, setTaggedWorkspace] =
     useState<OrganizationWorkspace_WorkspaceFragment | null>(null);
   const [isTagsDialogOpen, setIsTagsDialogOpen] = useState(false);
+  const [duplicatedWorkspace, setDuplicatedWorkspace] =
+    useState<DuplicateWorkspace_WorkspaceFragment | null>(null);
+  const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const perPage = 15;
 
@@ -72,6 +79,12 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
     setPage(1);
   }, [debouncedSearchQuery, tagsFilter]);
 
+  const refetchWorkspaces = useCallback(() => {
+    refetch().then();
+  }, [refetch]);
+  const { run: activeCopy, refetch: refetchActiveCopy } =
+    useActiveWorkspaceCopyRun(refetchWorkspaces);
+
   const organization = (!loading && data?.organization) || SRROrganization;
 
   if (!organization) {
@@ -84,6 +97,18 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
   ) => {
     setTaggedWorkspace(workspace);
     setIsTagsDialogOpen(true);
+  };
+
+  const handleDuplicateClick = (
+    workspace: DuplicateWorkspace_WorkspaceFragment,
+  ) => {
+    setDuplicatedWorkspace(workspace);
+    setIsDuplicateDialogOpen(true);
+  };
+
+  const handleViewCopyProgress = () => {
+    setDuplicatedWorkspace(null);
+    setIsDuplicateDialogOpen(true);
   };
 
   const handleArchiveClick = (
@@ -126,6 +151,12 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
           </SubscriptionLimitTooltip>
         }
       >
+        {activeCopy && (
+          <ActiveWorkspaceCopyBanner
+            run={activeCopy}
+            onViewProgress={handleViewCopyProgress}
+          />
+        )}
         {totalWorkspaces === 0 ? (
           <GettingStartedPlaceholder
             canCreateWorkspace={
@@ -159,6 +190,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
                   totalPages={data?.workspaces?.totalPages || 0}
                   totalItems={data?.workspaces?.totalItems || 0}
                   onArchiveClick={handleArchiveClick}
+                  onDuplicateClick={handleDuplicateClick}
                   onManageTagsClick={handleManageTagsClick}
                 />
               ) : (
@@ -170,6 +202,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
                   totalPages={data?.workspaces?.totalPages || 0}
                   totalItems={data?.workspaces?.totalItems || 0}
                   onArchiveClick={handleArchiveClick}
+                  onDuplicateClick={handleDuplicateClick}
                   onManageTagsClick={handleManageTagsClick}
                   canManageMembers={organization.permissions.manageMembers}
                 />
@@ -193,6 +226,17 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
         organizationId={organization.id}
         availableTags={organization.workspaceTags}
         onClose={() => setIsTagsDialogOpen(false)}
+      />
+
+      {/* Kept on close, like `taggedWorkspace`, for the leave transition. */}
+      <DuplicateWorkspaceDialog
+        open={isDuplicateDialogOpen}
+        workspace={duplicatedWorkspace}
+        onClose={() => {
+          setIsDuplicateDialogOpen(false);
+          refetch().then();
+          refetchActiveCopy().then();
+        }}
       />
 
       {selectedWorkspace && (

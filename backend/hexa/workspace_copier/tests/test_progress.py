@@ -45,3 +45,13 @@ class DatabaseReporterTest(TestCase):
         reporter = DatabaseReporter(self.run)
         with self.assertNumQueries(0):
             reporter.flush()
+
+    def test_step_flushes_the_logs_and_records_the_status(self):
+        reporter = DatabaseReporter(self.run, flush_interval=3600, max_buffer=50)
+        reporter.info("=> Copying files ...")
+
+        reporter.step("workspace", "SUCCESS")
+        reporter.step("files", "RUNNING")
+
+        self.assertIn("Copying files", self._logs())
+        self.assertEqual({"workspace": "SUCCESS", "files": "RUNNING"}, self.run.steps)

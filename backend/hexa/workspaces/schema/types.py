@@ -22,6 +22,7 @@ from ..models import (
     WorkspaceInvitationStatus,
     WorkspaceMembership,
 )
+from ..permissions import is_workspace_admin
 from ..utils import (
     DHIS2MetadataQueryType,
     IASOMetadataQueryType,
@@ -102,6 +103,24 @@ def resolve_workspace_permission_delete(workspace: Workspace, info):
         request.user.has_perm("workspaces.delete_workspace", workspace)
         if request.user.is_authenticated
         else False
+    )
+
+
+@workspace_permissions.field("duplicate")
+def resolve_workspace_permission_duplicate(workspace: Workspace, info):
+    request: HttpRequest = info.context["request"]
+    if not request.user.is_authenticated or workspace.organization_id is None:
+        return False
+    # Same rule as the workspaces.duplicate_workspace permission, but its
+    # organization half is the same for every workspace of a list, so it is
+    # computed once per request instead of once per workspace.
+    can_create_in = info.context.setdefault("can_create_workspace_in", {})
+    if workspace.organization_id not in can_create_in:
+        can_create_in[workspace.organization_id] = request.user.has_perm(
+            "user_management.create_workspace", workspace.organization
+        )
+    return can_create_in[workspace.organization_id] and is_workspace_admin(
+        request.user, workspace
     )
 
 

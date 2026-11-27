@@ -1037,3 +1037,32 @@ query WorkspaceConnectionPicker($slug: String!) {
     ...WorkspaceConnectionPicker_workspace
   }
 }
+
+query WorkspaceCopyRun($id: UUID!, $logsOffset: Int!) {
+  workspaceCopyRun(id: $id) {
+    ...DuplicateWorkspaceDialog_run
+    logs(offset: $logsOffset) {
+      text
+      nextOffset
+    }
+  }
+}
+
+query ActiveWorkspaceCopyRun {
+  activeWorkspaceCopyRun {
+    ...DuplicateWorkspaceDialog_run
+  }
+}
+
+query FinishedWorkspaceCopyRun($id: UUID!) {
+  workspaceCopyRun(id: $id) {
+    ...DuplicateWorkspaceDialog_run
+  }
+}
+
+query WorkspaceDatabaseInUse($slug: String!) {
+  workspace(slug: $slug) {
+    slug
+    databaseInUse
+  }
+}

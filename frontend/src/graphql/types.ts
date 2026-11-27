@@ -2423,6 +2423,37 @@ export type DisableTwoFactorResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export enum DuplicateWorkspaceError {
+  /** The user already has a duplication queued or running. */
+  CopyAlreadyRunning = 'COPY_ALREADY_RUNNING',
+  /** The workspace database has open connections, so it cannot be copied. */
+  DatabaseInUse = 'DATABASE_IN_USE',
+  InvalidCountry = 'INVALID_COUNTRY',
+  /** The name is blank or longer than 255 characters. */
+  InvalidName = 'INVALID_NAME',
+  PermissionDenied = 'PERMISSION_DENIED',
+  WorkspacesLimitReached = 'WORKSPACES_LIMIT_REACHED',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+export type DuplicateWorkspaceInput = {
+  /** Copy every version of each dataset instead of only the latest one. */
+  allDatasetVersions?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Countries of the new workspace. Omitted, the source workspace's are kept. */
+  countries?: InputMaybe<Array<CountryInput>>;
+  includeConnectionSecrets: Scalars['Boolean']['input'];
+  name: Scalars['String']['input'];
+  resources: Array<WorkspaceCopyResource>;
+  workspaceSlug: Scalars['String']['input'];
+};
+
+export type DuplicateWorkspaceResult = {
+  __typename?: 'DuplicateWorkspaceResult';
+  errors: Array<DuplicateWorkspaceError>;
+  run?: Maybe<WorkspaceCopyRun>;
+  success: Scalars['Boolean']['output'];
+};
+
 /** Represents the error message for a web app file edit. */
 export enum EditWebappFileError {
   BinaryFile = 'BINARY_FILE',
@@ -3372,6 +3403,7 @@ export type Mutation = {
   denyAccessmodAccessRequest: DenyAccessmodAccessRequestResult;
   /** Disables two-factor authentication for the currently authenticated user. */
   disableTwoFactor: DisableTwoFactorResult;
+  duplicateWorkspace: DuplicateWorkspaceResult;
   editWebappFile: EditWebappFileResult;
   /** Enables two-factor authentication for the currently authenticated user. */
   enableTwoFactor: EnableTwoFactorResult;
@@ -3794,6 +3826,11 @@ export type MutationDenyAccessmodAccessRequestArgs = {
 
 export type MutationDisableTwoFactorArgs = {
   input?: InputMaybe<DisableTwoFactorInput>;
+};
+
+
+export type MutationDuplicateWorkspaceArgs = {
+  input: DuplicateWorkspaceInput;
 };
 
 
@@ -5112,6 +5149,8 @@ export type Query = {
   accessmodFilesets: AccessmodFilesetPage;
   accessmodProject?: Maybe<AccessmodProject>;
   accessmodProjects: AccessmodProjectPage;
+  /** The current user's duplication that is still queued or running, if any. */
+  activeWorkspaceCopyRun?: Maybe<WorkspaceCopyRun>;
   aiLabels: AiLabels;
   assistantConversation?: Maybe<AssistantConversation>;
   boundaries: Array<WhoBoundary>;
@@ -5223,6 +5262,7 @@ export type Query = {
   webapp?: Maybe<Webapp>;
   webapps: WebappsPage;
   workspace?: Maybe<Workspace>;
+  workspaceCopyRun?: Maybe<WorkspaceCopyRun>;
   workspaces: WorkspacePage;
 };
 
@@ -5602,6 +5642,11 @@ export type QueryWebappsArgs = {
 
 export type QueryWorkspaceArgs = {
   slug: Scalars['String']['input'];
+};
+
+
+export type QueryWorkspaceCopyRunArgs = {
+  id: Scalars['UUID']['input'];
 };
 
 
@@ -7337,6 +7382,11 @@ export type Workspace = {
   createdBy: User;
   currentMembership?: Maybe<WorkspaceMembership>;
   database: Database;
+  /**
+   * Whether the workspace database has open connections, which prevent copying
+   * it. Null if the user cannot duplicate the workspace.
+   */
+  databaseInUse?: Maybe<Scalars['Boolean']['output']>;
   /** Linked datasets of the workspace */
   datasets: DatasetLinkPage;
   description?: Maybe<Scalars['String']['output']>;
@@ -7391,6 +7441,100 @@ export type WorkspaceSavedQueriesArgs = {
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
 };
+
+/**
+ * A resource that can be copied when duplicating a workspace. The workspace
+ * itself is always created.
+ */
+export enum WorkspaceCopyResource {
+  Connections = 'CONNECTIONS',
+  Database = 'DATABASE',
+  Datasets = 'DATASETS',
+  Files = 'FILES',
+  Pipelines = 'PIPELINES',
+  Webapps = 'WEBAPPS'
+}
+
+/** A workspace duplication, run in the background. */
+export type WorkspaceCopyRun = {
+  __typename?: 'WorkspaceCopyRun';
+  createdAt: Scalars['DateTime']['output'];
+  /** Why the run failed, if it did. */
+  error?: Maybe<Scalars['String']['output']>;
+  finishedAt?: Maybe<Scalars['DateTime']['output']>;
+  id: Scalars['UUID']['output'];
+  /**
+   * Timestamped progress lines, appended while the run is going. Pass the
+   * previous `nextOffset` as `offset` to get only the lines added since.
+   */
+  logs: WorkspaceCopyRunLogs;
+  /** The workspace being copied, if the user can still see it. */
+  sourceWorkspace?: Maybe<Workspace>;
+  sourceWorkspaceSlug: Scalars['String']['output'];
+  startedAt?: Maybe<Scalars['DateTime']['output']>;
+  status: WorkspaceCopyRunStatus;
+  /** The run's steps, in the order they are run. */
+  steps: Array<WorkspaceCopyStep>;
+  /** Name requested for the new workspace. */
+  targetWorkspaceName: Scalars['String']['output'];
+  /** What the user should check or redo by hand, once the run is over. */
+  warnings: Array<Scalars['String']['output']>;
+  /** The workspace created by the run, once it exists. */
+  workspace?: Maybe<Workspace>;
+};
+
+
+/** A workspace duplication, run in the background. */
+export type WorkspaceCopyRunLogsArgs = {
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type WorkspaceCopyRunLogs = {
+  __typename?: 'WorkspaceCopyRunLogs';
+  /** Offset to pass next time to receive only newer lines. */
+  nextOffset: Scalars['Int']['output'];
+  /** Log text from the requested offset onwards, in whole lines. */
+  text: Scalars['String']['output'];
+};
+
+export enum WorkspaceCopyRunStatus {
+  Failed = 'FAILED',
+  Queued = 'QUEUED',
+  Running = 'RUNNING',
+  Success = 'SUCCESS',
+  SuccessWithErrors = 'SUCCESS_WITH_ERRORS'
+}
+
+export type WorkspaceCopyStep = {
+  __typename?: 'WorkspaceCopyStep';
+  name: WorkspaceCopyStepName;
+  status: WorkspaceCopyStepStatus;
+};
+
+/**
+ * A step of a workspace duplication: creating the workspace, then copying each
+ * selected resource.
+ */
+export enum WorkspaceCopyStepName {
+  Connections = 'CONNECTIONS',
+  Database = 'DATABASE',
+  Datasets = 'DATASETS',
+  Files = 'FILES',
+  Pipelines = 'PIPELINES',
+  Webapps = 'WEBAPPS',
+  Workspace = 'WORKSPACE'
+}
+
+export enum WorkspaceCopyStepStatus {
+  /** The run stopped during this step. */
+  Failed = 'FAILED',
+  Pending = 'PENDING',
+  Running = 'RUNNING',
+  Success = 'SUCCESS',
+  /** Some items could not be copied. */
+  SuccessWithErrors = 'SUCCESS_WITH_ERRORS',
+  SuccessWithWarnings = 'SUCCESS_WITH_WARNINGS'
+}
 
 /** Represents an invitation to join a workspace. */
 export type WorkspaceInvitation = {
@@ -7494,6 +7638,7 @@ export type WorkspacePermissions = {
   deleteObject: Scalars['Boolean']['output'];
   /** User can download objects from the workspace's bucket. */
   downloadObject: Scalars['Boolean']['output'];
+  duplicate: Scalars['Boolean']['output'];
   generateToken: Scalars['Boolean']['output'];
   launchNotebookServer: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];

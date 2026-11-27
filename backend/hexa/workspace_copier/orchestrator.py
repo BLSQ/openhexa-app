@@ -21,7 +21,7 @@ from hexa.workspace_copier.resources.files import FilesCopier
 from hexa.workspace_copier.resources.pipelines import PipelinesCopier
 from hexa.workspace_copier.resources.webapps import WebappsCopier
 from hexa.workspace_copier.resources.workspace import WorkspaceMetadataCopier
-from hexa.workspace_copier.results import CopyResult
+from hexa.workspace_copier.results import CopyResult, StepStatus
 
 WORKSPACE_COPIERS: list[ResourceCopier] = [
     WorkspaceMetadataCopier(),  # Mandatory first step
@@ -81,7 +81,9 @@ def copy_workspace(
                 result.warn(message)
                 reporter.warning(message)
         reporter.info(f"=> Copying {copier.name} ...")
+        reporter.step(copier.name, StepStatus.RUNNING)
         copier.copy(source, target, result, reporter, options=options)
+        reporter.step(copier.name, result.step_status(copier.name))
         # Every line is timestamped, so bracketing each copier with a start and
         # a finish line is what makes "how long did files take" answerable —
         # including for the last copier, which has no successor line.

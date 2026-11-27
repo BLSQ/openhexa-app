@@ -253,3 +253,13 @@ mutation testConnection($input: TestConnectionInput!) {
     errors
   }
 }
+
+mutation DuplicateWorkspace($input: DuplicateWorkspaceInput!) {
+  duplicateWorkspace(input: $input) {
+    success
+    errors
+    run {
+      ...DuplicateWorkspaceDialog_run
+    }
+  }
+}
