@@ -1,4 +1,8 @@
-import { CloudArrowUpIcon, PlusIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowTopRightOnSquareIcon,
+  CloudArrowUpIcon,
+  PlusIcon,
+} from "@heroicons/react/24/outline";
 import Block from "core/components/Block/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
@@ -24,6 +28,8 @@ import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import CreateDatasetDialog from "datasets/features/CreateDatasetDialog";
 import DatasetCard from "datasets/features/DatasetCard";
 import DatasetVisibilityBadge from "datasets/features/DatasetSharing/DatasetVisibilityBadge";
+import { getPublicDatasetUrl } from "datasets/features/DatasetSharing/datasetSharing";
+import { DatasetVisibility } from "graphql/types";
 import Title from "core/components/Title";
 import PinDatasetButton from "datasets/features/PinDatasetButton";
 import useCacheKey from "core/hooks/useCacheKey";
@@ -162,10 +168,23 @@ const WorkspaceDatasetsPage: NextPageWithLayout = (props: Props) => {
                 )}
               </BaseColumn>
               <BaseColumn id="visibility" label={t("Visibility")}>
-                {(value) => (
-                  <DatasetVisibilityBadge
-                    visibility={value.dataset.visibility}
-                  />
+                {({ dataset }) => (
+                  <div className="flex items-center gap-2">
+                    <DatasetVisibilityBadge visibility={dataset.visibility} />
+                    {dataset.visibility === DatasetVisibility.Public &&
+                      dataset.publicSlug && (
+                        <a
+                          href={getPublicDatasetUrl(dataset.publicSlug)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={t("Open public link")}
+                          aria-label={t("Open public link")}
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                        </a>
+                      )}
+                  </div>
                 )}
               </BaseColumn>
               <DateColumn

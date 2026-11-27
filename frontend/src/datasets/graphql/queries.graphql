@@ -15,3 +15,42 @@ query DatasetVersionPicker($datasetId: ID!, $perPage: Int!) {
           }
         }
 }
+
+query PublicDatasetPage(
+  $slug: String!
+  $versionId: ID!
+  $isSpecificVersion: Boolean!
+  $page: Int = 1
+  $perPage: Int = 20
+) {
+  publicDataset(slug: $slug) {
+    id
+    publicSlug
+    name
+    description
+    visibility
+    workspaceName
+    organizationName
+    ...DatasetVersionPicker_dataset
+    version(id: $versionId) @include(if: $isSpecificVersion) {
+      ...PublicDatasetPage_version
+    }
+    latestVersion @skip(if: $isSpecificVersion) {
+      ...PublicDatasetPage_version
+    }
+  }
+}
+
+fragment PublicDatasetPage_version on DatasetVersion {
+  id
+  name
+  changelog
+  createdAt
+  ...DatasetVersionPicker_version
+  ...DatasetExplorer_version
+  files(page: $page, perPage: $perPage) {
+    items {
+      ...DatasetExplorer_file
+    }
+  }
+}

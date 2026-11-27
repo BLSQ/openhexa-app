@@ -15,7 +15,13 @@ from hexa.webapps.scopes import SCOPE_GRANTS, _merge
 NEVER_GRANTED = {
     # Edges back up to a workspace or the organization lead out of the web app's
     # workspace, to connections, credentials and other workspaces' data.
-    "Dataset": {"workspace"},
+    "Dataset": {
+        "workspace",
+        # Read by the public dataset page; whether web apps get any part in public
+        # resources is HEXA-1847's call.
+        "workspaceName",
+        "organizationName",
+    },
     "DatasetLink": {"workspace"},
     "WorkspaceMembership": {"workspace", "organizationMembership", "user"},
     "Organization": {

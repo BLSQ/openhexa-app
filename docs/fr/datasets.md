@@ -123,13 +123,16 @@ La visibilité d'un jeu de données détermine qui peut y accéder au-delà des 
 
 - **Privé** (par défaut) : uniquement les espaces de travail avec lesquels le jeu de données est partagé.
 - **Organisation** : tous les espaces de travail au sein de votre organisation.
-- **Public** : pour l'instant, la même portée que la visibilité organisation.
+- **Public** : tous les espaces de travail de votre organisation, ainsi que toute personne disposant du lien public du jeu de données, même sans compte OpenHEXA.
 
 ⚠️ Les visibilités organisation et publique remplacent toutes les permissions d'espace de travail spécifiques. Tant qu'un jeu de données a l'une d'elles, il ne peut pas être partagé avec d'autres espaces de travail ; ceux avec lesquels il est déjà partagé conservent leur accès s'il redevient privé.
 
 #### Rendre un jeu de données public
 - Seuls l'auteur du jeu de données (s'il est encore éditeur ou administrateur de son espace de travail), les administrateurs de l'espace de travail et les administrateurs et propriétaires de l'organisation peuvent rendre un jeu de données public, ou ramener un jeu de données public à l'organisation ou à l'espace de travail.
 - Lorsque vous rendez un jeu de données public pour la première fois, vous choisissez l'identifiant de son lien public. Il reprend par défaut l'identifiant du jeu de données et ne peut contenir que des lettres minuscules et des chiffres, séparés par un seul tiret ou tiret bas. Les majuscules, accents, espaces et points sont convertis pendant la saisie, et quelques mots réservés aux pages de la plateforme, comme `new` ou `search`, ne peuvent pas être utilisés. Il ne peut plus être modifié une fois défini, même si le jeu de données est de nouveau rendu public plus tard.
+- Le lien public a la forme `https://<votre domaine OpenHEXA>/datasets/<identifiant>`. Copiez-le depuis l'onglet **Gestion de l'accès**, ou ouvrez-le depuis l'icône à côté du badge **Public** dans la liste des jeux de données de l'espace de travail.
+- Les visiteurs du lien public voient le nom, la description, les versions et les fichiers du jeu de données, ainsi que les noms de son espace de travail et de son organisation, et peuvent prévisualiser et télécharger ses fichiers. Ils ne voient ni qui a créé le jeu de données ou ses fichiers, ni les espaces de travail avec lesquels il est partagé.
+- Les liens publics sont exclus des moteurs de recherche. Rendre le jeu de données de nouveau privé, ou archiver son espace de travail, désactive le lien.
 
 ### Permissions de partage
 

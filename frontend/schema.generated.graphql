@@ -1636,12 +1636,19 @@ Dataset is a collection of files that are related to each other and are versione
 type Dataset implements MetadataObject {
   attributes: [MetadataAttribute!]!
   createdAt: DateTime!
+
+  """Hidden from callers who see the dataset only because it is public."""
   createdBy: User
   description: String
   id: ID!
   latestVersion: DatasetVersion
   links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
   name: String!
+
+  """
+  Name of the organization of the dataset's workspace, readable by anyone who can see the dataset.
+  """
+  organizationName: String
   permissions: DatasetPermissions!
 
   """
@@ -1655,7 +1662,14 @@ type Dataset implements MetadataObject {
   version(id: ID!): DatasetVersion
   versions(page: Int = 1, perPage: Int = 15): DatasetVersionPage!
   visibility: DatasetVisibility!
+
+  """Hidden from callers who see the dataset only because it is public."""
   workspace: Workspace
+
+  """
+  Name of the dataset's workspace, readable by anyone who can see the dataset.
+  """
+  workspaceName: String
 }
 
 """File sample for dataset file"""
@@ -1737,6 +1751,8 @@ type DatasetVersion implements MetadataObject {
   attributes: [MetadataAttribute!]!
   changelog: String
   createdAt: DateTime!
+
+  """Hidden from callers who see the dataset only because it is public."""
   createdBy: User
   dataset: Dataset!
   description: String @deprecated(reason: "use changelog instead")
@@ -1756,6 +1772,8 @@ type DatasetVersionFile implements MetadataObject {
   columns: [String!]
   contentType: String!
   createdAt: DateTime!
+
+  """Hidden from callers who see the dataset only because it is public."""
   createdBy: User
   downloadUrl(attachment: Boolean): String
   fileSample: DatasetFileSample
@@ -1808,7 +1826,7 @@ enum DatasetVisibility {
   """Every member of the organization."""
   ORGANIZATION
 
-  """For now, every member of the organization."""
+  """Every member of the organization, and anyone with its public link."""
   PUBLIC
 
   """The members of the workspaces the dataset is shared with."""
@@ -3521,7 +3539,9 @@ type Mutation {
   """Prepare to upload an object to a workspace's bucket."""
   prepareObjectUpload(input: PrepareObjectUploadInput!): PrepareObjectUploadResult!
 
-  """Prepare to download a file in a dataset version."""
+  """
+  Prepare to download a file in a dataset version. Files of public datasets can be downloaded by anyone, anonymous included.
+  """
   prepareVersionFileDownload(input: PrepareVersionFileDownloadInput!): PrepareVersionFileDownloadResult!
 
   """Registers a new user."""
@@ -4517,7 +4537,9 @@ type Query {
   dags(page: Int, perPage: Int): DAGPage!
   databaseTable(id: String!): DatabaseTable
 
-  """Get a dataset by its ID."""
+  """
+  Get a dataset by its ID. Public datasets are returned to anyone, anonymous included.
+  """
   dataset(id: ID!): Dataset
 
   """Get a dataset link by its id."""
@@ -4529,7 +4551,9 @@ type Query {
   """Get a dataset by its slug."""
   datasetVersion(id: ID!): DatasetVersion
 
-  """Get a dataset file by its id """
+  """
+  Get a dataset file by its id. Files of public datasets are returned to anyone, anonymous included.
+  """
   datasetVersionFile(id: ID!): DatasetVersionFile
 
   """Search datasets."""
@@ -4609,6 +4633,11 @@ type Query {
 
   """Retrieves a page of pipelines ordered by relevant name."""
   pipelines(functionalType: PipelineFunctionalType, lastRunStates: [PipelineRunStatus!], name: String, orderBy: PipelineOrderBy, page: Int, perPage: Int, search: String, tags: [String!], workspaceSlug: String): PipelinesPage!
+
+  """
+  Get a public dataset by its public slug, for anyone, anonymous included.
+  """
+  publicDataset(slug: String!): Dataset
 
   """
   Retrieves a public saved query by its slug, for anyone, anonymous included.

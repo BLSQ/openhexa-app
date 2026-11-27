@@ -16,6 +16,8 @@ from hexa.datasets.models import (
 )
 from hexa.datasets.queue import is_file_supported
 from hexa.files import storage
+from hexa.user_management.models import ServicePrincipal
+from hexa.webapps.models import PublicWebappUser
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
@@ -28,6 +30,46 @@ dataset_file_sample_object = ObjectType("DatasetFileSample")
 dataset_version_file_result_object = ObjectType("CreateDatasetVersionFileResult")
 dataset_link_object = ObjectType("DatasetLink")
 dataset_link_permissions = ObjectType("DatasetLinkPermissions")
+
+
+def reaches_public_datasets(request: HttpRequest) -> bool:
+    """Whether a permalink opens public datasets to the caller.
+
+    Service principals and visitors of public web apps stay confined to their
+    workspaces, as for public saved queries.
+    """
+    return not isinstance(request.user, ServicePrincipal | PublicWebappUser)
+
+
+@dataset_object.field("workspace")
+def resolve_dataset_workspace(obj: Dataset, info, **kwargs):
+    return None if _is_visitor(info, obj) else obj.workspace
+
+
+@dataset_object.field("createdBy")
+def resolve_dataset_created_by(obj: Dataset, info, **kwargs):
+    return None if _is_visitor(info, obj) else obj.created_by
+
+
+@dataset_version_object.field("createdBy")
+def resolve_dataset_version_created_by(obj: DatasetVersion, info, **kwargs):
+    return None if _is_visitor(info, obj.dataset) else obj.created_by
+
+
+@dataset_version_file_object.field("createdBy")
+def resolve_dataset_version_file_created_by(obj: DatasetVersionFile, info, **kwargs):
+    return None if _is_visitor(info, obj.dataset_version.dataset) else obj.created_by
+
+
+@dataset_object.field("workspaceName")
+def resolve_dataset_workspace_name(obj: Dataset, info, **kwargs):
+    return obj.workspace.name if obj.workspace else None
+
+
+@dataset_object.field("organizationName")
+def resolve_dataset_organization_name(obj: Dataset, info, **kwargs):
+    organization = obj.workspace.organization if obj.workspace else None
+    return organization.name if organization else None
 
 
 @dataset_link_permissions.field("delete")
@@ -100,7 +142,9 @@ def resolve_latest_version(obj: Dataset, info, **kwargs):
 def resolve_dataset_links(obj: Dataset, info, **kwargs):
     prefetched_links = obj.get_prefetched("links")
 
-    if prefetched_links is not None:
+    if _is_visitor(info, obj):
+        links = []
+    elif prefetched_links is not None:
         links = sorted(
             (
                 link
@@ -274,6 +318,23 @@ def resolve_version_file_download_url(
     request: HttpRequest = info.context["request"]
     if request.user.has_perm("datasets.download_dataset_version", obj.dataset_version):
         return generate_download_url(obj, force_attachment=attachment)
+
+
+def _is_visitor(info, dataset: Dataset) -> bool:
+    """Whether the caller reaches the dataset only because it is public.
+
+    Visitors read its content, but not who made it or which workspaces use it.
+    """
+    if not dataset.is_public:
+        return False
+    visitors = info.context.setdefault("dataset_visitor", {})
+    if dataset.pk not in visitors:
+        visitors[dataset.pk] = (
+            not Dataset.objects.filter_for_user(info.context["request"].user)
+            .filter(pk=dataset.pk)
+            .exists()
+        )
+    return visitors[dataset.pk]
 
 
 bindables = [

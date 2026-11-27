@@ -3,6 +3,7 @@ import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Block from "core/components/Block/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
+import Clipboard from "core/components/Clipboard";
 import LinkTabs from "core/components/Tabs/LinkTabs";
 import Title from "core/components/Title";
 import { trackEvent } from "core/helpers/analytics";
@@ -11,8 +12,10 @@ import { GetServerSidePropsContext } from "next";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { DatasetVisibility } from "graphql/types";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import DatasetShareButton from "../features/DatasetSharing";
+import { getPublicDatasetUrl } from "../features/DatasetSharing/datasetSharing";
 import DatasetVisibilityBadge from "../features/DatasetSharing/DatasetVisibilityBadge";
 import DatasetVersionPicker from "../features/DatasetVersionPicker";
 import DeleteDatasetTrigger from "../features/DeleteDatasetTrigger";
@@ -164,6 +167,12 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
           <span className="flex items-center gap-3">
             {dataset.name}
             <DatasetVisibilityBadge visibility={dataset.visibility} size="sm" />
+            {dataset.visibility === DatasetVisibility.Public &&
+              dataset.publicSlug && (
+                <span className="flex text-gray-400 hover:text-gray-600">
+                  <Clipboard value={getPublicDatasetUrl(dataset.publicSlug)} />
+                </span>
+              )}
           </span>
           {version && (
             <div className="flex items-center gap-2">
@@ -261,6 +270,7 @@ DatasetLayout.fragments = {
         }
         slug
         visibility
+        publicSlug
         permissions {
           delete
           createVersion

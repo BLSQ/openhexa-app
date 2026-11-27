@@ -101,22 +101,27 @@ class DatasetQuerySet(BaseQuerySet):
             "workspace", "workspace__organization", "created_by"
         ).prefetch_related("versions", "links", "links__workspace")
 
-    def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
+    def filter_for_user(
+        self, user: AnonymousUser | UserInterface, *, include_public: bool = False
+    ) -> models.QuerySet:
+        """Datasets the user reaches through a workspace or their organization.
+
+        `include_public` adds every public dataset, anonymous users included: only for
+        lookups a permalink leads to, never for listings.
+        """
         from hexa.workspaces.models import Workspace
 
         accessible_workspaces = Workspace.objects.filter_for_user(user)
         accessible_organizations = Organization.objects.filter_for_user(
             user, direct_membership_only=True
         )
-        return self.optimize_query(
-            self.filter(
-                Q(links__workspace__in=accessible_workspaces)
-                | Q(
-                    visibility__in=ORGANIZATION_WIDE_VISIBILITIES,
-                    workspace__organization__in=accessible_organizations,
-                )
-            ).distinct()
+        query = Q(links__workspace__in=accessible_workspaces) | Q(
+            visibility__in=ORGANIZATION_WIDE_VISIBILITIES,
+            workspace__organization__in=accessible_organizations,
         )
+        if include_public:
+            query |= Q(visibility=DatasetVisibility.PUBLIC, workspace__archived=False)
+        return self.optimize_query(self.filter(query).distinct())
 
     def filter_for_workspace_slugs(
         self, user: AnonymousUser | UserInterface, workspace_slugs: list[str]
@@ -226,6 +231,10 @@ class Dataset(MetadataMixin, Base):
     @property
     def shared_with_organization(self) -> bool:
         return self.visibility in ORGANIZATION_WIDE_VISIBILITIES
+
+    @property
+    def is_public(self) -> bool:
+        return self.visibility == DatasetVisibility.PUBLIC
 
     @property
     def latest_version(self):
@@ -344,7 +353,7 @@ class Dataset(MetadataMixin, Base):
         )
 
     def can_view_metadata(self, user: User):
-        if not user.has_perm("datasets.view_dataset", self):
+        if not (self.is_public or user.has_perm("datasets.view_dataset", self)):
             raise PermissionDenied
         return True
 
@@ -475,7 +484,10 @@ class DatasetVersion(MetadataMixin, Base):
         self.delete()
 
     def can_view_metadata(self, user: User):
-        if not user.has_perm("datasets.view_dataset_version", self):
+        if not (
+            self.dataset.is_public
+            or user.has_perm("datasets.view_dataset_version", self)
+        ):
             raise PermissionDenied
         return True
 
@@ -522,13 +534,14 @@ class DatasetVersion(MetadataMixin, Base):
 
 
 class DatasetVersionFileQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: AnonymousUser | UserInterface):
-        return self._filter_for_user_and_query_object(
-            user,
-            models.Q(
-                dataset_version__dataset__in=Dataset.objects.filter_for_user(user)
-            ),
-            return_all_if_superuser=False,
+    def filter_for_user(
+        self, user: AnonymousUser | UserInterface, *, include_public: bool = False
+    ):
+        """See `DatasetQuerySet.filter_for_user` for `include_public`."""
+        return self.filter(
+            dataset_version__dataset__in=Dataset.objects.filter_for_user(
+                user, include_public=include_public
+            )
         )
 
     def filter_by_filename(self, filename: str):
@@ -582,7 +595,10 @@ class DatasetVersionFile(MetadataMixin, Base):
     objects = DatasetVersionFileManager.from_queryset(DatasetVersionFileQuerySet)()
 
     def can_view_metadata(self, user: User):
-        if not user.has_perm("datasets.view_dataset_version_file", self):
+        if not (
+            self.dataset_version.dataset.is_public
+            or user.has_perm("datasets.view_dataset_version_file", self)
+        ):
             raise PermissionDenied
         return True
 

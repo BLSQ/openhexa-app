@@ -9,7 +9,9 @@ from ..models import (
     DatasetLink,
     DatasetVersion,
     DatasetVersionFile,
+    DatasetVisibility,
 )
+from .types import reaches_public_datasets
 
 datasets_queries = QueryType()
 
@@ -29,9 +31,27 @@ def resolve_datasets(_, info, query=None, page=1, per_page=15):
 def resolve_dataset(_, info, **kwargs):
     request = info.context["request"]
     try:
-        return Dataset.objects.filter_for_user(request.user).get(id=kwargs["id"])
+        return Dataset.objects.filter_for_user(
+            request.user, include_public=reaches_public_datasets(request)
+        ).get(id=kwargs["id"])
     except Dataset.DoesNotExist:
         return None
+
+
+@datasets_queries.field("publicDataset")
+def resolve_public_dataset(_, info, **kwargs):
+    request = info.context["request"]
+    return (
+        Dataset.objects.filter_for_user(
+            request.user, include_public=reaches_public_datasets(request)
+        )
+        .filter(
+            visibility=DatasetVisibility.PUBLIC,
+            public_slug=kwargs["slug"],
+            workspace__archived=False,
+        )
+        .first()
+    )
 
 
 @datasets_queries.field("datasetVersion")
@@ -47,9 +67,9 @@ def resolve_dataset_version(_, info, **kwargs):
 def resolve_dataset_version_file(_, info, **kwargs):
     request = info.context["request"]
     try:
-        return DatasetVersionFile.objects.filter_for_user(request.user).get(
-            id=kwargs["id"]
-        )
+        return DatasetVersionFile.objects.filter_for_user(
+            request.user, include_public=reaches_public_datasets(request)
+        ).get(id=kwargs["id"])
     except DatasetVersionFile.DoesNotExist:
         return None
 
