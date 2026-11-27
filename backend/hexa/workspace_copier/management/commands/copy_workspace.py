@@ -91,6 +91,15 @@ class Command(BaseCommand):
             help="Create connections with their secret fields empty.",
         )
         parser.add_argument(
+            "--disable-ssl-verification",
+            action="store_false",
+            dest="verify_ssl",
+            help="Do not verify TLS certificates (source, target and file "
+            "transfers). Only for a server whose certificate is known to be "
+            "expired or self-signed: tokens and data are exposed to anyone "
+            "able to intercept the connection.",
+        )
+        parser.add_argument(
             "--same-server",
             action="store_true",
             help="Both workspaces are on this server: also copy the workspace "
@@ -145,6 +154,7 @@ class Command(BaseCommand):
                     all_dataset_versions=options["all_dataset_versions"],
                     include_connection_secrets=options["include_connection_secrets"],
                     same_server=options["same_server"],
+                    verify_ssl=options["verify_ssl"],
                 ),
                 reporter=reporter,
             )

@@ -95,7 +95,7 @@ class PipelinesCopier(ResourceCopier):
 
         # One shared client for the presigned notebook transfers, so the
         # connection pool reuses TLS handshakes across pipelines.
-        with build_http_client(timeout=300) as http_client:
+        with build_http_client(timeout=300, verify=options.verify_ssl) as http_client:
             for pipeline_id, src_code, target_name, target_code in assignments:
                 if target_code in existing_codes:
                     pipes_result.skipped.append(src_code)

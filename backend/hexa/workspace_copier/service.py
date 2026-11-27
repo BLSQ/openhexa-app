@@ -14,6 +14,7 @@ checked even if the first fails, so the user sees every problem at once rather
 than fixing them one round-trip at a time.
 """
 
+import ssl
 from collections.abc import Callable
 from typing import Any
 
@@ -52,7 +53,9 @@ class CredentialError(GraphQLError):
         super().__init__("; ".join(errors))
 
 
-def _build_source(url: str | None, token: str | None, slug: str) -> Endpoint:
+def _build_source(
+    url: str | None, token: str | None, slug: str, verify_ssl: bool = True
+) -> Endpoint:
     """Build the source endpoint, verifying the workspace exists.
 
     The lookup is what makes a wrong slug a pre-flight failure: the copiers read
@@ -60,10 +63,18 @@ def _build_source(url: str | None, token: str | None, slug: str) -> Endpoint:
     report a clean run that copied nothing. The workspace is stashed on the
     endpoint, so the copiers reuse it rather than fetching it again.
     """
-    client = build_client(url or this_server_graphql_url(), token, label="source")
+    client = build_client(
+        url or this_server_graphql_url(),
+        token,
+        label="source",
+        verify_ssl=verify_ssl,
+    )
     workspace = client.workspace(slug=slug)
     if workspace is None:
-        raise GraphQLError(f"source workspace '{slug}' not found")
+        raise GraphQLError(
+            f"source workspace '{slug}' not found: it does not exist, or the "
+            "token's account is not a member of it."
+        )
     return Endpoint(client, slug, workspace=workspace)
 
 
@@ -73,17 +84,23 @@ def _build_target(
     organization_id: str | None,
     workspace_name: str | None,
     workspace_slug: str | None,
+    verify_ssl: bool = True,
 ) -> Endpoint:
     if workspace_slug:
-        return _build_existing_target(url, token, workspace_slug)
-    client = build_client(url or this_server_graphql_url(), token, label="target")
+        return _build_existing_target(url, token, workspace_slug, verify_ssl)
+    client = build_client(
+        url or this_server_graphql_url(),
+        token,
+        label="target",
+        verify_ssl=verify_ssl,
+    )
     return Endpoint(
         client, organization_id=organization_id, workspace_name=workspace_name
     )
 
 
 def _build_existing_target(
-    url: str | None, token: str | None, workspace_slug: str
+    url: str | None, token: str | None, workspace_slug: str, verify_ssl: bool = True
 ) -> Endpoint:
     """Build a target endpoint pointing at a pre-existing workspace.
 
@@ -94,7 +111,12 @@ def _build_existing_target(
     copier skips creation and the downstream copiers make the rest of the run
     idempotent by skipping resources that already exist.
     """
-    client = build_client(url or this_server_graphql_url(), token, label="target")
+    client = build_client(
+        url or this_server_graphql_url(),
+        token,
+        label="target",
+        verify_ssl=verify_ssl,
+    )
     workspace = client.workspace(slug=workspace_slug)
     if workspace is None:
         raise GraphQLError(
@@ -200,6 +222,21 @@ def _build_remote_client(side: str, url: str, token: str) -> Client:
     return build_client(url, token, label=side)
 
 
+def _certificate_error(exc: BaseException) -> ssl.SSLCertVerificationError | None:
+    """Find the certificate verification failure behind ``exc``, if there is one.
+
+    httpx reports it as a plain ``ConnectError``; the TLS error is only
+    reachable through the exception chain.
+    """
+    seen = set()
+    while exc is not None and id(exc) not in seen:
+        if isinstance(exc, ssl.SSLCertVerificationError):
+            return exc
+        seen.add(id(exc))
+        exc = exc.__cause__ or exc.__context__
+    return None
+
+
 def _verify_side(side: str, build: Callable[[], Any]) -> tuple[Any | None, str | None]:
     """Build one endpoint (or client), returning ``(value, error_message)``.
 
@@ -213,6 +250,14 @@ def _verify_side(side: str, build: Callable[[], Any]) -> tuple[Any | None, str |
         # build_client already labels authentication failures with the side.
         return None, str(exc)
     except httpx.HTTPError as exc:
+        certificate_error = _certificate_error(exc)
+        if certificate_error is not None:
+            return None, (
+                f"{side} server's SSL certificate could not be verified "
+                f"({certificate_error.verify_message}). If the certificate is "
+                "known to be expired or self-signed, disable SSL certificate "
+                "verification."
+            )
         return None, f"{side} server is unreachable ({exc.__class__.__name__})."
 
 
@@ -227,11 +272,12 @@ def _verify_endpoints(
     target_workspace_name: str | None,
     target_workspace_slug: str | None = None,
     same_server: bool = False,
+    verify_ssl: bool = True,
 ) -> tuple[Endpoint, Endpoint]:
     """Verify and build both endpoints, raising :class:`CredentialError` on failure."""
     source, source_err = _verify_side(
         "source",
-        lambda: _build_source(source_url, source_token, source_slug),
+        lambda: _build_source(source_url, source_token, source_slug, verify_ssl),
     )
     target, target_err = _verify_side(
         "target",
@@ -241,6 +287,7 @@ def _verify_endpoints(
             target_organization_id,
             target_workspace_name,
             target_workspace_slug,
+            verify_ssl,
         ),
     )
     errors = [e for e in (source_err, target_err) if e]
@@ -277,6 +324,7 @@ def run_copy(
         target_workspace_name=target_workspace_name,
         target_workspace_slug=target_workspace_slug,
         same_server=options.same_server,
+        verify_ssl=options.verify_ssl,
     )
     return copy_workspace(
         source,

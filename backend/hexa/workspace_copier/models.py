@@ -41,6 +41,7 @@ class WorkspaceCopyRun(Base):
     all_dataset_versions = models.BooleanField(default=False)
     include_connection_secrets = models.BooleanField(default=True)
     same_server = models.BooleanField(default=False)
+    verify_ssl = models.BooleanField(default=True)
 
     # The worker runs after the admin request is gone, so it can only get the
     # tokens from here. They are erased as soon as the run ends.

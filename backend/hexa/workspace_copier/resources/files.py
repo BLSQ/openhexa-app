@@ -262,7 +262,9 @@ class FilesCopier(ResourceCopier):
         # one per file. It carries no auth headers: presigned URLs are
         # self-authenticating and some storage backends reject requests that
         # also send an Authorization header.
-        with build_http_client(timeout=TRANSFER_TIMEOUT) as http_client:
+        with build_http_client(
+            timeout=TRANSFER_TIMEOUT, verify=options.verify_ssl
+        ) as http_client:
             # walk() is a generator whose paginated/recursive gql() calls can
             # themselves raise (page 2+, a subdir listing). Driving it via
             # next() lets us record a listing failure and keep the files copied

@@ -1,7 +1,8 @@
 """Admin views for the workspace copier.
 
 The copy view is wired into ``WorkspaceAdmin`` (see ``hexa/workspaces/admin.py``)
-through ``get_urls()`` so it shows up under the workspace admin section. It only
+through ``get_urls()`` so it shows up under the workspace admin section, along
+with the lookup view feeding the form's search suggestions. The copy view only
 validates the form and queues a :class:`WorkspaceCopyRun`; the
 ``workspace_copy_worker`` executes it, and its progress is shown on the run's
 admin page. Restricted to superusers. Source/target credentials are stored
@@ -13,10 +14,14 @@ The template copy view stays synchronous: it is small and remote→remote only.
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
+from django.urls import reverse
 from django.utils.html import format_html
 
+from hexa.user_management.models import Organization
 from hexa.workspace_copier.forms import CopyTemplatesForm, CopyWorkspaceForm
 from hexa.workspace_copier.models import WorkspaceCopyRun
 from hexa.workspace_copier.progress import BufferReporter
@@ -24,6 +29,9 @@ from hexa.workspace_copier.queue import workspace_copy_queue
 from hexa.workspace_copier.results import format_templates_summary
 from hexa.workspace_copier.service import CredentialError, run_template_copy
 from hexa.workspace_copier.transport import GraphQLError
+from hexa.workspaces.models import Workspace
+
+LOOKUP_LIMIT = 20
 
 
 def _queue_copy_run(user, data) -> WorkspaceCopyRun:
@@ -44,6 +52,7 @@ def _queue_copy_run(user, data) -> WorkspaceCopyRun:
             all_dataset_versions=data["all_dataset_versions"],
             include_connection_secrets=data["include_connection_secrets"],
             same_server=data["same_server"],
+            verify_ssl=not data["disable_ssl_verification"],
         )
         workspace_copy_queue.enqueue("run_workspace_copy", {"run_id": str(run.id)})
     return run
@@ -68,10 +77,40 @@ def copy_workspace_view(request):
         **admin.site.each_context(request),
         "title": "Copy workspace",
         "form": form,
+        "copier_config": {
+            "lookupUrl": reverse("admin:workspaces_workspace_copy_lookup"),
+            # A bound form carries what was just posted, which must win over
+            # the values remembered in the browser.
+            "restore": not form.is_bound,
+        },
     }
     return TemplateResponse(
         request, "admin/workspace_copier/copy_workspace.html", context
     )
+
+
+def copy_lookup_view(request):
+    """Suggest this server's workspaces or organizations to the copy form.
+
+    The response has the shape the admin's select2 widget reads. Searches the
+    whole instance rather than what the user is a member of: the
+    form is superuser-only, and what a copy may touch is decided by the tokens.
+    """
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    query = request.GET.get("q", "").strip()
+    if request.GET.get("kind") == "organization":
+        organizations = Organization.objects.filter(
+            Q(name__icontains=query) | Q(short_name__icontains=query)
+        ).order_by("name")[:LOOKUP_LIMIT]
+        results = [{"id": str(o.id), "text": o.name} for o in organizations]
+    else:
+        workspaces = Workspace.objects.filter(
+            Q(slug__icontains=query) | Q(name__icontains=query), archived=False
+        ).order_by("slug")[:LOOKUP_LIMIT]
+        results = [{"id": w.slug, "text": f"{w.slug} — {w.name}"} for w in workspaces]
+    return JsonResponse({"results": results})
 
 
 @admin.register(WorkspaceCopyRun)
@@ -102,6 +141,7 @@ class WorkspaceCopyRunAdmin(admin.ModelAdmin):
         "all_dataset_versions",
         "include_connection_secrets",
         "same_server",
+        "verify_ssl",
         "created_at",
         "started_at",
         "finished_at",

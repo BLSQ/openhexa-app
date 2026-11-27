@@ -72,6 +72,7 @@ class ExecuteCopyRunTest(TestCase):
             all_dataset_versions=True,
             include_connection_secrets=False,
             same_server=True,
+            verify_ssl=False,
         )
 
         execute_copy_run(str(run.id))
@@ -84,6 +85,7 @@ class ExecuteCopyRunTest(TestCase):
         self.assertTrue(kwargs["options"].all_dataset_versions)
         self.assertFalse(kwargs["options"].include_connection_secrets)
         self.assertTrue(kwargs["options"].same_server)
+        self.assertFalse(kwargs["options"].verify_ssl)
 
     def test_partial_failures_mark_success_with_errors(self, mock_run_copy):
         mock_run_copy.side_effect = _copy_recording(

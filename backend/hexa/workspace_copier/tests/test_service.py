@@ -1,3 +1,4 @@
+import ssl
 from unittest.mock import MagicMock, patch
 
 import httpx
@@ -54,6 +55,27 @@ class VerifySideTest(SimpleTestCase):
         result, error = _verify_side("target", build)
         self.assertIsNone(result)
         self.assertEqual(error, "target server is unreachable (ConnectError).")
+
+    def test_certificate_failure_points_to_the_ssl_option(self):
+        certificate_error = ssl.SSLCertVerificationError(
+            1, "[SSL: CERTIFICATE_VERIFY_FAILED]"
+        )
+        certificate_error.verify_message = "certificate has expired"
+
+        def build():
+            try:
+                raise certificate_error
+            except ssl.SSLError as exc:
+                raise httpx.ConnectError(str(exc)) from exc
+
+        result, error = _verify_side("source", build)
+        self.assertIsNone(result)
+        self.assertEqual(
+            error,
+            "source server's SSL certificate could not be verified (certificate "
+            "has expired). If the certificate is known to be expired or "
+            "self-signed, disable SSL certificate verification.",
+        )
 
 
 class CredentialErrorTest(SimpleTestCase):
@@ -115,7 +137,13 @@ class VerifyEndpointsTest(SimpleTestCase):
         with self.assertRaises(CredentialError) as ctx:
             _verify_endpoints(**_kwargs())
 
-        self.assertEqual(ctx.exception.errors, ["source workspace 'my-ws' not found"])
+        self.assertEqual(
+            ctx.exception.errors,
+            [
+                "source workspace 'my-ws' not found: it does not exist, or the "
+                "token's account is not a member of it."
+            ],
+        )
 
     @patch("hexa.workspace_copier.service.build_client")
     def test_success_returns_both_endpoints(self, mock_build):
@@ -162,6 +190,32 @@ class ExistingTargetTest(SimpleTestCase):
         self.assertEqual(len(ctx.exception.errors), 1)
         self.assertIn(
             "target workspace 'missing-ws' not found", ctx.exception.errors[0]
+        )
+
+
+class VerifySslTest(SimpleTestCase):
+    def _verify_flags(self, mock_build, **overrides):
+        mock_build.side_effect = [MagicMock(), MagicMock()]
+        _verify_endpoints(**_kwargs(**overrides))
+        return [call.kwargs["verify_ssl"] for call in mock_build.call_args_list]
+
+    @patch("hexa.workspace_copier.service.build_client")
+    def test_certificates_are_verified_by_default(self, mock_build):
+        self.assertEqual(self._verify_flags(mock_build), [True, True])
+
+    @patch("hexa.workspace_copier.service.build_client")
+    def test_verification_is_turned_off_on_both_sides(self, mock_build):
+        self.assertEqual(
+            self._verify_flags(mock_build, verify_ssl=False), [False, False]
+        )
+
+    @patch("hexa.workspace_copier.service.build_client")
+    def test_verification_is_turned_off_for_an_existing_target(self, mock_build):
+        self.assertEqual(
+            self._verify_flags(
+                mock_build, verify_ssl=False, target_workspace_slug="live-ws"
+            ),
+            [False, False],
         )
 
 

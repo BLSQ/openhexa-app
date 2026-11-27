@@ -1,0 +1,13 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+{% if user.is_superuser %}
+<li>
+    <a href="{% url 'admin:workspaces_workspace_copy' %}" class="addlink">
+        {% trans 'Copy workspace' %}
+    </a>
+</li>
+{% endif %}
+{{ block.super }}
+{% endblock %}

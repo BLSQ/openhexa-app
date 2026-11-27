@@ -52,7 +52,7 @@ class DatabaseCopier(ResourceCopier):
     name = "database"
     label = "Workspace database"
     help_text = (
-        'Only with "Both workspaces are on this server". The source database '
+        "Only when source and target are both this server. The source database "
         "must have no open connection, and a target database that already holds "
         "data is left untouched."
     )
