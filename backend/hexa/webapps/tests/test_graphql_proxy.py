@@ -1422,6 +1422,36 @@ class GraphQLProxyMiddlewareTest(TestCase):
         self.assertEqual(response.status_code, 200)
         mock_sentry.capture_message.assert_not_called()
 
+    @patch("hexa.webapps.graphql_proxy.track")
+    def test_allowed_query_tracks_organization(self, mock_track):
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        response = self._graphql_post(
+            "private-app",
+            "query { me { user { email } } }",
+            session_key=session.session_key,
+        )
+        self.assertEqual(response.status_code, 200)
+        mock_track.assert_called_once()
+        _, event_name, properties = mock_track.call_args.args
+        self.assertEqual(event_name, "webapp_graphql_query")
+        self.assertEqual(properties["status"], "allowed")
+        self.assertEqual(properties["organization"], self.WORKSPACE.organization.name)
+
+    @patch("hexa.webapps.graphql_proxy.track")
+    def test_denied_query_tracks_organization(self, mock_track):
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        response = self._graphql_post(
+            "private-app",
+            "mutation { runPipeline(input: {}) { success } }",
+            session_key=session.session_key,
+        )
+        self.assertEqual(response.status_code, 403)
+        mock_track.assert_called_once()
+        _, event_name, properties = mock_track.call_args.args
+        self.assertEqual(event_name, "webapp_graphql_query")
+        self.assertEqual(properties["status"], "denied")
+        self.assertEqual(properties["organization"], self.WORKSPACE.organization.name)
+
     @patch("hexa.datasets.schema.types.generate_download_url")
     def test_dataset_files_listed_through_the_workspace(
         self, mock_generate_download_url

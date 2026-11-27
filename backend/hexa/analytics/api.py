@@ -4,7 +4,8 @@ from mixpanel import Mixpanel
 from sentry_sdk import capture_exception
 from ua_parser import user_agent_parser
 
-from hexa.user_management.models import AnonymousUser, Feature, User
+from hexa.user_management.models import AnonymousUser, Feature, Organization, User
+from hexa.workspaces.models import Workspace, WorkspaceMembership
 
 mixpanel = None
 if settings.MIXPANEL_TOKEN:
@@ -22,11 +23,19 @@ if settings.MIXPANEL_TOKEN:
     )
 
 
+def _resolve_workspace_organization(workspace_slug: str) -> str | None:
+    return (
+        Workspace.objects.filter(slug=workspace_slug)
+        .values_list("organization__name", flat=True)
+        .first()
+    )
+
+
 def track(
     request: HttpRequest | None,
     event: str,
-    properties: dict = {},
-    user: User = None,
+    properties: dict | None = None,
+    user: User | None = None,
 ):
     """Track event to mixpanel.
 
@@ -53,10 +62,20 @@ def track(
         if can_track is False:
             return
 
+        event_properties = dict(properties) if properties else {}
+        workspace_slug = event_properties.get("workspace")
+        if (
+            isinstance(workspace_slug, str)
+            and workspace_slug
+            and "organization" not in event_properties
+        ):
+            org_name = _resolve_workspace_organization(workspace_slug)
+            if org_name:
+                event_properties["organization"] = org_name
+
         if request and "User-Agent" in request.headers:
-            # Add request related properties
             parsed = user_agent_parser.Parse(request.headers["User-Agent"])
-            properties.update(
+            event_properties.update(
                 {
                     "$browser": parsed["user_agent"]["family"],
                     "$device": parsed["device"]["family"],
@@ -67,7 +86,7 @@ def track(
         mixpanel.track(
             distinct_id=str(people.id) if people else None,
             event_name=event,
-            properties=properties,
+            properties=event_properties,
         )
     except Exception as e:
         capture_exception(e)
@@ -85,6 +104,8 @@ def set_user_properties(user: User):
             properties={
                 "$email": user.email,
                 "$name": user.display_name,
+                "$created": user.date_joined.isoformat() if user.date_joined else None,
+                "language": user.language,
                 "is_staff": user.is_staff,
                 "is_superuser": user.is_superuser,
                 "features_flag": list(
@@ -92,6 +113,15 @@ def set_user_properties(user: User):
                         "code", flat=True
                     )
                 ),
+                "organizations": list(
+                    Organization.objects.filter(organizationmembership__user=user)
+                    .order_by("name")
+                    .values_list("name", flat=True)
+                    .distinct()
+                ),
+                "workspace_count": WorkspaceMembership.objects.filter(
+                    user=user, workspace__archived=False
+                ).count(),
             },
         )
     except Exception as e:

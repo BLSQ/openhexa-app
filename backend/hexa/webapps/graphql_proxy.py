@@ -123,6 +123,8 @@ def handle_graphql_proxy(request: HttpRequest, webapp: Webapp):
         "is_public": webapp.is_public,
         "operations": sorted(scope_check.operations),
     }
+    if webapp.workspace.organization_id:
+        event_properties["organization"] = webapp.workspace.organization.name
 
     if scope_check.denied:
         denied = sorted(scope_check.denied)
