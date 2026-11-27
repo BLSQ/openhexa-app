@@ -230,7 +230,7 @@ const MCPPermissionMatrix = ({
       "Let the assistant browse and read files in workspace buckets, and add new ones.",
     ),
     [McpResource.Datasets]: t(
-      "Let the assistant list datasets, preview their contents, and publish new versions.",
+      "Let the assistant list datasets, see the structure of their files (not the rows), and publish new versions.",
     ),
     [McpResource.Pipelines]: t(
       "Let the assistant inspect pipelines and their runs, and create, edit or run them.",

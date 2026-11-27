@@ -34,7 +34,7 @@ OpenHEXA met à disposition un serveur [Model Context Protocol (MCP)](https://mo
 
 La connexion d'un client s'effectue via OAuth : le client vous redirige vers OpenHEXA, où vous vous connectez pour sélectionner précisément les workspaces accessibles et les outils autorisés. Les workspaces sont regroupés par organisation : sélectionner une organisation donne accès à tous ses workspaces, y compris ceux créés ou rejoints par la suite. Vous pouvez restreindre ou révoquer ces autorisations à tout moment depuis **Compte → Connexions MCP**. Les modifications prennent effet dès l'appel d'outil suivant.
 
-Avec MCP, le modèle utilisé est celui de votre client IA, et non celui d'OpenHEXA. Toutes les données renvoyées par un outil (contenu de fichiers, aperçus de jeux de données, code de pipelines...) sont transmises à ce client et traitées selon les conditions de son fournisseur. N'accordez donc l'accès qu'aux workspaces et aux outils dont vous avez réellement besoin.
+Avec MCP, le modèle utilisé est celui de votre client IA, et non celui d'OpenHEXA. Toutes les données renvoyées par un outil (contenu de fichiers, colonnes des fichiers de jeux de données, code de pipelines...) sont transmises à ce client et traitées selon les conditions de son fournisseur. N'accordez donc l'accès qu'aux workspaces et aux outils dont vous avez réellement besoin.
 
 ## Données et ressources accessibles par l'IA
 
@@ -44,7 +44,7 @@ Dans les deux cas, l'IA agit **en votre nom** : chaque appel d'outil passe par l
 
 | Tâche | Données lues | Données écrites |
 | --- | --- | --- |
-| Créer / modifier un pipeline | Métadonnées et description du workspace, jeux de données et aperçus de leurs fichiers, fichiers du workspace, noms des connexions et de leurs champs (jamais les valeurs secrètes), code et fichiers du pipeline, documentation OpenHEXA | Crée le pipeline (création) ; propose des modifications ou une nouvelle version à valider (modification) |
+| Créer / modifier un pipeline | Métadonnées et description du workspace, jeux de données et colonnes de leurs fichiers (noms et types, jamais les lignes), fichiers du workspace, noms des connexions et de leurs champs (jamais les valeurs secrètes), code et fichiers du pipeline, documentation OpenHEXA | Crée le pipeline (création) ; propose des modifications ou une nouvelle version à valider (modification) |
 | Créer / modifier une webapp | Identique aux pipelines, plus le schéma de la base de données (tables et colonnes, jamais les lignes), les requêtes enregistrées, la liste des pipelines et les fichiers de l'application web | Crée l'application web ; crée ou met à jour des requêtes enregistrées ; propose des modifications à valider |
 | Générer du SQL | Uniquement le schéma de la base de données (noms et types des tables et des colonnes). Elle ne lit jamais les lignes des tables, et aucun résultat de requête n'est envoyé au modèle | Rien : la requête est seulement affichée pour relecture |
 
@@ -58,7 +58,7 @@ Les outils sont regroupés par type de ressource. Chaque autorisation couvre un 
 | --- | --- | --- |
 | Workspaces | lister, consulter | mettre à jour |
 | Fichiers | lister, lire | écrire |
-| Jeux de données | lister, consulter, prévisualiser les fichiers | créer des jeux de données et des versions |
+| Jeux de données | lister, consulter, décrire les fichiers (colonnes uniquement, jamais les lignes) | créer des jeux de données et des versions |
 | Pipelines | lister, consulter, consulter une exécution | exécuter, mettre à jour, créer, créer une version |
 | Modèles de pipelines | lister, consulter | créer un pipeline à partir d'un modèle |
 | Webapps | lister, consulter, lire les fichiers | créer, mettre à jour, modifier les fichiers |

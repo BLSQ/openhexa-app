@@ -6,16 +6,24 @@ from hexa.core.validators import validate_public_slug
 
 class ValidatePublicSlugTest(SimpleTestCase):
     def test_valid(self):
-        validate_public_slug("my-dataset-2")
+        for value in ["my-dataset-2", "my_dataset", "malaria_2024-v2"]:
+            with self.subTest(value=value):
+                validate_public_slug(value)
 
     def test_invalid_format(self):
         for value in [
             "",
             "My-dataset",
-            "my_dataset",
+            "my dataset",
+            "my.dataset",
             "-my",
             "my-",
+            "_my",
+            "my_",
             "my--ds",
+            "my__ds",
+            "my-_ds",
+            "données",
             "a" * 256,
         ]:
             with self.subTest(value=value):
@@ -29,3 +37,8 @@ class ValidatePublicSlugTest(SimpleTestCase):
                 with self.assertRaises(ValidationError) as ctx:
                     validate_public_slug(value)
                 self.assertEqual(ctx.exception.code, "PUBLIC_SLUG_RESERVED")
+
+    def test_subdomain_only_words_are_allowed(self):
+        for value in ["health", "status", "dhis2", "staging", "metrics"]:
+            with self.subTest(value=value):
+                validate_public_slug(value)

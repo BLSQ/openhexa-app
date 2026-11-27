@@ -1,3 +1,4 @@
+import hashlib
 import json
 
 from django.conf import settings
@@ -10,7 +11,6 @@ from hexa.datasets.models import (
 )
 from hexa.files import storage
 from hexa.mcp.tools.datasets import (
-    PREVIEW_SAMPLE_ROWS,
     create_dataset,
     create_dataset_version,
     get_dataset,
@@ -96,14 +96,14 @@ class GetDatasetTest(MCPTestCase):
 
 class PreviewDatasetFileTest(MCPTestCase):
     COLUMN_HASHES = {
-        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa": "country",
-        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb": "cases",
+        hashlib.md5(b"country").hexdigest(): "country",
+        hashlib.md5(b"cases").hexdigest(): "cases",
     }
 
-    def create_sample(self, rows):
+    def create_sample(self):
         return DatasetFileSample.objects.create(
             dataset_version_file=self.DATASET_FILE,
-            sample=[{"country": f"c{i}", "cases": i} for i in range(rows)],
+            sample=[{"country": "Belgium", "cases": 42}],
             status=DatasetFileSample.STATUS_FINISHED,
         )
 
@@ -114,6 +114,13 @@ class PreviewDatasetFileTest(MCPTestCase):
         }
         self.DATASET_FILE.save()
 
+    def set_profiling(self, column, **profile):
+        column_hash = hashlib.md5(column.encode()).hexdigest()
+        for key, value in profile.items():
+            self.DATASET_FILE.update_or_create_attribute(
+                key=f"{column_hash}.{key}", value=value, system=True
+            )
+
     def preview(self):
         return preview_dataset_file(
             user=self.USER_ADMIN, file_id=str(self.DATASET_FILE.id)
@@ -123,7 +130,6 @@ class PreviewDatasetFileTest(MCPTestCase):
         result = self.preview()
         self.assertEqual(result["filename"], "test-file.csv")
         self.assertEqual(result["contentType"], "text/csv")
-        self.assertIn("fileSample", result)
 
     def test_preview_dataset_file_not_found(self):
         result = preview_dataset_file(
@@ -132,30 +138,80 @@ class PreviewDatasetFileTest(MCPTestCase):
         )
         self.assertEqual(result, {"error": "Dataset file not found"})
 
-    def test_preview_dataset_file_truncates_sample(self):
-        self.create_sample(12)
-        file_sample = self.preview()["fileSample"]
-        self.assertEqual(len(file_sample["sample"]), PREVIEW_SAMPLE_ROWS)
-        self.assertEqual(file_sample["sample"][0], {"country": "c0", "cases": 0})
-        self.assertEqual(file_sample["status"], DatasetFileSample.STATUS_FINISHED)
-
-    def test_preview_dataset_file_keeps_short_sample(self):
-        self.create_sample(2)
-        file_sample = self.preview()["fileSample"]
-        self.assertEqual(len(file_sample["sample"]), 2)
-
-    def test_preview_dataset_file_returns_columns_without_properties(self):
-        self.create_sample(2)
+    def test_preview_dataset_file_never_returns_sample_rows(self):
+        self.create_sample()
         self.set_properties()
 
         result = self.preview()
-        self.assertEqual(result["columns"], ["country", "cases"])
-        self.assertNotIn("properties", result)
+        self.assertNotIn("fileSample", result)
+        self.assertNotIn("Belgium", json.dumps(result))
 
-    def test_preview_dataset_file_without_sample(self):
+    def test_preview_dataset_file_returns_columns_with_types(self):
+        self.set_properties()
+        self.set_profiling("country", data_type="string")
+        self.set_profiling("cases", data_type="int64")
+
         result = self.preview()
-        self.assertIsNone(result["fileSample"])
+        self.assertEqual(
+            result["columns"],
+            [
+                {"name": "country", "type": "string"},
+                {"name": "cases", "type": "int64"},
+            ],
+        )
+        self.assertNotIn("properties", result)
+        self.assertNotIn("attributes", result)
+
+    def test_preview_dataset_file_leaves_out_profiling_statistics(self):
+        self.set_properties()
+        self.set_profiling("cases", data_type="int64", minimum=7, maximum=987654)
+
+        result = self.preview()
+        self.assertEqual(result["columns"][1], {"name": "cases", "type": "int64"})
+        self.assertNotIn("987654", json.dumps(result))
+
+    def test_preview_dataset_file_leaves_out_user_attributes(self):
+        self.set_properties()
+        self.DATASET_FILE.update_or_create_attribute(
+            key="notes.data_type", value="patient names", system=False
+        )
+
+        self.assertNotIn("patient names", json.dumps(self.preview()))
+
+    def test_preview_dataset_file_column_without_type(self):
+        self.set_properties()
+
+        result = self.preview()
+        self.assertEqual(result["columns"][0], {"name": "country", "type": None})
+
+    def test_preview_dataset_file_without_profiling(self):
+        result = self.preview()
         self.assertIsNone(result["columns"])
+        self.assertIsNone(result["profiling"])
+
+    def test_preview_dataset_file_profiling_in_progress(self):
+        DatasetFileSample.objects.create(
+            dataset_version_file=self.DATASET_FILE,
+            status=DatasetFileSample.STATUS_PROCESSING,
+        )
+
+        result = self.preview()
+        self.assertIsNone(result["columns"])
+        self.assertEqual(result["profiling"], {"status": "PROCESSING"})
+
+    def test_preview_dataset_file_profiling_failed(self):
+        DatasetFileSample.objects.create(
+            dataset_version_file=self.DATASET_FILE,
+            status=DatasetFileSample.STATUS_FAILED,
+            status_reason="Unsupported file format",
+        )
+
+        result = self.preview()
+        self.assertIsNone(result["columns"])
+        self.assertEqual(
+            result["profiling"],
+            {"status": "FAILED"},
+        )
 
 
 class CreateDatasetTest(MCPTestCase):

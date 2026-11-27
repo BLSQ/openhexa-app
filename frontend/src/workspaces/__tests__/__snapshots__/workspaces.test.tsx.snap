@@ -420,7 +420,7 @@ exports[`Workspaces renders the workspace page 1`] = `
       </div>
     </div>
     <header
-      class="fixed top-banner left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
+      class="@container/header fixed top-banner left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
     >
       <div
         class="flex items-center h-full gap-2 px-4 md:px-6 xl:px-10 2xl:px-12"
@@ -469,7 +469,7 @@ exports[`Workspaces renders the workspace page 1`] = `
           </button>
         </div>
         <div
-          class="flex-1 flex justify-end items-center gap-2"
+          class="flex-1 flex justify-end items-center gap-2 whitespace-nowrap"
         >
           <div
             class="flex items-center gap-2"
@@ -982,7 +982,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
       </div>
     </div>
     <header
-      class="fixed top-banner left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
+      class="@container/header fixed top-banner left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
     >
       <div
         class="flex items-center h-full gap-2 px-4 md:px-6 xl:px-10 2xl:px-12"
@@ -1031,7 +1031,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
           </button>
         </div>
         <div
-          class="flex-1 flex justify-end items-center gap-2"
+          class="flex-1 flex justify-end items-center gap-2 whitespace-nowrap"
         >
           <div
             class="flex items-center gap-2"

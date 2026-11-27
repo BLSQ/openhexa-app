@@ -1,13 +1,34 @@
+from pathlib import PurePosixPath
+
 from hexa.mcp.protocol import tool
 
 from ._graphql import execute_graphql
+
+# A whitelist rather than a blacklist so that a data format we did not think of
+# is refused by default: workspace data, often PII, must not reach the LLM.
+READABLE_EXTENSIONS = frozenset(
+    {
+        ".py",
+        ".r",
+        ".sql",
+        ".sh",
+        ".js",
+        ".mjs",
+        ".ts",
+        ".jsx",
+        ".tsx",
+        ".html",
+        ".css",
+    }
+)
+_READABLE_EXTENSIONS_LIST = ", ".join(sorted(READABLE_EXTENSIONS))
 
 
 @tool
 def list_files(
     user, workspace_slug: str, prefix: str = "", page: int = 1, per_page: int = 30
 ) -> dict:
-    """List files and directories in a workspace bucket. Use prefix to browse subdirectories (e.g. 'data/'). Returns file name, key (the path to pass to the other file tools), type (file/directory), size, and last update. Use read_file with the key to read text content."""
+    """List files and directories in a workspace bucket. Use prefix to browse subdirectories (e.g. 'data/'). Returns file name, key (the path to pass to the other file tools), type (file/directory), size, and last update. Use read_file with the key to read source code."""
     data = execute_graphql(
         user,
         "ListFiles",
@@ -48,10 +69,18 @@ def read_file(
     end_line: int | None = None,
     line_numbers: bool = False,
 ) -> dict:
-    """Read the content of a text file from a workspace bucket. Only works for UTF-8 text files (includes .py, .csv, .json, .ipynb, .sql, .txt, etc.) up to 1 MB, or 10 MB when reading a line range or with line_numbers. Use list_files first to check file size and path. For Jupyter notebooks (.ipynb), the content is JSON that you can parse to read/modify cells. Use start_line and end_line (1-indexed, inclusive) to read a specific range of lines instead of the entire file. Returns `startLine`, `endLine` and `totalLines`, so you can tell whether there is more to read.
+    """Read a source code file from a workspace bucket, up to 1 MB, or 10 MB when reading a line range or with line_numbers. Only these extensions can be read: .py, .r, .sql, .sh, .js, .mjs, .ts, .jsx, .tsx, .html, .css. Data files (.csv, .json, etc.), notebooks (.ipynb) and any other file are refused, to keep workspace data out of the conversation. Use list_files first to check file size and path. Use start_line and end_line (1-indexed, inclusive) to read a specific range of lines instead of the entire file. Returns `startLine`, `endLine` and `totalLines`, so you can tell whether there is more to read.
 
-    Pass line_numbers=true to read source code: each line is prefixed with its number (`     N<TAB>line`, not part of the file), a read returns at most 2000 lines with a notice telling how to read the rest, and lines over 2000 characters are clipped.
+    Pass line_numbers=true: each line is prefixed with its number (`     N<TAB>line`, not part of the file), a read returns at most 2000 lines with a notice telling how to read the rest, and lines over 2000 characters are clipped.
     """
+    if PurePosixPath(file_path).suffix.lower() not in READABLE_EXTENSIONS:
+        return {
+            "error": (
+                f"read_file only reads source code files ({_READABLE_EXTENSIONS_LIST}). "
+                "Data files, notebooks and other files cannot be read, to keep "
+                "workspace data out of AI conversations."
+            )
+        }
     data = execute_graphql(
         user,
         "ReadFileContent",
