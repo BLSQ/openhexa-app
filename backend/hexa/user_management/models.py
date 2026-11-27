@@ -97,7 +97,7 @@ class ServicePrincipal:
     the person's access with "everything in my workspaces" is therefore for
     non-personal principals only (see is_non_personal_principal); one acting for
     a person starts from the person's result and only narrows it to its
-    workspace_ids. hexa.mcp.tests.test_access_ceiling checks this for every
+    workspace_ids. hexa.core.tests.test_ai_access_ceiling checks this for every
     filter_for_user.
     """
 

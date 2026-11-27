@@ -43,10 +43,11 @@ def querysets_filtered_for_user():
     ]
 
 
-class MCPAccessCeilingTest(TestCase):
-    """Whatever an MCP connection is granted, and wherever an assistant conversation
-    runs, they never reach anything their person cannot: for every filter_for_user,
-    the MCPUser's and the AssistantUser's results are subsets of the person's. The fixture covers the cases that differ by kind of access:
+class AIAccessCeilingTest(TestCase):
+    """An AI principal never reaches anything its person cannot, whatever an MCP
+    connection is granted and wherever an assistant conversation runs: for every
+    filter_for_user, the MCPUser's and the AssistantUser's results are subsets of
+    the person's. The fixture covers the cases that differ by kind of access:
     organization members and non-members, admins, viewers, superusers, and data
     that is linked, shared with an organization, private or shared.
     """
@@ -164,7 +165,7 @@ class MCPAccessCeilingTest(TestCase):
             connection_type=ConnectionType.CUSTOM,
         )
 
-    def fully_granted(self, user):
+    def mcp_user(self, user):
         connection = MCPConnection.objects.create(
             user=user, application=self.APPLICATION, tools=all_tool_names()
         )
@@ -177,7 +178,7 @@ class MCPAccessCeilingTest(TestCase):
         )
 
     def test_an_mcp_user_never_reaches_more_than_its_person(self):
-        self.assert_never_reaches_more_than_its_person(self.fully_granted)
+        self.assert_never_reaches_more_than_its_person(self.mcp_user)
 
     def test_an_assistant_user_never_reaches_more_than_its_person(self):
         self.assert_never_reaches_more_than_its_person(self.assistant_user)
