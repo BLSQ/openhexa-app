@@ -187,6 +187,10 @@ describe("isSensitiveRoute", () => {
     "/auth/reset/MQ/abc123-def456",
     "/user/account",
     "/workspaces/abc/pipelines/xyz/code",
+    "/workspaces/abc/webapps/app-1/code",
+    "/workspaces/abc/templates/tpl-1/code",
+    "/workspaces/abc/data-studio",
+    "/workspaces/abc/data-studio/queries/q-1",
     "/workspaces/abc/notebooks",
     "/workspaces/abc/notebooks/foo",
     "/workspaces/abc/connections",
@@ -198,9 +202,12 @@ describe("isSensitiveRoute", () => {
   it.each([
     "/",
     "/workspaces/abc",
+    "/workspaces/abc/databases",
     "/workspaces/abc/datasets/ds1",
     "/workspaces/abc/pipelines/xyz",
     "/workspaces/abc/pipelines/xyz/runs",
+    "/workspaces/abc/webapps/app-1",
+    "/workspaces/abc/templates/tpl-1",
   ])("marks %s as non-sensitive", (path) => {
     expect(isSensitiveRoute(path)).toBe(false);
   });

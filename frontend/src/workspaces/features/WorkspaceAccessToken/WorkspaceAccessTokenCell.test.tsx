@@ -27,7 +27,7 @@ const buildMock = (): MockedResponse => ({
 describe("WorkspaceAccessTokenCell", () => {
   it("masks the token until the user reveals it", async () => {
     const user = userEvent.setup();
-    render(
+    const { container } = render(
       <TestApp mocks={[buildMock()]}>
         <WorkspaceAccessTokenCell workspaceSlug="my-workspace" canGenerate />
       </TestApp>,
@@ -35,17 +35,21 @@ describe("WorkspaceAccessTokenCell", () => {
 
     expect(screen.getByText("*********")).toBeInTheDocument();
     expect(screen.queryByText(TOKEN)).not.toBeInTheDocument();
+    expect(container.querySelector("[data-mp-no-record]")).toBeNull();
 
     await user.click(
       screen.getByRole("button", { name: "Show the access token" }),
     );
-    expect(await screen.findByText(TOKEN)).toBeInTheDocument();
+    const revealed = await screen.findByText(TOKEN);
+    expect(revealed).toBeInTheDocument();
+    expect(revealed).toHaveAttribute("data-mp-no-record");
 
     // The same control hides it again, so it never moves between the two states
     await user.click(
       screen.getByRole("button", { name: "Hide the access token" }),
     );
     expect(screen.getByText("*********")).toBeInTheDocument();
+    expect(container.querySelector("[data-mp-no-record]")).toBeNull();
   });
 
   it("explains a token that will expire, before and after revealing it", async () => {

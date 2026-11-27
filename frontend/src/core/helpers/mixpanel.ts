@@ -8,9 +8,10 @@ const ONBOARDING_MAX_SESSIONS = 3;
 const SESSION_COUNT_KEY_PREFIX = "hexa_replay_session_count";
 const SESSION_MARKER_KEY_PREFIX = "hexa_replay_session_counted";
 
-// Routes where we never want to capture a session replay. The pipeline code
-// editor and notebooks can render user-supplied credentials or PHI; auth flows
-// contain passwords and MFA codes; account settings handle 2FA secrets.
+// Routes where we never want to capture a session replay. Code editors,
+// notebooks, and Data Studio can render user-supplied credentials or PHI/PII;
+// auth flows contain passwords and MFA codes; account settings handle 2FA
+// secrets.
 const SENSITIVE_ROUTE_PATTERNS: RegExp[] = [
   /^\/login/,
   /^\/register/,
@@ -19,6 +20,9 @@ const SENSITIVE_ROUTE_PATTERNS: RegExp[] = [
   /^\/auth\//,
   /^\/user\/account/,
   /^\/workspaces\/[^/]+\/pipelines\/[^/]+\/code/,
+  /^\/workspaces\/[^/]+\/webapps\/[^/]+\/code/,
+  /^\/workspaces\/[^/]+\/templates\/[^/]+\/code/,
+  /^\/workspaces\/[^/]+\/data-studio/,
   /^\/workspaces\/[^/]+\/notebooks/,
   // Connection forms hold credentials and secrets. Every text node is already
   // masked; excluding the route entirely is a second, coarser layer on top.
@@ -72,10 +76,9 @@ export function initMixpanel(): void {
     record_mask_text_selector: "*",
     // Setting this key replaces the SDK default rather than extending it, so
     // "img, video, audio" is repeated here.
-    // data-mp-no-record is an opt-out hook that nothing carries today. It is
-    // meant for sensitive elements on routes we still record, such as the
-    // revealed password in SecretField on /databases, which currently only
-    // record_mask_text_selector hides.
+    // [data-mp-no-record] blocks revealed secrets (SecretField,
+    // WorkspaceAccessTokenCell, WorkspaceAccessTokenField) from replay capture
+    // on top of record_mask_text_selector.
     record_block_selector: "img, video, audio, [data-mp-no-record]",
     persistence: "localStorage",
     ignore_dnt: false,
