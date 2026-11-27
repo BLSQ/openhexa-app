@@ -13,7 +13,7 @@ In terms of data storage, we have to make a distinction between:
 - **Application data storage**, which resides in a PostgreSQL database
 - **Workspace storage** or _user storage_ (see [User manual](workspaces.md) for more information about workspaces), which is stored either in PosgtreSQL databases or in Object Storage buckets (Google Cloud Storage, AWS S3 or Minio)
 
-When running code using Jupyter notebooks or OpenHEXA data pipelines, technical users can leverage the **OpenHEXA Python SDK** to interact with the OpenHEXA backend (see [`openhexa-sdk-python`](https://github.com/BLSQ/openhexa-sdk-python)).
+When running code using Jupyter notebooks or OpenHEXA data pipelines, technical users can leverage the **OpenHEXA Python SDK** to interact with the OpenHEXA backend (see [`openhexa-sdk-python`](https://github.com/BLSQ/openhexa-sdk-python)), or the **OpenHEXA R SDK** (see [`openhexa-sdk-r`](https://github.com/BLSQ/openhexa-sdk-r)).
 
 Notebooks and data pipelines typically run in containers using one of our Docker images (see [`openhexa-docker-images`](https://github.com/BLSQ/openhexa-docker-images)) or a custom one set by workspace.
 

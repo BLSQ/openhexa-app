@@ -31,6 +31,7 @@ class GetHelpOrDocTest(MCPTestCase):
                 "cli",
                 "notebooks-advanced",
                 "sdk",
+                "sdk-r",
                 "sql-widgets",
                 "static-webapps",
                 "toolbox-dhis2",
@@ -72,6 +73,7 @@ class GetHelpOrDocTest(MCPTestCase):
             "    Available topics:\n"
             "    - cli: OpenHEXA comes with a CLI you can install globally on your system. This CLI allows you to interact with the OpenHEXA API and perform various tasks such as creating and managing pipelines, running local jobs and more.\n"
             "    - notebooks-advanced: OpenHEXA notebooks are a customized [Jupyter](https://jupyter.org/) environment preloaded with the OpenHEXA SDK and toolboxes — this guide covers the workspace filesystem, the workspace Postgres from Python and R, and S3/GCS access.\n"
+            "    - sdk-r: The `openhexa` R package is the R client for OpenHEXA: load files, datasets and saved queries into data frames, use the workspace database, publish web apps and run pipelines.\n"
             "    - sdk: The `openhexa.sdk` Python library lets you write pipelines and notebook code against OpenHEXA: a `workspace` helper for files, database, connections, datasets and webapps, plus a typed `OpenHexaClient` for programmatic and GraphQL access.\n"
             "    - sql-widgets: Data Studio draws a chart or a map instead of a table when a query returns a specific set of column names: `bar_label` and `bar_quantity` render a bar chart, `map_latitude` and `map_longitude` a map.\n"
             "    - static-webapps: Static webapps host an HTML/CSS/JavaScript bundle inside an OpenHEXA workspace, served on its own subdomain, and can query OpenHEXA on behalf of viewing users via a pre-authenticated GraphQL endpoint — great for dashboards and custom forms.\n"

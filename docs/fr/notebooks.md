@@ -41,6 +41,7 @@ Le composant notebooks d'OpenHEXA fonctionne comme un environnement Jupyter stan
 Ce guide vous accompagne à travers les spécificités de l'environnement notebooks d'OpenHEXA. Vous pourriez également trouver ces guides utiles :
 
 - [Utiliser l'OpenHEXA SDK](sdk.md) : Le SDK OpenHEXA est une bibliothèque Python qui fournit des blocs de construction et des méthodes d'aide pour écrire du code sur OpenHEXA
+- [Utiliser le SDK R OpenHEXA](sdk-r.md) : Le package R `openhexa`, pour travailler avec les fichiers, les jeux de données, la base de données, les web apps et les pipelines depuis R
 - [Utiliser l'OpenHEXA Toolbox - DHIS2](toolbox-dhis2.md) : Acquérir et traiter des données depuis des instances DHIS2
 - [Utiliser l'OpenHEXA Toolbox - IASO](toolbox-iaso.md) : Récupérer des données depuis IASO
 - [Client OpenHEXA](toolbox-hexa.md) : Client GraphQL typé pour la plateforme OpenHEXA
@@ -108,7 +109,7 @@ Lorsque vous lancez l'environnement notebooks, vous verrez que le système de fi
 
 Vous ne pouvez écrire des données que dans ces deux répertoires. **Vous ne pouvez pas créer de fichiers ou de répertoires à la racine** du système de fichiers.
 
-Pour plus d'informations sur les répertoires `workspace` et `tmp` et comment les utiliser avec Python, consultez la [documentation SDK](sdk.md#reading-and-writing-files). Pour les utilisateurs de R, voir l'exemple de code ci-dessous (nous n'avons pas encore de SDK pour R).
+Pour plus d'informations sur les répertoires `workspace` et `tmp` et comment les utiliser avec Python, consultez la [documentation SDK](sdk.md#reading-and-writing-files). Pour R, consultez la [documentation du SDK R](sdk-r.md#lire-et-ecrire-des-fichiers) et l'exemple de code ci-dessous.
 
 https://github.com/BLSQ/openhexa/assets/690667/8f279c1f-c371-490f-a04f-84a97b028859
 
@@ -126,7 +127,7 @@ df = pd.DataFrame({"foo": [1, 2, 3], "bar": [4, 5, 6]})
 df.to_csv(f"{workspace.files_path}/foobar.csv")
 ```
 
-L'exemple équivalent en R (jusqu'à ce que nous ayons un SDK pour R, vous devrez coder en dur le chemin du répertoire de l'espace de travail) :
+L'exemple R équivalent, avec le répertoire monté de l'espace de travail (le [SDK R](sdk-r.md#lire-et-ecrire-des-fichiers) fournit aussi `get_file()` et `upload_file()`, qui fonctionnent également en dehors des notebooks) :
 
 ```r
 # Lire des données
@@ -169,28 +170,18 @@ pd.read_sql("SELECT * FROM a_new_table", con=engine)
 
 Notez que nous utilisons les arguments optionnels `chunksize` et `dtype`. Utilisez `chunksize` pour contrôler le nombre de lignes écrites dans chaque lot (pour optimiser l'utilisation de la mémoire), et utilisez `dtype` pour spécifier explicitement les types de colonnes PostgreSQL et éviter les problèmes de conversion causés par le comportement de devinette de type par défaut.
 
-Comme nous n'avons pas encore de SDK pour R, vous devrez utiliser des variables d'environnement pour obtenir les identifiants de la base de données lors de l'utilisation de R.
-
-Voici comment vous pouvez le faire en utilisant [DBI](https://dbi.r-dbi.org/) :
+En R, utilisez [`connect_database()`](sdk-r.md#utiliser-la-base-de-donnees-de-lespace-de-travail) du SDK R OpenHEXA pour obtenir une connexion [DBI](https://dbi.r-dbi.org/) :
 
 ```r
-# Connexion initiale
-library(DBI)
-con <- dbConnect(
-    RPostgres::Postgres(),
-    dbname = Sys.getenv("WORKSPACE_DATABASE_DB_NAME"),
-    host = Sys.getenv("WORKSPACE_DATABASE_HOST"),
-    port = Sys.getenv("WORKSPACE_DATABASE_PORT"),
-    user = Sys.getenv("WORKSPACE_DATABASE_USERNAME"),
-    password = Sys.getenv("WORKSPACE_DATABASE_PASSWORD")
-)
+con <- connect_database()
 
 # Écrire des données
-x          <- 1:10
-y          <- letters[1:10]
-some_data <- tibble::tibble(x, y)
-dbWriteTable(con, "another_table", some_data, overwrite=TRUE)
-df <- dbReadTable(con, "another_table")
+some_data <- data.frame(x = 1:10, y = letters[1:10])
+DBI::dbWriteTable(con, "another_table", some_data, overwrite = TRUE)
+
+# Lire des données
+df <- DBI::dbReadTable(con, "another_table")
+DBI::dbDisconnect(con)
 ```
 
 ## Utiliser les connexions
