@@ -9,7 +9,7 @@ import { DatasetVersionPicker_VersionFragmentDoc } from '../features/DatasetVers
 import { DeleteDatasetVersionDialog_VersionFragmentDoc } from '../features/DeleteDatasetVersionDialog/DeleteDatasetVersionDialog.generated';
 export type DatasetLayout_WorkspaceFragment = { __typename?: 'Workspace', name: string, slug: string, webappsEnabled: boolean, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean, createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } }, subscription?: { __typename?: 'Subscription', planCode: string, endDate: any, isExpired: boolean, isInGracePeriod: boolean, isExpiringSoon: boolean } | null }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> };
 
-export type DatasetLayout_DatasetLinkFragment = { __typename?: 'DatasetLink', id: string, isPinned: boolean, dataset: { __typename?: 'Dataset', slug: string, visibility: Types.DatasetVisibility, id: string, name: string, publicSlug?: string | null, workspace?: { __typename?: 'Workspace', slug: string } | null, permissions: { __typename?: 'DatasetPermissions', delete: boolean, createVersion: boolean, update: boolean, share: boolean } }, workspace: { __typename?: 'Workspace', slug: string }, permissions: { __typename?: 'DatasetLinkPermissions', pin: boolean } };
+export type DatasetLayout_DatasetLinkFragment = { __typename?: 'DatasetLink', id: string, isPinned: boolean, dataset: { __typename?: 'Dataset', slug: string, visibility: Types.DatasetVisibility, publicSlug?: string | null, id: string, name: string, workspace?: { __typename?: 'Workspace', slug: string } | null, permissions: { __typename?: 'DatasetPermissions', delete: boolean, createVersion: boolean, update: boolean, share: boolean } }, workspace: { __typename?: 'Workspace', slug: string }, permissions: { __typename?: 'DatasetLinkPermissions', pin: boolean } };
 
 export type DatasetLayout_VersionFragment = { __typename?: 'DatasetVersion', id: string, name: string, createdAt: any, dataset: { __typename?: 'Dataset', slug: string }, permissions: { __typename?: 'DatasetVersionPermissions', delete: boolean } };
 
@@ -30,6 +30,7 @@ export const DatasetLayout_DatasetLinkFragmentDoc = gql`
     }
     slug
     visibility
+    publicSlug
     permissions {
       delete
       createVersion
