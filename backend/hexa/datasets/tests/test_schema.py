@@ -1927,3 +1927,189 @@ class DatasetLinkBySlugTest(GraphQLTestCase, DatasetTestMixin):
             },
             r["data"],
         )
+
+
+class PublicDatasetGraphQLTest(GraphQLTestCase, DatasetTestMixin):
+    PUBLIC_DATASET_QUERY = """
+        query PublicDataset($slug: String!) {
+            publicDataset(slug: $slug) {
+                name
+                workspaceName
+                organizationName
+                workspace { slug }
+                createdBy { email }
+                links { totalItems }
+                attributes { key }
+                latestVersion {
+                    createdBy { email }
+                    files {
+                        items {
+                            filename
+                            createdBy { email }
+                            attributes { key }
+                            downloadUrl
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        storage.reset()
+        storage.create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
+        organization = Organization.objects.create(
+            name="Health Org", short_name="health-org", organization_type="CORPORATE"
+        )
+        cls.superuser = User.objects.create_user(
+            "superuser@blsq.org", "password", is_superuser=True
+        )
+        cls.member = User.objects.create_user("member@blsq.org", "password")
+        cls.outsider = User.objects.create_user("outsider@blsq.org", "password")
+        cls.workspace = create_workspace(
+            cls.superuser,
+            name="Malaria Workspace",
+            description="",
+            organization=organization,
+        )
+        WorkspaceMembership.objects.create(
+            workspace=cls.workspace,
+            user=cls.member,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+        cls.dataset = Dataset.objects.create_if_has_perm(
+            cls.superuser, cls.workspace, name="Malaria", description="Cases"
+        )
+        version = cls.create_dataset_version(cls.superuser, dataset=cls.dataset)
+        cls.file = cls.create_dataset_version_file(
+            cls.superuser, dataset_version=version
+        )
+        Dataset.objects.filter(pk=cls.dataset.pk).update(
+            visibility=DatasetVisibility.PUBLIC, public_slug="malaria"
+        )
+
+    def setUp(self):
+        storage.save_object(
+            settings.WORKSPACE_DATASETS_BUCKET, self.file.uri, BytesIO(b"content")
+        )
+
+    def set_visibility(self, visibility):
+        Dataset.objects.filter(pk=self.dataset.pk).update(visibility=visibility)
+
+    def query_public_dataset(self, headers={}):
+        return self.run_query(
+            self.PUBLIC_DATASET_QUERY, {"slug": "malaria"}, headers=headers
+        )["data"]["publicDataset"]
+
+    def prepare_download(self):
+        return self.run_query(
+            """
+            mutation PrepareVersionFileDownload($input: PrepareVersionFileDownloadInput!) {
+                prepareVersionFileDownload(input: $input) { success errors }
+            }
+            """,
+            {"input": {"fileId": str(self.file.id)}},
+        )["data"]["prepareVersionFileDownload"]
+
+    def test_visitor_reads_content_but_not_provenance(self):
+        for user in [None, self.outsider]:
+            with self.subTest(user=user):
+                self.client.logout()
+                if user:
+                    self.client.force_login(user)
+                dataset = self.query_public_dataset()
+
+                self.assertEqual(dataset["name"], "Malaria")
+                self.assertEqual(dataset["workspaceName"], "Malaria Workspace")
+                self.assertEqual(dataset["organizationName"], "Health Org")
+                self.assertIsNone(dataset["workspace"])
+                self.assertIsNone(dataset["createdBy"])
+                self.assertEqual(dataset["links"]["totalItems"], 0)
+                self.assertEqual(dataset["attributes"], [])
+                version = dataset["latestVersion"]
+                self.assertIsNone(version["createdBy"])
+                [file] = version["files"]["items"]
+                self.assertIsNone(file["createdBy"])
+                self.assertEqual(file["attributes"], [])
+                self.assertIsNotNone(file["downloadUrl"])
+                self.assertEqual(
+                    self.prepare_download(), {"success": True, "errors": []}
+                )
+
+    def test_member_keeps_provenance(self):
+        self.client.force_login(self.member)
+        dataset = self.query_public_dataset()
+
+        self.assertEqual(dataset["workspace"], {"slug": self.workspace.slug})
+        self.assertEqual(dataset["createdBy"], {"email": "superuser@blsq.org"})
+        self.assertEqual(
+            dataset["latestVersion"]["createdBy"], {"email": "superuser@blsq.org"}
+        )
+
+    def test_only_public_datasets_have_a_permalink(self):
+        self.set_visibility(DatasetVisibility.ORGANIZATION)
+        for user in [None, self.member]:
+            with self.subTest(user=user):
+                self.client.logout()
+                if user:
+                    self.client.force_login(user)
+                self.assertIsNone(self.query_public_dataset())
+
+    def test_archived_workspace_takes_the_permalink_down(self):
+        self.workspace.archived = True
+        self.workspace.save()
+
+        self.assertIsNone(self.query_public_dataset())
+        self.assertEqual(
+            self.prepare_download(), {"success": False, "errors": ["FILE_NOT_FOUND"]}
+        )
+
+    def test_lookups_by_id_open_public_datasets_to_anyone(self):
+        query = """
+            query Lookups($datasetId: ID!, $fileId: ID!) {
+                dataset(id: $datasetId) { name }
+                datasetVersionFile(id: $fileId) { filename }
+            }
+        """
+        variables = {"datasetId": str(self.dataset.id), "fileId": str(self.file.id)}
+
+        data = self.run_query(query, variables)["data"]
+        self.assertEqual(data["dataset"], {"name": "Malaria"})
+        self.assertIsNotNone(data["datasetVersionFile"])
+
+        self.set_visibility(DatasetVisibility.ORGANIZATION)
+        data = self.run_query(query, variables)["data"]
+        self.assertIsNone(data["dataset"])
+        self.assertIsNone(data["datasetVersionFile"])
+        self.assertEqual(
+            self.prepare_download(), {"success": False, "errors": ["FILE_NOT_FOUND"]}
+        )
+
+    def test_listings_leave_public_datasets_out(self):
+        self.client.force_login(self.outsider)
+        r = self.run_query("query { datasets { totalItems } }")
+
+        self.assertEqual(r["data"]["datasets"]["totalItems"], 0)
+
+    def test_service_principals_do_not_reach_public_datasets(self):
+        other_workspace = create_workspace(
+            self.superuser, name="Other Workspace", description=""
+        )
+        pipeline = Pipeline.objects.create(
+            code="pipeline", name="Pipeline", workspace=other_workspace
+        )
+        pipeline_version = PipelineVersion.objects.create(
+            pipeline=pipeline, version_number=1, zipfile=b"zip"
+        )
+        run = pipeline.run(
+            self.superuser, pipeline_version, PipelineRunTrigger.MANUAL, {}
+        )
+        run.state = PipelineRunState.RUNNING
+        run.save()
+        token = Signer().sign_object(str(run.access_token))
+
+        self.assertIsNone(
+            self.query_public_dataset(headers={"HTTP_Authorization": f"Bearer {token}"})
+        )

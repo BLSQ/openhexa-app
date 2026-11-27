@@ -15,6 +15,7 @@ from ..models import (
     DatasetVersionFile,
     FileUploadError,
 )
+from .types import reaches_public_datasets
 
 mutations = MutationType()
 
@@ -309,9 +310,9 @@ def resolve_version_file_download(_, info, **kwargs):
     mutation_input = kwargs["input"]
 
     try:
-        file = DatasetVersionFile.objects.filter_for_user(request.user).get(
-            id=mutation_input["file_id"]
-        )
+        file = DatasetVersionFile.objects.filter_for_user(
+            request.user, include_public=reaches_public_datasets(request)
+        ).get(id=mutation_input["file_id"])
         # We only get the file if the user or pipeline can see the dataset either by direct access or via a link.
         # FIXME: Implement a better permission system to be able to check if the pipeline can download the file.
         if not isinstance(request.user, PipelineRunUser) and not request.user.has_perm(

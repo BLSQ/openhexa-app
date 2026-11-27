@@ -48,7 +48,8 @@ def delete_dataset_version(principal: User, version: DatasetVersion):
 
 def download_dataset_version(principal: User, version: DatasetVersion):
     return (
-        version.dataset.links.filter(
+        version.dataset.is_public
+        or version.dataset.links.filter(
             workspace__in=principal.workspace_set.all()
         ).exists()
         or (

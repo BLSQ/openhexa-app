@@ -11,8 +11,14 @@ type Dataset implements MetadataObject{
   description: String
   createdAt: DateTime!
   updatedAt: DateTime!
+  "Hidden from callers who see the dataset only because it is public."
   createdBy: User
+  "Hidden from callers who see the dataset only because it is public."
   workspace: Workspace
+  "Name of the dataset's workspace, readable by anyone who can see the dataset."
+  workspaceName: String
+  "Name of the organization of the dataset's workspace, readable by anyone who can see the dataset."
+  organizationName: String
   sharedWithOrganization: Boolean! @deprecated(reason: "Use `visibility`.")
   visibility: DatasetVisibility!
   permissions: DatasetPermissions!
@@ -46,7 +52,7 @@ enum DatasetVisibility {
   WORKSPACE
   "Every member of the organization."
   ORGANIZATION
-  "For now, every member of the organization."
+  "Every member of the organization, and anyone with its public link."
   PUBLIC
 }
 
@@ -60,6 +66,7 @@ type DatasetVersion implements MetadataObject{
   changelog: String
   description: String @deprecated(reason: "use changelog instead")
   createdAt: DateTime!
+  "Hidden from callers who see the dataset only because it is public."
   createdBy: User
   dataset: Dataset!
   permissions: DatasetVersionPermissions!
@@ -140,6 +147,7 @@ type DatasetVersionFile implements MetadataObject{
   uri: String!
   filename: String!
   createdAt: DateTime!
+  "Hidden from callers who see the dataset only because it is public."
   createdBy: User
   contentType: String!
   size: BigInt!
@@ -525,11 +533,13 @@ type PinDatasetResult {
 }
 
 extend type Query {
-  "Get a dataset by its ID."
+  "Get a dataset by its ID. Public datasets are returned to anyone, anonymous included."
   dataset(id: ID!): Dataset
+  "Get a public dataset by its public slug, for anyone, anonymous included."
+  publicDataset(slug: String!): Dataset
   "Get a dataset by its slug."
   datasetVersion(id: ID!): DatasetVersion
-  "Get a dataset file by its id "
+  "Get a dataset file by its id. Files of public datasets are returned to anyone, anonymous included."
   datasetVersionFile(id: ID!): DatasetVersionFile
   "Get a dataset link by its id."
   datasetLink(id: ID!): DatasetLink
@@ -564,8 +574,8 @@ extend type Mutation {
   generateDatasetUploadUrl(input: GenerateDatasetUploadUrlInput!): GenerateDatasetUploadUrlResult! @loginRequired
   "Create a new file in a dataset version."
   createDatasetVersionFile(input: CreateDatasetVersionFileInput!): CreateDatasetVersionFileResult! @loginRequired
-  "Prepare to download a file in a dataset version."
-  prepareVersionFileDownload(input: PrepareVersionFileDownloadInput!): PrepareVersionFileDownloadResult! @loginRequired
+  "Prepare to download a file in a dataset version. Files of public datasets can be downloaded by anyone, anonymous included."
+  prepareVersionFileDownload(input: PrepareVersionFileDownloadInput!): PrepareVersionFileDownloadResult!
   "Link a dataset with a workspace."
   linkDataset(input: LinkDatasetInput!): LinkDatasetResult! @loginRequired
   "Delete a dataset link."
