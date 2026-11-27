@@ -225,9 +225,9 @@ def resolve_create_pipeline_from_template_version(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
     try:
-        template_version = PipelineTemplateVersion.objects.get(
-            id=input["pipeline_template_version_id"]
-        )
+        template_version = PipelineTemplateVersion.objects.exclude_ai_blocked(
+            user, "template__workspace"
+        ).get(id=input["pipeline_template_version_id"])
     except PipelineTemplateVersion.DoesNotExist:
         return {"success": False, "errors": ["PIPELINE_TEMPLATE_VERSION_NOT_FOUND"]}
 

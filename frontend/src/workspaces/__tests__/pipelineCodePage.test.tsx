@@ -44,12 +44,12 @@ const mockWorkspace = {
   slug: WORKSPACE_SLUG,
   name: "Test Workspace",
   webappsEnabled: false,
+  aiAvailable: true,
   organization: {
     id: "org-1",
     name: "Test Organization",
     shortName: "Test Org",
     logo: null,
-    aiSettings: { enabled: true },
     aiBudgetLimitReached: false,
     permissions: {
       createWorkspace: { isAllowed: false, reasons: [] },

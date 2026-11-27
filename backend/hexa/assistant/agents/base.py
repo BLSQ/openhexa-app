@@ -32,6 +32,7 @@ from hexa.assistant.ai_models import AiModelBuilder, BuiltModel
 from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.keys import AgentKey
 from hexa.assistant.models import (
+    AssistantUser,
     Conversation,
     Message,
     ToolInvocation,
@@ -264,14 +265,13 @@ class BaseAgent:
 
     @property
     def _tools_with_context(self) -> list:
-        return [
-            bind_context(func, self._context) for func in self.common_tools + self.tools
-        ]
+        context = self._context
+        return [bind_context(func, context) for func in self.common_tools + self.tools]
 
     @property
     def _context(self) -> dict:
         return {
-            "user": self.conversation.user,
+            "user": AssistantUser.from_conversation(self.conversation),
             "workspace_slug": self.conversation.workspace.slug,
         }
 

@@ -42,6 +42,7 @@ describe("Workspaces", () => {
             workspace: {
               slug,
               name: "Rwanda Workspace",
+              aiEnabled: true,
               organization: {
                 __typename: "Organization",
                 id: "org-1",
@@ -172,6 +173,7 @@ describe("Workspaces", () => {
             workspace: {
               slug,
               name: "Rwanda Workspace",
+              aiEnabled: true,
               organization: {
                 __typename: "Organization",
                 id: "org-1",
@@ -249,6 +251,7 @@ describe("Workspaces", () => {
             workspace: {
               slug,
               name: "Rwanda Workspace",
+              aiEnabled: true,
               organization: {
                 __typename: "Organization",
                 id: "org-1",

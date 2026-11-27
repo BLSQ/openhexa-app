@@ -58,6 +58,8 @@ def validate_grant(
         workspaces = resolve_workspaces(user, grant_input)
     except LookupError:
         return None, "WORKSPACE_NOT_FOUND"
+    if workspaces and any(not workspace.ai_enabled for workspace in workspaces):
+        return None, "WORKSPACE_AI_DISABLED"
     try:
         organizations = resolve_organizations(user, grant_input)
     except LookupError:
@@ -78,6 +80,13 @@ def apply_grant(
         if workspaces is not None or organizations is not None:
             if workspaces is None:
                 workspaces = list(connection.workspaces.all())
+            else:
+                # The permission page cannot show these, so its grant leaves them
+                # out; keeping them lets access come back once AI is allowed again.
+                workspaces = [
+                    *workspaces,
+                    *connection.workspaces.filter(ai_enabled=False),
+                ]
             connection.workspaces.set(uncovered_workspaces(connection, workspaces))
     return connection
 

@@ -68,6 +68,16 @@ Tools are grouped by resource. Each grant covers one resource group, with read a
 
 Only the help tool, which returns OpenHEXA documentation, works without a grant. No MCP tool can execute SQL against a workspace database or access connection secrets.
 
+## Blocking AI on a workspace
+
+Workspaces often hold sensitive data, such as personal information. Workspace administrators, and organization administrators and owners, can block AI on such a workspace by turning off **Allow AI** in the workspace's **Settings → General**. AI is allowed by default, and this setting applies whether or not the organization has enabled the built-in assistant.
+
+When AI is blocked on a workspace:
+
+- The built-in assistant is unavailable in it, including conversations started before the block. A reply the assistant is already writing when AI is blocked can finish, but its remaining tool calls no longer reach the workspace.
+- MCP clients cannot reach it, and it cannot be selected on the MCP permissions page. Connections that were granted it, directly or through its organization, skip it for as long as AI is blocked, and reach it again once AI is allowed.
+- Its datasets and pipeline templates stay out of reach of AI everywhere, including in the workspaces they are shared with.
+
 ## Models
 
 !!! info "Models evolve over time"

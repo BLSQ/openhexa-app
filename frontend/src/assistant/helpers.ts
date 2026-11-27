@@ -13,6 +13,9 @@ export function getErrorCodeMessage(t: TFunction, errorCode?: string): string {
     ),
     UNKNOWN_ERROR: t("An error occurred. Please try again."),
     AI_BUDGET_EXCEEDED: t("Monthly AI budget reached"),
+    AI_DISABLED_FOR_WORKSPACE: t(
+      "AI has been disabled on this workspace by its administrators.",
+    ),
   };
   return (
     (errorCode && messages[errorCode]) ??

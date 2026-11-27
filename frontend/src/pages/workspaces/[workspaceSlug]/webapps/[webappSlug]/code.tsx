@@ -121,8 +121,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
     }
   }, [proposedToolInvocationId, resolveProposal, refetch, resetCommitMessage]);
 
-  const showAssistant =
-    data?.workspace?.organization?.aiSettings?.enabled ?? false;
+  const showAssistant = data?.workspace?.aiAvailable ?? false;
   const aiBudgetLimitReached =
     data?.workspace?.organization?.aiBudgetLimitReached ?? false;
 

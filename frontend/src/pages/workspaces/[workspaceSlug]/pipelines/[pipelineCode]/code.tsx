@@ -101,7 +101,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     },
   });
 
-  const aiEnabled = data?.workspace?.organization?.aiSettings?.enabled ?? false;
+  const aiEnabled = data?.workspace?.aiAvailable ?? false;
   const aiBudgetLimitReached =
     data?.workspace?.organization?.aiBudgetLimitReached ?? false;
   const [fetchPipelineVersion, { data: versionData, loading: versionLoading }] =

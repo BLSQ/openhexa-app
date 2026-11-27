@@ -3,8 +3,18 @@ from unittest.mock import patch
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.core.test import GraphQLTestCase
+from hexa.pipelines.models import Pipeline
 from hexa.user_management.models import User
 from hexa.workspaces.tests.testutils import create_workspace
+
+CREATE_CONVERSATION_MUTATION = """
+    mutation createAssistantConversation($input: CreateAssistantConversationInput!) {
+        createAssistantConversation(input: $input) {
+            success
+            errors
+        }
+    }
+"""
 
 RESOLVE_PROPOSAL_MUTATION = """
     mutation resolveAssistantProposal($toolInvocationId: UUID!) {
@@ -82,3 +92,45 @@ class ResolveAssistantProposalMutationTest(GraphQLTestCase):
 
         other_invocation.refresh_from_db()
         self.assertTrue(other_invocation.proposal_pending)
+
+
+class CreateAssistantConversationMutationTest(GraphQLTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(
+            "create-conversation@example.com", "password", is_superuser=True
+        )
+        with patch("hexa.workspaces.models.create_database"):
+            cls.workspace = create_workspace(cls.user, name="Here", description="")
+            cls.other_workspace = create_workspace(
+                cls.user, name="Elsewhere", description=""
+            )
+        cls.pipeline = Pipeline.objects.create(
+            workspace=cls.workspace, name="Here", code="here"
+        )
+        cls.other_pipeline = Pipeline.objects.create(
+            workspace=cls.other_workspace, name="Elsewhere", code="elsewhere"
+        )
+
+    def _create(self, pipeline):
+        self.client.force_login(self.user)
+        return self.run_query(
+            CREATE_CONVERSATION_MUTATION,
+            {
+                "input": {
+                    "workspaceSlug": self.workspace.slug,
+                    "linkedObjectId": str(pipeline.id),
+                    "linkedObjectType": "Pipeline",
+                }
+            },
+        )["data"]["createAssistantConversation"]
+
+    def test_links_a_pipeline_of_the_workspace(self):
+        self.assertEqual({"success": True, "errors": []}, self._create(self.pipeline))
+
+    def test_refuses_a_pipeline_of_another_workspace(self):
+        self.assertEqual(
+            {"success": False, "errors": ["LINKED_OBJECT_NOT_FOUND"]},
+            self._create(self.other_pipeline),
+        )
+        self.assertFalse(Conversation.objects.exists())

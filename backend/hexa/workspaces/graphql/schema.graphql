@@ -35,6 +35,12 @@ type Workspace {
     # The public files of the workspace, null when the instance does not offer them.
     publicFiles: WorkspacePublicFiles
 
+    # Whether AI (the assistant, its agents and MCP connections) may access the workspace.
+    aiEnabled: Boolean!
+
+    # Whether AI features are offered on the workspace: its organization enabled AI and its admins did not block it.
+    aiAvailable: Boolean!
+
     # The date and time when the workspace was created.
     createdAt: DateTime!
 
@@ -153,6 +159,9 @@ type WorkspacePermissions {
 
     # Indicates whether the public files setting of the workspace can be managed.
     managePublicFiles: Boolean!
+
+    # Indicates whether AI can be allowed or blocked on the workspace.
+    manageAi: Boolean!
 
     # Indicates whether a connection can be created in the workspace.
     createConnection: Boolean!
@@ -448,6 +457,10 @@ input UpdateWorkspaceInput {
     # Whether the files of the "public" root folder are publicly accessible.
     # Restricted to workspace admins and organization admins and owners.
     publicFilesEnabled: Boolean
+
+    # Whether AI (the assistant, its agents and MCP connections) may access the workspace.
+    # Restricted to workspace admins and organization admins and owners.
+    aiEnabled: Boolean
 }
 
 """

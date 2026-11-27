@@ -12,13 +12,13 @@ jest.mock("webapps/graphql/queries.generated", () => ({
 }));
 
 const buildWorkspace = ({
-  aiEnabled = true,
+  aiAvailable = true,
   aiBudgetLimitReached = false,
 } = {}) => ({
   slug: "test-workspace",
+  aiAvailable,
   organization: {
     id: "org-1",
-    aiSettings: { enabled: aiEnabled },
     aiBudgetLimitReached,
   },
 });
@@ -54,7 +54,7 @@ describe("CreateWebappDialog", () => {
   });
 
   it("hides the AI method when AI is disabled for the organization", async () => {
-    renderDialog(buildWorkspace({ aiEnabled: false }));
+    renderDialog(buildWorkspace({ aiAvailable: false }));
 
     expect(await screen.findByText("From code")).toBeInTheDocument();
     expect(screen.queryByText("Create with AI")).not.toBeInTheDocument();

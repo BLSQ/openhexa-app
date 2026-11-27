@@ -69,7 +69,8 @@ def public_slug_locked_error() -> ValidationError:
 
 def check_principal_perm(principal, workspace_id, perm: str, obj) -> None:
     """A service principal is confined to its workspaces. One acting for a person
-    (MCPUser, PrivateWebappUser) is also held to that person's role; a pipeline run has none.
+    (MCPUser, AssistantUser, PrivateWebappUser) is also held to that person's role; a
+    pipeline run has none.
     """
     if (
         isinstance(principal, ServicePrincipal)
@@ -115,7 +116,9 @@ class DatasetQuerySet(BaseQuerySet):
                     visibility__in=ORGANIZATION_WIDE_VISIBILITIES,
                     workspace__organization__in=accessible_organizations,
                 )
-            ).distinct()
+            )
+            .exclude_ai_blocked(user)
+            .distinct()
         )
 
     def filter_for_workspace_slugs(
@@ -752,7 +755,9 @@ class DatasetLinkQuerySet(BaseQuerySet):
             "workspace",
         ).prefetch_related("dataset__versions", links_prefetch)
 
-    def filter_for_workspaces(self, workspaces, pinned=None, query=None):
+    def filter_for_workspaces(
+        self, workspaces, pinned=None, query=None, principal=None
+    ):
         """
         Get dataset links for given workspaces.
         Returns one link per dataset.
@@ -761,6 +766,8 @@ class DatasetLinkQuerySet(BaseQuerySet):
             workspaces: QuerySet or list of Workspace objects
             pinned: Optional boolean to filter by pinned status
             query: Optional search query for dataset name/description/slug
+            principal: The caller; when an AI, datasets owned by workspaces that
+                block AI are left out even when shared into the given workspaces
 
         Returns
         -------
@@ -776,7 +783,9 @@ class DatasetLinkQuerySet(BaseQuerySet):
             workspace__organization__workspaces__id__in=workspace_ids,
         )
 
-        qs = self.filter(permission_query)
+        qs = self.filter(permission_query).exclude_ai_blocked(
+            principal, "dataset__workspace"
+        )
 
         if query is not None:
             qs = qs.filter(
@@ -809,7 +818,9 @@ class DatasetLinkQuerySet(BaseQuerySet):
                     dataset__visibility__in=ORGANIZATION_WIDE_VISIBILITIES,
                     workspace__organization__in=accessible_organizations,
                 )
-            ).distinct()
+            )
+            .exclude_ai_blocked(user, "dataset__workspace")
+            .distinct()
         )
 
 

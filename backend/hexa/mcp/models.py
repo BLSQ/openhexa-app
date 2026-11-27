@@ -9,7 +9,7 @@ from django.utils.functional import cached_property
 from oauth2_provider.models import AccessToken, Grant, RefreshToken
 
 from hexa.core.models.base import Base
-from hexa.user_management.models import ServicePrincipal, User
+from hexa.user_management.models import AIPrincipal, User
 from hexa.workspaces.models import Workspace
 
 
@@ -93,7 +93,7 @@ class MCPConnection(Base):
         return count
 
 
-class MCPUser(User, ServicePrincipal):
+class MCPUser(User, AIPrincipal):
     class Meta:
         proxy = True
 
@@ -109,12 +109,17 @@ class MCPUser(User, ServicePrincipal):
 
     @cached_property
     def granted_workspaces(self) -> dict[str, uuid.UUID]:
-        """The workspaces the connection was granted, by slug, read once per request."""
+        """The workspaces the connection was granted, by slug, read once per request.
+
+        Workspaces whose admins blocked AI are left out. Their grants are kept, so
+        access comes back once AI is allowed again.
+        """
         return dict(
             Workspace.objects.filter(
                 Q(mcp_connections=self.connection)
                 | Q(organization__mcp_connections=self.connection)
             )
+            .filter(ai_enabled=True)
             .distinct()
             .values_list("slug", "id")
         )

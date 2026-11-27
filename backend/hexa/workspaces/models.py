@@ -277,6 +277,7 @@ class Workspace(Base):
     )
     tags = models.ManyToManyField("tags.Tag", blank=True, related_name="workspaces")
     public_files_enabled = models.BooleanField(default=False)
+    ai_enabled = models.BooleanField(default=True)
 
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 
@@ -388,6 +389,11 @@ class Workspace(Base):
             if not principal.has_perm("workspaces.manage_public_files", self):
                 raise PermissionDenied
             self.public_files_enabled = kwargs["public_files_enabled"]
+
+        if "ai_enabled" in kwargs and kwargs["ai_enabled"] != self.ai_enabled:
+            if not principal.has_perm("workspaces.manage_ai", self):
+                raise PermissionDenied
+            self.ai_enabled = kwargs["ai_enabled"]
 
         return self.save()
 

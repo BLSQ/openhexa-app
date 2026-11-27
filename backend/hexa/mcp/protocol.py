@@ -10,6 +10,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 
 from hexa.mcp.models import MCPConnection, MCPResource, MCPUser, ToolCall
+from hexa.workspaces.models import Workspace
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +73,28 @@ def scope_refusal_message(connection: MCPConnection | None, action: str) -> str:
         f"authorized it can grant tools and workspaces at {_permissions_page()} — the "
         f"change takes effect on the next call, with no need to authorize the client "
         f"again."
+    )
+
+
+def ai_disabled_message(workspace_slug: str) -> str:
+    """The message for content of a workspace whose admins blocked AI."""
+    return (
+        f'The administrators of the workspace "{workspace_slug}" have disabled AI on '
+        f"it, so its content cannot be accessed by an AI assistant."
+    )
+
+
+def _workspace_refusal_message(user: MCPUser, slug: str) -> str:
+    # A workspace blocked by its admins cannot be fixed by granting it, so the
+    # person is not sent to the permissions page for it.
+    if (
+        Workspace.objects.filter_for_user(user.real_user)
+        .filter(slug=slug, ai_enabled=False)
+        .exists()
+    ):
+        return ai_disabled_message(slug)
+    return scope_refusal_message(
+        user.connection, f'access workspace "{slug}" (or it does not exist)'
     )
 
 
@@ -192,14 +215,7 @@ def call_tool(name, arguments, user, connection: MCPConnection | None):
         )
     slug = _workspace_slug(entry, arguments)
     if slug and isinstance(user, MCPUser) and slug not in user.granted_workspaces:
-        _refuse(
-            user,
-            name,
-            arguments,
-            scope_refusal_message(
-                connection, f'access workspace "{slug}" (or it does not exist)'
-            ),
-        )
+        _refuse(user, name, arguments, _workspace_refusal_message(user, slug))
     try:
         result = entry.func(user=user, **arguments)
         ToolCall.objects.create(

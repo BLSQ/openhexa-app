@@ -3,13 +3,16 @@ import json
 import uuid
 from unittest.mock import patch
 
+from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 from hexa.core.test import TestCase
 from hexa.core.test.utils import collect_async_stream, parse_sse_stream
+from hexa.pipelines.models import Pipeline
 from hexa.user_management.models import Organization, User
+from hexa.workspaces.models import WorkspaceMembership, WorkspaceMembershipRole
 from hexa.workspaces.tests.testutils import create_workspace
 
 
@@ -81,6 +84,47 @@ class StreamAssistantMessageViewTest(TestCase):
         self.client.force_login(self.user)
         response = _post(self.client, uuid.uuid4())
         self.assertEqual(response.status_code, 404)
+
+    # --- Workspace AI block ---
+
+    def test_workspace_with_ai_disabled_returns_403(self):
+        self.workspace.ai_enabled = False
+        self.workspace.save()
+        self.client.force_login(self.user)
+        response = _post(self.client, self.conversation.id)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["error_code"], "AI_DISABLED_FOR_WORKSPACE")
+
+    def test_a_conversation_linked_to_another_workspace_returns_403(self):
+        with patch("hexa.workspaces.models.create_database"):
+            other = create_workspace(self.user, name="Other WS", description="")
+        self.conversation.linked_object = Pipeline.objects.create(
+            workspace=other, name="Other", code="other"
+        )
+        self.conversation.save()
+        self.client.force_login(self.user)
+
+        response = _post(self.client, self.conversation.id)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            response.json()["error_code"], "LINKED_OBJECT_OUTSIDE_WORKSPACE"
+        )
+
+    def test_a_conversation_cannot_be_started_in_a_workspace_with_ai_disabled(self):
+        editor = User.objects.create_user("view-editor@example.com", "password")
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace, user=editor, role=WorkspaceMembershipRole.EDITOR
+        )
+        self.assertTrue(
+            editor.has_perm("assistant.create_conversation", self.workspace)
+        )
+
+        self.workspace.ai_enabled = False
+        self.workspace.save()
+
+        with self.assertRaises(PermissionDenied):
+            Conversation.objects.create_if_has_perm(editor, self.workspace)
 
     # --- Organization AI budget ---
 

@@ -89,6 +89,15 @@ def manage_members(principal: User, workspace: Workspace):
     ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
 
 
+def manage_ai(principal: User, workspace: Workspace):
+    """Only admin users of a workspace can allow or block AI on it, editors are excluded
+    because the setting protects the workspace's sensitive data from AI tools.
+    """
+    return workspace.workspacemembership_set.filter(
+        user=principal, role=WorkspaceMembershipRole.ADMIN
+    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
+
+
 def can_share_publicly(
     principal: User, workspace: Workspace, author_id: UUID | None = None
 ) -> bool:

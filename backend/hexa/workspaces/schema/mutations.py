@@ -96,6 +96,9 @@ def resolve_update_workspace(_, info, **kwargs):
         if input.get("public_files_enabled", None) is not None:
             args["public_files_enabled"] = input["public_files_enabled"]
 
+        if input.get("ai_enabled", None) is not None:
+            args["ai_enabled"] = input["ai_enabled"]
+
         with transaction.atomic():
             if "tags" in input:
                 args["tags"] = Tag.objects.get_or_create_from_names(

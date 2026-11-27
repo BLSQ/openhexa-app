@@ -28,6 +28,7 @@ describe("Connections", () => {
     slug: faker.string.uuid(),
     name: faker.company.name(),
     description: faker.company.catchPhrase(),
+    aiEnabled: true,
     organization: {
       __typename: "Organization",
       id: "org-1",

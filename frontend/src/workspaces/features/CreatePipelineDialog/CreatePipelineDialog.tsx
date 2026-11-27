@@ -31,7 +31,7 @@ type CreatePipelineDialogProps = {
 const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
   const { t } = useTranslation();
   const { open, onClose, workspace } = props;
-  const aiEnabled = workspace.organization?.aiSettings?.enabled ?? false;
+  const aiEnabled = workspace.aiAvailable;
   const aiBudgetLimitReached =
     workspace.organization?.aiBudgetLimitReached ?? false;
 
@@ -204,11 +204,9 @@ CreatePipelineDialog.fragments = {
       permissions {
         generateToken
       }
+      aiAvailable
       organization {
         id
-        aiSettings {
-          enabled
-        }
         aiBudgetLimitReached
       }
       ...BucketObjectPicker_workspace

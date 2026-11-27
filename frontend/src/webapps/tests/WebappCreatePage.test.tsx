@@ -33,13 +33,13 @@ const mockWorkspace = {
   slug: "test-workspace",
   countries: [],
   shortcuts: [],
+  aiAvailable: true,
   organization: {
     __typename: "Organization",
     id: "org-1",
     name: "Test Organization",
     shortName: "Test Org",
     logo: null,
-    aiSettings: { enabled: true },
     aiBudgetLimitReached: false,
     permissions: {
       createWorkspace: { isAllowed: false, reasons: [] },

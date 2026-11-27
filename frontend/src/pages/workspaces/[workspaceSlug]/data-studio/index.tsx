@@ -23,7 +23,7 @@ const WorkspaceDataStudioPage: NextPageWithLayout = (props: Props) => {
     return null;
   }
   const { workspace } = data;
-  const aiEnabled = workspace.organization?.aiSettings?.enabled ?? false;
+  const aiEnabled = workspace.aiAvailable;
   const aiBudgetLimitReached =
     workspace.organization?.aiBudgetLimitReached ?? false;
 

@@ -14,10 +14,10 @@ logger = getLogger(__name__)
 assistant_mutations = MutationType()
 
 
-def _resolve_linked_object(user, linked_object_type, linked_object_id):
+def _resolve_linked_object(user, workspace, linked_object_type, linked_object_id):
     """
-    Maps a (type, id) pair from the API to a model instance and the instruction set
-    that should be used for conversations about that object type.
+    Maps a (type, id) pair from the API to a model instance of `workspace` and the
+    instruction set that should be used for conversations about that object type.
     Returns (linked_object, instruction_set) or raises ValueError/DoesNotExist.
     """
     resolvers = {
@@ -33,7 +33,7 @@ def _resolve_linked_object(user, linked_object_type, linked_object_id):
     if linked_object_type not in resolvers:
         raise ValueError(f"Unknown linked object type: {linked_object_type}")
     queryset, instruction_set = resolvers[linked_object_type]
-    return queryset.get(id=linked_object_id), instruction_set
+    return queryset.get(workspace=workspace, id=linked_object_id), instruction_set
 
 
 @assistant_mutations.field("createAssistantConversation")
@@ -56,7 +56,7 @@ def resolve_create_assistant_conversation(_, info, input, **kwargs):
         linked_object_type = input.get("linked_object_type", "")
         try:
             linked_object, instruction_set = _resolve_linked_object(
-                request.user, linked_object_type, linked_object_id
+                request.user, workspace, linked_object_type, linked_object_id
             )
         except ValueError:
             return {

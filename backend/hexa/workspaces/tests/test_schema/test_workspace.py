@@ -15,6 +15,7 @@ from django.test.utils import CaptureQueriesContext
 from hexa.core.test import GraphQLTestCase
 from hexa.databases.utils import TableNotFound
 from hexa.user_management.models import (
+    AiSettings,
     Feature,
     FeatureFlag,
     Organization,
@@ -765,6 +766,84 @@ class WorkspaceTest(GraphQLTestCase):
         self.assertTrue(r["data"]["updateWorkspace"]["success"])
         self.WORKSPACE.refresh_from_db()
         self.assertEqual(self.WORKSPACE.name, "Renamed")
+
+    UPDATE_AI_MUTATION = """
+        mutation updateWorkspace($input: UpdateWorkspaceInput!) {
+            updateWorkspace(input: $input) {
+                success
+                errors
+                workspace { aiEnabled permissions { manageAi } }
+            }
+        }
+    """
+
+    def test_update_workspace_ai_as_workspace_admin(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
+        r = self.run_query(
+            self.UPDATE_AI_MUTATION,
+            {"input": {"slug": self.WORKSPACE.slug, "aiEnabled": False}},
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "workspace": {"aiEnabled": False, "permissions": {"manageAi": True}},
+            },
+            r["data"]["updateWorkspace"],
+        )
+        self.WORKSPACE.refresh_from_db()
+        self.assertFalse(self.WORKSPACE.ai_enabled)
+
+    def test_update_workspace_ai_as_editor_is_denied(self):
+        self.client.force_login(self.USER_WORKSPACE_EDITOR_ONLY)
+        r = self.run_query(
+            self.UPDATE_AI_MUTATION,
+            {"input": {"slug": self.WORKSPACE.slug, "aiEnabled": False}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"], "workspace": None},
+            r["data"]["updateWorkspace"],
+        )
+        self.WORKSPACE.refresh_from_db()
+        self.assertTrue(self.WORKSPACE.ai_enabled)
+
+    def test_update_workspace_unchanged_ai_as_editor(self):
+        self.client.force_login(self.USER_WORKSPACE_EDITOR_ONLY)
+        r = self.run_query(
+            self.UPDATE_AI_MUTATION,
+            {"input": {"slug": self.WORKSPACE.slug, "aiEnabled": True}},
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "workspace": {"aiEnabled": True, "permissions": {"manageAi": False}},
+            },
+            r["data"]["updateWorkspace"],
+        )
+
+    def test_ai_available_needs_the_organization_and_the_workspace(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
+        ai_settings = self.WORKSPACE.organization.ai_settings_safe
+        ai_settings.provider = AiSettings.Provider.MANAGED
+        for organization_enabled, workspace_enabled, available in [
+            (True, True, True),
+            (True, False, False),
+            (False, True, False),
+        ]:
+            with self.subTest(
+                organization_enabled=organization_enabled,
+                workspace_enabled=workspace_enabled,
+            ):
+                ai_settings.enabled = organization_enabled
+                ai_settings.save()
+                self.WORKSPACE.ai_enabled = workspace_enabled
+                self.WORKSPACE.save()
+                r = self.run_query(
+                    "query workspace($slug: String!) { workspace(slug: $slug) { aiAvailable } }",
+                    {"slug": self.WORKSPACE.slug},
+                )
+                self.assertEqual({"aiAvailable": available}, r["data"]["workspace"])
 
     @patch("hexa.workspaces.schema.types.public_folder_exists", return_value=True)
     def test_public_files_fields(self, _):

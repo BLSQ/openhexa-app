@@ -17,7 +17,7 @@ def resolve_name(connection: MCPConnection, info):
 def resolve_workspaces(connection: MCPConnection, info):
     return (
         Workspace.objects.filter_for_user(connection.user)
-        .filter(mcp_connections=connection)
+        .filter(mcp_connections=connection, ai_enabled=True)
         .order_by("name")
     )
 

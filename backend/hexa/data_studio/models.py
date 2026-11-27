@@ -23,8 +23,12 @@ from hexa.git.enums import FileEncoding
 from hexa.git.exceptions import GitError
 from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.git.naming import build_repo_name
-from hexa.mcp.models import MCPUser
-from hexa.user_management.models import ServicePrincipal, User, UserInterface
+from hexa.user_management.models import (
+    AIPrincipal,
+    ServicePrincipal,
+    User,
+    UserInterface,
+)
 from hexa.webapps.models import PublicWebappUser
 from hexa.workspaces.models import Workspace
 
@@ -83,11 +87,11 @@ class SavedQueryQuerySet(BaseQuerySet, SoftDeleteQuerySet):
         # Service principals (pipeline runs, webapps) impersonate a workspace rather
         # than a person, so they never own a private query - a deliberate call for
         # PrivateWebappUser, whose real User row `created_by` would match and which
-        # WorkspaceQuerySet does treat as a person. An MCPUser is the exception: it
-        # acts for the person who authorized it, who must keep seeing their own
-        # private queries (still confined to the connection's workspaces).
+        # WorkspaceQuerySet does treat as a person. An AI principal is the exception: it
+        # acts for its person, who must keep seeing their own private queries (still
+        # confined to the principal's workspaces).
         if isinstance(user, User) and (
-            not isinstance(user, ServicePrincipal) or isinstance(user, MCPUser)
+            not isinstance(user, ServicePrincipal) or isinstance(user, AIPrincipal)
         ):
             accessible |= models.Q(created_by=user)
 

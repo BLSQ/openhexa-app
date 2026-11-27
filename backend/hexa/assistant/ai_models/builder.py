@@ -38,6 +38,12 @@ class AiModelBuilder:
             raise AssistantException(
                 "Workspace does not belong to an organization; the assistant is unavailable"
             )
+        if not conversation.workspace.ai_enabled:
+            raise AssistantException("AI is disabled on this workspace")
+        if not conversation.linked_object_in_workspace:
+            raise AssistantException(
+                "The linked object does not belong to this workspace"
+            )
         ai_settings: AiSettings = organization.ai_settings_safe
         if not ai_settings.enabled:
             raise AssistantException("AI settings are not enabled")

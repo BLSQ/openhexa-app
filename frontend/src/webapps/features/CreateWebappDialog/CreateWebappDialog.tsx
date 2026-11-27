@@ -32,7 +32,7 @@ const CreateWebappDialog = ({
 }: CreateWebappDialogProps) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const aiEnabled = workspace.organization?.aiSettings?.enabled ?? false;
+  const aiEnabled = workspace.aiAvailable;
   const aiBudgetLimitReached =
     workspace.organization?.aiBudgetLimitReached ?? false;
   const [isAIActive, setIsAIActive] = useState(false);
@@ -167,11 +167,9 @@ CreateWebappDialog.fragments = {
   workspace: gql`
     fragment CreateWebappDialog_workspace on Workspace {
       slug
+      aiAvailable
       organization {
         id
-        aiSettings {
-          enabled
-        }
         aiBudgetLimitReached
       }
     }

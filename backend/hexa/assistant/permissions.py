@@ -3,6 +3,8 @@ from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
 
 
 def create_conversation(principal: User, workspace: Workspace):
+    if not workspace.ai_enabled:
+        return False
     return workspace.workspacemembership_set.filter(
         user=principal,
         role__in=[WorkspaceMembershipRole.EDITOR, WorkspaceMembershipRole.ADMIN],
