@@ -46,7 +46,7 @@ const WorkspaceAccessTokenField = (props: WorkspaceAccessTokenFieldProps) => {
   // There is nothing to hide the token behind here: the dialog is open to hand it
   // over, and it starts hidden again the next time it is opened.
   return (
-    <div className="relative w-full">
+    <div className="relative w-full" data-mp-no-record="">
       {/* Five rows so that even a temporary token, the longest one, is visible
           without scrolling. */}
       <Textarea

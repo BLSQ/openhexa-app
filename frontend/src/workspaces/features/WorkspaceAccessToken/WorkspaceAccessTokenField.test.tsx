@@ -27,7 +27,7 @@ const buildMock = (): MockedResponse => ({
 describe("WorkspaceAccessTokenField", () => {
   it("shows the whole token in a field once asked for", async () => {
     const user = userEvent.setup();
-    render(
+    const { container } = render(
       <TestApp mocks={[buildMock()]}>
         <WorkspaceAccessTokenField workspaceSlug="my-workspace" canGenerate />
       </TestApp>,
@@ -35,9 +35,12 @@ describe("WorkspaceAccessTokenField", () => {
 
     // Nothing is masked here: the field has no other content to reveal
     expect(screen.queryByText("*********")).not.toBeInTheDocument();
+    expect(container.querySelector("[data-mp-no-record]")).toBeNull();
 
     await user.click(screen.getByRole("button", { name: "Show" }));
-    expect(await screen.findByDisplayValue(TOKEN)).toBeInTheDocument();
+    const revealed = await screen.findByDisplayValue(TOKEN);
+    expect(revealed).toBeInTheDocument();
+    expect(revealed.closest("[data-mp-no-record]")).not.toBeNull();
 
     // Unlike the table cell, the dialog keeps the token in view: it is open to
     // hand it over, and reopening it starts from a hidden token again.

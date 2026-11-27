@@ -43,7 +43,10 @@ const WorkspaceAccessTokenCell = (props: WorkspaceAccessTokenCellProps) => {
           keep the token on a single overflowing line. */}
       <div className="w-[48ch] min-w-0 max-w-full whitespace-normal font-mono text-xs">
         {revealedToken ? (
-          <code className="block break-all rounded-md bg-gray-50 p-2 ring-1 ring-inset ring-gray-200">
+          <code
+            data-mp-no-record=""
+            className="block break-all rounded-md bg-gray-50 p-2 ring-1 ring-inset ring-gray-200"
+          >
             {revealedToken}
           </code>
         ) : (

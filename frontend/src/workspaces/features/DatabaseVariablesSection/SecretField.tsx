@@ -16,7 +16,10 @@ const SecretField = (field: { value: string | number }) => {
 
   if (showSecret) {
     return (
-      <div className="flex w-3/4 items-start justify-start gap-x-2 ">
+      <div
+        className="flex w-3/4 items-start justify-start gap-x-2 "
+        data-mp-no-record=""
+      >
         {value}
         <button
           onClick={toggleSecret}
