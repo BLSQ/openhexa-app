@@ -454,6 +454,17 @@ class AiDisabledWorkspaceTest(MCPTestCase):
             json.loads(templates)["pipelineTemplates"]["totalItems"],
         )
 
+    def test_dataset_links_leave_out_datasets_shared_by_the_blocked_workspace(self):
+        def datasets(principal):
+            return set(
+                DatasetLink.objects.filter_for_workspaces(
+                    workspaces=[self.WORKSPACE], principal=principal
+                ).values_list("dataset", flat=True)
+            )
+
+        self.assertIn(self.ORG_DATASET.pk, datasets(self.USER_ADMIN))
+        self.assertNotIn(self.ORG_DATASET.pk, datasets(self.mcp_user))
+
     def test_searching_for_the_blocked_workspace_says_ai_is_disabled(self):
         output, _ = self.call(self.mcp_user, "list_workspaces", {"query": "Blocked"})
 

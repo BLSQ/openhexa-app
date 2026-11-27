@@ -755,7 +755,9 @@ class DatasetLinkQuerySet(BaseQuerySet):
             "workspace",
         ).prefetch_related("dataset__versions", links_prefetch)
 
-    def filter_for_workspaces(self, workspaces, pinned=None, query=None):
+    def filter_for_workspaces(
+        self, workspaces, pinned=None, query=None, principal=None
+    ):
         """
         Get dataset links for given workspaces.
         Returns one link per dataset.
@@ -764,6 +766,8 @@ class DatasetLinkQuerySet(BaseQuerySet):
             workspaces: QuerySet or list of Workspace objects
             pinned: Optional boolean to filter by pinned status
             query: Optional search query for dataset name/description/slug
+            principal: The caller; when an AI, datasets owned by workspaces that
+                block AI are left out even when shared into the given workspaces
 
         Returns
         -------
@@ -779,7 +783,9 @@ class DatasetLinkQuerySet(BaseQuerySet):
             workspace__organization__workspaces__id__in=workspace_ids,
         )
 
-        qs = self.filter(permission_query)
+        qs = self.filter(permission_query).exclude_ai_blocked(
+            principal, "dataset__workspace"
+        )
 
         if query is not None:
             qs = qs.filter(

@@ -53,9 +53,11 @@ def resolve_dataset_link_permissions_pin(obj: DatasetLink, info, **kwargs):
 @workspace_object.field("datasets")
 def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **kwargs):
     qs = DatasetLink.objects.filter_for_workspaces(
-        workspaces=[obj], pinned=pinned, query=query
+        workspaces=[obj],
+        pinned=pinned,
+        query=query,
+        principal=info.context["request"].user,
     )
-    qs = qs.exclude_ai_blocked(info.context["request"].user, "dataset__workspace")
 
     return result_page(
         queryset=qs,
