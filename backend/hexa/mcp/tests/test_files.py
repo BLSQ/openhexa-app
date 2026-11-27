@@ -10,7 +10,6 @@ from hexa.files.backends.fs import FileSystemStorage
 from hexa.mcp.tools.files import (
     READABLE_EXTENSIONS,
     glob_files,
-    grep_files,
     list_files,
     read_file,
     write_file,
@@ -258,78 +257,6 @@ class GlobFilesTest(_BucketTestCase):
         )
         self.assertFalse(result["success"])
         self.assertEqual(result["errors"], ["INVALID_PATH"])
-
-
-class GrepFilesTest(_BucketTestCase):
-    def test_grep_files_content(self):
-        result = grep_files(
-            user=self.USER_ADMIN,
-            workspace_slug=self.WORKSPACE.slug,
-            pattern=r"^def ",
-            glob="**/*.py",
-            output_mode="content",
-        )
-        self.assertEqual(
-            result["content"],
-            "scripts/clean.py:2:def clean(df):\nscripts/load.py:1:def load():",
-        )
-
-    def test_grep_files_only_reads_files_matching_glob(self):
-        with patch.object(FileSystemStorage, "read_object", autospec=True) as read:
-            read.return_value = b"def load():"
-            grep_files(
-                user=self.USER_ADMIN,
-                workspace_slug=self.WORKSPACE.slug,
-                pattern="def",
-                glob="scripts/load.py",
-            )
-        read.assert_called_once()
-
-    @patch("hexa.files.schema.queries.GREP_MAX_DOWNLOAD_BYTES", 1)
-    def test_grep_files_stops_at_the_download_budget(self):
-        result = grep_files(
-            user=self.USER_ADMIN,
-            workspace_slug=self.WORKSPACE.slug,
-            pattern="def",
-            glob="**/*.py",
-            output_mode="count",
-        )
-        self.assertEqual(result["counts"], {"scripts/clean.py": 1})
-        self.assertTrue(result["truncated"])
-        self.assertIn("stopped after 1 of 2 files", result["notice"])
-
-    @patch("hexa.files.schema.queries.GREP_TIMEOUT_SECONDS", 0)
-    def test_grep_files_stops_at_the_timeout(self):
-        result = grep_files(
-            user=self.USER_ADMIN,
-            workspace_slug=self.WORKSPACE.slug,
-            pattern="def",
-            glob="**/*.py",
-        )
-        self.assertEqual(result["files"], [])
-        self.assertIn("stopped after 0 of 2 files", result["notice"])
-
-    @patch("hexa.files.bucket_file_source.MAX_LISTED_FILES", 2)
-    @patch("hexa.files.schema.queries.GREP_MAX_DOWNLOAD_BYTES", 1)
-    def test_grep_files_keeps_both_notices(self):
-        result = grep_files(
-            user=self.USER_ADMIN,
-            workspace_slug=self.WORKSPACE.slug,
-            pattern="a",
-            glob="**",
-        )
-        self.assertIn("Search stopped", result["notice"])
-        self.assertIn("Only the first", result["notice"])
-
-    def test_grep_files_no_access(self):
-        result = grep_files(
-            user=self.USER_OUTSIDER,
-            workspace_slug=self.WORKSPACE.slug,
-            pattern="def",
-            glob="**",
-        )
-        self.assertFalse(result["success"])
-        self.assertEqual(result["errors"], ["NOT_FOUND"])
 
 
 class ReadFileWithLineNumbersTest(MCPTestCase):

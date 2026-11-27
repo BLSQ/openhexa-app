@@ -1,4 +1,4 @@
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Iterable, Mapping
 
 from .grep import GREP_HEAD_LIMIT, GrepOutputMode, grep
 from .overlay import Overlay
@@ -15,8 +15,8 @@ class TextFiles:
     `files` maps every path, binary files included, to the file's text, or to None when
     it cannot be read as text (binary, too large); an unknown path raises KeyError.
     Sources: `GitRepoFileSource` (repositories, fetched per file or all at once),
-    `BucketFileSource` (workspace buckets, downloaded on lookup) and `Overlay`
-    (pending changes on top of either).
+    `BucketFileSource` (workspace buckets, paths only: contents are never read) and
+    `Overlay` (pending changes on top of either).
 
     With a lazy source, `glob` touches paths alone, and `grep` reads only the files its
     `glob` filter keeps, stopping once it has a full page. A file whose
@@ -48,30 +48,12 @@ class TextFiles:
         context: int = 0,
         head_limit: int = GREP_HEAD_LIMIT,
         offset: int = 0,
-        should_stop: Callable[[], bool] | None = None,
     ) -> dict:
-        """Search file contents (see grep.grep), restricted to paths matching `glob`.
-
-        `should_stop` is checked before each file is read, so a costly source can cap
-        what one search downloads; the result is then marked partial.
-        """
+        """Search file contents (see grep.grep), restricted to paths matching `glob`."""
         paths = self._paths(glob)
         self._files.prefetch(paths)
-        searched = 0
-        stopped = False
-
-        def candidates():
-            nonlocal searched, stopped
-            for path in paths:
-                if should_stop is not None and should_stop():
-                    stopped = True
-                    return
-                searched += 1
-                if (text := self._files[path]) is not None:
-                    yield path, text
-
-        result = grep(
-            candidates(),
+        return grep(
+            ((path, text) for path in paths if (text := self._files[path]) is not None),
             pattern,
             output_mode=output_mode,
             ignore_case=ignore_case,
@@ -79,13 +61,6 @@ class TextFiles:
             head_limit=head_limit,
             offset=offset,
         )
-        if stopped:
-            result["truncated"] = True
-            result["notice"] = (
-                f"Search stopped after {searched} of {len(paths)} files, so results "
-                "are partial: narrow the search."
-            )
-        return result
 
     def read(
         self,

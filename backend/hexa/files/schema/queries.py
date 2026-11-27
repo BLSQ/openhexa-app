@@ -1,14 +1,10 @@
-import time
-
 from ariadne import QueryType
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
 
 from hexa.core.text_files import (
     AGENT_READ,
-    GREP_HEAD_LIMIT,
     MAX_TEXT_FILE_SIZE,
-    GrepOutputMode,
     TextFiles,
     read_window,
 )
@@ -23,10 +19,6 @@ files_queries = QueryType()
 # A windowed read (line range or numbered) may download a larger file than a full read,
 # as long as what it returns stays under MAX_TEXT_FILE_SIZE.
 MAX_WINDOWED_READ_SIZE = 10 * 1024 * 1024
-# Every file grep searches is a full download; past these one call would hold a worker
-# for minutes and outlast the proxy timeout.
-GREP_MAX_DOWNLOAD_BYTES = 50 * 1024 * 1024
-GREP_TIMEOUT_SECONDS = 20
 
 
 @files_queries.field("getFileByPath")
@@ -129,11 +121,10 @@ def _bucket_files(request: HttpRequest, workspace_slug: str, prefix: str | None)
 
 def _with_listing_notice(result: dict, source: BucketFileSource) -> dict:
     if source.truncated:
-        notice = (
+        result["notice"] = (
             f"Only the first {MAX_LISTED_FILES} files of the bucket were considered. "
             "Pass a prefix to narrow the search."
         )
-        result["notice"] = " ".join(filter(None, [result.get("notice"), notice]))
     return {"success": True, "errors": [], **result}
 
 
@@ -143,45 +134,6 @@ def resolve_glob_files(_, info, workspace_slug, pattern, prefix=None):
     if errors:
         return {"success": False, "errors": errors}
     return _with_listing_notice(TextFiles(source).glob(pattern), source)
-
-
-@files_queries.field("grepFiles")
-def resolve_grep_files(
-    _,
-    info,
-    workspace_slug,
-    pattern,
-    glob,
-    prefix=None,
-    output_mode=GrepOutputMode.FILES_WITH_MATCHES,
-    ignore_case=False,
-    context=0,
-    head_limit=None,
-    offset=0,
-):
-    source, errors = _bucket_files(info.context["request"], workspace_slug, prefix)
-    if errors:
-        return {"success": False, "errors": errors}
-    # Started before the listing, which walks the bucket on the first access.
-    deadline = time.monotonic() + GREP_TIMEOUT_SECONDS
-    result = TextFiles(source).grep(
-        pattern,
-        glob=glob,
-        output_mode=output_mode,
-        ignore_case=ignore_case,
-        context=context,
-        head_limit=GREP_HEAD_LIMIT if head_limit is None else head_limit,
-        offset=offset,
-        should_stop=lambda: source.bytes_read >= GREP_MAX_DOWNLOAD_BYTES
-        or time.monotonic() >= deadline,
-    )
-    if "error" in result:
-        return {"success": False, "errors": ["INVALID_PATTERN"]}
-    if "counts" in result:
-        result["counts"] = [
-            {"path": path, "count": count} for path, count in result["counts"].items()
-        ]
-    return _with_listing_notice(result, source)
 
 
 bindables = [files_queries]

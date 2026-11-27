@@ -534,7 +534,6 @@ export enum AssistantToolName {
   GetWorkspace = 'get_workspace',
   GlobFiles = 'glob_files',
   GlobWebappFiles = 'glob_webapp_files',
-  GrepFiles = 'grep_files',
   GrepWebappFiles = 'grep_webapp_files',
   ListConnections = 'list_connections',
   ListDatasets = 'list_datasets',
@@ -2801,46 +2800,6 @@ export type GlobFilesResult = {
   /** True when more paths match than were returned. */
   truncated?: Maybe<Scalars['Boolean']['output']>;
 };
-
-export type GrepFileCount = {
-  __typename?: 'GrepFileCount';
-  count: Scalars['Int']['output'];
-  path: Scalars['String']['output'];
-};
-
-export enum GrepFilesError {
-  InvalidPath = 'INVALID_PATH',
-  InvalidPattern = 'INVALID_PATTERN',
-  NotFound = 'NOT_FOUND',
-  PermissionDenied = 'PERMISSION_DENIED'
-}
-
-export type GrepFilesResult = {
-  __typename?: 'GrepFilesResult';
-  /** With outputMode CONTENT. */
-  content?: Maybe<Scalars['String']['output']>;
-  /** With outputMode COUNT. */
-  counts?: Maybe<Array<GrepFileCount>>;
-  errors: Array<GrepFilesError>;
-  /** With outputMode FILES_WITH_MATCHES. */
-  files?: Maybe<Array<Scalars['String']['output']>>;
-  notice?: Maybe<Scalars['String']['output']>;
-  success: Scalars['Boolean']['output'];
-  /** With outputMode COUNT: matches across all files. */
-  total?: Maybe<Scalars['Int']['output']>;
-  /** True when there are more entries past headLimit, or the search stopped early. */
-  truncated?: Maybe<Scalars['Boolean']['output']>;
-};
-
-/** How grepFiles reports its matches. */
-export enum GrepOutputMode {
-  /** Matching lines as `path:line:text`, context lines as `path-line-text`. */
-  Content = 'CONTENT',
-  /** Number of matches per file, and their total. */
-  Count = 'COUNT',
-  /** Paths of the files that match. */
-  FilesWithMatches = 'FILES_WITH_MATCHES'
-}
 
 /** IASO connection object */
 export type IasoConnection = Connection & {
@@ -5147,13 +5106,6 @@ export type Query = {
    * Hidden files are skipped.
    */
   globFiles: GlobFilesResult;
-  /**
-   * Search the text files of a workspace's bucket matching `glob` with a Python regular
-   * expression. Every file searched is downloaded: a search stops after 50 MB or 20 seconds
-   * and returns what it found with a notice. Files over 1 MB are skipped. headLimit and
-   * offset page through the entries.
-   */
-  grepFiles: GrepFilesResult;
   /** The consent context for a pending authorization, by OAuth client id. */
   mcpAuthorizationRequest?: Maybe<McpAuthorizationRequest>;
   /** The MCP clients the current user has connected. */
@@ -5374,19 +5326,6 @@ export type QueryGetFileByPathArgs = {
 
 
 export type QueryGlobFilesArgs = {
-  pattern: Scalars['String']['input'];
-  prefix?: InputMaybe<Scalars['String']['input']>;
-  workspaceSlug: Scalars['String']['input'];
-};
-
-
-export type QueryGrepFilesArgs = {
-  context?: InputMaybe<Scalars['Int']['input']>;
-  glob: Scalars['String']['input'];
-  headLimit?: InputMaybe<Scalars['Int']['input']>;
-  ignoreCase?: InputMaybe<Scalars['Boolean']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  outputMode?: InputMaybe<GrepOutputMode>;
   pattern: Scalars['String']['input'];
   prefix?: InputMaybe<Scalars['String']['input']>;
   workspaceSlug: Scalars['String']['input'];

@@ -40,42 +40,6 @@ query GlobFiles($workspaceSlug: String!, $pattern: String!, $prefix: String) {
   }
 }
 
-query GrepFiles(
-  $workspaceSlug: String!
-  $pattern: String!
-  $glob: String!
-  $prefix: String
-  $outputMode: GrepOutputMode
-  $ignoreCase: Boolean
-  $context: Int
-  $headLimit: Int
-  $offset: Int
-) {
-  grepFiles(
-    workspaceSlug: $workspaceSlug
-    pattern: $pattern
-    glob: $glob
-    prefix: $prefix
-    outputMode: $outputMode
-    ignoreCase: $ignoreCase
-    context: $context
-    headLimit: $headLimit
-    offset: $offset
-  ) {
-    success
-    errors
-    files
-    content
-    counts {
-      path
-      count
-    }
-    total
-    truncated
-    notice
-  }
-}
-
 mutation WriteFileContent($input: WriteFileContentInput!) {
   writeFileContent(input: $input) {
     success

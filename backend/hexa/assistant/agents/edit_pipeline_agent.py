@@ -12,7 +12,7 @@ from hexa.assistant.tools.pipelines import get_pipeline_run, propose_pipeline_ve
 from hexa.assistant.tools.proposals import pending_proposal
 from hexa.mcp.tools.connections import list_connections
 from hexa.mcp.tools.datasets import get_dataset, list_datasets, preview_dataset_file
-from hexa.mcp.tools.files import glob_files, grep_files, list_files, read_file
+from hexa.mcp.tools.files import glob_files, list_files, read_file
 from hexa.mcp.tools.help import get_help_or_doc
 from hexa.pipelines.models import Pipeline, PipelineRun, PipelineRunState
 from hexa.pipelines.utils import mask_secret_parameters
@@ -73,7 +73,6 @@ class EditPipelineAgent(BaseAgent):
         list_connections,
         list_files,
         glob_files,
-        grep_files,
         read_file,
         get_pipeline_run,
         propose_pipeline_version,
