@@ -26,6 +26,32 @@ function required(name: string): string {
   return value;
 }
 
+function flag(name: string): boolean {
+  const value = process.env[name];
+  if (value === undefined || value === "" || value === "true") {
+    return true;
+  }
+  if (value === "false") {
+    return false;
+  }
+  throw new Error(`${name} must be true or false, not "${value}".`);
+}
+
+/**
+ * What the environment under test is set up with. Everything defaults to true,
+ * which is the demo environment; a deployment without one of these says so,
+ * and the tests that need it are skipped. They are declared rather than
+ * detected so that a feature going missing where it is expected fails.
+ */
+export const features = {
+  /** `ALLOW_SELF_REGISTRATION`: the login page links to sign-up. */
+  selfRegistration: flag("E2E_SERVER_CONFIGURATION_SELF_REGISTRATION_ENABLED"),
+  /** The assistant is enabled in the organization's settings. */
+  ai: flag("E2E_SERVER_CONFIGURATION_AI_ENABLED"),
+  /** The frontend has a `CONSOLE_URL` for Usage & Limits to link to. */
+  subscription: flag("E2E_SERVER_CONFIGURATION_SUBSCRIPTION_CONSOLE_ENABLED"),
+};
+
 export const credentials = {
   get email() {
     return required("E2E_EMAIL");

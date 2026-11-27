@@ -1,4 +1,6 @@
+import { features } from "../config/environment";
 import { expect, test } from "../fixtures/cleanup";
+import { requires } from "../helpers/features";
 import { uniqueName } from "../helpers/confirm";
 import { ServedWebapp } from "../pages/ServedWebapp";
 import { proposeThenExplainPrompt } from "../pages/AssistantPanel";
@@ -22,6 +24,8 @@ const REGIONS_SQL = "SELECT code, name FROM level_2_region ORDER BY code";
 test.describe.configure({ timeout: 420_000 });
 
 test.describe("Web app AI assistant", () => {
+  requires("ai");
+
   test("a web app created with AI opens in the editor, reading a saved query", async ({
     page,
     cleanup,
@@ -245,5 +249,35 @@ test.describe("Web app AI assistant", () => {
       await webapps.gotoTab(slug, "Code");
       await expect(webapps.treeFile("notes.txt")).toHaveCount(0);
     });
+  });
+});
+
+test.describe("Web apps without the AI assistant", () => {
+  test.skip(features.ai, "The environment has the assistant.");
+
+  test("the Create dialog does not offer to create with AI", async ({
+    page,
+  }) => {
+    const webapps = new WorkspaceWebappsPage(page);
+    const dialog = new CreateWebappWithAIDialog(page);
+
+    await webapps.goto();
+    await dialog.openButton.click();
+
+    await expect(dialog.method("From code")).toBeVisible();
+    await expect(dialog.methodButton).toHaveCount(0);
+  });
+
+  test("the Code tab has no assistant", async ({ page, cleanup }) => {
+    const webapps = new WorkspaceWebappsPage(page);
+    const assistant = new WebappAssistantPanel(page);
+
+    const slug = await webapps.create("Static", uniqueName("e2e no assistant"));
+    cleanup.add(`web app ${slug}`, () => webapps.deleteIfPresent(slug));
+
+    await webapps.gotoTab(slug, "Code");
+    await expect(webapps.codeEditor).toContainText(TEMPLATE_HEADING);
+    await expect(assistant.openButton).toHaveCount(0);
+    await expect(assistant.heading).toHaveCount(0);
   });
 });

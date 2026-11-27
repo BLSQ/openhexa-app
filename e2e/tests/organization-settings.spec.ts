@@ -1,6 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-import { organization, organizationPaths } from "../config/environment";
+import {
+  features,
+  organization,
+  organizationPaths,
+} from "../config/environment";
+import { requires } from "../helpers/features";
 import { OrganizationSettingsPage } from "../pages/OrganizationSettingsPage";
 
 const AI_DOCS_URL = "https://docs.openhexa.com/ai/";
@@ -39,16 +44,33 @@ test.describe("Organization settings", () => {
     ]) {
       await expect(settings.usageMetric(metric)).toHaveText(/^[\d.]+$/);
     }
+  });
+
+  test("the Usage & Limits card links to the subscription console", async () => {
+    requires("subscription");
     await expect(settings.manageSubscriptionLink).toHaveAttribute(
       "href",
       /^https?:\/\//,
     );
   });
 
+  test("without a subscription console, the Usage & Limits card links nowhere", async () => {
+    test.skip(features.subscription, "The environment has a console.");
+    await expect(settings.usageAndLimitsCard).toBeVisible();
+    await expect(settings.manageSubscriptionLink).toHaveCount(0);
+  });
+
   test("the AI Assistant card reports its configuration", async () => {
+    requires("ai");
     await expect(settings.aiAssistantCard.getByText("Enabled")).toBeVisible();
     await expect(settings.aiAssistantCard.getByText("Provider")).toBeVisible();
     await expect(settings.aiAssistantCard.getByRole("switch")).toHaveCount(1);
+  });
+
+  test("without the assistant, the AI Assistant card reports it as off", async () => {
+    test.skip(features.ai, "The environment has the assistant.");
+    await expect(settings.aiAssistantCard.getByRole("switch")).not.toBeChecked();
+    await expect(settings.aiAssistantCard.getByText("Provider")).toHaveCount(0);
   });
 
   test("the AI Assistant card links to the documentation on AI", async ({

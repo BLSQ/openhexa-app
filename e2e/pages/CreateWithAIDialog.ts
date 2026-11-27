@@ -22,9 +22,13 @@ export abstract class CreateWithAIDialog {
     return this.dialog.getByRole("heading", { name: "Create with AI" });
   }
 
-  /** The method card's name also carries its description. */
+  /** A method card, whose name also carries its description. */
+  method(title: string): Locator {
+    return this.dialog.getByRole("button", { name: new RegExp(`^${title}`) });
+  }
+
   get methodButton(): Locator {
-    return this.dialog.getByRole("button", { name: /^Create with AI/ });
+    return this.method("Create with AI");
   }
 
   get promptInput(): Locator {
