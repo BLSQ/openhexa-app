@@ -29,6 +29,7 @@ _ALLOWED_SLUGS = frozenset(
         "writing-pipelines",
         "cli",
         "sdk",
+        "sdk-r",
         "toolbox-dhis2",
         "toolbox-iaso",
         "toolbox-hexa",
