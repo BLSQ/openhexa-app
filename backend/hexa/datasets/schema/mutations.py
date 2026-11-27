@@ -63,6 +63,7 @@ def resolve_update_dataset(_, info, **kwargs):
     except Dataset.DoesNotExist:
         return {"success": False, "errors": ["DATASET_NOT_FOUND"]}
 
+    previous_visibility = dataset.visibility
     try:
         dataset.update_if_has_perm(
             principal=request.user,
@@ -72,6 +73,19 @@ def resolve_update_dataset(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
     except ValidationError as e:
         return {"success": False, "errors": [e.code]}
+
+    if dataset.visibility != previous_visibility:
+        track(
+            request,
+            "datasets.dataset_visibility_changed",
+            {
+                "dataset_id": dataset.slug,
+                "workspace": dataset.workspace.slug if dataset.workspace else None,
+                "previous_visibility": previous_visibility,
+                "visibility": dataset.visibility,
+            },
+        )
+
     return {"success": True, "errors": [], "dataset": dataset}
 
 

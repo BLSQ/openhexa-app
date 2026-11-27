@@ -6,6 +6,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.http import HttpRequest
 
+from hexa.analytics.api import track
 from hexa.countries.models import Country
 from hexa.databases.utils import TableNotFound, delete_table
 from hexa.tags.models import InvalidTag, Tag
@@ -56,6 +57,16 @@ def resolve_create_workspace(_, info, **kwargs):
             load_sample_data=create_input.get("load_sample_data"),
             organization=organization,
             configuration=create_input.get("configuration"),
+        )
+
+        track(
+            request,
+            "workspaces.workspace_created",
+            {
+                "workspace": workspace.slug,
+                "organization": organization.name,
+                "load_sample_data": bool(create_input.get("load_sample_data")),
+            },
         )
 
         return {"success": True, "workspace": workspace, "errors": []}
@@ -396,6 +407,15 @@ def resolve_create_workspace_connection(_, info, **kwargs):
             connection = Connection.objects.create_if_has_perm(
                 request.user, workspace, **mutation_input
             )
+
+        track(
+            request,
+            "workspaces.connection_created",
+            {
+                "workspace": workspace.slug,
+                "connection_type": connection.connection_type,
+            },
+        )
 
         return {"success": True, "errors": [], "connection": connection}
     except ValidationError:

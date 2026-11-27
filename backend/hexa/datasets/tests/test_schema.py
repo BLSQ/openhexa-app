@@ -1,7 +1,7 @@
 import json
 from datetime import timedelta
 from io import BytesIO
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -1499,6 +1499,180 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
             {"success": False, "errors": ["PUBLIC_SLUG_LOCKED"], "dataset": None},
             r["data"]["updateDataset"],
         )
+
+    @patch("hexa.datasets.schema.mutations.track")
+    def test_update_dataset_visibility_tracks_event(self, mock_track):
+        self.client.force_login(self.org_admin)
+        mutation = """
+            mutation UpdateDataset ($input: UpdateDatasetInput!) {
+                updateDataset(input: $input) {
+                    success
+                    errors
+                }
+            }
+        """
+
+        r = self.run_query(
+            mutation,
+            {
+                "input": {
+                    "datasetId": str(self.dataset.id),
+                    "visibility": "ORGANIZATION",
+                }
+            },
+        )
+        self.assertEqual({"success": True, "errors": []}, r["data"]["updateDataset"])
+        mock_track.assert_called_once_with(
+            ANY,
+            "datasets.dataset_visibility_changed",
+            {
+                "dataset_id": self.dataset.slug,
+                "workspace": self.workspace.slug,
+                "previous_visibility": DatasetVisibility.WORKSPACE,
+                "visibility": DatasetVisibility.ORGANIZATION,
+            },
+        )
+
+        # Echoing the same visibility should not emit a duplicate event
+        mock_track.reset_mock()
+        r = self.run_query(
+            mutation,
+            {
+                "input": {
+                    "datasetId": str(self.dataset.id),
+                    "visibility": "ORGANIZATION",
+                }
+            },
+        )
+        self.assertEqual({"success": True, "errors": []}, r["data"]["updateDataset"])
+        mock_track.assert_not_called()
+
+        r = self.run_query(
+            mutation,
+            {
+                "input": {
+                    "datasetId": str(self.dataset.id),
+                    "visibility": "PUBLIC",
+                }
+            },
+        )
+        self.assertEqual({"success": True, "errors": []}, r["data"]["updateDataset"])
+        mock_track.assert_called_once_with(
+            ANY,
+            "datasets.dataset_visibility_changed",
+            {
+                "dataset_id": self.dataset.slug,
+                "workspace": self.workspace.slug,
+                "previous_visibility": DatasetVisibility.ORGANIZATION,
+                "visibility": DatasetVisibility.PUBLIC,
+            },
+        )
+
+    @patch("hexa.datasets.schema.mutations.track")
+    def test_update_dataset_shared_with_organization_tracks_visibility_change(
+        self, mock_track
+    ):
+        self.client.force_login(self.org_admin)
+        mutation = """
+            mutation UpdateDataset ($input: UpdateDatasetInput!) {
+                updateDataset(input: $input) {
+                    success
+                    errors
+                }
+            }
+        """
+
+        r = self.run_query(
+            mutation,
+            {
+                "input": {
+                    "datasetId": str(self.dataset.id),
+                    "sharedWithOrganization": True,
+                }
+            },
+        )
+        self.assertEqual({"success": True, "errors": []}, r["data"]["updateDataset"])
+        mock_track.assert_called_once_with(
+            ANY,
+            "datasets.dataset_visibility_changed",
+            {
+                "dataset_id": self.dataset.slug,
+                "workspace": self.workspace.slug,
+                "previous_visibility": DatasetVisibility.WORKSPACE,
+                "visibility": DatasetVisibility.ORGANIZATION,
+            },
+        )
+
+        mock_track.reset_mock()
+        r = self.run_query(
+            mutation,
+            {
+                "input": {
+                    "datasetId": str(self.dataset.id),
+                    "sharedWithOrganization": False,
+                }
+            },
+        )
+        self.assertEqual({"success": True, "errors": []}, r["data"]["updateDataset"])
+        mock_track.assert_called_once_with(
+            ANY,
+            "datasets.dataset_visibility_changed",
+            {
+                "dataset_id": self.dataset.slug,
+                "workspace": self.workspace.slug,
+                "previous_visibility": DatasetVisibility.ORGANIZATION,
+                "visibility": DatasetVisibility.WORKSPACE,
+            },
+        )
+
+    @patch("hexa.datasets.schema.mutations.track")
+    def test_update_dataset_name_without_visibility_change_does_not_track(
+        self, mock_track
+    ):
+        self.client.force_login(self.org_admin)
+        r = self.run_query(
+            """
+            mutation UpdateDataset ($input: UpdateDatasetInput!) {
+                updateDataset(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "datasetId": str(self.dataset.id),
+                    "name": "Renamed Dataset",
+                }
+            },
+        )
+        self.assertEqual({"success": True, "errors": []}, r["data"]["updateDataset"])
+        mock_track.assert_not_called()
+
+    @patch("hexa.datasets.schema.mutations.track")
+    def test_update_dataset_permission_denied_does_not_track(self, mock_track):
+        self.client.force_login(self.org_member)
+        r = self.run_query(
+            """
+            mutation UpdateDataset ($input: UpdateDatasetInput!) {
+                updateDataset(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "datasetId": str(self.dataset.id),
+                    "visibility": "ORGANIZATION",
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["updateDataset"],
+        )
+        mock_track.assert_not_called()
 
     def test_query_dataset_shared_with_organization_field(self):
         self.client.force_login(self.org_admin)

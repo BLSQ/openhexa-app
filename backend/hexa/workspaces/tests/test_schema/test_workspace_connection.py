@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import User
@@ -256,6 +256,73 @@ class ConnectionTest(GraphQLTestCase):
             },
             r["data"]["createConnection"],
         )
+
+    @patch("hexa.workspaces.schema.mutations.track")
+    def test_create_connection_tracks_event(self, mock_track):
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+            mutation createConnection($input:CreateConnectionInput!) {
+                createConnection(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": str(self.WORKSPACE.slug),
+                    "name": "DHIS2 Prod",
+                    "slug": "dhis2-prod",
+                    "type": ConnectionType.DHIS2,
+                    "fields": [
+                        {
+                            "code": "url",
+                            "value": "https://dhis2.example.org",
+                            "secret": False,
+                        }
+                    ],
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["createConnection"],
+        )
+        mock_track.assert_called_once_with(
+            ANY,
+            "workspaces.connection_created",
+            {
+                "workspace": self.WORKSPACE.slug,
+                "connection_type": ConnectionType.DHIS2,
+            },
+        )
+
+    @patch("hexa.workspaces.schema.mutations.track")
+    def test_create_connection_permission_denied_does_not_track(self, mock_track):
+        self.client.force_login(self.USER_VIEWER)
+        r = self.run_query(
+            """
+            mutation createConnection($input:CreateConnectionInput!) {
+                createConnection(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": str(self.WORKSPACE.slug),
+                    "name": "Denied Connection",
+                    "type": ConnectionType.CUSTOM,
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["createConnection"],
+        )
+        mock_track.assert_not_called()
 
     def test_update_connection(self):
         self.client.force_login(self.USER_SABRINA)

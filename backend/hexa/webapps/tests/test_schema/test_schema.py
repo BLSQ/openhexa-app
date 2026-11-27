@@ -1,3 +1,5 @@
+from unittest.mock import ANY, patch
+
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import User
 from hexa.webapps.models import Webapp
@@ -131,6 +133,68 @@ class WebappsTest(GraphQLTestCase):
         self.assertEqual(
             response["data"]["createWebapp"]["webapp"]["name"], "New Webapp"
         )
+
+    @patch("hexa.webapps.schema.mutations.track")
+    def test_create_webapp_tracks_event(self, mock_track):
+        self.client.force_login(self.USER_ROOT)
+        response = self.run_query(
+            """
+            mutation createWebapp($input: CreateWebappInput!) {
+                createWebapp(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "name": "Tracked Public Webapp",
+                    "workspaceSlug": self.WS1.slug,
+                    "isPublic": True,
+                    "source": {"iframe": {"url": "http://trackedwebapp.com"}},
+                }
+            },
+        )
+        self.assertTrue(response["data"]["createWebapp"]["success"])
+        mock_track.assert_called_once_with(
+            ANY,
+            "webapps.webapp_created",
+            {
+                "workspace": self.WS1.slug,
+                "webapp_type": Webapp.WebappType.IFRAME,
+                "is_public": True,
+            },
+        )
+
+    @patch("hexa.webapps.schema.mutations.track")
+    def test_create_webapp_permission_denied_does_not_track(self, mock_track):
+        viewer = User.objects.create_user("viewer@bluesquarehub.com", "password")
+        WorkspaceMembership.objects.create(
+            user=viewer, workspace=self.WS1, role=WorkspaceMembershipRole.VIEWER
+        )
+        self.client.force_login(viewer)
+        response = self.run_query(
+            """
+            mutation createWebapp($input: CreateWebappInput!) {
+                createWebapp(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "name": "Denied Webapp",
+                    "workspaceSlug": self.WS1.slug,
+                    "source": {"iframe": {"url": "http://deniedwebapp.com"}},
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            response["data"]["createWebapp"],
+        )
+        mock_track.assert_not_called()
 
     def test_update_webapp(self):
         self.client.force_login(self.USER_ROOT)

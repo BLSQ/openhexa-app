@@ -267,6 +267,105 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["createWorkspace"],
         )
 
+    @patch("hexa.workspaces.schema.mutations.track")
+    def test_create_workspace_tracks_event(self, mock_track):
+        self.client.force_login(self.USER_JOE)
+        r = self.run_query(
+            """
+            mutation createWorkspace($input:CreateWorkspaceInput!) {
+                createWorkspace(input: $input) {
+                    success
+                    workspace {
+                        slug
+                    }
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "name": "Tracked Workspace",
+                    "description": "Description",
+                    "organizationId": str(self.ORGANIZATION.id),
+                }
+            },
+        )
+        self.assertTrue(r["data"]["createWorkspace"]["success"])
+        slug = r["data"]["createWorkspace"]["workspace"]["slug"]
+        mock_track.assert_called_once_with(
+            ANY,
+            "workspaces.workspace_created",
+            {
+                "workspace": slug,
+                "organization": self.ORGANIZATION.name,
+                "load_sample_data": False,
+            },
+        )
+
+        mock_track.reset_mock()
+        with (
+            patch("hexa.workspaces.models.load_database_sample_data"),
+            patch("hexa.workspaces.models.load_bucket_sample_data"),
+        ):
+            r = self.run_query(
+                """
+                mutation createWorkspace($input:CreateWorkspaceInput!) {
+                    createWorkspace(input: $input) {
+                        success
+                        workspace {
+                            slug
+                        }
+                        errors
+                    }
+                }
+                """,
+                {
+                    "input": {
+                        "name": "Tracked Sample Workspace",
+                        "description": "Description",
+                        "loadSampleData": True,
+                        "organizationId": str(self.ORGANIZATION.id),
+                    }
+                },
+            )
+        self.assertTrue(r["data"]["createWorkspace"]["success"])
+        sample_slug = r["data"]["createWorkspace"]["workspace"]["slug"]
+        mock_track.assert_called_once_with(
+            ANY,
+            "workspaces.workspace_created",
+            {
+                "workspace": sample_slug,
+                "organization": self.ORGANIZATION.name,
+                "load_sample_data": True,
+            },
+        )
+
+    @patch("hexa.workspaces.schema.mutations.track")
+    def test_create_workspace_denied_does_not_track(self, mock_track):
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+            mutation createWorkspace($input:CreateWorkspaceInput!) {
+                createWorkspace(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "name": "Denied Workspace",
+                    "description": "Description",
+                    "organizationId": str(self.ORGANIZATION.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["createWorkspace"],
+        )
+        mock_track.assert_not_called()
+
     def test_create_workspace_as_workspace_admin(self):
         """Test that a workspace admin (not org admin) can create workspaces"""
         self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
