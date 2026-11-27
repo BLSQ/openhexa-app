@@ -9,6 +9,7 @@ import clsx from "clsx";
 import Callout from "core/components/Callout";
 import Clipboard from "core/components/Clipboard";
 import ConfirmSharingDialog from "core/features/Sharing/ConfirmSharingDialog";
+import { getPublicDatasetUrl } from "datasets/features/DatasetSharing/datasetSharing";
 import useDatasetShareDialog from "datasets/features/DatasetSharing/useDatasetShareDialog";
 import { DatasetVisibility } from "graphql/types";
 import { useTranslation } from "next-i18next";
@@ -127,10 +128,10 @@ const DatasetVisibilityPicker = ({
           )}
           {visibility === DatasetVisibility.Public && dataset.publicSlug && (
             <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
-              {t("Public link identifier")}
-              <Clipboard value={dataset.publicSlug}>
+              {t("Public link")}
+              <Clipboard value={getPublicDatasetUrl(dataset.publicSlug)}>
                 <code className="rounded-sm bg-gray-100 px-1.5 py-0.5 text-gray-800">
-                  {dataset.publicSlug}
+                  {getPublicDatasetUrl(dataset.publicSlug)}
                 </code>
               </Clipboard>
             </div>

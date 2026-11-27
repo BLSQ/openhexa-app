@@ -53,6 +53,16 @@ export const useDatasetSharingOptions =
 export const useDatasetSharingOption = (visibility: DatasetVisibility) =>
   useOptionsByValue()[visibility];
 
+// The permalink of a public dataset. Its public slug never changes once set, so
+// the link outlives renames.
+export const getPublicDatasetPath = (publicSlug: string) =>
+  `/datasets/${encodeURIComponent(publicSlug)}`;
+
+// The absolute form, for handing out. Only the browser knows the origin, so a
+// server render gets the path alone.
+export const getPublicDatasetUrl = (publicSlug: string) =>
+  `${typeof window === "undefined" ? "" : window.location.origin}${getPublicDatasetPath(publicSlug)}`;
+
 // Mirrors Dataset.update_if_has_perm on the backend, so the picker never offers
 // a switch the API would refuse.
 export const canChangeDatasetVisibility = (

@@ -94,7 +94,7 @@ describe("DatasetVisibilityPicker", () => {
     expect(screen.getByText("Private")).toBeInTheDocument();
   });
 
-  it("shows the public link identifier of a public dataset", () => {
+  it("shows the public link of a public dataset", () => {
     render(
       <DatasetVisibilityPicker
         dataset={{
@@ -106,6 +106,8 @@ describe("DatasetVisibilityPicker", () => {
         }}
       />,
     );
-    expect(screen.getByText("malaria-cases")).toBeInTheDocument();
+    expect(
+      screen.getByText("http://localhost/datasets/malaria-cases"),
+    ).toBeInTheDocument();
   });
 });

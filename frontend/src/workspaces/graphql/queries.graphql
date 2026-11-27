@@ -505,6 +505,7 @@ query WorkspaceDatasetsPage(
           slug
           description
           visibility
+          publicSlug
           updatedAt
           workspace {
             slug

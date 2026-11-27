@@ -123,13 +123,16 @@ A dataset's visibility decides who can reach it beyond the workspaces it is shar
 
 - **Private** (default): only the workspaces the dataset is shared with.
 - **Organization**: every workspace within your organization.
-- **Public**: for now, the same reach as the organization visibility.
+- **Public**: every workspace within your organization, and anyone with the dataset's public link, even without an OpenHEXA account.
 
 ⚠️ Organization and public visibility override any specific workspace permissions. While a dataset has one of them, it cannot be shared with more workspaces; the workspaces it is already shared with keep their access if it is made private again.
 
 #### Making a dataset public
 - Only the dataset's author (if they are still an editor or admin of its workspace), the workspace admins and the organization admins and owners can make a dataset public, or take a public dataset back to the organization or workspace.
 - When making a dataset public for the first time, you choose the identifier of its public link. It defaults to the dataset identifier and can only contain lowercase letters and numbers, separated by single hyphens or underscores. Uppercase letters, accents, spaces and dots are converted as you type, and a few words kept for the platform's own pages, such as `new` or `search`, cannot be used. It cannot be changed once set, even if the dataset is later made public again.
+- The public link has the form `https://<your OpenHEXA domain>/datasets/<identifier>`. Copy it from the **Access management** tab, or open it from the icon next to the **Public** badge in the workspace's dataset list.
+- Visitors of the public link see the dataset's name, description, versions and files, the names of its workspace and organization, and can preview and download its files. They don't see who created the dataset or its files, nor which workspaces it is shared with.
+- Public links are kept out of search engines. Making the dataset private again, or archiving its workspace, takes the link down.
 
 ### Sharing permissions
 

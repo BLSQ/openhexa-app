@@ -1654,12 +1654,15 @@ export type Dataset = MetadataObject & {
   __typename?: 'Dataset';
   attributes: Array<MetadataAttribute>;
   createdAt: Scalars['DateTime']['output'];
+  /** Hidden from callers who see the dataset only because it is public. */
   createdBy?: Maybe<User>;
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   latestVersion?: Maybe<DatasetVersion>;
   links: DatasetLinkPage;
   name: Scalars['String']['output'];
+  /** Name of the organization of the dataset's workspace, readable by anyone who can see the dataset. */
+  organizationName?: Maybe<Scalars['String']['output']>;
   permissions: DatasetPermissions;
   /** Slug unique across the whole instance, used for permalinks. Only set once the dataset needs one. */
   publicSlug?: Maybe<Scalars['String']['output']>;
@@ -1671,7 +1674,10 @@ export type Dataset = MetadataObject & {
   version?: Maybe<DatasetVersion>;
   versions: DatasetVersionPage;
   visibility: DatasetVisibility;
+  /** Hidden from callers who see the dataset only because it is public. */
   workspace?: Maybe<Workspace>;
+  /** Name of the dataset's workspace, readable by anyone who can see the dataset. */
+  workspaceName?: Maybe<Scalars['String']['output']>;
 };
 
 
@@ -1774,6 +1780,7 @@ export type DatasetVersion = MetadataObject & {
   attributes: Array<MetadataAttribute>;
   changelog?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
+  /** Hidden from callers who see the dataset only because it is public. */
   createdBy?: Maybe<User>;
   dataset: Dataset;
   /** @deprecated use changelog instead */
@@ -1807,6 +1814,7 @@ export type DatasetVersionFile = MetadataObject & {
   columns?: Maybe<Array<Scalars['String']['output']>>;
   contentType: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
+  /** Hidden from callers who see the dataset only because it is public. */
   createdBy?: Maybe<User>;
   downloadUrl?: Maybe<Scalars['String']['output']>;
   fileSample?: Maybe<DatasetFileSample>;
@@ -1865,7 +1873,7 @@ export type DatasetVersionPermissions = {
 export enum DatasetVisibility {
   /** Every member of the organization. */
   Organization = 'ORGANIZATION',
-  /** For now, every member of the organization. */
+  /** Every member of the organization, and anyone with its public link. */
   Public = 'PUBLIC',
   /** The members of the workspaces the dataset is shared with. */
   Workspace = 'WORKSPACE'
@@ -3403,7 +3411,7 @@ export type Mutation = {
   prepareObjectDownload: PrepareObjectDownloadResult;
   /** Prepare to upload an object to a workspace's bucket. */
   prepareObjectUpload: PrepareObjectUploadResult;
-  /** Prepare to download a file in a dataset version. */
+  /** Prepare to download a file in a dataset version. Files of public datasets can be downloaded by anyone, anonymous included. */
   prepareVersionFileDownload: PrepareVersionFileDownloadResult;
   /** Registers a new user. */
   register: RegisterResult;
@@ -5099,7 +5107,7 @@ export type Query = {
   dagRun?: Maybe<DagRun>;
   dags: DagPage;
   databaseTable?: Maybe<DatabaseTable>;
-  /** Get a dataset by its ID. */
+  /** Get a dataset by its ID. Public datasets are returned to anyone, anonymous included. */
   dataset?: Maybe<Dataset>;
   /** Get a dataset link by its id. */
   datasetLink?: Maybe<DatasetLink>;
@@ -5107,7 +5115,7 @@ export type Query = {
   datasetLinkBySlug?: Maybe<DatasetLink>;
   /** Get a dataset by its slug. */
   datasetVersion?: Maybe<DatasetVersion>;
-  /** Get a dataset file by its id  */
+  /** Get a dataset file by its id. Files of public datasets are returned to anyone, anonymous included. */
   datasetVersionFile?: Maybe<DatasetVersionFile>;
   /** Search datasets. */
   datasets: DatasetPage;
@@ -5167,6 +5175,8 @@ export type Query = {
   pipelineVersion?: Maybe<PipelineVersion>;
   /** Retrieves a page of pipelines ordered by relevant name. */
   pipelines: PipelinesPage;
+  /** Get a public dataset by its public slug, for anyone, anonymous included. */
+  publicDataset?: Maybe<Dataset>;
   /** Retrieves a public saved query by its slug, for anyone, anonymous included. */
   publicSavedQuery?: Maybe<PublicSavedQuery>;
   /**
@@ -5447,6 +5457,11 @@ export type QueryPipelinesArgs = {
   search?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryPublicDatasetArgs = {
+  slug: Scalars['String']['input'];
 };
 
 
