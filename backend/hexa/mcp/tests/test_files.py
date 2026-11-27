@@ -140,7 +140,6 @@ class ReadFileTest(MCPTestCase):
             "config.json",
             "analysis.ipynb",
             "notes.txt",
-            "README.md",
             "DATA.CSV",
             "scripts/data.py.csv",
             ".env",
@@ -152,7 +151,9 @@ class ReadFileTest(MCPTestCase):
                     workspace_slug=self.WORKSPACE.slug,
                     file_path=file_path,
                 )
-                self.assertIn("only reads source code files", result["error"])
+                self.assertIn(
+                    "only reads source code and documentation files", result["error"]
+                )
         mock_storage.read_object.assert_not_called()
         mock_storage.get_bucket_object.assert_not_called()
 
