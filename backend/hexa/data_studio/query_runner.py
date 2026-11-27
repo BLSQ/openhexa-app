@@ -5,7 +5,9 @@ from collections.abc import Iterator
 import psycopg2
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
+from psycopg2.errors import QueryCanceled
 
+from hexa.analytics.api import track
 from hexa.databases.query_text import (
     MultipleStatementsError,
     OrderBy,
@@ -44,6 +46,14 @@ from .templating import (
 logger = logging.getLogger(__name__)
 
 
+def _tracked_user(request: HttpRequest) -> User | None:
+    user = request.user
+    if not isinstance(user, User):
+        # Service principals (PipelineRunUser, ...) expose the triggering human
+        user = getattr(user, "real_user", None)
+    return user
+
+
 def _log_executed_query(
     request: HttpRequest,
     workspace: Workspace,
@@ -52,13 +62,9 @@ def _log_executed_query(
     status: str,
     **fields,
 ) -> QueryLog:
-    user = request.user
-    if not isinstance(user, User):
-        # Service principals (PipelineRunUser, ...) expose the triggering human
-        user = getattr(user, "real_user", None)
     return QueryLog.objects.create(
         workspace=workspace,
-        user=user,
+        user=_tracked_user(request),
         query=query,
         origin=origin,
         status=status,
@@ -168,8 +174,7 @@ def _execute_and_log(
         )
         result = execute_database_query(workspace, statement, **max_rows_kwarg)
     except psycopg2.Error as e:
-        # QueryCanceled (statement timeout) is a psycopg2.Error subclass and
-        # needs no dedicated handling here: both outcomes log the same fields.
+        duration_ms = elapsed_ms(started_at)
         _log_executed_query(
             request,
             workspace,
@@ -178,9 +183,21 @@ def _execute_and_log(
             QueryLog.Status.ERROR,
             result_code=e.pgcode,
             error_message=str(e).strip(),
-            duration_ms=elapsed_ms(started_at),
+            duration_ms=duration_ms,
             saved_query=saved_query,
             parameters=parameters,
+        )
+        track(
+            request,
+            "data_studio.query_executed",
+            {
+                "status": "timeout" if isinstance(e, QueryCanceled) else "error",
+                "duration_ms": duration_ms,
+                "workspace": workspace.slug,
+                "origin": str(origin),
+                "is_saved_query": saved_query is not None,
+            },
+            user=_tracked_user(request),
         )
         raise
     _log_executed_query(
@@ -195,6 +212,18 @@ def _execute_and_log(
         truncated=result["truncated"],
         saved_query=saved_query,
         parameters=parameters,
+    )
+    track(
+        request,
+        "data_studio.query_executed",
+        {
+            "status": "success",
+            "duration_ms": result["duration_ms"],
+            "workspace": workspace.slug,
+            "origin": str(origin),
+            "is_saved_query": saved_query is not None,
+        },
+        user=_tracked_user(request),
     )
     return result, total_items
 

@@ -14,6 +14,7 @@ from django.http import HttpRequest
 from psycopg2 import Error as Psycopg2Error
 from psycopg2.errors import QueryCanceled
 
+from hexa.analytics.api import track
 from hexa.core.graphql import result_page
 from hexa.databases.query_text import (
     MultipleStatementsError,
@@ -409,6 +410,14 @@ def resolve_create_saved_query(_, info, **kwargs):
             description=mutation_input.get("description") or "",
             visibility=mutation_input.get("visibility"),
             parameters=mutation_input.get("parameters"),
+        )
+        track(
+            request,
+            "data_studio.saved_query_created",
+            {
+                "workspace": workspace.slug,
+                "visibility": saved_query.visibility,
+            },
         )
         return {"success": True, "errors": [], "saved_query": saved_query}
     except Workspace.DoesNotExist:
