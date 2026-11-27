@@ -173,8 +173,6 @@ Note that we use the optional `chunksize` and `dtype` arguments. Use `chunksize`
 In R, use [`connect_database()`](sdk-r.md#using-the-workspace-database) from the OpenHEXA R SDK to get a [DBI](https://dbi.r-dbi.org/) connection:
 
 ```r
-library(openhexa)
-
 con <- connect_database()
 
 # Write data

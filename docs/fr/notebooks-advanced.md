@@ -109,8 +109,6 @@ et éviter les problèmes de conversion causés par le comportement de devinette
 En R, utilisez [`connect_database()`](sdk-r.md#utiliser-la-base-de-donnees-de-lespace-de-travail) du SDK R OpenHEXA pour obtenir une connexion [DBI](https://dbi.r-dbi.org/) :
 
 ```r
-library(openhexa)
-
 con <- connect_database()
 
 # Écrire des données
