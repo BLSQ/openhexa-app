@@ -431,6 +431,44 @@ class DownloadQueryCsvViewTest(TestCase):
         response = self.client.post(self._url(), {"query": "SELECT 1"})
         self.assertEqual(302, response.status_code)
 
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_download_tracks_csv_downloaded_event(self, mock_mixpanel):
+        self.client.force_login(self.USER_SABRINA)
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+
+        response = self.client.post(self._url(), {"query": "SELECT id FROM demo"})
+        self._collect(response)
+
+        self.assertEqual(200, response.status_code)
+        mock_mixpanel.track.assert_called_once_with(
+            distinct_id=str(self.USER_SABRINA.id),
+            event_name="data_studio.csv_downloaded",
+            properties={
+                "workspace": self.WORKSPACE.slug,
+                "is_saved_query": False,
+                "is_public": False,
+            },
+        )
+
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_download_does_not_track_on_400_403_or_429(self, mock_mixpanel):
+        self.client.force_login(self.USER_SABRINA)
+
+        empty = self.client.post(self._url(), {"query": "   "})
+        invalid_sql = self.client.post(self._url(), {"query": "SELCT 1"})
+        with mock.patch("hexa.databases.permissions.run_query", return_value=False):
+            denied = self.client.post(self._url(), {"query": "SELECT 1"})
+        exhausted = threading.BoundedSemaphore(1)
+        exhausted.acquire()
+        with mock.patch("hexa.data_studio.views._EXPORT_SLOTS", exhausted):
+            throttled = self.client.post(self._url(), {"query": "SELECT 1"})
+
+        self.assertEqual(400, empty.status_code)
+        self.assertEqual(400, invalid_sql.status_code)
+        self.assertEqual(403, denied.status_code)
+        self.assertEqual(429, throttled.status_code)
+        mock_mixpanel.track.assert_not_called()
+
 
 class DownloadSavedQueryCsvViewTest(SavedQueryTestMixin, TestCase):
     """The permalink export: a public query's full result, for anyone."""
@@ -542,3 +580,38 @@ class DownloadSavedQueryCsvViewTest(SavedQueryTestMixin, TestCase):
     def test_rejects_get(self):
         query = self.create_saved_query(visibility=SavedQueryVisibility.PUBLIC)
         self.assertEqual(405, self.client.get(self._url(query.slug)).status_code)
+
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_public_download_tracks_csv_downloaded_event(self, mock_mixpanel):
+        query = self.create_saved_query(
+            content="SELECT 1", visibility=SavedQueryVisibility.PUBLIC
+        )
+
+        response = self.client.post(self._url(query.slug))
+        DownloadQueryCsvViewTest._collect(response)
+
+        self.assertEqual(200, response.status_code)
+        mock_mixpanel.track.assert_called_once_with(
+            distinct_id="None",
+            event_name="data_studio.csv_downloaded",
+            properties={
+                "workspace": self.WORKSPACE.slug,
+                "is_saved_query": True,
+                "is_public": True,
+            },
+        )
+
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_public_download_does_not_track_on_404_or_429(self, mock_mixpanel):
+        query = self.create_saved_query(
+            content="SELECT 1", visibility=SavedQueryVisibility.PUBLIC
+        )
+        not_found = self.client.post(self._url("nope"))
+        exhausted = threading.BoundedSemaphore(1)
+        exhausted.acquire()
+        with mock.patch("hexa.data_studio.views._PUBLIC_EXPORT_SLOTS", exhausted):
+            throttled = self.client.post(self._url(query.slug))
+
+        self.assertEqual(404, not_found.status_code)
+        self.assertEqual(429, throttled.status_code)
+        mock_mixpanel.track.assert_not_called()

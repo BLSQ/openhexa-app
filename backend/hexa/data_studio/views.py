@@ -17,6 +17,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from psycopg2 import Error as Psycopg2Error
 
+from hexa.analytics.api import track
 from hexa.core.csv import async_streaming_csv_response
 from hexa.databases.query_text import MultipleStatementsError
 from hexa.workspaces.models import Workspace
@@ -218,6 +219,15 @@ def _stream_query_csv(
                 samesite="Lax",
                 secure=settings.SESSION_COOKIE_SECURE,
             )
+        track(
+            request,
+            "data_studio.csv_downloaded",
+            {
+                "workspace": workspace.slug,
+                "is_saved_query": saved_query is not None,
+                "is_public": public,
+            },
+        )
         handed_off_to_stream = True
         return response
     finally:

@@ -35,6 +35,7 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         workspace=None,
         description="d",
         visibility="WORKSPACE",
+        parameters=None,
     ):
         """Create a query through the API, workspace-shared unless stated otherwise.
 
@@ -43,6 +44,15 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         default.
         """
         self.client.force_login(user)
+        mutation_input = {
+            "workspaceSlug": str((workspace or self.WORKSPACE).slug),
+            "name": name,
+            "content": content,
+            "description": description,
+            "visibility": visibility,
+        }
+        if parameters is not None:
+            mutation_input["parameters"] = parameters
         return self.run_query(
             """
             mutation ($input: CreateSavedQueryInput!) {
@@ -55,15 +65,7 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
                 }
             }
             """,
-            {
-                "input": {
-                    "workspaceSlug": str((workspace or self.WORKSPACE).slug),
-                    "name": name,
-                    "content": content,
-                    "description": description,
-                    "visibility": visibility,
-                }
-            },
+            {"input": mutation_input},
         )
 
     def test_create_saved_query(self):
@@ -711,6 +713,41 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         self.assertIsNone(r["data"])
         self.assertTrue(r["errors"])
 
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_create_saved_query_tracks_event(self, mock_mixpanel):
+        r = self._create_query(self.USER_EDITOR, visibility="WORKSPACE")
+
+        self.assertTrue(r["data"]["createSavedQuery"]["success"])
+        mock_mixpanel.track.assert_called_once_with(
+            distinct_id=str(self.USER_EDITOR.id),
+            event_name="data_studio.saved_query_created",
+            properties={
+                "workspace": self.WORKSPACE.slug,
+                "visibility": "WORKSPACE",
+            },
+        )
+
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_create_saved_query_does_not_track_on_error(self, mock_mixpanel):
+        denied = self._create_query(self.USER_VIEWER, visibility="PUBLIC")
+        invalid = self._create_query(
+            self.USER_EDITOR,
+            content="SELECT {{ ghost }}",
+            parameters=[{"name": "a", "type": "INTEGER"}],
+        )
+        not_member = self._create_query(self.USER_OUTSIDER)
+
+        self.assertEqual(
+            ["PERMISSION_DENIED"], denied["data"]["createSavedQuery"]["errors"]
+        )
+        self.assertEqual(
+            ["INVALID_TEMPLATE"], invalid["data"]["createSavedQuery"]["errors"]
+        )
+        self.assertEqual(
+            ["WORKSPACE_NOT_FOUND"], not_member["data"]["createSavedQuery"]["errors"]
+        )
+        mock_mixpanel.track.assert_not_called()
+
 
 class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
     """The endpoint web apps use: run a stored query without ever seeing its SQL."""
@@ -856,6 +893,25 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         self.assertEqual(QueryLog.Status.DENIED, log.status)
         self.assertEqual(saved_query, log.saved_query)
         self.assertEqual({"a": 1}, log.parameters)
+
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_execute_saved_query_tracks_event(self, mock_mixpanel):
+        saved_query = self.create_saved_query(content="SELECT 1")
+
+        result = self._execute(self.USER_VIEWER, saved_query.slug)
+
+        self.assertTrue(result["success"])
+        mock_mixpanel.track.assert_called_once_with(
+            distinct_id=str(self.USER_VIEWER.id),
+            event_name="data_studio.query_executed",
+            properties={
+                "status": "success",
+                "duration_ms": result["durationMs"],
+                "workspace": self.WORKSPACE.slug,
+                "origin": "OTHER",
+                "is_saved_query": True,
+            },
+        )
 
 
 SHA = "a" * 40

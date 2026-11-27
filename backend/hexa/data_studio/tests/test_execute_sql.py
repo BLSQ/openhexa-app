@@ -332,3 +332,86 @@ class ExecuteSqlTest(GraphQLTestCase):
         log = self._get_single_query_log()
         self.assertEqual(QueryLog.Status.REJECTED, log.status)
         self.assertIsNone(log.result_code)
+
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_execute_sql_tracks_success_event(self, mock_mixpanel):
+        self.client.force_login(self.USER_SABRINA)
+
+        result = self._execute_sql("SELECT 1", origin="DATA_STUDIO")
+
+        self.assertTrue(result["success"])
+        mock_mixpanel.track.assert_called_once_with(
+            distinct_id=str(self.USER_SABRINA.id),
+            event_name="data_studio.query_executed",
+            properties={
+                "status": "success",
+                "duration_ms": result["durationMs"],
+                "workspace": self.WORKSPACE.slug,
+                "origin": "DATA_STUDIO",
+                "is_saved_query": False,
+            },
+        )
+
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_execute_sql_tracks_error_event(self, mock_mixpanel):
+        self.client.force_login(self.USER_SABRINA)
+
+        result = self._execute_sql("SELCT 1")
+
+        self.assertEqual(["QUERY_ERROR"], result["errors"])
+        mock_mixpanel.track.assert_called_once()
+        kwargs = mock_mixpanel.track.call_args.kwargs
+        self.assertEqual(str(self.USER_SABRINA.id), kwargs["distinct_id"])
+        self.assertEqual("data_studio.query_executed", kwargs["event_name"])
+        props = kwargs["properties"]
+        self.assertIsInstance(props["duration_ms"], int)
+        self.assertGreaterEqual(props["duration_ms"], 0)
+        self.assertEqual(
+            {
+                "status": "error",
+                "duration_ms": props["duration_ms"],
+                "workspace": self.WORKSPACE.slug,
+                "origin": "OTHER",
+                "is_saved_query": False,
+            },
+            props,
+        )
+
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_execute_sql_tracks_timeout_event(self, mock_mixpanel):
+        self.client.force_login(self.USER_SABRINA)
+        fast_execute = functools.partial(execute_database_query, timeout_ms=100)
+        with mock.patch(
+            "hexa.data_studio.query_runner.execute_database_query", fast_execute
+        ):
+            result = self._execute_sql("SELECT pg_sleep(3);")
+
+        self.assertEqual(["QUERY_TIMEOUT"], result["errors"])
+        mock_mixpanel.track.assert_called_once()
+        kwargs = mock_mixpanel.track.call_args.kwargs
+        self.assertEqual(str(self.USER_SABRINA.id), kwargs["distinct_id"])
+        self.assertEqual("data_studio.query_executed", kwargs["event_name"])
+        props = kwargs["properties"]
+        self.assertIsInstance(props["duration_ms"], int)
+        self.assertGreaterEqual(props["duration_ms"], 0)
+        self.assertEqual(
+            {
+                "status": "timeout",
+                "duration_ms": props["duration_ms"],
+                "workspace": self.WORKSPACE.slug,
+                "origin": "OTHER",
+                "is_saved_query": False,
+            },
+            props,
+        )
+
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_execute_sql_does_not_track_on_denial_or_rejection(self, mock_mixpanel):
+        self.client.force_login(self.USER_SABRINA)
+        with mock.patch("hexa.databases.permissions.run_query", return_value=False):
+            denied = self._execute_sql("SELECT 1")
+        rejected = self._execute_sql("SELECT 1; SELECT 2")
+
+        self.assertEqual(["PERMISSION_DENIED"], denied["errors"])
+        self.assertEqual(["MULTIPLE_STATEMENTS"], rejected["errors"])
+        mock_mixpanel.track.assert_not_called()
