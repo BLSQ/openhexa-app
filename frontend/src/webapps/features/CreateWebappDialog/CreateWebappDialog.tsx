@@ -18,7 +18,6 @@ import { useEffect, useState } from "react";
 import { useSupersetInstancesQuery } from "webapps/graphql/queries.generated";
 import { getWebappTypeLabel } from "webapps/helpers/webappType";
 import { CreateWebappDialog_WorkspaceFragment } from "./CreateWebappDialog.generated";
-import { isAiAvailable } from "assistant/helpers";
 
 type CreateWebappDialogProps = {
   open: boolean;
@@ -33,7 +32,7 @@ const CreateWebappDialog = ({
 }: CreateWebappDialogProps) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const aiEnabled = isAiAvailable(workspace);
+  const aiEnabled = workspace.aiAvailable;
   const aiBudgetLimitReached =
     workspace.organization?.aiBudgetLimitReached ?? false;
   const [isAIActive, setIsAIActive] = useState(false);
@@ -168,12 +167,9 @@ CreateWebappDialog.fragments = {
   workspace: gql`
     fragment CreateWebappDialog_workspace on Workspace {
       slug
-      aiEnabled
+      aiAvailable
       organization {
         id
-        aiSettings {
-          enabled
-        }
         aiBudgetLimitReached
       }
     }

@@ -15,6 +15,7 @@ from django.test.utils import CaptureQueriesContext
 from hexa.core.test import GraphQLTestCase
 from hexa.databases.utils import TableNotFound
 from hexa.user_management.models import (
+    AiSettings,
     Feature,
     FeatureFlag,
     Organization,
@@ -820,6 +821,29 @@ class WorkspaceTest(GraphQLTestCase):
             },
             r["data"]["updateWorkspace"],
         )
+
+    def test_ai_available_needs_the_organization_and_the_workspace(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
+        ai_settings = self.WORKSPACE.organization.ai_settings_safe
+        ai_settings.provider = AiSettings.Provider.MANAGED
+        for organization_enabled, workspace_enabled, available in [
+            (True, True, True),
+            (True, False, False),
+            (False, True, False),
+        ]:
+            with self.subTest(
+                organization_enabled=organization_enabled,
+                workspace_enabled=workspace_enabled,
+            ):
+                ai_settings.enabled = organization_enabled
+                ai_settings.save()
+                self.WORKSPACE.ai_enabled = workspace_enabled
+                self.WORKSPACE.save()
+                r = self.run_query(
+                    "query workspace($slug: String!) { workspace(slug: $slug) { aiAvailable } }",
+                    {"slug": self.WORKSPACE.slug},
+                )
+                self.assertEqual({"aiAvailable": available}, r["data"]["workspace"])
 
     @patch("hexa.workspaces.schema.types.public_folder_exists", return_value=True)
     def test_public_files_fields(self, _):

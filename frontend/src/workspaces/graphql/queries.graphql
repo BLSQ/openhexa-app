@@ -90,12 +90,9 @@ query WorkspaceDataStudioPage($workspaceSlug: String!) {
       createSavedQuery
       shareSavedQuery
     }
-    aiEnabled
+    aiAvailable
     organization {
       id
-      aiSettings {
-        enabled
-      }
       aiBudgetLimitReached
     }
     ...WorkspaceLayout_workspace
@@ -258,12 +255,9 @@ query WorkspacePipelineCodePage(
   workspace(slug: $workspaceSlug) {
     slug
     name
-    aiEnabled
+    aiAvailable
     organization {
       id
-      aiSettings {
-        enabled
-      }
       aiBudgetLimitReached
     }
     ...PipelineLayout_workspace
@@ -981,12 +975,9 @@ query WorkspaceWebappsPage(
 
 query WorkspaceWebappPage($workspaceSlug: String!, $webappSlug: String!) {
   workspace(slug: $workspaceSlug) {
-    aiEnabled
+    aiAvailable
     organization {
       id
-      aiSettings {
-        enabled
-      }
       aiBudgetLimitReached
     }
     ...WebappForm_workspace

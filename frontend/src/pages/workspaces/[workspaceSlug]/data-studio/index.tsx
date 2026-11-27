@@ -8,7 +8,6 @@ import {
   WorkspaceDataStudioPageDocument,
 } from "workspaces/graphql/queries.generated";
 import DataStudioLayout from "workspaces/layouts/DataStudioLayout";
-import { isAiAvailable } from "assistant/helpers";
 
 type Props = {
   workspaceSlug: string;
@@ -24,7 +23,7 @@ const WorkspaceDataStudioPage: NextPageWithLayout = (props: Props) => {
     return null;
   }
   const { workspace } = data;
-  const aiEnabled = isAiAvailable(workspace);
+  const aiEnabled = workspace.aiAvailable;
   const aiBudgetLimitReached =
     workspace.organization?.aiBudgetLimitReached ?? false;
 

@@ -50,8 +50,9 @@ NEVER_GRANTED = {
         "pipelineTemplateTags",
         # Web apps fetch public files by URL, they never need the setting itself.
         "publicFiles",
-        # Like the organization's aiSettings, an admin setting web apps have no use for.
+        # Like the organization's aiSettings, AI settings web apps have no use for.
         "aiEnabled",
+        "aiAvailable",
     },
     "Pipeline": {
         "workspace",

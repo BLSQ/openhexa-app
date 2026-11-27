@@ -38,6 +38,9 @@ type Workspace {
     # Whether AI (the assistant, its agents and MCP connections) may access the workspace.
     aiEnabled: Boolean!
 
+    # Whether AI features are offered on the workspace: its organization enabled AI and its admins did not block it.
+    aiAvailable: Boolean!
+
     # The date and time when the workspace was created.
     createdAt: DateTime!
 

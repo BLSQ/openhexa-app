@@ -160,6 +160,11 @@ def resolve_webapps_enabled(workspace: Workspace, info):
     return bool(settings.WEBAPPS_DOMAIN)
 
 
+@workspace_object.field("aiAvailable")
+def resolve_workspace_ai_available(workspace: Workspace, info):
+    return workspace.ai_enabled and workspace.organization.ai_settings_safe.enabled
+
+
 @workspace_object.field("publicFiles")
 def resolve_public_files(workspace: Workspace, info):
     return workspace if settings.PUBLIC_FILES_ENABLED else None

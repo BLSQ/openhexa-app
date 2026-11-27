@@ -22,18 +22,3 @@ export function getErrorCodeMessage(t: TFunction, errorCode?: string): string {
     t("The AI service encountered an error. Please try again.")
   );
 }
-
-type AiAvailabilityWorkspace = {
-  aiEnabled: boolean;
-  organization?: { aiSettings?: { enabled?: boolean | null } | null } | null;
-};
-
-// AI is offered only when the organization turned it on and the workspace admins
-// did not block it.
-export function isAiAvailable(
-  workspace: AiAvailabilityWorkspace | null | undefined,
-): boolean {
-  return Boolean(
-    workspace?.aiEnabled && workspace.organization?.aiSettings?.enabled,
-  );
-}

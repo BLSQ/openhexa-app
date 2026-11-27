@@ -7304,6 +7304,7 @@ export type WebappsPage = {
 /** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
 export type Workspace = {
   __typename?: 'Workspace';
+  aiAvailable: Scalars['Boolean']['output'];
   aiEnabled: Scalars['Boolean']['output'];
   assistantConversations: Array<AssistantConversation>;
   /** File storage of the workspace represented as a bucket */

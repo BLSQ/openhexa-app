@@ -26,7 +26,6 @@ import {
   WorkspacePipelineCodePageQueryVariables,
 } from "workspaces/graphql/queries.generated";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
-import { isAiAvailable } from "assistant/helpers";
 
 type Props = {
   pipelineCode: string;
@@ -102,7 +101,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     },
   });
 
-  const aiEnabled = isAiAvailable(data?.workspace);
+  const aiEnabled = data?.workspace?.aiAvailable ?? false;
   const aiBudgetLimitReached =
     data?.workspace?.organization?.aiBudgetLimitReached ?? false;
   const [fetchPipelineVersion, { data: versionData, loading: versionLoading }] =

@@ -6520,6 +6520,7 @@ type WebappsPage {
 Represents a workspace. A workspace is a shared environment where users can collaborate on data projects.
 """
 type Workspace {
+  aiAvailable: Boolean!
   aiEnabled: Boolean!
   assistantConversations: [AssistantConversation!]!
 
