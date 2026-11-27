@@ -1,3 +1,5 @@
+from unittest.mock import ANY, patch
+
 from hexa.core.test import GraphQLTestCase
 from hexa.superset.models import SupersetDashboard, SupersetInstance
 from hexa.user_management.models import (
@@ -210,6 +212,35 @@ class SupersetWebappGraphQLTest(GraphQLTestCase):
         result = response["data"]["createWebapp"]
         self.assertFalse(result["success"])
         self.assertIn("PERMISSION_DENIED", result["errors"])
+
+    @patch("hexa.webapps.schema.mutations.track")
+    def test_create_superset_webapp_tracks_event(self, mock_track):
+        self.client.force_login(self.USER_ADMIN)
+        response = self.run_query(
+            CREATE_WEBAPP_MUTATION,
+            {
+                "input": {
+                    "name": "Tracked Superset Dashboard",
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "source": {
+                        "superset": {
+                            "instanceId": str(self.SUPERSET_INSTANCE.id),
+                            "dashboardId": "ext-tracked",
+                        }
+                    },
+                }
+            },
+        )
+        self.assertTrue(response["data"]["createWebapp"]["success"])
+        mock_track.assert_called_once_with(
+            ANY,
+            "webapps.webapp_created",
+            {
+                "workspace": self.WORKSPACE.slug,
+                "webapp_type": Webapp.WebappType.SUPERSET,
+                "is_public": False,
+            },
+        )
 
     def test_create_superset_webapp_invalid_instance(self):
         self.client.force_login(self.USER_ADMIN)

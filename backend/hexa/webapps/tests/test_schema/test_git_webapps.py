@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 from urllib.parse import urlparse
 
 from django.contrib.sessions.backends.db import SessionStore
@@ -226,6 +226,43 @@ class GitWebappCreateTest(GraphQLTestCase):
         self.assertFalse(result["success"])
         self.assertIn("PERMISSION_DENIED", result["errors"])
         mock_get_client.assert_not_called()
+
+    @patch("hexa.webapps.schema.mutations.track")
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_create_static_webapp_tracks_event(self, mock_get_client, mock_track):
+        mock_client = MagicMock()
+        mock_client.create_organization.return_value = {"username": "no-org"}
+        mock_client.create_org_repository.return_value = {"name": "webapp-tracked"}
+        mock_client.get_commits.return_value = [{"id": "auto-init-sha"}]
+        mock_client.commit_files.return_value = "sha-tracked"
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            CREATE_WEBAPP_MUTATION,
+            {
+                "input": {
+                    "name": "Tracked Static App",
+                    "workspaceSlug": self.WS.slug,
+                    "isPublic": False,
+                    "source": {
+                        "static": [
+                            {"path": "index.html", "content": "<h1>Tracked</h1>"},
+                        ]
+                    },
+                }
+            },
+        )
+        self.assertTrue(response["data"]["createWebapp"]["success"])
+        mock_track.assert_called_once_with(
+            ANY,
+            "webapps.webapp_created",
+            {
+                "workspace": self.WS.slug,
+                "webapp_type": Webapp.WebappType.STATIC,
+                "is_public": False,
+            },
+        )
 
     @patch("hexa.git.mixins.get_forgejo_client")
     def test_create_static_webapp_url_is_serve_endpoint(self, mock_get_client):

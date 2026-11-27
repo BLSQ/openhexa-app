@@ -7,6 +7,7 @@ from django.core.validators import URLValidator
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 
+from hexa.analytics.api import track
 from hexa.git.enums import FileEncoding
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.superset.models import SupersetInstance
@@ -117,7 +118,16 @@ def resolve_create_webapp(_, info, **kwargs):
                     url=source["iframe"]["url"],
                     allowed_operations=allowed_operations,
                 )
-            return {"success": True, "errors": [], "webapp": webapp}
+        track(
+            request,
+            "webapps.webapp_created",
+            {
+                "workspace": workspace.slug,
+                "webapp_type": webapp.type,
+                "is_public": webapp.is_public,
+            },
+        )
+        return {"success": True, "errors": [], "webapp": webapp}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"], "webapp": None}
     except ValidationError:
