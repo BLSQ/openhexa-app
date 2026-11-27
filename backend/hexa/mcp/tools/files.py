@@ -20,6 +20,11 @@ READABLE_EXTENSIONS = frozenset(
         ".tsx",
         ".html",
         ".css",
+        ".md",
+        ".markdown",
+        ".rst",
+        ".rmd",
+        ".qmd",
     }
 )
 _READABLE_EXTENSIONS_LIST = ", ".join(sorted(READABLE_EXTENSIONS))
@@ -29,7 +34,7 @@ _READABLE_EXTENSIONS_LIST = ", ".join(sorted(READABLE_EXTENSIONS))
 def list_files(
     user, workspace_slug: str, prefix: str = "", page: int = 1, per_page: int = 30
 ) -> dict:
-    """List files and directories in a workspace bucket. Use prefix to browse subdirectories (e.g. 'data/'). Returns file name, key (the path to pass to the other file tools), type (file/directory), size, and last update. Use read_file with the key to read source code."""
+    """List files and directories in a workspace bucket. Use prefix to browse subdirectories (e.g. 'data/'). Returns file name, key (the path to pass to the other file tools), type (file/directory), size, and last update. Use read_file with the key to read source code and documentation."""
     data = execute_graphql(
         user,
         "ListFiles",
@@ -114,14 +119,14 @@ def read_file(
     end_line: int | None = None,
     line_numbers: bool = False,
 ) -> dict:
-    """Read a source code file from a workspace bucket, up to 1 MB, or 10 MB when reading a line range or with line_numbers. Only these extensions can be read: .py, .r, .sql, .sh, .js, .mjs, .ts, .jsx, .tsx, .html, .css. Data files (.csv, .json, etc.), notebooks (.ipynb) and any other file are refused, to keep workspace data out of the conversation. Use list_files first to check file size and path. Use start_line and end_line (1-indexed, inclusive) to read a specific range of lines instead of the entire file. Returns `startLine`, `endLine` and `totalLines`, so you can tell whether there is more to read.
+    """Read a source code or documentation file from a workspace bucket, up to 1 MB, or 10 MB when reading a line range or with line_numbers. Only these extensions can be read: .py, .r, .sql, .sh, .js, .mjs, .ts, .jsx, .tsx, .html, .css, .md, .markdown, .rst, .rmd, .qmd. Data files (.csv, .json, etc.), notebooks (.ipynb) and any other file are refused, to keep workspace data out of the conversation. Use list_files first to check file size and path. Use start_line and end_line (1-indexed, inclusive) to read a specific range of lines instead of the entire file. Returns `startLine`, `endLine` and `totalLines`, so you can tell whether there is more to read.
 
     Pass line_numbers=true: each line is prefixed with its number (`     N<TAB>line`, not part of the file), a read returns at most 2000 lines with a notice telling how to read the rest, and lines over 2000 characters are clipped.
     """
     if PurePosixPath(file_path).suffix.lower() not in READABLE_EXTENSIONS:
         return {
             "error": (
-                f"read_file only reads source code files ({_READABLE_EXTENSIONS_LIST}). "
+                f"read_file only reads source code and documentation files ({_READABLE_EXTENSIONS_LIST}). "
                 "Data files, notebooks and other files cannot be read, to keep "
                 "workspace data out of AI conversations."
             )
