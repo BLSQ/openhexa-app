@@ -410,6 +410,7 @@ def resolve_verify_two_factor_login(_, info, **kwargs):
         return {"success": False, "errors": ["INVALID_OTP"]}
 
     django_otp.login(request, device)
+    track(request, "users.user_logged_in", user=request.user)
     return {"success": True, "errors": []}
 
 
