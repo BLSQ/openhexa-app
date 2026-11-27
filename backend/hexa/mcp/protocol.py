@@ -8,7 +8,9 @@ from dataclasses import dataclass
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.http import HttpRequest
 
+from hexa.analytics.api import track
 from hexa.mcp.models import MCPConnection, MCPResource, MCPUser, ToolCall
 
 logger = logging.getLogger(__name__)
@@ -175,9 +177,52 @@ def get_tools_catalogue():
     ]
 
 
-def _refuse(user, name: str, arguments: dict, message: str) -> typing.NoReturn:
+def _track_tool_call(
+    request: HttpRequest | None,
+    user,
+    connection: MCPConnection | None,
+    *,
+    tool_name: str,
+    entry: RegisteredTool,
+    slug: str | None,
+    status: typing.Literal["success", "refused", "error"],
+) -> None:
+    properties = {
+        "tool_name": tool_name,
+        "resource": entry.resource,
+        "write": entry.write,
+        "status": status,
+    }
+    if slug is not None:
+        properties["workspace"] = slug
+    if connection is not None:
+        properties["client"] = connection.application.name
+    tracked_user = getattr(user, "real_user", None) or user
+    track(request, "mcp.tool_called", properties, user=tracked_user)
+
+
+def _refuse(
+    user,
+    name: str,
+    arguments: dict,
+    message: str,
+    *,
+    request: HttpRequest | None,
+    connection: MCPConnection | None,
+    entry: RegisteredTool,
+    slug: str | None,
+) -> typing.NoReturn:
     ToolCall.objects.create(
         user=user, tool_name=name, arguments=arguments, success=False, error=message
+    )
+    _track_tool_call(
+        request,
+        user,
+        connection,
+        tool_name=name,
+        entry=entry,
+        slug=slug,
+        status="refused",
     )
     raise PermissionDenied(message)
 
@@ -186,18 +231,31 @@ class UnknownTool(ValueError):
     """A call names a tool the server does not have, e.g. one removed since the client listed them."""
 
 
-def call_tool(name, arguments, user, connection: MCPConnection | None):
+def call_tool(
+    name,
+    arguments,
+    user,
+    connection: MCPConnection | None,
+    request: HttpRequest | None = None,
+):
     entry = _TOOLS.get(name)
     if not entry:
         raise UnknownTool(
             f"Unknown tool: {name}. It may have been removed: list the available "
             "tools again."
         )
+    slug = _workspace_slug(entry, arguments)
     if not _is_granted(name, entry, connection):
         _refuse(
-            user, name, arguments, scope_refusal_message(connection, f"call {name}")
+            user,
+            name,
+            arguments,
+            scope_refusal_message(connection, f"call {name}"),
+            request=request,
+            connection=connection,
+            entry=entry,
+            slug=slug,
         )
-    slug = _workspace_slug(entry, arguments)
     if slug and isinstance(user, MCPUser) and slug not in user.granted_workspaces:
         _refuse(
             user,
@@ -206,24 +264,48 @@ def call_tool(name, arguments, user, connection: MCPConnection | None):
             scope_refusal_message(
                 connection, f'access workspace "{slug}" (or it does not exist)'
             ),
+            request=request,
+            connection=connection,
+            entry=entry,
+            slug=slug,
         )
     try:
         result = entry.func(user=user, **arguments)
-        ToolCall.objects.create(
-            user=user, tool_name=name, arguments=arguments, success=True
-        )
-        return result
     except Exception as e:
         ToolCall.objects.create(
             user=user, tool_name=name, arguments=arguments, success=False, error=str(e)
         )
+        _track_tool_call(
+            request,
+            user,
+            connection,
+            tool_name=name,
+            entry=entry,
+            slug=slug,
+            status="error",
+        )
         raise
+    ToolCall.objects.create(
+        user=user, tool_name=name, arguments=arguments, success=True
+    )
+    _track_tool_call(
+        request,
+        user,
+        connection,
+        tool_name=name,
+        entry=entry,
+        slug=slug,
+        status="success",
+    )
+    return result
 
 
-def handle_jsonrpc(body: bytes, user) -> dict | None:
+def handle_jsonrpc(
+    body: bytes, user, request: HttpRequest | None = None
+) -> dict | None:
     connection = getattr(user, "connection", None)
     try:
-        request = json.loads(body)
+        payload = json.loads(body)
     except (json.JSONDecodeError, ValueError):
         return {
             "jsonrpc": "2.0",
@@ -231,9 +313,9 @@ def handle_jsonrpc(body: bytes, user) -> dict | None:
             "id": None,
         }
 
-    method = request.get("method")
-    req_id = request.get("id")
-    params = request.get("params", {})
+    method = payload.get("method")
+    req_id = payload.get("id")
+    params = payload.get("params", {})
 
     if method == "initialize":
         return {
@@ -260,7 +342,7 @@ def handle_jsonrpc(body: bytes, user) -> dict | None:
         tool_name = params.get("name")
         tool_args = params.get("arguments", {})
         try:
-            result = call_tool(tool_name, tool_args, user, connection)
+            result = call_tool(tool_name, tool_args, user, connection, request=request)
             content = (
                 json.dumps(result, default=str)
                 if not isinstance(result, str)
