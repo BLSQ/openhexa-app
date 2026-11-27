@@ -13,7 +13,7 @@ En matière de stockage de données, il faut faire une distinction entre :
 - Le **stockage des données de l'application**, qui réside dans une base de données PostgreSQL
 - Le **stockage de l'espace de travail** ou _stockage utilisateur_ (voir le [Manuel d'utilisation](workspaces.md) pour plus d'informations sur les espaces de travail), qui est stocké soit dans des bases de données PostgreSQL, soit dans des buckets de stockage objet (Google Cloud Storage, AWS S3 ou Minio)
 
-Lors de l'exécution de code via les notebooks Jupyter ou les pipelines de données OpenHEXA, les utilisateurs techniques peuvent tirer parti du **SDK Python OpenHEXA** pour interagir avec le backend OpenHEXA (voir [`openhexa-sdk-python`](https://github.com/BLSQ/openhexa-sdk-python)).
+Lors de l'exécution de code via les notebooks Jupyter ou les pipelines de données OpenHEXA, les utilisateurs techniques peuvent tirer parti du **SDK Python OpenHEXA** pour interagir avec le backend OpenHEXA (voir [`openhexa-sdk-python`](https://github.com/BLSQ/openhexa-sdk-python)), ou du **SDK R OpenHEXA** (voir [`openhexa-sdk-r`](https://github.com/BLSQ/openhexa-sdk-r)).
 
 Les notebooks et les pipelines de données s'exécutent généralement dans des conteneurs utilisant l'une de nos images Docker (voir [`openhexa-docker-images`](https://github.com/BLSQ/openhexa-docker-images)) ou une image personnalisée définie par espace de travail.
 

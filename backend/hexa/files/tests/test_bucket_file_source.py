@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from django.test import SimpleTestCase
 
-from hexa.core.text_files import MAX_TEXT_FILE_SIZE, TextFiles
+from hexa.core.text_files import TextFiles
 from hexa.files import bucket_file_source
 from hexa.files.backends.fs import FileSystemStorage
 from hexa.files.bucket_file_source import BucketFileSource
@@ -42,32 +42,13 @@ class BucketFileSourceTest(SimpleTestCase):
         files = BucketFileSource(self.storage, "bucket", prefix="data/nested/")
         self.assertEqual(list(files), ["data/nested/b.py"])
 
-    def test_counts_downloaded_bytes_without_keeping_contents(self):
+    def test_contents_are_never_downloaded(self):
         files = BucketFileSource(self.storage, "bucket")
-        with patch.object(
-            self.storage, "read_object", wraps=self.storage.read_object
-        ) as read_object:
-            self.assertEqual(files["data/a.csv"], "x,y")
-            self.assertIsNone(files["data/logo.png"])
-            self.assertEqual(files["data/a.csv"], "x,y")
-        self.assertEqual(read_object.call_count, 3)
-        self.assertEqual(files.bytes_read, 3 + 5 + 3)
-
-    def test_oversized_files_are_not_downloaded(self):
-        self.storage.save_object(
-            "bucket", "big.json", BytesIO(b"0" * (MAX_TEXT_FILE_SIZE + 1))
-        )
-        files = BucketFileSource(self.storage, "bucket")
-        self.assertIsNone(files["big.json"])
-        self.assertEqual(files.bytes_read, 0)
-
-    def test_binary_and_oversized_files_are_none(self):
-        self.storage.save_object(
-            "bucket", "big.json", BytesIO(b"0" * (MAX_TEXT_FILE_SIZE + 1))
-        )
-        files = BucketFileSource(self.storage, "bucket")
-        self.assertIsNone(files["data/logo.png"])
-        self.assertIsNone(files["big.json"])
+        with patch.object(self.storage, "read_object") as read_object:
+            self.assertIsNone(files["data/a.csv"])
+            result = TextFiles(files).grep("print", glob="**/*.py")
+        self.assertEqual(result["files"], [])
+        read_object.assert_not_called()
 
     def test_unknown_path(self):
         with self.assertRaises(KeyError):
@@ -92,8 +73,6 @@ class BucketFileSourceTest(SimpleTestCase):
             bucket_file_source._MAX_LIST_PAGES,
         )
 
-    def test_grep_through_text_files(self):
-        result = TextFiles(BucketFileSource(self.storage, "bucket")).grep(
-            "print", glob="**/*.py"
-        )
-        self.assertEqual(result["files"], ["data/nested/b.py"])
+    def test_glob_through_text_files(self):
+        result = TextFiles(BucketFileSource(self.storage, "bucket")).glob("**/*.py")
+        self.assertEqual(result["paths"], ["data/nested/b.py"])

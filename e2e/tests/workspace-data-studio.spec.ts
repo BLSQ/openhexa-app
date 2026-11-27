@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
 
+import { features } from "../config/environment";
+import { requires } from "../helpers/features";
 import { WorkspaceDataStudioPage } from "../pages/WorkspaceDataStudioPage";
 
-// These read the Senegal boundaries and bike counts loaded into the test
+// These read the Senegal boundaries and malaria cases loaded into the test
 // workspace's database, so the values asserted are that data's.
 const DEPARTMENTS_PER_REGION = `
   SELECT r.name AS {label}, COUNT(*) AS {value}
@@ -77,13 +79,13 @@ test.describe("Workspace Data Studio", () => {
     const studio = new WorkspaceDataStudioPage(page);
     await studio.goto();
 
-    // 88 points: past the default 50 rows, which would cut the series short.
+    // 52 points: past the default 50 rows, which would cut the series short.
     await studio.maxRows.selectOption("100");
     await studio.run(`
-      SELECT "Time gap" AS line_x, SUM("Count") AS line_y
-      FROM bikes_history
-      GROUP BY "Time gap"
-      ORDER BY "Time gap"`);
+      SELECT epi_week AS line_x, SUM(confirmed_cases) AS line_y
+      FROM malaria_cases_weekly
+      GROUP BY epi_week
+      ORDER BY epi_week`);
 
     await expect(studio.resultTab("Chart")).toHaveAttribute(
       "aria-selected",
@@ -91,8 +93,8 @@ test.describe("Workspace Data Studio", () => {
     );
     await expect(studio.lineChart).toBeVisible();
     // The x axis labels the first, middle and last points.
-    await expect(studio.lineXLabels).toHaveText(["1", "44", "88"]);
-    await expect(studio.resultSummary).toHaveText(/^88 rows/);
+    await expect(studio.lineXLabels).toHaveText(["1", "26", "52"]);
+    await expect(studio.resultSummary).toHaveText(/^52 rows/);
   });
 
   test("pie_label and pie_quantity draw a pie chart", async ({ page }) => {
@@ -131,6 +133,7 @@ test.describe("Workspace Data Studio", () => {
   });
 
   test("the assistant writes a query from a description", async ({ page }) => {
+    requires("ai");
     // This talks to the real agent, so it takes as long as the model does.
     test.setTimeout(180_000);
     const studio = new WorkspaceDataStudioPage(page);
@@ -145,5 +148,17 @@ test.describe("Workspace Data Studio", () => {
     await studio.runButton.click();
     await expect(studio.resultSummary).toHaveText(/^1 row/);
     await expect(studio.resultCells(1)).toHaveText(["1", "14"]);
+  });
+
+  test("without the assistant, the editor offers no query generation", async ({
+    page,
+  }) => {
+    test.skip(features.ai, "The environment has the assistant.");
+    const studio = new WorkspaceDataStudioPage(page);
+    await studio.goto();
+
+    await expect(studio.runButton).toBeVisible();
+    await expect(studio.generateToggle).toHaveCount(0);
+    await expect(studio.generatePrompt).toHaveCount(0);
   });
 });

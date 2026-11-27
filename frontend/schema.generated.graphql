@@ -488,7 +488,6 @@ enum AssistantToolName {
   get_workspace
   glob_files
   glob_webapp_files
-  grep_files
   grep_webapp_files
   list_connections
   list_datasets
@@ -1032,6 +1031,9 @@ enum CreateOrganizationError {
   """Indicates that the provided email is invalid."""
   INVALID_EMAIL
 
+  """Indicates that neither or both of owner and ownerEmail were given."""
+  INVALID_OWNER
+
   """
   Indicates that the provided short name is invalid (must be max 5 uppercase letters).
   """
@@ -1058,9 +1060,12 @@ input CreateOrganizationInput {
   name: String!
 
   """
-  The email address of the organization owner. Creates user if doesn't exist.
+  The organization owner. Exactly one of owner and ownerEmail must be given.
   """
-  ownerEmail: String!
+  owner: OrganizationOwnerInput
+
+  """The email address of the organization owner."""
+  ownerEmail: String @deprecated(reason: "Use `owner.email`.")
 
   """The subscription plan code (e.g., "openhexa_starter")."""
   planCode: String!
@@ -1100,6 +1105,11 @@ type CreateOrganizationResult {
   The registration link for a new owner (null when the owner already had an account). Valid for 48 hours.
   """
   invitationUrl: String
+
+  """
+  A single-use link that logs in the owner created from owner.passwordHash and opens the organization. Valid for 15 minutes.
+  """
+  loginUrl: String
 
   """The created organization object."""
   organization: Organization
@@ -2825,52 +2835,6 @@ type GlobFilesResult {
   truncated: Boolean
 }
 
-type GrepFileCount {
-  count: Int!
-  path: String!
-}
-
-enum GrepFilesError {
-  INVALID_PATH
-  INVALID_PATTERN
-  NOT_FOUND
-  PERMISSION_DENIED
-}
-
-type GrepFilesResult {
-  """With outputMode CONTENT."""
-  content: String
-
-  """With outputMode COUNT."""
-  counts: [GrepFileCount!]
-  errors: [GrepFilesError!]!
-
-  """With outputMode FILES_WITH_MATCHES."""
-  files: [String!]
-  notice: String
-  success: Boolean!
-
-  """With outputMode COUNT: matches across all files."""
-  total: Int
-
-  """
-  True when there are more entries past headLimit, or the search stopped early.
-  """
-  truncated: Boolean
-}
-
-"""How grepFiles reports its matches."""
-enum GrepOutputMode {
-  """Matching lines as `path:line:text`, context lines as `path-line-text`."""
-  CONTENT
-
-  """Number of matches per file, and their total."""
-  COUNT
-
-  """Paths of the files that match."""
-  FILES_WITH_MATCHES
-}
-
 """IASO connection object"""
 type IASOConnection implements Connection {
   createdAt: DateTime!
@@ -3805,6 +3769,27 @@ enum OrganizationMembershipRole {
   OWNER
 }
 
+"""
+The owner of an organization created with createOrganization.
+An owner without an OpenHEXA account is invited, unless passwordHash is given.
+"""
+input OrganizationOwnerInput {
+  email: String!
+
+  """
+  Used for the account created from passwordHash, or to pre-fill the registration form of an invited owner.
+  """
+  firstName: String
+  lastName: String
+
+  """
+  The owner's password, already hashed by a Django password hasher, so that the caller never handles it in clear.
+  When given, an owner without an account gets one with this password instead of an invitation, and the caller sends them to loginUrl.
+  Only send it once the owner has proven they own email: whoever holds this password gets the account.
+  """
+  passwordHash: String
+}
+
 type OrganizationPermissions {
   archiveWorkspace: Boolean!
   createWorkspace: CreateWorkspacePermission!
@@ -4525,14 +4510,6 @@ type Query {
   Hidden files are skipped.
   """
   globFiles(pattern: String!, prefix: String, workspaceSlug: String!): GlobFilesResult!
-
-  """
-  Search the text files of a workspace's bucket matching `glob` with a Python regular
-  expression. Every file searched is downloaded: a search stops after 50 MB or 20 seconds
-  and returns what it found with a notice. Files over 1 MB are skipped. headLimit and
-  offset page through the entries.
-  """
-  grepFiles(context: Int = 0, glob: String!, headLimit: Int, ignoreCase: Boolean = false, offset: Int = 0, outputMode: GrepOutputMode = FILES_WITH_MATCHES, pattern: String!, prefix: String, workspaceSlug: String!): GrepFilesResult!
 
   """The consent context for a pending authorization, by OAuth client id."""
   mcpAuthorizationRequest(clientId: String!): MCPAuthorizationRequest

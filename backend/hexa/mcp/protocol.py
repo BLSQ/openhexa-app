@@ -182,10 +182,17 @@ def _refuse(user, name: str, arguments: dict, message: str) -> typing.NoReturn:
     raise PermissionDenied(message)
 
 
+class UnknownTool(ValueError):
+    """A call names a tool the server does not have, e.g. one removed since the client listed them."""
+
+
 def call_tool(name, arguments, user, connection: MCPConnection | None):
     entry = _TOOLS.get(name)
     if not entry:
-        raise ValueError(f"Unknown tool: {name}")
+        raise UnknownTool(
+            f"Unknown tool: {name}. It may have been removed: list the available "
+            "tools again."
+        )
     if not _is_granted(name, entry, connection):
         _refuse(
             user, name, arguments, scope_refusal_message(connection, f"call {name}")
@@ -266,7 +273,7 @@ def handle_jsonrpc(body: bytes, user) -> dict | None:
                     "content": [{"type": "text", "text": content}],
                 },
             }
-        except PermissionDenied as e:
+        except (PermissionDenied, UnknownTool) as e:
             return {
                 "jsonrpc": "2.0",
                 "id": req_id,

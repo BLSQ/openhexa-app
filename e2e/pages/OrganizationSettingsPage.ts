@@ -43,7 +43,7 @@ export class OrganizationSettingsPage {
   }
 
   get aiAssistantCard(): Locator {
-    return this.card("AI Assistant", "Provider");
+    return this.card("AI Assistant", "Enabled");
   }
 
   get usageAndLimitsCard(): Locator {

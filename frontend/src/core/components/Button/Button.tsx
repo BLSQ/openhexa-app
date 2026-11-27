@@ -22,6 +22,9 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   type?: "button" | "submit" | "reset";
   rounded?: boolean;
   focusRing?: boolean;
+  // Shows only the icon while the page header is narrow. Only meaningful for
+  // buttons rendered in the header of WorkspaceLayout, which defines the container.
+  collapseLabel?: boolean;
 }
 
 export const Classes: { [key: string]: string } = {
@@ -59,6 +62,7 @@ const Button = (props: ButtonProps) => {
     type = "button",
     rounded = true,
     focusRing = true,
+    collapseLabel = false,
     ...delegated
   } = props;
 
@@ -70,24 +74,48 @@ const Button = (props: ButtonProps) => {
     variant !== "custom" && Classes[variant],
     className,
   );
+  const isCollapsible = collapseLabel && Boolean(leadingIcon);
   return (
-    <button className={classes} disabled={disabled} type={type} {...delegated}>
+    <button
+      className={classes}
+      disabled={disabled}
+      type={type}
+      title={
+        isCollapsible && typeof children === "string" ? children : undefined
+      }
+      {...delegated}
+    >
       {leadingIcon ? (
-        <LeadingIcon size={size}>{leadingIcon}</LeadingIcon>
+        <LeadingIcon size={size} collapsible={isCollapsible}>
+          {leadingIcon}
+        </LeadingIcon>
       ) : null}
-      {children}
+      {isCollapsible ? (
+        <span className="sr-only @6xl/header:not-sr-only">{children}</span>
+      ) : (
+        children
+      )}
     </button>
   );
 };
 Button.Variants = ButtonVariants;
 Button.Sizes = ButtonSizes;
 
-const LeadingIcon = (props: { children: ReactNode; size?: ButtonSize }) => {
+const LeadingIcon = (props: {
+  children: ReactNode;
+  size?: ButtonSize;
+  collapsible?: boolean;
+}) => {
+  const isSmall = props.size === ButtonSizes[0];
   return (
     <div
       className={clsx(
-        "-ml-1",
-        props.size === ButtonSizes[0] ? "mr-1" : "mr-1.5",
+        props.collapsible
+          ? clsx(
+              "@6xl/header:-ml-1",
+              isSmall ? "@6xl/header:mr-1" : "@6xl/header:mr-1.5",
+            )
+          : clsx("-ml-1", isSmall ? "mr-1" : "mr-1.5"),
       )}
       aria-hidden="true"
     >

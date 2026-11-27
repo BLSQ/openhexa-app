@@ -27,7 +27,11 @@
           {% endblocktranslate %}
         </mj-text>
         <mj-text color="#333333" padding-top="10px">
-          {% if invited_by %}
+          {% if new_account %}
+          {% blocktranslate with organization=organization %}
+          Your OpenHEXA account and your organization <strong>{{organization}}</strong> are ready. To log in, use the same email address and password as on the Bluesquare Console.
+          {% endblocktranslate %}
+          {% elif invited_by %}
           {% blocktranslate with owner_name=invited_by.display_name owner_email=invited_by.email organization=organization %}
           <strong>{{owner_name}}</strong> ({{owner_email}}) has added you to the organization <strong>{{organization}}</strong> on OpenHEXA.
           {% endblocktranslate %}

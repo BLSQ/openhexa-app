@@ -5,6 +5,7 @@ from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core import mail
@@ -1314,9 +1315,9 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         self.regular_user = self.create_user("regular@blsq.org")
 
     @staticmethod
-    def _create_input(owner_email: str, name: str) -> dict:
+    def _create_input(owner_email: str, name: str, **owner) -> dict:
         return {
-            "ownerEmail": owner_email,
+            "owner": {"email": owner_email, **owner},
             "name": name,
             "subscriptionId": "12345678-1234-1234-1234-123456789012",
             "planCode": "openhexa_starter",
@@ -1347,7 +1348,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "ownerEmail": "newowner@example.org",
+                    "owner": {"email": "newowner@example.org"},
                     "name": "New SaaS Organization",
                     "subscriptionId": "12345678-1234-1234-1234-123456789012",
                     "planCode": "openhexa_starter",
@@ -1408,7 +1409,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "ownerEmail": "newowner@example.org",
+                    "owner": {"email": "newowner@example.org"},
                     "name": "Org Without AI Budget",
                     "subscriptionId": "12345678-1234-1234-1234-123456789013",
                     "planCode": "openhexa_starter",
@@ -1513,6 +1514,221 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         mock_send_email.assert_not_called()
 
     @patch("hexa.user_management.schema.mutations.send_organization_add_user_email")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_create_organization_with_owner_account(
+        self, mock_send_invite, mock_send_email
+    ):
+        """A new owner sent with a password hash gets an account with that password and a login link, no invitation."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) { success loginUrl invitationUrl user { email } }
+            }
+            """,
+            {
+                "input": self._create_input(
+                    "newowner@example.org",
+                    "Org With Account",
+                    firstName="Ada",
+                    lastName="Lovelace",
+                    passwordHash=make_password("console-password"),
+                )
+            },
+        )
+
+        result = r["data"]["createOrganization"]
+        self.assertTrue(result["success"])
+        self.assertEqual(result["user"]["email"], "newowner@example.org")
+        self.assertIsNone(result["invitationUrl"])
+        self.assertTrue(
+            result["loginUrl"].startswith(
+                f"{settings.NEW_FRONTEND_DOMAIN}/auth/login-link/"
+            )
+        )
+        owner = User.objects.get(email="newowner@example.org")
+        self.assertEqual((owner.first_name, owner.last_name), ("Ada", "Lovelace"))
+        self.assertTrue(owner.check_password("console-password"))
+        self.assertTrue(
+            owner.is_organization_owner(
+                Organization.objects.get(name="Org With Account")
+            )
+        )
+        self.assertFalse(
+            OrganizationInvitation.objects.filter(email="newowner@example.org").exists()
+        )
+        mock_send_invite.assert_not_called()
+        mock_send_email.assert_called_once_with(
+            invited_by=self.superuser,
+            organization=Organization.objects.get(name="Org With Account"),
+            invitee=owner,
+            role=OrganizationMembershipRole.OWNER,
+            new_account=True,
+        )
+
+    def test_create_organization_emails_created_owner_how_to_log_in(self):
+        self.client.force_login(self.superuser)
+        self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) { success }
+            }
+            """,
+            {
+                "input": self._create_input(
+                    "newowner@example.org",
+                    "Org Welcome",
+                    passwordHash=make_password("console-password"),
+                )
+            },
+        )
+
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+        self.assertEqual(email.to, ["newowner@example.org"])
+        self.assertEqual(
+            email.subject, "Your organization Org Welcome is ready on OpenHEXA"
+        )
+        self.assertIn(
+            "same email address and password as on the Bluesquare Console", email.body
+        )
+        organization = Organization.objects.get(name="Org Welcome")
+        self.assertIn(f"/organizations/{organization.id}", email.body)
+
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_create_organization_invites_owner_with_unreadable_password_hash(
+        self, mock_send_invite
+    ):
+        """A hash OpenHEXA cannot read never blocks the owner: they are invited instead, and the error is reported."""
+        self.client.force_login(self.superuser)
+        with self.assertLogs(
+            "hexa.user_management.schema.mutations", level="ERROR"
+        ) as logs:
+            r = self.run_query(
+                """
+                mutation CreateOrganization($input: CreateOrganizationInput!) {
+                    createOrganization(input: $input) { success loginUrl invitationUrl user { email } }
+                }
+                """,
+                {
+                    "input": self._create_input(
+                        "newowner@example.org",
+                        "Org Bad Hash",
+                        passwordHash="unknown_hasher$1$abc",
+                    )
+                },
+            )
+
+        result = r["data"]["createOrganization"]
+        self.assertTrue(result["success"])
+        self.assertIsNone(result["loginUrl"])
+        self.assertIsNone(result["user"])
+        self.assertIn("token=", result["invitationUrl"])
+        self.assertFalse(User.objects.filter(email="newowner@example.org").exists())
+        mock_send_invite.assert_called_once()
+        self.assertIn("newowner@example.org", logs.output[0])
+
+    @patch("hexa.user_management.schema.mutations.send_organization_add_user_email")
+    def test_create_organization_with_owner_account_for_existing_user(
+        self, mock_send_email
+    ):
+        """An existing owner keeps their account and password, and gets no login link."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) { success loginUrl user { email } }
+            }
+            """,
+            {
+                "input": self._create_input(
+                    self.regular_user.email,
+                    "Org Existing Owner",
+                    passwordHash=make_password("other-password"),
+                )
+            },
+        )
+
+        result = r["data"]["createOrganization"]
+        self.assertTrue(result["success"])
+        self.assertIsNone(result["loginUrl"])
+        self.regular_user.refresh_from_db()
+        self.assertFalse(self.regular_user.check_password("other-password"))
+        mock_send_email.assert_called_once()
+
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_create_organization_prefills_invited_owner_names(self, mock_send_invite):
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) { success invitationUrl }
+            }
+            """,
+            {
+                "input": self._create_input(
+                    "newowner@example.org",
+                    "Org Invited Names",
+                    firstName="Ada",
+                    lastName="Lovelace",
+                )
+            },
+        )
+
+        result = r["data"]["createOrganization"]
+        self.assertTrue(result["success"])
+        self.assertIn("first_name=Ada&last_name=Lovelace", result["invitationUrl"])
+        self.assertFalse(User.objects.filter(email="newowner@example.org").exists())
+
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_create_organization_with_deprecated_owner_email(self, mock_send_invite):
+        self.client.force_login(self.superuser)
+        create_input = self._create_input("newowner@example.org", "Org Legacy")
+        del create_input["owner"]
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) { success invitationUrl }
+            }
+            """,
+            {"input": {**create_input, "ownerEmail": "NewOwner@example.org"}},
+        )
+
+        result = r["data"]["createOrganization"]
+        self.assertTrue(result["success"])
+        self.assertTrue(
+            OrganizationInvitation.objects.filter(
+                email="newowner@example.org",
+                organization__name="Org Legacy",
+            ).exists()
+        )
+        mock_send_invite.assert_called_once()
+
+    def test_create_organization_requires_exactly_one_owner(self):
+        self.client.force_login(self.superuser)
+        create_input = self._create_input("newowner@example.org", "Org Owner")
+        without_owner = {k: v for k, v in create_input.items() if k != "owner"}
+        for label, input_data in [
+            ("neither", without_owner),
+            ("both", {**create_input, "ownerEmail": "newowner@example.org"}),
+        ]:
+            with self.subTest(label):
+                r = self.run_query(
+                    """
+                    mutation CreateOrganization($input: CreateOrganizationInput!) {
+                        createOrganization(input: $input) { success errors }
+                    }
+                    """,
+                    {"input": input_data},
+                )
+
+                self.assertEqual(
+                    {"success": False, "errors": ["INVALID_OWNER"]},
+                    r["data"]["createOrganization"],
+                )
+        self.assertFalse(Organization.objects.filter(name="Org Owner").exists())
+
+    @patch("hexa.user_management.schema.mutations.send_organization_add_user_email")
     def test_create_organization_with_existing_user(self, mock_send_email):
         """Test creating organization with an existing user as owner."""
         self.client.force_login(self.superuser)
@@ -1530,7 +1746,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "ownerEmail": self.regular_user.email,
+                    "owner": {"email": self.regular_user.email},
                     "name": "Org for Existing User",
                     "subscriptionId": "22222222-2222-2222-2222-222222222222",
                     "planCode": "openhexa_starter",
@@ -1574,7 +1790,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "ownerEmail": "test@example.org",
+                    "owner": {"email": "test@example.org"},
                     "name": "Unauthorized Org",
                     "subscriptionId": "33333333-3333-3333-3333-333333333333",
                     "planCode": "openhexa_starter",
@@ -1621,7 +1837,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "ownerEmail": "test@example.org",
+                    "owner": {"email": "test@example.org"},
                     "name": "Existing Organization",
                     "subscriptionId": "44444444-4444-4444-4444-444444444444",
                     "planCode": "openhexa_starter",
@@ -1671,7 +1887,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "ownerEmail": "newowner@serviceaccount.org",
+                    "owner": {"email": "newowner@serviceaccount.org"},
                     "name": "Service Account Created Org",
                     "subscriptionId": "66666666-6666-6666-6666-666666666666",
                     "planCode": "openhexa_starter",
@@ -1705,7 +1921,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "ownerEmail": "owner@example.org",
+                    "owner": {"email": "owner@example.org"},
                     "name": "World Health Organization",
                     "shortName": "WHO",
                     "subscriptionId": "77777777-7777-7777-7777-777777777777",
@@ -1740,7 +1956,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "ownerEmail": "owner@example.org",
+                    "owner": {"email": "owner@example.org"},
                     "name": "Some Organization",
                     "shortName": "invalid",
                     "subscriptionId": "88888888-8888-8888-8888-888888888888",

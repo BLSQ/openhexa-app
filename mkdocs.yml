@@ -112,7 +112,8 @@ plugins:
             Developer Guide: Guide développeur
             Writing Pipelines: Écrire des pipelines
             CLI: CLI
-            SDK: SDK
+            Python SDK: SDK Python
+            R SDK: SDK R
             Toolbox DHIS2: Toolbox DHIS2
             IASO Client: Client IASO
             Toolbox OpenHEXA Client: Toolbox Client OpenHEXA
@@ -235,7 +236,8 @@ nav:
     - Writing Pipelines: writing-pipelines.md
     - Static Webapps: static-webapps.md
     - CLI: cli.md
-    - SDK: sdk.md
+    - Python SDK: sdk.md
+    - R SDK: sdk-r.md
     - Toolbox DHIS2: toolbox-dhis2.md
     - IASO Client: toolbox-iaso.md
     - Toolbox OpenHEXA Client: toolbox-hexa.md

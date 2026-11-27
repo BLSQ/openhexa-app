@@ -31,7 +31,7 @@ from hexa.user_management.sso.sso_views import (
     make_compat_callback_view,
     make_compat_login_view,
 )
-from hexa.user_management.views import LogoutView
+from hexa.user_management.views import LogoutView, login_link
 from hexa.workspaces.audit import audit_extensions
 
 from .schema import schema
@@ -83,6 +83,7 @@ urlpatterns = [
         LogoutView.as_view(),
         name="logout",
     ),
+    path("auth/login-link/<str:token>/", login_link, name="login_link"),
     path("auth/", include("django.contrib.auth.urls")),
     re_path(
         r"^graphql/([\w+\/]*?)?$",

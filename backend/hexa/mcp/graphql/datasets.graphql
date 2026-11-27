@@ -74,9 +74,12 @@ query PreviewDatasetFile($id: ID!) {
     rows
     columns
     fileSample {
-      sample
       status
-      statusReason
+    }
+    attributes {
+      key
+      value
+      system
     }
   }
 }

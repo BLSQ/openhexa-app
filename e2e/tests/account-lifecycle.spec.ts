@@ -11,6 +11,7 @@ import {
 } from "../config/environment";
 import { test as mailboxTest } from "../fixtures/mailbox";
 import { expect, test as visitorsTest } from "../fixtures/visitors";
+import { requires } from "../helpers/features";
 import { linkTo, mailboxAddress, otpCode } from "../helpers/mailbox";
 import { AccountSettingsPage } from "../pages/AccountSettingsPage";
 import { LoginPage } from "../pages/LoginPage";
@@ -253,6 +254,7 @@ test.describe("Account lifecycle by email", () => {
     anonymousPage,
     mailbox,
   }) => {
+    requires("selfRegistration");
     const login = new LoginPage(anonymousPage);
     const register = new RegisterPage(anonymousPage);
     // Its own address: registering it would leave a second account behind,

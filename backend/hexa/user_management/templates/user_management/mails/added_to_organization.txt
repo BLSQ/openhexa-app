@@ -4,7 +4,11 @@
 Hi {{invitee}},
 {% endblocktranslate %}
 
-{% if invited_by %}
+{% if new_account %}
+{% blocktranslate with organization=organization %}
+Your OpenHEXA account and your organization "{{organization}}" are ready. To log in, use the same email address and password as on the Bluesquare Console.
+{% endblocktranslate %}
+{% elif invited_by %}
 {% blocktranslate with owner_name=invited_by.display_name owner_email=invited_by.email organization=organization %}
 {{owner_name}} ({{owner_email}}) has added you to the organization "{{organization}}" on OpenHEXA.
 {% endblocktranslate %}

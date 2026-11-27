@@ -37,7 +37,7 @@ uvicorn
 dhis2.py
 
 # connector_s3
-boto3==1.43.118
+boto3==1.44.7
 moto[s3]
 
 # connector_airflow

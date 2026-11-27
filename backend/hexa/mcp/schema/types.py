@@ -1,6 +1,7 @@
 from ariadne import EnumType, ObjectType
 
 from hexa.mcp.models import MCPConnection, MCPResource
+from hexa.mcp.protocol import get_tools_catalogue
 from hexa.user_management.models import Organization
 from hexa.workspaces.models import Workspace
 
@@ -33,7 +34,10 @@ def resolve_organizations(connection: MCPConnection, info):
 
 @mcp_connection_object.field("tools")
 def resolve_tools(connection: MCPConnection, info):
-    return sorted(connection.tools)
+    # A stored grant can name a tool removed since; sending it back on the next save
+    # would be refused as TOOL_NOT_FOUND, so it is not reported.
+    known = {tool["name"] for tool in get_tools_catalogue()}
+    return sorted(known.intersection(connection.tools))
 
 
 bindables = [mcp_connection_object, mcp_resource_enum]

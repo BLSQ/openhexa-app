@@ -1,5 +1,11 @@
-import { BASE_URL, credentials, workspacePaths } from "../config/environment";
+import {
+  BASE_URL,
+  credentials,
+  features,
+  workspacePaths,
+} from "../config/environment";
 import { expect, test } from "../fixtures/visitors";
+import { requires } from "../helpers/features";
 import { uniqueName } from "../helpers/confirm";
 import { LoginPage } from "../pages/LoginPage";
 import { UserMenu } from "../pages/UserMenu";
@@ -70,6 +76,7 @@ test.describe("Authentication", () => {
   test("sign-up is offered, and registering needs an invitation", async ({
     anonymousPage,
   }) => {
+    requires("selfRegistration");
     const login = new LoginPage(anonymousPage);
 
     await login.goto();
@@ -82,5 +89,17 @@ test.describe("Authentication", () => {
     // Registration completes an emailed invitation; without one it bounces.
     await anonymousPage.goto("/register/");
     await expect(anonymousPage).toHaveURL(/\/login/);
+  });
+
+  test("without self sign-up, the sign-up page leads back to sign in", async ({
+    anonymousPage,
+  }) => {
+    test.skip(features.selfRegistration, "The environment offers sign-up.");
+    const login = new LoginPage(anonymousPage);
+
+    await anonymousPage.goto("/signup/");
+    await expect(anonymousPage).toHaveURL(/\/login/);
+    await expect(login.submitButton).toBeVisible();
+    await expect(login.signUpLink).toHaveCount(0);
   });
 });

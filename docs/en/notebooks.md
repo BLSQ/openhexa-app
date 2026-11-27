@@ -41,6 +41,7 @@ The OpenHEXA notebooks component works as a standard Jupyter environment, with a
 This guide walks you through the specifics of the OpenHEXA notebooks environment. You may also find these guides helpful:
 
 - [Using the OpenHEXA SDK](sdk.md): The OpenHEXA SDK is a Python library that provides building blocks and helper methods for writing code on OpenHEXA
+- [Using the OpenHEXA R SDK](sdk-r.md): The `openhexa` R package, to work with files, datasets, the database, web apps and pipelines from R
 - [Using the OpenHEXA Toolbox - DHIS2](toolbox-dhis2.md): Acquire and process data from DHIS2 instances
 - [Using the OpenHEXA Toolbox - IASO](toolbox-iaso.md): Fetch data from IASO
 - [OpenHEXA Client](toolbox-hexa.md): Typed GraphQL client for the OpenHEXA platform
@@ -108,7 +109,7 @@ When you launch the notebooks environment, you'll see that the Jupyter filesyste
 
 You can only write data in these two directories. **You can't create files or directories at the root** of the filesystem.
 
-For more information about the `workspace` and `tmp` directories and how to use them with Python, see the [SDK documentation](sdk.md#reading-and-writing-files). For R users, see the code sample below (we don't have an SDK for R yet).
+For more information about the `workspace` and `tmp` directories and how to use them with Python, see the [SDK documentation](sdk.md#reading-and-writing-files). For R, see the [R SDK documentation](sdk-r.md#reading-and-writing-files) and the code sample below.
 
 https://github.com/BLSQ/openhexa/assets/690667/8f279c1f-c371-490f-a04f-84a97b028859
 
@@ -126,7 +127,7 @@ df = pd.DataFrame({"foo": [1, 2, 3], "bar": [4, 5, 6]})
 df.to_csv(f"{workspace.files_path}/foobar.csv")
 ```
 
-The equivalent R example (until we have a SDK for R, you will have to hard-code the workspace directory path):
+The equivalent R example, using the mounted workspace directory (the [R SDK](sdk-r.md#reading-and-writing-files) also provides `get_file()` and `upload_file()`, which work outside notebooks too):
 
 ```r
 # Read data
@@ -169,28 +170,18 @@ pd.read_sql("SELECT * FROM a_new_table", con=engine)
 
 Note that we use the optional `chunksize` and `dtype` arguments. Use `chunksize` to control the number of rows written in each batch (to optimize memory usage), and use `dtype` to explicitly specify PostgreSQL column types and avoid conversion issues caused by the default type guessing behavior.
 
-Since we don't have an SDK for R yet, you'll need to use environment variables to get the database credentials when using R.
-
-Here is how you can do it using [DBI](https://dbi.r-dbi.org/):
+In R, use [`connect_database()`](sdk-r.md#using-the-workspace-database) from the OpenHEXA R SDK to get a [DBI](https://dbi.r-dbi.org/) connection:
 
 ```r
-# Initial connection
-library(DBI)
-con <- dbConnect(
-    RPostgres::Postgres(),
-    dbname = Sys.getenv("WORKSPACE_DATABASE_DB_NAME"),
-    host = Sys.getenv("WORKSPACE_DATABASE_HOST"),
-    port = Sys.getenv("WORKSPACE_DATABASE_PORT"),
-    user = Sys.getenv("WORKSPACE_DATABASE_USERNAME"),
-    password = Sys.getenv("WORKSPACE_DATABASE_PASSWORD")
-)
+con <- connect_database()
 
 # Write data
-x          <- 1:10
-y          <- letters[1:10]
-some_data <- tibble::tibble(x, y)
-dbWriteTable(con, "another_table", some_data, overwrite=TRUE)
-df <- dbReadTable(con, "another_table")
+some_data <- data.frame(x = 1:10, y = letters[1:10])
+DBI::dbWriteTable(con, "another_table", some_data, overwrite = TRUE)
+
+# Read data
+df <- DBI::dbReadTable(con, "another_table")
+DBI::dbDisconnect(con)
 ```
 
 ## Use connections

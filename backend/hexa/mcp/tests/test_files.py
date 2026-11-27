@@ -8,8 +8,8 @@ from hexa.files.backends.base import StorageObject
 from hexa.files.backends.exceptions import NotFound
 from hexa.files.backends.fs import FileSystemStorage
 from hexa.mcp.tools.files import (
+    READABLE_EXTENSIONS,
     glob_files,
-    grep_files,
     list_files,
     read_file,
     write_file,
@@ -54,30 +54,30 @@ class ListFilesTest(MCPTestCase):
 class ReadFileTest(MCPTestCase):
     @patch("hexa.files.schema.queries.storage")
     def test_read_file(self, mock_storage):
-        mock_storage.read_object.return_value = b"col1,col2\nval1,val2"
+        mock_storage.read_object.return_value = b"import os\nprint(os.getcwd())"
         mock_storage.get_bucket_object.return_value = StorageObject(
-            key="data.csv",
-            name="data.csv",
-            path="data.csv",
-            size=19,
+            key="script.py",
+            name="script.py",
+            path="script.py",
+            size=31,
             updated_at=None,
             type="file",
         )
         result = read_file(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
-            file_path="data.csv",
+            file_path="script.py",
         )
         self.assertTrue(result["success"])
-        self.assertEqual(result["content"], "col1,col2\nval1,val2")
+        self.assertEqual(result["content"], "import os\nprint(os.getcwd())")
 
     @patch("hexa.files.schema.queries.storage")
     def test_read_file_with_line_range(self, mock_storage):
         mock_storage.read_object.return_value = b"line1\nline2\nline3\nline4\nline5\n"
         mock_storage.get_bucket_object.return_value = StorageObject(
-            key="data.txt",
-            name="data.txt",
-            path="data.txt",
+            key="script.py",
+            name="script.py",
+            path="script.py",
             size=30,
             updated_at=None,
             type="file",
@@ -85,7 +85,7 @@ class ReadFileTest(MCPTestCase):
         result = read_file(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
-            file_path="data.txt",
+            file_path="script.py",
             start_line=2,
             end_line=4,
         )
@@ -96,9 +96,9 @@ class ReadFileTest(MCPTestCase):
     def test_read_file_start_line_only(self, mock_storage):
         mock_storage.read_object.return_value = b"line1\nline2\nline3\n"
         mock_storage.get_bucket_object.return_value = StorageObject(
-            key="data.txt",
-            name="data.txt",
-            path="data.txt",
+            key="script.py",
+            name="script.py",
+            path="script.py",
             size=18,
             updated_at=None,
             type="file",
@@ -106,7 +106,7 @@ class ReadFileTest(MCPTestCase):
         result = read_file(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
-            file_path="data.txt",
+            file_path="script.py",
             start_line=2,
         )
         self.assertTrue(result["success"])
@@ -116,9 +116,9 @@ class ReadFileTest(MCPTestCase):
     def test_read_file_end_line_only(self, mock_storage):
         mock_storage.read_object.return_value = b"line1\nline2\nline3\n"
         mock_storage.get_bucket_object.return_value = StorageObject(
-            key="data.txt",
-            name="data.txt",
-            path="data.txt",
+            key="script.py",
+            name="script.py",
+            path="script.py",
             size=18,
             updated_at=None,
             type="file",
@@ -126,11 +126,59 @@ class ReadFileTest(MCPTestCase):
         result = read_file(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
-            file_path="data.txt",
+            file_path="script.py",
             end_line=2,
         )
         self.assertTrue(result["success"])
         self.assertEqual(result["content"], "line1\nline2\n")
+
+    @patch("hexa.files.schema.queries.storage")
+    def test_read_file_refuses_non_source_files(self, mock_storage):
+        for file_path in [
+            "data.csv",
+            "config.json",
+            "analysis.ipynb",
+            "notes.txt",
+            "DATA.CSV",
+            "scripts/data.py.csv",
+            ".env",
+            "Dockerfile",
+        ]:
+            with self.subTest(file_path=file_path):
+                result = read_file(
+                    user=self.USER_ADMIN,
+                    workspace_slug=self.WORKSPACE.slug,
+                    file_path=file_path,
+                )
+                self.assertIn(
+                    "only reads source code and documentation files", result["error"]
+                )
+        mock_storage.read_object.assert_not_called()
+        mock_storage.get_bucket_object.assert_not_called()
+
+    @patch("hexa.files.schema.queries.storage")
+    def test_read_file_extension_is_case_insensitive(self, mock_storage):
+        mock_storage.read_object.return_value = b"x <- 1"
+        mock_storage.get_bucket_object.return_value = StorageObject(
+            key="analysis.R",
+            name="analysis.R",
+            path="analysis.R",
+            size=6,
+            updated_at=None,
+            type="file",
+        )
+        result = read_file(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            file_path="analysis.R",
+        )
+        self.assertTrue(result["success"])
+        self.assertEqual(result["content"], "x <- 1")
+
+    def test_read_file_description_lists_every_readable_extension(self):
+        for extension in READABLE_EXTENSIONS:
+            with self.subTest(extension=extension):
+                self.assertIn(extension, read_file.__doc__)
 
 
 class WriteFileTest(MCPTestCase):
@@ -211,86 +259,14 @@ class GlobFilesTest(_BucketTestCase):
         self.assertEqual(result["errors"], ["INVALID_PATH"])
 
 
-class GrepFilesTest(_BucketTestCase):
-    def test_grep_files_content(self):
-        result = grep_files(
-            user=self.USER_ADMIN,
-            workspace_slug=self.WORKSPACE.slug,
-            pattern=r"^def ",
-            glob="**/*.py",
-            output_mode="content",
-        )
-        self.assertEqual(
-            result["content"],
-            "scripts/clean.py:2:def clean(df):\nscripts/load.py:1:def load():",
-        )
-
-    def test_grep_files_only_reads_files_matching_glob(self):
-        with patch.object(FileSystemStorage, "read_object", autospec=True) as read:
-            read.return_value = b"def load():"
-            grep_files(
-                user=self.USER_ADMIN,
-                workspace_slug=self.WORKSPACE.slug,
-                pattern="def",
-                glob="scripts/load.py",
-            )
-        read.assert_called_once()
-
-    @patch("hexa.files.schema.queries.GREP_MAX_DOWNLOAD_BYTES", 1)
-    def test_grep_files_stops_at_the_download_budget(self):
-        result = grep_files(
-            user=self.USER_ADMIN,
-            workspace_slug=self.WORKSPACE.slug,
-            pattern="def",
-            glob="**/*.py",
-            output_mode="count",
-        )
-        self.assertEqual(result["counts"], {"scripts/clean.py": 1})
-        self.assertTrue(result["truncated"])
-        self.assertIn("stopped after 1 of 2 files", result["notice"])
-
-    @patch("hexa.files.schema.queries.GREP_TIMEOUT_SECONDS", 0)
-    def test_grep_files_stops_at_the_timeout(self):
-        result = grep_files(
-            user=self.USER_ADMIN,
-            workspace_slug=self.WORKSPACE.slug,
-            pattern="def",
-            glob="**/*.py",
-        )
-        self.assertEqual(result["files"], [])
-        self.assertIn("stopped after 0 of 2 files", result["notice"])
-
-    @patch("hexa.files.bucket_file_source.MAX_LISTED_FILES", 2)
-    @patch("hexa.files.schema.queries.GREP_MAX_DOWNLOAD_BYTES", 1)
-    def test_grep_files_keeps_both_notices(self):
-        result = grep_files(
-            user=self.USER_ADMIN,
-            workspace_slug=self.WORKSPACE.slug,
-            pattern="a",
-            glob="**",
-        )
-        self.assertIn("Search stopped", result["notice"])
-        self.assertIn("Only the first", result["notice"])
-
-    def test_grep_files_no_access(self):
-        result = grep_files(
-            user=self.USER_OUTSIDER,
-            workspace_slug=self.WORKSPACE.slug,
-            pattern="def",
-            glob="**",
-        )
-        self.assertFalse(result["success"])
-        self.assertEqual(result["errors"], ["NOT_FOUND"])
-
-
 class ReadFileWithLineNumbersTest(MCPTestCase):
     @patch("hexa.files.schema.queries.storage")
     def test_read_file_with_line_numbers(self, mock_storage):
         mock_storage.read_object.return_value = b"line1\nline2\nline3\n"
         mock_storage.get_bucket_object.return_value = StorageObject(
-            key="data.txt",
-            name="data.txt",
-            path="data.txt",
+            key="script.py",
+            name="script.py",
+            path="script.py",
             size=18,
             updated_at=None,
             type="file",
@@ -298,7 +274,7 @@ class ReadFileWithLineNumbersTest(MCPTestCase):
         result = read_file(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
-            file_path="data.txt",
+            file_path="script.py",
             start_line=2,
             line_numbers=True,
         )

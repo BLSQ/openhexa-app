@@ -534,7 +534,6 @@ export enum AssistantToolName {
   GetWorkspace = 'get_workspace',
   GlobFiles = 'glob_files',
   GlobWebappFiles = 'glob_webapp_files',
-  GrepFiles = 'grep_files',
   GrepWebappFiles = 'grep_webapp_files',
   ListConnections = 'list_connections',
   ListDatasets = 'list_datasets',
@@ -1061,6 +1060,8 @@ export type CreateMembershipResult = {
 export enum CreateOrganizationError {
   /** Indicates that the provided email is invalid. */
   InvalidEmail = 'INVALID_EMAIL',
+  /** Indicates that neither or both of owner and ownerEmail were given. */
+  InvalidOwner = 'INVALID_OWNER',
   /** Indicates that the provided short name is invalid (must be max 5 uppercase letters). */
   InvalidShortName = 'INVALID_SHORT_NAME',
   /** Indicates that an organization with the same name already exists. */
@@ -1078,8 +1079,13 @@ export type CreateOrganizationInput = {
   limits: ResourceCountsInput;
   /** The name of the organization. */
   name: Scalars['String']['input'];
-  /** The email address of the organization owner. Creates user if doesn't exist. */
-  ownerEmail: Scalars['String']['input'];
+  /** The organization owner. Exactly one of owner and ownerEmail must be given. */
+  owner?: InputMaybe<OrganizationOwnerInput>;
+  /**
+   * The email address of the organization owner.
+   * @deprecated Use `owner.email`.
+   */
+  ownerEmail?: InputMaybe<Scalars['String']['input']>;
   /** The subscription plan code (e.g., "openhexa_starter"). */
   planCode: Scalars['String']['input'];
   /**
@@ -1107,6 +1113,8 @@ export type CreateOrganizationResult = {
   errors: Array<CreateOrganizationError>;
   /** The registration link for a new owner (null when the owner already had an account). Valid for 48 hours. */
   invitationUrl?: Maybe<Scalars['String']['output']>;
+  /** A single-use link that logs in the owner created from owner.passwordHash and opens the organization. Valid for 15 minutes. */
+  loginUrl?: Maybe<Scalars['String']['output']>;
   /** The created organization object. */
   organization?: Maybe<Organization>;
   /** Indicates whether the createOrganization mutation was successful. */
@@ -2793,46 +2801,6 @@ export type GlobFilesResult = {
   truncated?: Maybe<Scalars['Boolean']['output']>;
 };
 
-export type GrepFileCount = {
-  __typename?: 'GrepFileCount';
-  count: Scalars['Int']['output'];
-  path: Scalars['String']['output'];
-};
-
-export enum GrepFilesError {
-  InvalidPath = 'INVALID_PATH',
-  InvalidPattern = 'INVALID_PATTERN',
-  NotFound = 'NOT_FOUND',
-  PermissionDenied = 'PERMISSION_DENIED'
-}
-
-export type GrepFilesResult = {
-  __typename?: 'GrepFilesResult';
-  /** With outputMode CONTENT. */
-  content?: Maybe<Scalars['String']['output']>;
-  /** With outputMode COUNT. */
-  counts?: Maybe<Array<GrepFileCount>>;
-  errors: Array<GrepFilesError>;
-  /** With outputMode FILES_WITH_MATCHES. */
-  files?: Maybe<Array<Scalars['String']['output']>>;
-  notice?: Maybe<Scalars['String']['output']>;
-  success: Scalars['Boolean']['output'];
-  /** With outputMode COUNT: matches across all files. */
-  total?: Maybe<Scalars['Int']['output']>;
-  /** True when there are more entries past headLimit, or the search stopped early. */
-  truncated?: Maybe<Scalars['Boolean']['output']>;
-};
-
-/** How grepFiles reports its matches. */
-export enum GrepOutputMode {
-  /** Matching lines as `path:line:text`, context lines as `path-line-text`. */
-  Content = 'CONTENT',
-  /** Number of matches per file, and their total. */
-  Count = 'COUNT',
-  /** Paths of the files that match. */
-  FilesWithMatches = 'FILES_WITH_MATCHES'
-}
-
 /** IASO connection object */
 export type IasoConnection = Connection & {
   __typename?: 'IASOConnection';
@@ -4378,6 +4346,23 @@ export enum OrganizationMembershipRole {
   Owner = 'OWNER'
 }
 
+/**
+ * The owner of an organization created with createOrganization.
+ * An owner without an OpenHEXA account is invited, unless passwordHash is given.
+ */
+export type OrganizationOwnerInput = {
+  email: Scalars['String']['input'];
+  /** Used for the account created from passwordHash, or to pre-fill the registration form of an invited owner. */
+  firstName?: InputMaybe<Scalars['String']['input']>;
+  lastName?: InputMaybe<Scalars['String']['input']>;
+  /**
+   * The owner's password, already hashed by a Django password hasher, so that the caller never handles it in clear.
+   * When given, an owner without an account gets one with this password instead of an invitation, and the caller sends them to loginUrl.
+   * Only send it once the owner has proven they own email: whoever holds this password gets the account.
+   */
+  passwordHash?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type OrganizationPermissions = {
   __typename?: 'OrganizationPermissions';
   archiveWorkspace: Scalars['Boolean']['output'];
@@ -5130,13 +5115,6 @@ export type Query = {
    * Hidden files are skipped.
    */
   globFiles: GlobFilesResult;
-  /**
-   * Search the text files of a workspace's bucket matching `glob` with a Python regular
-   * expression. Every file searched is downloaded: a search stops after 50 MB or 20 seconds
-   * and returns what it found with a notice. Files over 1 MB are skipped. headLimit and
-   * offset page through the entries.
-   */
-  grepFiles: GrepFilesResult;
   /** The consent context for a pending authorization, by OAuth client id. */
   mcpAuthorizationRequest?: Maybe<McpAuthorizationRequest>;
   /** The MCP clients the current user has connected. */
@@ -5357,19 +5335,6 @@ export type QueryGetFileByPathArgs = {
 
 
 export type QueryGlobFilesArgs = {
-  pattern: Scalars['String']['input'];
-  prefix?: InputMaybe<Scalars['String']['input']>;
-  workspaceSlug: Scalars['String']['input'];
-};
-
-
-export type QueryGrepFilesArgs = {
-  context?: InputMaybe<Scalars['Int']['input']>;
-  glob: Scalars['String']['input'];
-  headLimit?: InputMaybe<Scalars['Int']['input']>;
-  ignoreCase?: InputMaybe<Scalars['Boolean']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  outputMode?: InputMaybe<GrepOutputMode>;
   pattern: Scalars['String']['input'];
   prefix?: InputMaybe<Scalars['String']['input']>;
   workspaceSlug: Scalars['String']['input'];

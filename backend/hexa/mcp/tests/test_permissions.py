@@ -147,6 +147,28 @@ class ToolCallEnforcementTest(TestCase):
         self.assertIn("Claude", text)
         self.assertIn("/user/account#mcp-connections", text)
 
+    def test_a_removed_tool_is_reported_as_unknown_over_jsonrpc(self):
+        connection = self.connection(["list_files", "grep_files"])
+        mcp_user = MCPUser.from_user(self.USER, connection)
+
+        with self.assertNoLogs("hexa.mcp.protocol", level="ERROR"):
+            response = handle_jsonrpc(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "tools/call",
+                        "params": {"name": "grep_files", "arguments": {}},
+                    }
+                ).encode(),
+                mcp_user,
+            )
+
+        self.assertTrue(response["result"]["isError"])
+        text = response["result"]["content"][0]["text"]
+        self.assertIn("Unknown tool: grep_files", text)
+        self.assertNotIn("internal error", text)
+
     def test_tools_list_over_jsonrpc_is_filtered_by_the_grant(self):
         connection = self.connection(["list_files", "read_file"])
         mcp_user = MCPUser.from_user(self.USER, connection)

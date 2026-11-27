@@ -42,7 +42,9 @@ skipped without it. The domain and API host (`E2E_MAIL_DOMAIN`,
 `E2E_MAILGUN_API_BASE`) default to the ones set up for the suite, as do the
 address and display name of the account that pipeline run reports are sent to
 (`E2E_RECIPIENT_EMAIL`, `E2E_RECIPIENT_NAME`): a permanent Viewer of the test
-workspace the suite never signs in as.
+workspace the suite never signs in as. The suite assumes it is there: on an
+environment that does not have it yet, invite that address to the workspace and
+register it under that name first.
 
 ## Running
 
@@ -105,6 +107,24 @@ variables:
 ```bash
 E2E_BASE_URL=https://app.openhexa.org E2E_ORGANIZATION_ID=... npm test
 ```
+
+### Running against an instance set up differently
+
+Not every deployment offers what demo does: a self-hosted one has no sign-up
+page, no subscription console, and no assistant until an administrator
+configures one. Say so in `.env` and the tests that need the feature are
+skipped, with the reason in the report; where there is something to check, a
+test asserts that the feature is indeed absent.
+
+| Variable | Set to `false` when |
+| --- | --- |
+| `E2E_SERVER_CONFIGURATION_SELF_REGISTRATION_ENABLED` | `ALLOW_SELF_REGISTRATION` is off, so the login page has no sign-up link |
+| `E2E_SERVER_CONFIGURATION_AI_ENABLED` | The assistant is not enabled in the organization's settings |
+| `E2E_SERVER_CONFIGURATION_SUBSCRIPTION_CONSOLE_ENABLED` | The frontend has no `CONSOLE_URL`, so Usage & Limits links nowhere |
+
+All default to `true`. The suite never works these out from the instance: a
+feature that goes missing where it is declared fails its tests, rather than
+quietly skipping them.
 
 ## Layout
 
@@ -191,8 +211,12 @@ The workspace specs run against a dedicated, otherwise-empty workspace
 empty.
 
 The Data Studio specs also read the tables loaded into that workspace's database
-(Senegal's `level_2_region` and `level_3_department`, and `bikes_history`) and
+(Senegal's `level_2_region` and `level_3_department`, and the synthetic
+`malaria_cases_weekly`) and
 assert on their values, so reloading that data means updating the expectations.
+The suite assumes they are there: on an environment that does not have them yet,
+load `seed/seed-tables.sql` into the workspace's database first (the file's
+header says how).
 
 ### Things worth knowing before adding a test
 

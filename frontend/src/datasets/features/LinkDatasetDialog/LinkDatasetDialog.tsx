@@ -59,13 +59,15 @@ const LinkDatasetDialog = ({
       } else if (
         data?.linkDataset.errors.includes(LinkDatasetError.AlreadyLinked)
       ) {
-        throw new Error(t("This dataset is already linked to this workspace"));
+        throw new Error(
+          t("This dataset is already shared with this workspace"),
+        );
       } else if (
         data?.linkDataset.errors.includes(LinkDatasetError.PermissionDenied)
       ) {
-        throw new Error(t("You don't have permission to link this dataset"));
+        throw new Error(t("You don't have permission to share this dataset"));
       } else {
-        throw new Error(t("An error occurred while linking this dataset"));
+        throw new Error(t("An error occurred while sharing this dataset"));
       }
     },
     validate(values) {
@@ -87,12 +89,12 @@ const LinkDatasetDialog = ({
     <Dialog open={open} onClose={onClose} centered={false}>
       <form onSubmit={form.handleSubmit}>
         <Dialog.Title>
-          {t("Create a new link to '{{name}}'", { name: dataset.name })}
+          {t("Share '{{name}}' with a workspace", { name: dataset.name })}
         </Dialog.Title>
         <Dialog.Content className={"space-y-4"}>
           <p>
             {t(
-              "Linking this dataset with a workspace is going to make it visible from the workspace's members.",
+              "The members of the workspace will be able to view and download this dataset.",
             )}
           </p>
           <Field
@@ -115,7 +117,7 @@ const LinkDatasetDialog = ({
             {t("Cancel")}
           </Button>
           <Button disabled={form.isSubmitting} type="submit">
-            {t("Link")}
+            {t("Share")}
           </Button>
         </Dialog.Actions>
       </form>

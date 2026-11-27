@@ -190,46 +190,6 @@ type GlobFilesResult {
   notice: String
 }
 
-"""
-How grepFiles reports its matches.
-"""
-enum GrepOutputMode {
-  "Paths of the files that match."
-  FILES_WITH_MATCHES
-  "Matching lines as `path:line:text`, context lines as `path-line-text`."
-  CONTENT
-  "Number of matches per file, and their total."
-  COUNT
-}
-
-enum GrepFilesError {
-  NOT_FOUND
-  PERMISSION_DENIED
-  INVALID_PATH
-  INVALID_PATTERN
-}
-
-type GrepFileCount {
-  path: String!
-  count: Int!
-}
-
-type GrepFilesResult {
-  success: Boolean!
-  errors: [GrepFilesError!]!
-  "With outputMode FILES_WITH_MATCHES."
-  files: [String!]
-  "With outputMode CONTENT."
-  content: String
-  "With outputMode COUNT."
-  counts: [GrepFileCount!]
-  "With outputMode COUNT: matches across all files."
-  total: Int
-  "True when there are more entries past headLimit, or the search stopped early."
-  truncated: Boolean
-  notice: String
-}
-
 input WriteFileContentInput {
   workspaceSlug: String!
   filePath: String!
@@ -300,14 +260,6 @@ extend type Query {
   Hidden files are skipped.
   """
   globFiles(workspaceSlug: String!, pattern: String!, prefix: String): GlobFilesResult! @loginRequired
-
-  """
-  Search the text files of a workspace's bucket matching `glob` with a Python regular
-  expression. Every file searched is downloaded: a search stops after 50 MB or 20 seconds
-  and returns what it found with a notice. Files over 1 MB are skipped. headLimit and
-  offset page through the entries.
-  """
-  grepFiles(workspaceSlug: String!, pattern: String!, glob: String!, prefix: String, outputMode: GrepOutputMode = FILES_WITH_MATCHES, ignoreCase: Boolean = false, context: Int = 0, headLimit: Int, offset: Int = 0): GrepFilesResult! @loginRequired
 }
 
 extend type WorkspacePermissions {

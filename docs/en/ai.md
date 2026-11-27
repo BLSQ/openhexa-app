@@ -34,7 +34,7 @@ OpenHEXA provides a [Model Context Protocol (MCP)](https://modelcontextprotocol.
 
 Connecting a client works through OAuth: the client redirects you to OpenHEXA, where you sign in and select exactly which workspaces it may access and which tools it may call. Workspaces are grouped by organization: selecting an organization grants all of its workspaces, including those created or joined later. You can restrict or revoke these permissions at any time from **Account → MCP connections**. Changes take effect on the next tool call.
 
-With MCP, the underlying model is chosen and run by your external AI client, not OpenHEXA. Anything returned by a tool (such as file contents, dataset previews, or pipeline code) is sent to that client and processed under its provider's terms of service. Only grant access to the workspaces and tools you actually need.
+With MCP, the underlying model is chosen and run by your external AI client, not OpenHEXA. Anything returned by a tool (such as file contents, dataset file columns, or pipeline code) is sent to that client and processed under its provider's terms of service. Only grant access to the workspaces and tools you actually need.
 
 ## What the AI can access
 
@@ -44,7 +44,7 @@ In both cases, the AI acts **on your behalf**: every tool call goes through the 
 
 | Task | Reads | Writes |
 | --- | --- | --- |
-| Create / edit pipeline | Workspace metadata and description, datasets and dataset file previews, workspace files, connection names and field names (never secret values), the pipeline's code and files, OpenHEXA documentation | Creates the pipeline (creation); proposes updates or a new version for you to accept (editing) |
+| Create / edit pipeline | Workspace metadata and description, datasets and the columns of their files (names and types, never rows), workspace files, connection names and field names (never secret values), the pipeline's code and files, OpenHEXA documentation | Creates the pipeline (creation); proposes updates or a new version for you to accept (editing) |
 | Create / edit web app | Same as pipelines, plus the database schema (tables and columns, never rows), saved queries, the workspace pipeline list, and the web app's files | Creates the web app; creates or updates saved queries; proposes updates for you to accept |
 | Generate SQL | Only the database schema: table and column names and types. It never reads the rows of any table, and no query result is ever sent to the model | Nothing: the query is only displayed for you to review |
 
@@ -58,7 +58,7 @@ Tools are grouped by resource. Each grant covers one resource group, with read a
 | --- | --- | --- |
 | Workspaces | list, get | update |
 | Files | list, read | write |
-| Datasets | list, get, preview files | create datasets and versions |
+| Datasets | list, get, describe files (columns only, never rows) | create datasets and versions |
 | Pipelines | list, get, get run | run, update, create, create version |
 | Pipeline templates | list, get | create pipeline from template |
 | Web apps | list, get, read files | create, update, edit files |

@@ -20,6 +20,9 @@ migration = importlib.import_module("hexa.mcp.migrations.0002_mcp_connection")
 file_search_migration = importlib.import_module(
     "hexa.mcp.migrations.0003_grant_file_search_tools"
 )
+revoke_grep_migration = importlib.import_module(
+    "hexa.mcp.migrations.0005_revoke_grep_files"
+)
 
 
 class BackfillConnectionsTest(TestCase):
@@ -197,4 +200,13 @@ class GrantFileSearchToolsTest(TestCase):
                 file_search_migration.revoke_file_search_tools, connection
             ),
             ["read_file"],
+        )
+
+    def test_grep_files_is_revoked_from_connections(self):
+        connection = self.connection(
+            "searcher@openhexa.org", ["glob_files", "grep_files", "read_file"]
+        )
+        self.assertEqual(
+            self.tools_after(revoke_grep_migration.revoke_grep_files, connection),
+            ["glob_files", "read_file"],
         )

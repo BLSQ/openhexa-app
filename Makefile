@@ -111,13 +111,14 @@ i18n: ## Extract the frontend translation strings
 
 ##@ End-to-end
 
-# These drive a deployed environment (demo by default) rather than a local
-# stack, so they need credentials in e2e/.env and are kept out of `make tests`.
+# These drive a deployed environment (demo by default, E2E_BASE_URL in e2e/.env
+# for another) rather than a local stack, so they need credentials in e2e/.env
+# and are kept out of `make tests`.
 
 ie2e install_e2e: ## Install the e2e dependencies and the browser they drive
 	$(NPM_E2E) install
 
-te2e tests_e2e: ## Run the e2e tests against the demo environment, headless
+te2e tests_e2e: ## Run the e2e tests against the environment in e2e/.env, headless
 	$(NPM_E2E) run test -- $(ARGS)
 
 te2ev tests_e2e_visual: ## Run the e2e tests in a visible browser, slowed down to follow
