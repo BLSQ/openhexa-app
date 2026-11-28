@@ -57,7 +57,7 @@ black==26.10.1
     # via ariadne-codegen
 bleach==6.4.0
     # via django-sql-dashboard
-boto3==1.44.7
+boto3==1.44.9
     # via
     #   -r requirements.in
     #   moto
